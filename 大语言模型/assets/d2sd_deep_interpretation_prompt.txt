@@ -1,0 +1,37 @@
+Create a wide 16:9 academic technical infographic about the paper "D^2SD: Accelerating Speculative Decoding with Dual Diffusion Draft Models".
+
+Visual goal:
+- A clean, information-dense research explainer canvas, suitable for a Chinese technical blog cover/slide.
+- Use a left-to-right system pipeline plus four large analysis panels.
+- Style: white and very light gray background, thin grid lines, crisp vector-like boxes, subtle blue/green/orange/purple/teal accents, modern AI systems diagram aesthetic, GPU/server silhouettes, token blocks, prefix-tree branches, and latency/speedup chart motifs.
+- Avoid tiny generated text. Leave clear blank label areas where precise Chinese labels will be overlaid later.
+
+Content structure to visually support:
+1. Algorithm content:
+   - DFlash first draft: one parallel block diffusion draft, a single chain of token blocks.
+   - Confidence boundary estimator: confidence scores c_k, rejection boundary distribution r(i).
+   - Top-K shared-prefix branch selection: select likely failed prefixes and re-mask suffix.
+   - VP-Drafter: variable-prefix diffusion drafter proposes alternative continuations in one batched pass.
+   - Cascade attention verification: jointly verify K+1 candidates and commit longest accepted prefix.
+2. Effects:
+   - Qwen3-8B greedy average speedup improves from DFlash 4.16x to D^2SD 4.98x; acceptance length 5.31 to 7.05.
+   - GPT-OSS-20B greedy average speedup improves from DFlash 3.53x to D^2SD 6.15x; acceptance length 4.13 to 8.02.
+   - Sampling/chat gains are smaller; use a caution marker.
+3. Comparison with other approaches:
+   - Compared with DFlash: fixes single-chain early mismatch waste, but adds a VP-Drafter pass and cascade verification complexity.
+   - Compared with EAGLE/tree speculative decoding: avoids autoregressive drafting tax through parallel diffusion, but confidence calibration and training cost matter.
+   - Compared with naive K resampling: branches are guided by likely rejection boundaries, not uniform repeated samples.
+   - A third cascade level increases acceptance length but hurts wall-clock speedup.
+4. AI software stack and hardware implications:
+   - Runtime needs variable-prefix batching, prefix-tree metadata, longest-prefix acceptance search.
+   - Kernels/runtime: FlashAttention-2, flashinfer cascade attention, CUDA graph capture/pre-warming.
+   - Memory: target KV cache + DFlash drafter cache + VP-Drafter cache + branch metadata.
+   - Hardware: benefits depend on target verification cost, GPU memory bandwidth, batch capacity, and H200-like accelerator efficiency.
+   - Metrics to consider: acceptance length alpha, end-to-end latency, throughput, memory peak, confidence calibration, serving load.
+
+Composition:
+- Top band: title area and a pipeline of five modules.
+- Middle band: key judgment callout.
+- Bottom band: four panels: "Algorithm", "Effects", "Comparison", "Software/Hardware Impact".
+- Use abstract token squares, branching arrows, GPU cards, server racks, and chart bars.
+- No readable generated text, no random letters, no equations, no watermarks.

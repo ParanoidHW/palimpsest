@@ -1,0 +1,1780 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DFlash draft model acceptance-risk discussion</title>
+  <style>
+
+    :root {
+      --bg: #f6f4ef;
+      --panel: #fffdf8;
+      --panel-2: #f0eee7;
+      --ink: #24211c;
+      --muted: #69655e;
+      --line: #d9d4c9;
+      --user: #006d77;
+      --assistant: #7b3f00;
+      --tool: #4b5563;
+      --system: #6d28d9;
+      --note: #33691e;
+      --accent: #c2410c;
+      --mark: #fff176;
+      --shadow: 0 16px 40px rgba(36, 33, 28, 0.08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(0, 109, 119, 0.08), transparent 38%),
+        linear-gradient(180deg, #fbfaf6, var(--bg));
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 7px;
+      padding: 8px 11px;
+      cursor: pointer;
+    }
+
+    button:hover { border-color: #aaa39a; }
+    button.primary { background: var(--ink); color: #fffdf8; border-color: var(--ink); }
+    button.icon { width: 36px; height: 36px; padding: 0; display: grid; place-items: center; }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(250px, 320px) 1fr minmax(250px, 330px);
+      min-height: 100vh;
+    }
+
+    aside, main {
+      min-width: 0;
+    }
+
+    .sidebar, .details {
+      background: rgba(255, 253, 248, 0.82);
+      backdrop-filter: blur(12px);
+      border-right: 1px solid var(--line);
+      padding: 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+    }
+
+    .details {
+      border-right: 0;
+      border-left: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #24211c;
+      color: white;
+      font-weight: 800;
+    }
+
+    h1 {
+      font-size: 17px;
+      line-height: 1.2;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .dropzone {
+      border: 1px dashed #aaa39a;
+      background: rgba(255, 253, 248, 0.66);
+      border-radius: 8px;
+      padding: 14px;
+      margin: 12px 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .dropzone.drag {
+      border-color: var(--accent);
+      background: #fff6ed;
+    }
+
+    .file-row, .toolbar, .filter-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .toolbar select {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 7px 8px;
+    }
+
+    input[type="file"] { display: none; }
+
+    .search {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px 10px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .section-title {
+      margin: 18px 0 8px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .role-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    label.check {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 9px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    label.check:hover { background: var(--panel-2); }
+    label.check span { display: flex; align-items: center; gap: 8px; }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--tool);
+      flex: 0 0 auto;
+    }
+
+    .dot.user { background: var(--user); }
+    .dot.assistant { background: var(--assistant); }
+    .dot.system, .dot.developer { background: var(--system); }
+    .dot.note { background: var(--note); }
+
+    .main {
+      padding: 18px 26px 80px;
+      overflow: auto;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 12px;
+    }
+
+    .title-block h2 {
+      margin: 0 0 4px;
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin: 14px 0;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, 0.76);
+      padding: 10px;
+      min-height: 66px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .turn {
+      position: relative;
+      border: 1px solid var(--line);
+      border-left-width: 5px;
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .turn.active { outline: 2px solid rgba(194, 65, 12, 0.28); }
+    .turn.collapsed .turn-head { border-bottom: 0; }
+    .turn.collapsed .turn-body { display: none; }
+    .turn.user { border-left-color: var(--user); }
+    .turn.assistant { border-left-color: var(--assistant); }
+    .turn.tool { border-left-color: var(--tool); }
+    .turn.system, .turn.developer { border-left-color: var(--system); }
+    .turn.note { border-left-color: var(--note); }
+
+    .turn-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 13px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(240, 238, 231, 0.64);
+    }
+
+    .speaker {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .speaker strong {
+      font-size: 14px;
+      text-transform: capitalize;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .turn-body {
+      padding: 14px 16px 16px;
+      line-height: 1.58;
+      font-size: 14px;
+    }
+
+    .turn-body p { margin: 0 0 10px; }
+    .turn-body p:last-child { margin-bottom: 0; }
+    .turn-body h1, .turn-body h2, .turn-body h3 {
+      font-size: 16px;
+      margin: 14px 0 8px;
+    }
+
+    .turn-body pre {
+      background: #1f2933;
+      color: #f8fafc;
+      border-radius: 7px;
+      padding: 12px;
+      overflow: auto;
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .turn-body code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    .turn-body :not(pre) > code {
+      background: #eee8dc;
+      padding: 2px 4px;
+      border-radius: 5px;
+    }
+
+    .turn-body blockquote {
+      border-left: 3px solid var(--line);
+      margin: 10px 0;
+      padding-left: 12px;
+      color: var(--muted);
+    }
+
+    .turn-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .collapse-btn {
+      min-width: 34px;
+      height: 28px;
+      padding: 0 8px;
+      line-height: 1;
+      color: var(--muted);
+      background: rgba(255, 253, 248, 0.78);
+    }
+
+    .qa-summary {
+      display: none;
+      padding: 0 16px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .turn.collapsed .qa-summary { display: block; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 2px 8px;
+      font-size: 12px;
+      color: var(--muted);
+      background: #fff;
+    }
+
+    mark {
+      background: var(--mark);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(255, 253, 248, 0.66);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .drawer {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .drawer summary {
+      cursor: pointer;
+      padding: 10px 12px;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .drawer .inside {
+      border-top: 1px solid var(--line);
+      padding: 12px;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 86px 1fr;
+      gap: 7px 10px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .kv dt {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .kv dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .toc {
+      display: grid;
+      gap: 6px;
+    }
+
+    .toc button {
+      width: 100%;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: left;
+      background: transparent;
+      border-color: transparent;
+      padding: 8px;
+    }
+
+    .toc button:hover { background: var(--panel-2); }
+    .toc .snippet {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .copy-status {
+      min-height: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .live-controls {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, 0.66);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .live-controls select {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 7px 8px;
+    }
+
+    @media (max-width: 1100px) {
+      .app { grid-template-columns: 280px 1fr; }
+      .details { display: none; }
+    }
+
+    @media (max-width: 760px) {
+      .app { display: block; }
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .main { padding: 16px; }
+      .topbar { display: grid; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .turn-head { align-items: flex-start; }
+      .meta { white-space: normal; }
+    }
+  
+    .snapshot-note { margin-top: 12px; }
+    .snapshot-actions, .dropzone, .live-controls, textarea, input, select { display: none !important; }
+    .app { grid-template-columns: minmax(250px, 320px) 1fr minmax(250px, 330px); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>
+          <h1>Interaction Snapshot</h1>
+          <div class="subtle">静态 HTML 快照</div>
+        </div>
+      </div>
+      <div class="section-title">摘要</div>
+      <dl class="kv">
+        <dt>title</dt><dd>DFlash draft model acceptance-risk discussion</dd>
+        <dt>turns</dt><dd>22</dd>
+        <dt>roles</dt><dd>3</dd>
+        <dt>tags</dt><dd>38</dd>
+      </dl>
+      <div class="subtle snapshot-note">此文件由 Interaction Viewer 导出，已内嵌当前 Markdown 的渲染结果。</div>
+    </aside>
+    <main class="main">
+      <div class="topbar">
+        <div class="title-block">
+          <h2>DFlash draft model acceptance-risk discussion</h2>
+          <div class="subtle">created: 2026-06-15T14:48:08+08:00 · 22 turns exported</div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><strong>22</strong><span class="subtle">turns</span></div>
+        <div class="stat"><strong>3</strong><span class="subtle">roles</span></div>
+        <div class="stat"><strong>38</strong><span class="subtle">tags</span></div>
+        <div class="stat"><strong>10</strong><span class="subtle">Assistant</span></div><div class="stat"><strong>2</strong><span class="subtle">Tool</span></div><div class="stat"><strong>10</strong><span class="subtle">User</span></div>
+      </div>
+      <div class="timeline">
+          <article class="turn user " data-turn-id="u1">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot user"></i>
+                <div>
+                  <strong>User</strong>
+                  <div class="meta">2026-06-15T14:43:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">request</span> <span class="tag">dflash</span> <span class="tag">speculative-decoding</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>我现在想训练一个 dflash 草稿模型，但是缺少经验，现在最大的风险是草稿模型的接受率，我们期望草稿 8 个 token，平均能接受 6-7 个。你先帮我分析下需要考虑哪些维度，业界有哪些经验值得参考。把我们的讨论按照 <code>agent_interaction_format_spec.md</code> 的格式进行整理。</p></div>
+          </article>
+        
+          <article class="turn tool " data-turn-id="tool1">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot tool"></i>
+                <div>
+                  <strong>Tool · shell</strong>
+                  <div class="meta">2026-06-15T14:44:00+08:00 · ok</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">format</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>读取 <code>agent_interaction_format_spec.md</code>，确认可导入格式为：</p>
+<p>```text</p>
+<p>Markdown frontmatter + 每个事件使用 &lt;!-- turn ... --&gt; 和</p></div>
+          </article>
+        
+          <article class="turn tool " data-turn-id="tool2">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot tool"></i>
+                <div>
+                  <strong>Tool · research</strong>
+                  <div class="meta">2026-06-15T14:47:00+08:00 · ok</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">citation</span> <span class="tag">research</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>参考的公开资料：</p>
+<ul>
+<li>DFlash: Block Diffusion for Flash Speculative Decoding, arXiv:2602.06036. &lt;https://arxiv.org/abs/2602.06036&gt;</li>
+<li>DF LARE: Scaling Up Draft Capacity for Block Diffusion Speculative Decoding, arXiv:2606.02091. &lt;https://arxiv.org/abs/2606.02091&gt;</li>
+<li>Test-Time Speculation, arXiv:2605.09329. &lt;https://arxiv.org/abs/2605.09329&gt;</li>
+</ul></div>
+          </article>
+        
+          <article class="turn assistant " data-turn-id="a1">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot assistant"></i>
+                <div>
+                  <strong>Assistant</strong>
+                  <div class="meta">2026-06-15T14:48:08+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">analysis</span> <span class="tag">acceptance-risk</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><h2>核心判断</h2>
+<p>目标“草稿 8 个 token，平均接受 6-7 个”是一个很高的目标，需要先统一指标口径。DFlash 论文中的 acceptance length <code>tau</code> 有时按 speculative decoding cycle 统计，可能包含 target model 额外产出的 bonus token；如果你们说的是“8 个 draft token 里接受 6-7 个”，那对应到含 bonus token 的口径可能是 <code>tau=7-8</code>，比表面看起来更激进。</p>
+<p>如果把每个位置的命中率粗略视为相同且独立，8 个 draft token 的期望接受数为 <code>sum_{k=1}^{8} p^k</code>。达到平均接受 6 个需要单位置条件命中率大约 93%-94%；达到 7 个需要接近 97%。真实场景里越靠后的 token 更难，所以应重点看 position-wise accuracy 和 fail-position 分布，而不是只看均值。</p>
+<p>公开 DFlash 结果说明这个目标在部分短输出、greedy、数学/代码任务上有机会接近，但在 chat、temperature sampling、长输出、生产并发场景下风险明显更高。DFlash 在 Qwen3-8B、block size 16、temperature=0 的平均 <code>tau</code> 约 6.49，数学任务可到 6.54-7.87，代码任务约 5.95-7.27，MT-Bench 约 4.24。若换到 block size 8 的 ablation，公开结果反而多在 3-5 左右。因此“8 draft token 接受 6-7”不能直接从 DFlash 主表外推，必须按你们自己的目标模型、数据域、解码参数和口径验证。</p>
+<h2>需要考虑的维度</h2>
+<p>1. 指标口径</p>
+<p>明确 block size 是否包含 anchor token、是否包含 target bonus token、接受长度是 greedy exact match 还是 speculative sampling 接受概率。建议同时记录 <code>accepted_draft_tokens</code>、<code>accepted_with_bonus</code>、<code>full_block_accept_rate</code>、<code>P(accept&gt;=k)</code>、position-wise top-1 match、首错位置分布。</p>
+<p>2. 目标业务分布</p>
+<p>接受率首先是 workload 指标，不是模型通用指标。数学、代码、结构化输出通常高于开放聊天；短输出高于长输出；greedy 高于 sampling；低熵上下文高于高熵上下文。评估集必须按线上流量拆分，而不是只报一个总均值。</p>
+<p>3. 数据构造与目标对齐</p>
+<p>DFlash 的经验是使用 target model 生成的 responses 来构造训练集，而不是直接使用原始数据答案，这能减少 draft-target 分布偏移。训练数据需要覆盖 prompt 类型、输出长度、推理痕迹、代码格式、工具调用或 JSON 约束等线上模式。</p>
+<p>4. masked block 构造</p>
+<p>DFlash 不采用普通 block diffusion 的固定分块随机 mask，而是随机采样 response 中的 anchor token，把 anchor 作为 block 首位置，mask 后续位置，训练 draft 并行预测后续 token。这更贴近推理时“上一轮 target 验证后的 clean token 作为起点”的模式，也是提升接受率的关键设计。</p>
+<p>5. target feature 注入方式</p>
+<p>公开经验显示，只让小 diffusion drafter 从 token 上下文“凭空猜未来”接受长度有限。DFlash 的关键是抽取 target model 多层 hidden states，融合后作为 KV 注入到 draft model 每一层。DFlash ablation 里，无 target feature 的 5 层 diffusion draft 只能达到约 3-4 的接受长度；KV injection 明显优于只在输入层 fusion。</p>
+<p>6. target hidden layers 数量与选择</p>
+<p>DFlash 默认从 target model 的浅层到深层均匀抽取 5 层 hidden states，通常比 3 层更好。DF LARE 的进一步经验是，让每个 draft layer 学习不同的 target-layer 融合权重，可以继续提高 draft 深度可扩展性，避免所有 draft 层共享同一个 fused context 导致收益饱和。</p>
+<p>7. draft 模型容量</p>
+<p>draft 层数越多，接受长度通常越高，但端到端速度不一定更高。DFlash ablation 中 8 层 draft 的接受长度高于 5 层，但 5 层在整体 speedup 上更优。若你们的第一目标是接受率，可以试 5/7/8 层；若目标是 serving 成本，需要用 acceptance-latency Pareto 选型。</p>
+<p>8. block size 训练与推理匹配</p>
+<p>DFlash 经验是，用更大的 block size 训练可以较好泛化到较小推理 block size，反过来不成立。即使线上只 draft 8 token，也值得比较 <code>train block 8 -&gt; infer 8</code> 与 <code>train block 16 -&gt; infer 8</code>。公开 ablation 还显示 block-8 模型在 Math500 上经常整块全接受，可能存在容量或训练信号未充分利用的问题。</p>
+<p>9. loss weighting</p>
+<p>因为早期 token 一旦错，后续 token 都无法被接受，训练 loss 应更重视 block 前部位置。DFlash 使用指数衰减位置权重，block size 8 的 decay gamma 公开配置为 4；DF LARE 进一步使用 progressive position weighting，先重视前部收敛，再逐步覆盖后部 token。</p>
+<p>10. 上下文长度与生成长度</p>
+<p>长输出是接受率最大风险之一。Test-Time Speculation 的公开观察是，DFlash、EAGLE-3、PARD 等 speculator 在长响应中 acceptance length 会随生成位置下降，几千到数万 token 后可能接近 1。DFlash 也显示 4K 训练的 base drafter 在 8K/16K/32K context 会退化，而少量 long-context fine-tune 可显著恢复。</p>
+<p>11. 解码参数</p>
+<p>temperature、top-p/top-k、重复惩罚、logit bias、grammar/JSON constraint、stop sequence 都会改变 target 分布。如果训练按 greedy top-1 对齐，线上却大量 sampling，接受长度会下降。需要分别评估 temperature=0、线上默认 sampling、极端高熵请求。</p>
+<p>12. serving 实现</p>
+<p>平均接受数高不等于 speedup 高。速度取决于 <code>draft latency + verification latency + scheduler overlap + batch/concurrency + KV/cache overhead</code>。DFlash 在 SGLang/FA4/Spec-v2 overlap 下效果强，但高并发时 speedup 会下降。上线决策必须看 tok/s、p50/p95 latency、GPU utilization，而不是只看接受长度。</p>
+<p>13. 模型与 tokenizer 绑定</p>
+<p>draft 必须和 target tokenizer、embedding/LM head、特殊 token、chat template、RoPE/context 设置、logit processors 对齐。target 模型版本变更、SFT/RLHF 更新、template 更新都可能让接受率掉，需要纳入回归测试。</p>
+<p>14. 数据规模与质量</p>
+<p>DFlash 主结果约用 800K target-generated samples；DF LARE 把训练集扩到 2.4M，并报告 acceptance length 与 speedup 随数据继续提升。经验上，数据规模、目标域覆盖、target-generated response 质量，可能比盲目加 draft 层数更稳。</p>
+<h2>业界/论文经验可参考</h2>
+<p>1. DFlash 的关键经验</p>
+<p>使用 block diffusion 一次并行 draft 多个 token，避免 autoregressive drafter 的逐 token 延迟；用 target hidden states 做 KV injection；随机 anchor masked blocks 对齐推理行为；共享 target embedding 和 LM head；早期位置加权训练。主结果在 Qwen3-4B/8B 上显著高于 EAGLE-3，但 chat 和 sampling 场景接受长度明显低于数学/代码 greedy 场景。</p>
+<p>2. DF LARE 的扩展经验</p>
+<p>DFlash 的一个瓶颈是所有 draft 层共享同一个 fused target context，draft 深度增加后收益会饱和。DF LARE 使用 layer-wise adaptive fusion 和更深 draft layers，让每个 draft layer 接收不同的 target-layer 组合；同时扩大训练数据到 2.4M，报告 Qwen3-4B/8B/GPT-OSS-20B 上平均 wall-clock speedup 进一步提升。对你们的启发是：如果 5 层 DFlash 卡在 5.x 接受长度，下一步优先检查 per-layer conditioning，而不是只粗暴加层。</p>
+<p>3. EAGLE 系列经验</p>
+<p>自回归/树状 draft 可以提升接受长度，但 draft cost 和 verification cost 会随 draft steps/tree size 增长。DFlash 论文中 EAGLE-3 tree size 60 的接受长度仍低于 DFlash block diffusion，且验证开销更高。对你们的启发是：不要单纯追“候选更多”，要追单位 draft/verify 成本下的有效接受 token。</p>
+<p>4. 长输出经验</p>
+<p>Test-Time Speculation 指出，offline-trained speculator 在长输出时容易因为训练上下文短、推理轨迹长而逐步偏离 target 分布。它用验证阶段已有的 target distribution 做 test-time distillation 来恢复接受长度，但会引入 backward/optimizer step 开销。对你们的启发是：即便第一版不做 TTS，也要按 generated-token bucket 监控接受长度，例如 0-1K、1-4K、4-8K、8K+。</p>
+<p>5. serving 经验</p>
+<p>speculative decoding 是系统工程问题。公开结果通常会区分 Transformers、SGLang、vLLM、FlashAttention backend、concurrency、是否有 scheduling overlap。上线判断要以生产框架复现实测为准，paper 上的 acceptance length 只能作为方向参考。</p>
+<h2>建议的验证路径</h2>
+<p>1. 先做离线 metric harness</p>
+<p>固定 target model 和线上 chat template，复现 vanilla target 输出；实现 draft/verify 日志，逐请求记录 acceptance histogram、position-wise match、首错位置、上下文长度、生成位置、任务类型、temperature、latency。</p>
+<p>2. 做小规模 100K ablation</p>
+<p>建议至少比较：</p>
+<ul>
+<li>target feature: none vs input fusion vs KV injection</li>
+<li>hidden layers: 3 vs 5 vs 9</li>
+<li>draft layers: 3 vs 5 vs 7/8</li>
+<li>train/infer block: 8-&gt;8, 16-&gt;8, 16-&gt;16</li>
+<li>loss: uniform vs exponential decay vs progressive weighting</li>
+</ul>
+<p>3. 用目标口径设 gate</p>
+<p>如果目标是“8 个 draft token 平均接受 6-7 个”，建议 gate 不只看 mean：</p>
+<ul>
+<li>overall mean accepted draft tokens &gt;= 6.0</li>
+<li>core workload mean &gt;= 6.5</li>
+<li>weakest important domain &gt;= 5.0</li>
+<li><code>P(accept&gt;=6)</code> 达到线上收益要求</li>
+<li>生成位置 4K+ 后不明显塌陷</li>
+<li>端到端 tok/s 和 p95 latency 确实优于 baseline</li>
+</ul>
+<p>4. 再扩大数据和长上下文</p>
+<p>如果小规模 ablation 证明 KV injection + block 16 train -&gt; block 8 infer 最优，再扩到 800K 以上 target-generated samples；如果线上有长 reasoning/code 输出，应加入 long-context fine-tune 或至少做长输出分桶评估。</p>
+<p>5. 上线前做 drift 回归</p>
+<p>target model、tokenizer、chat template、logit processor、serving backend 任一变化，都跑 acceptance regression。草稿模型本质上绑定 target 分布，不能当成独立可迁移组件。</p>
+<h2>对当前目标的风险评估</h2>
+<p>“8 draft token 接受 6-7”可以作为核心业务域、greedy 或低温、短到中等输出的 stretch goal；如果希望在所有线上请求平均达到这个水平，风险较高。公开 DFlash 的主表高接受长度多来自 block size 16 和特定 benchmark；block size 8、chat、高温、长输出场景都可能显著低于 6。</p>
+<p>更稳妥的第一阶段目标是：先在核心高价值域达到平均 6+，同时保证端到端 speedup；然后通过数据扩容、layer-wise fusion、长上下文适配，把弱域和长输出拉上来。</p>
+<h2>下一步需要确认的问题</h2>
+<p>1. 你们的 target model 是哪个系列和大小，是否已经固定 tokenizer/chat template？</p>
+<p>2. “草稿 8 个 token”里的 8 是否包含 anchor/bonus token，还是纯 candidate draft tokens？</p>
+<p>3. 线上主要是 greedy、低温 sampling，还是高温开放聊天？</p>
+<p>4. 目标业务分布里数学、代码、普通 chat、长 reasoning 各占多少？</p>
+<p>5. 你们更在意平均接受长度、吞吐 tok/s、首 token 后延迟，还是 GPU 成本？</p></div>
+          </article>
+        
+          <article class="turn user " data-turn-id="u2">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot user"></i>
+                <div>
+                  <strong>User</strong>
+                  <div class="meta">2026-06-15T15:00:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">question</span> <span class="tag">metric-definition</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>你说的 bonus token 是指什么？</p></div>
+          </article>
+        
+          <article class="turn assistant " data-turn-id="a2">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot assistant"></i>
+                <div>
+                  <strong>Assistant</strong>
+                  <div class="meta">2026-06-15T15:01:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">answer</span> <span class="tag">metric-definition</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p><code>bonus token</code> 指的是：在一次 draft-verify 循环里，除了被接受的草稿 token 之外，target model 还能顺手产出的那个额外 token。</p>
+<p>典型流程是：</p>
+<pre><code data-lang="text">1. draft model 先猜 8 个 token: d1 ... d8
+2. target model 一次 forward 验证这 8 个 token
+3. 假设前 6 个 draft token 被接受，第 7 个不匹配
+4. target model 会在第 7 个位置给出自己的正确 token</code></pre>
+<p>这个 target 产出的额外 token，不是 draft 猜出来的，但可以作为本轮输出推进的一部分，所以常被叫做 <code>bonus token</code>。如果 8 个 draft token 全部被接受，target 通常也可以基于最后一个 draft token 的 hidden state 再产出下一个 token，也算一个额外 token。</p>
+<p>因此统计口径需要拆开：</p>
+<pre><code data-lang="text">accepted_draft_tokens = 6
+accepted_with_bonus = 7</code></pre>
+<p>如果目标是“8 个 draft token 里真的接受 6-7 个”，这是口径 A；如果目标是“本轮总推进 6-7 个 token，其中包含 target bonus token”，这是口径 B。口径 A 更难，因为它要求 draft 自己命中 6-7 个；口径 B 可能实际只要求 draft 命中 5-6 个。</p></div>
+          </article>
+        
+          <article class="turn user " data-turn-id="u3">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot user"></i>
+                <div>
+                  <strong>User</strong>
+                  <div class="meta">2026-06-15T15:02:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">question</span> <span class="tag">block-size</span> <span class="tag">anchor-token</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>口径 A。blocksize 是否包含 anchor token 呢？又是什么意思？</p></div>
+          </article>
+        
+          <article class="turn assistant " data-turn-id="a3">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot assistant"></i>
+                <div>
+                  <strong>Assistant</strong>
+                  <div class="meta">2026-06-15T15:03:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">answer</span> <span class="tag">block-size</span> <span class="tag">anchor-token</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>在 DFlash 语境里，<code>anchor token</code> 是每个 draft block 的起点 token：它已经由 target model 真实生成并验证过，不是草稿模型要猜的 token。</p>
+<p>推理时可以这样理解：</p>
+<pre><code data-lang="text">已确认上下文: ... x_t        &lt;- anchor token / clean token
+draft 要猜:   x_{t+1} ... x_{t+8}</code></pre>
+<p>如果目标是“口径 A：8 个 draft token 里接受 6-7 个”，工程上建议把 <code>block size</code> 明确定义为 <strong>8 个 candidate draft tokens，不包含 anchor token</strong>。</p>
+<p>但 DFlash 论文和部分实现里的写法可能是：</p>
+<pre><code data-lang="text">[anchor, mask, mask, mask, ...]</code></pre>
+<p>也就是 block 的第一个位置是 clean anchor，后面 <code>block_size - 1</code> 个位置才是模型并行预测的 draft tokens。因此如果论文或代码里 <code>block_size=8</code>，它可能实际只预测 <code>7</code> 个 candidate token：</p>
+<pre><code data-lang="text">paper-style block_size = 8
+= 1 anchor + 7 draft candidates</code></pre>
+<p>而当前目标是：</p>
+<pre><code data-lang="text">candidate_draft_tokens = 8
+average accepted_draft_tokens = 6-7</code></pre>
+<p>那在这种实现口径下，可能需要配置：</p>
+<pre><code data-lang="text">internal block_size = 9
+= 1 anchor + 8 draft candidates</code></pre>
+<p>关键是不要只看变量名 <code>block_size</code>，要看代码里 mask 的位置数量。建议在日志和评估结果里直接记录：</p>
+<pre><code data-lang="text">anchor_tokens = 1
+candidate_draft_tokens = 8
+accepted_draft_tokens = 6
+bonus_token_excluded = true</code></pre>
+<p>这样不会和论文里的 <code>tau</code>、<code>block size</code> 口径混淆。</p></div>
+          </article>
+        
+          <article class="turn user " data-turn-id="u4">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot user"></i>
+                <div>
+                  <strong>User</strong>
+                  <div class="meta">2026-06-15T16:00:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">requirements</span> <span class="tag">target-model</span> <span class="tag">training-plan</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>target model 选用 DSV4，flash 还是 pro 暂未确定；假如按你推荐的路径去做，</p>
+<p>1. chat template 等还没明确，这部分有什么建议？</p>
+<p>2. 8 个可以包括 anchor/bonus</p>
+<p>3. 按照业界常用做法就行，如果 greedy 最优，可以先按 greedy 去做</p>
+<p>4. 我们是做 infra 验证的，理论上是通用场景；但如果没法通用，可以先在特定场景达成目标</p>
+<p>5. 如问题 4，做 infra，更在意的低时延能力验证，所以期望尽可能提高接受率</p></div>
+          </article>
+        
+          <article class="turn assistant " data-turn-id="a4">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot assistant"></i>
+                <div>
+                  <strong>Assistant</strong>
+                  <div class="meta">2026-06-15T16:01:31+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">recommendation</span> <span class="tag">chat-template</span> <span class="tag">infra-validation</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><h2>更新后的目标口径</h2>
+<p>当前 target model 先按 DSV4 规划，Flash/Pro 暂未最终确定。由于 draft model 强绑定 target 分布，Flash 和 Pro 如果 logits、tokenizer、chat template、reasoning mode 或服务端 logit processor 有任何差异，都应视为两个 target，各自训练或至少各自评估。</p>
+<p>用户确认“8 个可以包括 anchor/bonus”。因此第一阶段可以把工程目标定义为：</p>
+<pre><code data-lang="text">accepted_with_bonus around 6-7 per cycle
+candidate_draft_tokens &lt;= 8</code></pre>
+<p>但为了避免指标误判，评估里仍需同时记录：</p>
+<pre><code data-lang="text">candidate_draft_tokens
+accepted_draft_tokens
+bonus_token_count
+accepted_with_bonus
+full_candidate_accept_rate
+first_reject_position</code></pre>
+<p>做低时延 infra 验证时，可以用包含 bonus 的 <code>tokens advanced per verify</code> 作为主指标，但训练诊断仍看不含 bonus 的 <code>accepted_draft_tokens</code>。</p>
+<h2>Chat Template 建议</h2>
+<p>chat template 必须在训练数据生成、draft 训练、离线评估、线上 serving 四个环节完全一致。它不是外围格式问题，而是 draft-target 对齐的一部分。建议先做一个 frozen template contract，再开始大规模生成 target responses。</p>
+<p>建议 contract 至少包括：</p>
+<pre><code data-lang="text">model_id / checkpoint_id
+tokenizer revision
+chat template revision
+system prompt policy
+role tokens and separators
+assistant prefill format
+reasoning / non-reasoning mode
+tool-call / JSON mode policy
+EOS / stop token policy
+logit processors
+sampling parameters
+max context / RoPE setting</code></pre>
+<p>如果 DSV4 Flash/Pro 的官方 template 尚未明确，第一版 infra 验证不要自行发明复杂 template。可以选一个最小、稳定、可复现的 template：</p>
+<pre><code data-lang="text">&lt;system&gt; optional fixed system prompt
+&lt;user&gt; user content
+&lt;assistant&gt;</code></pre>
+<p>同时保留 template revision 字段。后续一旦切换到官方 template，需要重新跑 acceptance regression；如果差异大，draft 需要重训或微调。</p>
+<p>对于 reasoning 模式，如果 DSV4 有 thinking/non-thinking 或类似开关，第一阶段只选一种。低时延验证优先从 non-reasoning / normal chat 模式开始，因为输出更短、路径更稳定、验证周期更快。若 infra 目标最终覆盖长 reasoning，再单独建 reasoning 数据集和长输出评估，不要混在第一阶段里。</p>
+<h2>解码策略建议</h2>
+<p>第一阶段建议按 greedy 做。原因是 speculative acceptance 的上限由 draft 和 target 的分布一致性决定，greedy exact-match 最容易诊断，也最接近 DFlash 主结果的高接受率场景。</p>
+<p>推荐阶段：</p>
+<p>1. Greedy-only proof of capability：固定 <code>temperature=0</code>，禁用会引入额外随机性的 logit processor，目标是证明 DSV4 + DFlash 路线能在可控场景达到高 <code>accepted_with_bonus</code> 和低延迟。</p>
+<p>2. Low-temperature compatibility：第一阶段通过后，再测线上可能需要的低温 sampling，例如 <code>temperature=0.2-0.6</code>，主要观察 acceptance 会掉多少。</p>
+<p>3. Production policy regression：最后用真实 serving policy 回归，包括 stop sequence、JSON/tool constraints、重复惩罚等。任何 processor 不一致都会导致 draft-target mismatch。</p>
+<h2>通用场景 vs 特定场景</h2>
+<p>“通用场景”不建议作为第一阶段验收目标，因为 acceptance rate 对 workload 太敏感。infra 验证可以分成两层：</p>
+<pre><code data-lang="text">Layer 1: controlled high-acceptance benchmark
+Layer 2: broad generality stress test</code></pre>
+<p>Layer 1 用来证明低时延能力上限，可以优先选择接受率更容易高的场景：</p>
+<ul>
+<li>deterministic QA / short instruction</li>
+<li>code completion 或代码补全式任务</li>
+<li>math short/medium reasoning，但先不要上超长 CoT</li>
+<li>structured generation with stable format</li>
+</ul>
+<p>Layer 2 再覆盖通用 chat、开放创作、多轮对话、长 reasoning、代码生成长输出。这里的目标不是一开始都达到 6-7，而是看 acceptance 分布、退化位置和系统是否仍有收益。</p>
+<p>建议验收口径：</p>
+<pre><code data-lang="text">primary demo slice: accepted_with_bonus &gt;= 6.5 / 8
+general mixed set: report by domain, no single average hiding weak domains
+long output buckets: 0-1K, 1-4K, 4K+
+latency: p50/p95 inter-token latency and end-to-end tok/s</code></pre>
+<h2>低时延 Infra 验证下的优先级</h2>
+<p>既然更在意低时延能力验证，优先级应是：</p>
+<p>1. 接受率上限优先于通用性</p>
+<p>2. greedy 优先于 sampling</p>
+<p>3. 单/低并发 latency 优先于高并发吞吐</p>
+<p>4. 先证明 DSV4 某个固定版本可加速，再扩到 Flash/Pro 双版本</p>
+<p>5. 训练配置先选高接受率方案，再做 speed Pareto</p>
+<p>推荐第一版配置假设：</p>
+<pre><code data-lang="text">target: DSV4 fixed checkpoint, Flash or Pro 二选一先 pin 住
+mode: non-reasoning / normal chat
+decode: greedy
+candidate draft tokens: 7 or 8
+metric: accepted_with_bonus target 6-7
+training block: compare internal block 8/9/16 depending on anchor definition
+target features: KV injection required
+target hidden layers: start with 5, ablate 3/9
+draft layers: start with 5, ablate 7/8 if acceptance不足
+loss: exponential position decay, then test progressive weighting
+data: target-generated responses, first 100K ablation, then 800K+</code></pre>
+<p>如果 8 包含 bonus，那么可先用 <code>candidate_draft_tokens=7</code> 或 <code>8</code> 都测。<code>7 draft + 1 bonus</code> 达到 6-7 的系统推进更现实；<code>8 draft + 1 bonus</code> 有更高上限，但 verification 成本更高，未必最低延迟。</p>
+<h2>DSV4 Flash/Pro 处理建议</h2>
+<p>Flash 和 Pro 暂未确定时，不建议同时启动完整训练。先选更可能上线做低时延验证的版本作为 primary target。另一个版本只做少量 compatibility eval：</p>
+<pre><code data-lang="text">train on primary target
+eval on secondary target
+if acceptance drop small: consider shared draft
+if drop large: separate draft or secondary fine-tune</code></pre>
+<p>一般预期是：只要 Flash/Pro 的输出分布或 hidden states 明显不同，共享 draft 的接受率就会下降。DFlash 依赖 target hidden states KV injection，这会进一步绑定具体 target，所以共享风险比纯 tokenizer-level draft 更高。</p>
+<h2>当前建议的下一步</h2>
+<p>1. 先冻结一个临时 template contract，不等所有产品细节，但要可复现。</p>
+<p>2. 在 DSV4 Flash/Pro 中选一个 primary target，优先选低时延验证更可能使用的档位。</p>
+<p>3. 生成 10K-20K target responses 做 smoke eval，先验证 template、tokenizer、bonus/anchor 统计口径。</p>
+<p>4. 再做 100K ablation，不要直接上 800K。</p>
+<p>5. 第一阶段验收用 greedy + controlled benchmark，目标 <code>accepted_with_bonus 6-7/8</code>，同时报告不含 bonus 的 accepted draft tokens。</p></div>
+          </article>
+        
+          <article class="turn user " data-turn-id="u5">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot user"></i>
+                <div>
+                  <strong>User</strong>
+                  <div class="meta">2026-06-15T16:18:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">question</span> <span class="tag">frameworks</span> <span class="tag">algorithm</span> <span class="tag">npu</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>你讲的是项目整体执行的方向。现在想讨论下具体的细节问题：</p>
+<p>1. 现在业界有两个草稿模型的训练框架，分别是 SGLang 的 SpecForge 和 vllm 的 speculators；这两者对于 dflash 等基于扩散/block diffusion 的草稿模型支持度如何？评价下两者的优缺点。再补充一个信息，我会在昇腾 NPU 上做训练，不是 GPU</p>
+<p>2. 算法上如何能提高接受率？我已经看到你的 loss 设计建议了，那么模型结构上有没有建议？因为开源 dflash 结构都是采用 Qwen3 的 layer，个别 attn 采用了 swa，是否一开始就采用 DSV4 的结构甚至部分权重能更快/更好的对齐特征语义？</p>
+<p>3. 训练方式上有无可能通过自蒸馏来提高接受率？</p>
+<p>4. 你提到了选择多层特征，那么选择模型的哪些特征层有没有业界经验？</p></div>
+          </article>
+        
+          <article class="turn assistant " data-turn-id="a5">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot assistant"></i>
+                <div>
+                  <strong>Assistant</strong>
+                  <div class="meta">2026-06-15T16:21:05+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">analysis</span> <span class="tag">frameworks</span> <span class="tag">dflash</span> <span class="tag">npu</span> <span class="tag">model-architecture</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><h2>1. SpecForge vs vLLM speculators</h2>
+<p>公开资料显示，两者都已经把 DFlash/block diffusion speculative decoding 放进支持范围，但定位不同。</p>
+<p>SpecForge 更像 SGLang 生态里的 speculator 训练与集成框架。它的优势是和 SGLang serving、Spec-v2 scheduling overlap、EAGLE/DFlash 等推理路径更贴近；如果最终 serving 也走 SGLang，训练产物到推理验证的摩擦会小。劣势是生态相对更偏 SGLang，训练代码和高性能路径很可能默认 CUDA/GPU，迁移到昇腾 NPU 时要重点查自定义 attention、Flex Attention、FlashAttention、CUDA graph、kernel 依赖。</p>
+<p>vLLM speculators 更像 vLLM 生态的独立 speculator 项目，公开文档已经有 DFlash 相关算法和 online training tutorial。它的优势是文档化较好，和 vLLM/vLLM Ascend 的后续 serving 生态更接近；如果你们的昇腾推理最终倾向 vLLM Ascend，这条线更有战略一致性。劣势是 speculators 训练链路和 vLLM Ascend NPU 后端不等价，不能因为 vLLM Ascend 支持推理就默认 DFlash 训练也能无改造跑在 NPU 上。</p>
+<p>针对昇腾 NPU，建议把框架选择拆成两件事：</p>
+<pre><code data-lang="text">training framework: 需要能在 torch_npu / Ascend 上跑 DFlash 训练
+serving framework: 需要能在目标推理栈上跑 draft + verify 并测低延迟</code></pre>
+<p>不要先被框架品牌绑定。第一步应该做最小 smoke test：</p>
+<pre><code data-lang="text">1. target forward with output_hidden_states on NPU
+2. selected hidden states extraction and projection on NPU
+3. block diffusion draft forward/backward on NPU
+4. sparse/block attention mask 是否支持或可替代
+5. loss backward + optimizer step
+6. export checkpoint and run draft/verify eval</code></pre>
+<p>如果 SpecForge 或 vLLM speculators 里有 CUDA-only kernel，优先策略不是完整移植 kernel，而是先用 NPU 可跑的 PyTorch/torch_npu 算子实现 correctness path，拿到接受率曲线；等算法证明有效后，再优化 kernel 和 serving path。</p>
+<p>初步判断：</p>
+<pre><code data-lang="text">如果最终 serving 是 SGLang: SpecForge 优先，但 NPU 训练改造风险较高
+如果最终 serving 是 vLLM Ascend: vLLM speculators 优先，但要验证 DFlash 训练是否真的 NPU-ready
+如果目标只是先证明算法接受率: 选代码更容易改造成 torch_npu 的一方，不必拘泥 serving 框架</code></pre>
+<h2>2. 模型结构上如何提高接受率</h2>
+<p>DFlash 接受率的核心不是“draft 层长得像谁”，而是 draft 能否稳定消费 target hidden features，并把这些 features 转成未来 token 的高置信预测。因此结构建议按优先级看：</p>
+<p>1. 必须做 target feature KV injection</p>
+<p>无 target feature 的 diffusion drafter 接受长度明显受限。对 DSV4 来说，draft 结构是否复用 DSV4 layer，优先级低于“能否正确、稳定、高带宽地注入 DSV4 多层 hidden states”。</p>
+<p>2. draft hidden size / attention head / norm 尽量贴近 target feature 空间</p>
+<p>如果 DSV4 hidden size 很大，而 draft hidden size 过小，projection 会成为语义瓶颈。可以从较小 draft 起步，但建议 ablate draft width，而不只 ablate depth。低时延目标下，width 增大会提高 draft latency，需要和 acceptance 一起看 Pareto。</p>
+<p>3. 是否采用 DSV4 结构</p>
+<p>如果 DSV4 是 MoE 或有特殊 attention/norm/MLA/GQA/SWA 设计，直接照搬完整结构未必划算。draft model 的目标不是复现 target，而是在很低成本下利用 target features。建议采用“兼容 target 表征的轻量层”，而不是一开始完整复刻 DSV4。</p>
+<p>4. 是否使用 DSV4 部分权重初始化</p>
+<p>有潜力，但要谨慎。可能有帮助的部分：</p>
+<pre><code data-lang="text">   token embedding / LM head: 尽量共享或初始化自 target
+   RMSNorm / input-output projection: 可从 target 风格初始化
+   attention/MLP weights: 只有当 draft layer 结构、hidden size、head layout 对齐时才考虑
+   </code></pre>
+<p>风险是 DSV4 的层权重是在 autoregressive full model 中工作的，直接移植到 block diffusion masked positions + KV injected target context 下，未必比专门训练的轻量 draft 更好。尤其如果 target 是 MoE，复制 expert/route 结构会显著增加 draft cost，低时延目标可能不划算。</p>
+<p>5. SWA / sliding window attention</p>
+<p>draft block 本身很短，核心上下文来自 target hidden KV injection。SWA 对 draft 自身 block 内 attention 的收益可能有限，但对长上下文 draft self-attention 成本有帮助。第一阶段不要把 SWA 当成接受率关键项；可以先用最简单稳定的 causal/block attention，确认 acceptance，再引入 SWA 优化延迟。</p>
+<p>6. layer-wise target feature fusion</p>
+<p>这是比“照搬 DSV4 layer”更值得优先尝试的结构改动。DFlash 是多层 target hidden states 融合成一个 shared context，再注入所有 draft layers；DF LARE 的经验是让每个 draft layer 学不同的 target-layer 融合，可以突破深度扩展收益饱和。对 DSV4 这种大模型，建议把 layer-wise fusion 作为第二阶段结构优化。</p>
+<p>建议结构路线：</p>
+<pre><code data-lang="text">Stage A: Qwen3-DFlash-like lightweight draft + DSV4 embedding/LM head + DSV4 hidden KV injection
+Stage B: ablate draft depth/width + hidden layer count
+Stage C: add layer-wise adaptive fusion
+Stage D: test DSV4-style layer components or partial initialization</code></pre>
+<p>不建议第一步就完整采用 DSV4 结构，因为会把训练风险、NPU kernel 风险、低时延风险同时放大。</p>
+<h2>3. 自蒸馏是否能提高接受率</h2>
+<p>可以，而且应该把它视为提高接受率的主线之一，但要区分三种蒸馏。</p>
+<p>第一种是 offline target distillation，也是 DFlash 的基本做法：训练数据使用 target model 生成的 responses，并用 target hidden states / logits 监督 draft。这不是简单 next-token CE，而是让 draft 对齐固定 target 的行为分布。建议必做。</p>
+<p>第二种是 logits distillation。除了对 target token 做 CE，还可以对 masked positions 蒸馏 target logits 分布，例如 KL(target logits || draft logits)。这对 sampling 或高熵位置更有帮助；对 greedy exact match，也能改善 top-2/top-3 排序，减少边界错。成本是需要保存或在线计算 target logits，存储和训练开销更大。可以只对前 K 个 draft positions、top-k logits 做蒸馏，避免全 vocab KL 太重。</p>
+<p>第三种是 online/test-time distillation。Test-Time Speculation 的思路是利用 verify 阶段 target 已经算出的分布，边生成边更新 draft。它能缓解长输出接受率下降，但会引入 backward/optimizer 开销。对于你们低时延 infra 验证，第一版不建议把 online update 放进主路径；但可以作为长输出场景的增强实验。</p>
+<p>更实用的自蒸馏方案：</p>
+<pre><code data-lang="text">1. 用 DSV4 greedy 生成训练 responses
+2. 对 anchor 后 7/8 个位置提取 target hidden states
+3. 训练 draft 做 weighted CE
+4. 追加 top-k logits KL，只蒸馏前几个关键位置
+5. 用当前 draft 跑验证，收集 rejected cases
+6. 对 rejected-heavy contexts 做 hard example replay / second-stage fine-tune</code></pre>
+<p>这里的“自蒸馏”本质上是 target-to-draft distillation，不是 draft 自己教自己。真正的 draft self-training 风险较大，因为 draft 错误会强化自身偏差；如果做，也应始终用 target verify/logits 过滤。</p>
+<h2>4. 选择哪些 target 特征层</h2>
+<p>DFlash 公开经验是从 target model 的浅层到深层均匀选择 5 层，范围大致避开最早和最后的极端层，例如从第 2 层到倒数第 3 层之间均匀采样。直觉是：</p>
+<pre><code data-lang="text">浅层: lexical / local syntax
+中层: semantic / task state
+深层: next-token decision features
+最后几层: 过度贴近 logits head，可能更尖锐但泛化未必最好</code></pre>
+<p>业界没有一个对所有模型固定最优的层号。对 DSV4 应该做小 ablation，而不是直接相信 Qwen3 的层号。建议按 normalized depth 选层，而不是绝对层号：</p>
+<pre><code data-lang="text">3-H: 25%, 50%, 75%
+5-H: 10%, 30%, 50%, 70%, 90%
+7-H: 10%, 25%, 40%, 55%, 70%, 85%, 95%</code></pre>
+<p>同时建议额外测试“偏深层”组合：</p>
+<pre><code data-lang="text">deep-5: 50%, 62.5%, 75%, 87.5%, 95%
+mid-5: 25%, 37.5%, 50%, 62.5%, 75%
+wide-5: 10%, 30%, 50%, 70%, 90%</code></pre>
+<p>如果 DSV4 是 MoE，层选择还要看 router/expert 行为是否稳定。可以记录每层 hidden state 对 target next-token logits 的线性 probe 准确率，或训练很小的 probe 预测后续 token，用它来筛层。更工程化的办法是：</p>
+<pre><code data-lang="text">1. 冻结 target，采样一批线上/benchmark prefixes
+2. 对每个候选层 hidden state 训练轻量 probe 预测 next token / next 4 tokens
+3. 选 probe 表现高且层间互补的 5 层
+4. 再进入完整 DFlash draft 训练</code></pre>
+<p>对接受率而言，层的互补性比单层最强更重要。只选最后几层可能冗余高；均匀跨层通常是强 baseline；layer-wise adaptive fusion 可以减少人工选层压力。</p>
+<h2>对当前问题的综合建议</h2>
+<p>第一阶段不要把变量开太多。建议固定：</p>
+<pre><code data-lang="text">framework: 先选更容易 NPU correctness 跑通的一方
+target: DSV4 Flash/Pro 先 pin 一个
+template: minimal frozen template
+decode: greedy
+structure: lightweight DFlash, target embedding/LM head, KV injection
+features: wide-5 uniform layers as baseline
+training: weighted CE + optional top-k logits KL
+eval: accepted_draft_tokens 和 accepted_with_bonus 都报</code></pre>
+<p>等这个 baseline 跑出 acceptance 曲线后，再判断是加 layer-wise fusion、加 draft depth/width、换 DSV4-style layer，还是做 hard example distillation。否则很难定位接受率不足到底来自框架/NPU、template、数据、结构还是训练目标。</p></div>
+          </article>
+        
+          <article class="turn user " data-turn-id="u6">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot user"></i>
+                <div>
+                  <strong>User</strong>
+                  <div class="meta">2026-06-15T16:22:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">info</span> <span class="tag">dsv4</span> <span class="tag">npu</span> <span class="tag">inference</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>补充一个信息，DSV4 在昇腾上的裸模型推理已经有样例了，https://gitcode.com/cann/cann-recipes-infer/blob/master/models/deepseek-v4/README.md</p></div>
+          </article>
+        
+          <article class="turn assistant " data-turn-id="a6">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot assistant"></i>
+                <div>
+                  <strong>Assistant</strong>
+                  <div class="meta">2026-06-15T16:22:44+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">analysis</span> <span class="tag">dsv4</span> <span class="tag">npu</span> <span class="tag">inference</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>这个信息会改变风险排序。DSV4 在昇腾上已有裸模型推理样例，说明 target model forward、权重加载、基础 tokenizer/template 和 CANN/torch_npu 环境的风险下降；但它不等价于 DFlash 训练链路已经可用。</p>
+<p>从该样例对当前项目的影响看：</p>
+<p>1. primary target 更倾向先选 Flash</p>
+<p>如果样例或当前资源对 Flash 支持更成熟，而 Pro 需要更多卡或更复杂部署，第一阶段低时延 infra 验证建议先 pin DSV4-Flash。先证明 draft/verify 能在 Flash 上形成低时延收益，再评估 Pro 是否需要独立 draft。</p>
+<p>2. 可以复用样例作为 target side smoke test 基线</p>
+<p>先基于裸推理样例确认：</p>
+<pre><code data-lang="text">   tokenizer revision
+   chat template / prompt format
+   model loading path
+   dtype
+   CANN / torch_npu version
+   max context
+   greedy output determinism
+   </code></pre>
+<p>这些信息应进入 template contract。</p>
+<p>3. 还要额外验证 hidden states</p>
+<p>DFlash 训练和推理都需要抽取 target 多层 hidden states。裸推理样例通常只要求 logits/output token，不一定暴露或高效支持 <code>output_hidden_states=True</code>。必须单测：</p>
+<pre><code data-lang="text">   target forward can return selected hidden states
+   selected hidden states remain on NPU
+   hidden state extraction does not break graph / performance path
+   multi-layer hidden states memory overhead acceptable
+   </code></pre>
+<p>4. 还要额外验证 backward/training</p>
+<p>cann-recipes-infer 是 infer recipe，不代表 draft training 可直接跑。DFlash 训练至少需要 draft forward/backward、masked/block attention、optimizer、可能的 sparse attention mask。NPU correctness path 应先跑通，再谈性能。</p>
+<p>5. npugraph / 推理优化路径可能和训练冲突</p>
+<p>推理样例为了性能可能使用图捕获、静态 shape、特定 kernel 或推理专用开关。训练和在线 hidden state 抽取可能需要动态行为。不要一开始绑定最高性能推理路径；先用 eager/可调试路径拿到 acceptance，再逐步迁移到图优化。</p>
+<p>更新后的最小验证顺序：</p>
+<pre><code data-lang="text">Step 1: 跑通官方/样例 DSV4-Flash greedy generation
+Step 2: 同样输入下确认输出 deterministic
+Step 3: 打开 selected hidden states，确认数值和内存
+Step 4: 接一个最小 DFlash draft module，跑 forward/backward
+Step 5: 用 1K-10K 样本做 target-generated 数据和 acceptance eval
+Step 6: 再决定 SpecForge / vLLM speculators 哪个更适合迁移</code></pre>
+<p>结论：这个样例降低了 target 侧风险，也强化了“先选 DSV4-Flash 做 primary target”的建议；但 framework 选择仍要以 DFlash 训练链路在昇腾上的 smoke test 结果为准。</p></div>
+          </article>
+        
+          <article class="turn user " data-turn-id="u7">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot user"></i>
+                <div>
+                  <strong>User</strong>
+                  <div class="meta">2026-06-15T16:25:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">info</span> <span class="tag">qwen3.5</span> <span class="tag">dflash</span> <span class="tag">npu</span> <span class="tag">inference</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>再补充一个信息，https://gitcode.com/cann/cann-recipes-infer/pull/541 是同一个仓库里对 Qwen3.5 模型的 dflash 支持样例，所以第三点 3 应该也没问题；但你说的训练问题确实在</p></div>
+          </article>
+        
+          <article class="turn assistant " data-turn-id="a7">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot assistant"></i>
+                <div>
+                  <strong>Assistant</strong>
+                  <div class="meta">2026-06-15T16:26:24+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">analysis</span> <span class="tag">qwen3.5</span> <span class="tag">dflash</span> <span class="tag">npu</span> <span class="tag">inference</span> <span class="tag">training-risk</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>这个 PR 信息显著降低了“昇腾上 DFlash 推理链路是否可行”的风险。PR diff 显示它不只是文档说明，而是已经包含 Qwen3.5 DFlash 接入相关改造，例如：</p>
+<pre><code data-lang="text">models/qwen3_5/models/modeling_dflash.py
+models/qwen3_5/config/qwen3_5_35b_tp2_dflash.yaml
+target hidden states capture
+draft_model_path / draft_tokens / draft_temperature
+single-step draft inference
+speculative_verify metadata
+commit_speculative_state / commit_dflash_speculative_state
+target verify causal mask
+graph/eager draft execution hooks</code></pre>
+<p>因此需要修正前面的风险判断：</p>
+<pre><code data-lang="text">target forward on NPU: 风险较低
+selected hidden states exposure: Qwen3.5 DFlash 样例已经证明可做
+DFlash draft/verify 推理链路: Qwen3.5 上已有参考，风险中低
+DSV4 迁移: 仍需适配，但可以参考 Qwen3.5 PR 路径
+DFlash 训练链路 on NPU: 仍是主要未知风险</code></pre>
+<p>对 DSV4 项目的直接启发：</p>
+<p>1. 不要从 SpecForge/vLLM speculators 的推理集成从零开始</p>
+<p>cann-recipes-infer 的 Qwen3.5 DFlash PR 已经提供了昇腾侧推理集成范式。DSV4 如果模型实现同仓库风格一致，应优先复用这条路线：target 返回 selected hidden states，draft model 作为 single-step draft，executor 做 speculative verify 和 accepted state commit。</p>
+<p>2. DSV4 DFlash 推理适配应优先对齐 Qwen3.5 PR 的接口</p>
+<p>建议 DSV4 draft model 也暴露类似属性/接口：</p>
+<pre><code data-lang="text">   is_dflash = True
+   uses_single_step_draft = True
+   supports_speculative_verify = True
+   sample_logits()
+   prepare_graph_inputs()
+   get_graph_forward()
+   commit_speculative_state()
+   clear_speculative_state()
+   </code></pre>
+<p>3. hidden states 选择和 config 应沿用 draft config 驱动</p>
+<p>Qwen3.5 PR 从 draft <code>config.json</code> 读取：</p>
+<pre><code data-lang="text">   dflash_config.target_layer_ids
+   dflash_config.target_hidden_source
+   dflash_config.target_hidden_hc_mult
+   </code></pre>
+<p>DSV4 也应采用这种方式，避免 target 代码里硬编码层号。</p>
+<p>4. 训练和推理的 hidden state source 必须一致</p>
+<p>PR 里有 <code>target_hidden_source = post_layer</code> 这类配置。训练时保存的是哪一层、norm 前还是 norm 后、residual 加和前还是后，必须和推理时完全一致。否则 draft 训练好后到昇腾推理路径会掉接受率。</p>
+<p>5. Qwen3.5 PR 可作为 DSV4 smoke test checklist</p>
+<p>对 DSV4 需要逐项确认：</p>
+<pre><code data-lang="text">   target can return selected hidden states in same layout
+   verify phase has correct causal mask for multi-token block
+   KV/state cache can commit accepted prefix
+   draft model can run eager first, graph later
+   draft_model_path and draft config are independent from target path
+   accepted_num + bonus token accounting matches metrics
+   </code></pre>
+<p>训练问题仍然存在，且是当前主风险。Qwen3.5 PR 解决的是 inference integration，不等价于解决：</p>
+<pre><code data-lang="text">target-generated dataset construction on NPU
+selected hidden states extraction for large-scale training
+block diffusion masked training
+draft forward/backward on torch_npu
+optimizer / mixed precision / checkpointing
+top-k logits distillation storage or online computation
+SpecForge / vLLM speculators training code CUDA dependency</code></pre>
+<p>因此更新后的建议是：</p>
+<pre><code data-lang="text">推理侧: 以 cann-recipes-infer Qwen3.5 DFlash PR 为主参考，迁移到 DSV4
+训练侧: 仍需单独选 SpecForge / vLLM speculators / 自建最小训练脚手架，并做 torch_npu correctness path</code></pre>
+<p>如果目标是最快证明接受率和低时延，推荐路线变为：</p>
+<p>1. 用 cann-recipes-infer 的 DSV4 Flash 裸推理样例确认 target。</p>
+<p>2. 参考 Qwen3.5 DFlash PR，把 DSV4 target hidden states 和 speculative verify 接口补齐。</p>
+<p>3. 先用一个随机/小 draft 权重跑通 DSV4 DFlash 推理链路 shape 和 cache。</p>
+<p>4. 训练侧用最小 NPU training harness 产出 draft checkpoint。</p>
+<p>5. 再把 checkpoint 接回 cann-recipes-infer 推理路径测 acceptance/latency。</p></div>
+          </article>
+        
+          <article class="turn user " data-turn-id="u8">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot user"></i>
+                <div>
+                  <strong>User</strong>
+                  <div class="meta">2026-06-15T16:45:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">concern</span> <span class="tag">train-infer-alignment</span> <span class="tag">frameworks</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>你的建议是推理可以用 infer 仓的样例，训练看哪个框架优先看哪个更容易在昇腾上运行；但如果推理和训练不是同一个框架，可能会有不同框架、引擎底层算子接口不一致导致精度无法对齐</p></div>
+          </article>
+        
+          <article class="turn assistant " data-turn-id="a8">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot assistant"></i>
+                <div>
+                  <strong>Assistant</strong>
+                  <div class="meta">2026-06-15T16:46:29+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">analysis</span> <span class="tag">train-infer-alignment</span> <span class="tag">precision</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>这个担心成立，而且对 DFlash 尤其关键。DFlash 的接受率强依赖 target hidden states 和 draft forward 的语义一致性；训练和推理如果跨框架，只要下面任一项不一致，就可能导致离线 loss 很好但上线 acceptance 明显下降：</p>
+<pre><code data-lang="text">chat template / tokenizer / special tokens
+position_ids / RoPE scaling
+attention mask / speculative verify causal mask
+target hidden source: pre_layer/post_layer/norm前后/residual加和方式
+selected layer ids
+hidden state layout: TND vs [B,S,H]
+dtype: bf16/fp16/fp32 accumulation
+RMSNorm / SwiGLU / attention fused kernel数值细节
+MoE routing / top-k expert / all-to-all实现
+KV cache/state commit方式
+draft mask token id / block construction
+lm_head / embedding sharing方式
+logit processor / sampling策略</code></pre>
+<p>因此应修正方案：训练框架不能被当作独立实现来源，只能作为 training loop / optimizer / data loader 的外层脚手架。真正的 deployment contract 应以 infer 仓为准。</p>
+<p>更稳妥的原则：</p>
+<pre><code data-lang="text">推理仓的 target forward = canonical teacher
+推理仓的 DFlash forward = canonical student architecture
+训练框架只负责 backward、optimizer、distributed、checkpoint</code></pre>
+<p>也就是说，即使使用 SpecForge 或 vLLM speculators 的训练框架，也应尽量把 cann-recipes-infer 里 DSV4 target hidden extraction 和 DFlash draft module 移进去训练，而不是用另一个框架自己实现一套近似的 DFlash/target forward。</p>
+<p>推荐三种方案，按精度风险从低到高排序：</p>
+<p>1. infer 仓内补训练 harness</p>
+<p>在 cann-recipes-infer 的模型实现上直接加最小训练脚手架。优点是训练/推理 forward 完全一致，精度对齐风险最低；缺点是要自己补 dataset、optimizer、分布式、checkpoint、日志等训练基础设施。</p>
+<p>2. 使用外部训练框架，但复用 infer 仓模型代码</p>
+<p>SpecForge/vLLM speculators 只提供 training loop。target hidden extraction、DFlash draft layer、mask、position、lm_head sharing 尽量 import 或 port 自 cann-recipes-infer 的同一份代码。优点是利用训练框架能力；缺点是要处理代码依赖和 torch_npu 兼容。</p>
+<p>3. 外部训练框架完整训练，再导出到 infer 仓</p>
+<p>这是最快开始但精度风险最高的路径。只有在做严格 parity test 后才可接受。</p>
+<p>建议第一阶段选方案 1 或 2，不建议方案 3 作为主线。</p>
+<p>必须建立 train-infer parity test，训练前就做，不要等训练完才发现不一致。最小测试：</p>
+<pre><code data-lang="text">固定一批 tokenized prompts
+固定 selected layer ids
+训练路径跑 target forward，保存 selected hidden states
+推理路径跑 target forward，保存 selected hidden states
+比较 hidden states: max_abs_diff / mean_abs_diff / cosine similarity
+同一 target hidden + same draft weights 跑 draft forward
+比较 draft logits / sampled draft tokens
+同一 spec tokens 跑 verify
+比较 accepted_num / first_reject_position</code></pre>
+<p>建议设置验收阈值：</p>
+<pre><code data-lang="text">hidden cosine similarity: 接近 1.0
+hidden max_abs_diff: 按 bf16 容忍，但不能系统性偏移
+draft logits top-1 agreement: 近 100%
+verify accepted_num: 必须逐样本一致</code></pre>
+<p>如果 parity 不过，先不要训练。先定位是哪一层开始偏：</p>
+<pre><code data-lang="text">embedding output
+selected target layer output
+target hidden concat/projection
+draft first layer output
+draft final hidden
+lm_head logits
+verify logits
+accepted_num</code></pre>
+<p>对当前项目，更新后的框架建议是：</p>
+<pre><code data-lang="text">推理主线: cann-recipes-infer DSV4 + Qwen3.5 DFlash PR 模式
+训练主线: 优先复用 cann-recipes-infer 的 DSV4/DFlash forward 代码
+训练框架选择: 只看谁能最小侵入地承载这套 forward/backward on torch_npu</code></pre>
+<p>如果 SpecForge/vLLM speculators 无法方便复用 infer 仓模型代码，那么宁可先写一个简化训练 harness，也不要用语义不同的训练实现直接产出 checkpoint。对接受率目标而言，train-infer 对齐比训练框架完整度更重要。</p></div>
+          </article>
+        
+          <article class="turn user " data-turn-id="u9">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot user"></i>
+                <div>
+                  <strong>User</strong>
+                  <div class="meta">2026-06-15T16:49:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">question</span> <span class="tag">framework-selection</span> <span class="tag">sglang</span> <span class="tag">vllm-ascend</span> <span class="tag">dflash-training</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>sglang 应该也有支持 NPU 上的 DSV4 推理，检索一下；vllm-ascend 应该也有；我不在意必须用哪个框架，你再检查和分析下哪个框架可能更方便。我还有一个疑问点是这些框架对于 dflash 草稿模型训练的支持度本身是否完备？他们虽然都有 dflash 的样例，但整体看还是面向 Eagle-3。这两个草稿模型的训练本身有没有差异</p></div>
+          </article>
+        
+          <article class="turn assistant " data-turn-id="a9">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot assistant"></i>
+                <div>
+                  <strong>Assistant</strong>
+                  <div class="meta">2026-06-15T16:53:26+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">analysis</span> <span class="tag">framework-selection</span> <span class="tag">dflash</span> <span class="tag">eagle3</span> <span class="tag">npu</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><h2>重新检查后的框架判断</h2>
+<p>结论先说：如果只看 DSV4 在昇腾上的推理，vLLM Ascend 和 SGLang 都有依据；如果看 DFlash 推理，SGLang 主仓的 DFlash 推理集成更完整；如果看 DFlash 训练，vLLM speculators 的训练链路更明确。真正难点是把“训练语义”和“最终推理语义”对齐。</p>
+<h2>SGLang / SpecForge 侧</h2>
+<p>SGLang 主仓已经有 Ascend NPU 支持，包括 NPU Dockerfile、Ascend 安装文档、NPU kernel、NPU quantization/MoE 路径。源码里也有 DSV4 manual tests，覆盖 DeepSeek-V4-Flash/Pro、MTP、PD disaggregation 等场景；这说明 SGLang 对 DSV4 推理并不是空白。</p>
+<p>SGLang 对 DFlash 推理支持也比较实：主仓里有 <code>sglang.srt.models.dflash</code>、<code>dflash_worker_v2</code>、DFlash hidden state capture、DFlash verify input、DFlash accept/bonus、DFlash CUDA graph/NPU graph runner 相关判断，以及大量 attention unit tests 覆盖 dense/swa/gdn/mla 等 backend 的 <code>dflash</code> verify chain。对“最终推理低时延验证”来说，这是优势。</p>
+<p>但 SGLang/SpecForge 的训练侧公开重心更偏 EAGLE-3。SpecForge 本身是 speculative draft training framework，但从公开可见材料看，它的成熟度、示例和论文主线更多围绕 EAGLE-3；DFlash 训练支持不像 vLLM speculators 那样有清晰的 ready-to-run DFlash online training 脚本。若选 SGLang/SpecForge 做 DFlash 训练，需要预期更多适配工作。</p>
+<h2>vLLM Ascend / vLLM speculators 侧</h2>
+<p>vLLM Ascend 文档明确有 DeepSeek-V4-Flash 和 DeepSeek-V4-Pro 教程，也有 speculative decoding guide。它支持 <code>mtp</code>、EAGLE draft、hidden states extraction，并有 block verify / entropy verify 等推理侧优化。对 DSV4 在昇腾上的“通用推理框架路径”，vLLM Ascend 证据更直接。</p>
+<p>vLLM speculators 对训练侧更明确。源码和文档显示它是一个 end-to-end draft model training framework，明确支持 DFlash training algorithm，包含：</p>
+<pre><code data-lang="text">examples/train/dflash_qwen3_8b_sharegpt_online_5k.sh
+scripts/train.py --speculator-type dflash
+--block-size
+--max-anchors
+--num-layers
+--target-layer-ids
+online hidden states generation through vLLM endpoint
+DFlash tests / regression
+Qwen3-8B DFlash published checkpoint</code></pre>
+<p>但它的 DFlash tutorial 明确以 CUDA/H100 为前提；要在昇腾上训练，需要改造 GPU assignment、torchrun/torch_npu、FSDP、vLLM endpoint 或 hidden extraction。并且它默认以 vLLM 的 hidden extraction 作为 teacher path，如果最终推理用 SGLang 或 cann-recipes-infer，就必须做 train-infer parity。</p>
+<h2>哪个更方便</h2>
+<p>按任务拆分会更清楚：</p>
+<pre><code data-lang="text">最终推理低时延验证:
+  SGLang 或 cann-recipes-infer 更贴近 DFlash 推理实现；
+  vLLM Ascend 更贴近 DSV4 官方文档化部署。
+
+DFlash 训练脚手架:
+  vLLM speculators 更方便，因为 DFlash training 是显式支持项；
+  SpecForge/SGLang 训练侧更可能需要补 DFlash-specific training glue。
+
+训练/推理一致性:
+  最优是训练直接复用最终推理框架的 target hidden extraction 和 draft forward；
+  如果做不到，必须建立 parity test。</code></pre>
+<p>因此当前更务实的建议：</p>
+<p>1. 如果最终推理倾向 <code>cann-recipes-infer</code> 或 SGLang：</p>
+<p>用 vLLM speculators 作为 DFlash 训练算法参考，而不是直接把它当最终训练实现。优先把它的 DFlash data/block/loss/training loop 思路移植到最终推理代码的 forward 语义上。</p>
+<p>2. 如果最终推理倾向 vLLM Ascend：</p>
+<p>vLLM speculators 更方便，因为 hidden extraction、checkpoint format、vLLM serve/eval 链路更一致。但仍要确认 vLLM speculators 的训练部分能否在 torch_npu 上跑。</p>
+<p>3. 如果目标是最快拿到 DSV4-DFlash checkpoint：</p>
+<p>先用 vLLM speculators 跑通 NPU correctness path，导出 checkpoint；再接回 SGLang/cann-recipes-infer 做 parity。若 parity 不过，再把训练 forward 收敛到推理仓实现。</p>
+<h2>DFlash 训练支持是否完备</h2>
+<p>vLLM speculators 对 DFlash 的支持是“有完整训练链路雏形”，但不能等同于“生产级完备”。它的公开 5K Qwen3-8B 示例只证明 pipeline 能学习，接受长度很低，不能代表目标可达。真正要达到 6-7/8，需要大规模数据、目标模型适配、NPU 稳定性、train-infer parity、长输出评估。</p>
+<p>SGLang 的 DFlash 推理支持更完备，但训练框架侧对 DFlash 的公开支撑相对不如 vLLM speculators 明确。它更适合作为推理语义和部署目标，而不是直接作为现成 DFlash 训练框架。</p>
+<p>所以框架成熟度可以粗略评价为：</p>
+<pre><code data-lang="text">SGLang:
+  DSV4 推理: 中高
+  DFlash 推理: 高
+  DFlash 训练: 中低/需核验 SpecForge 细节
+  NPU 推理: 中高
+  NPU 训练: 未知
+
+vLLM Ascend + speculators:
+  DSV4 推理: 高
+  DFlash 推理: 中/需看 Ascend 对 DFlash 是否完全接上
+  DFlash 训练: 中高（算法链路明确）
+  NPU 推理: 高
+  NPU 训练: 未知/需改造
+
+cann-recipes-infer:
+  DSV4 推理: 高
+  Qwen3.5 DFlash 推理样例: 高参考价值
+  DFlash 训练: 无现成完整训练框架
+  train-infer parity: 如果自建训练 harness，最容易保证</code></pre>
+<h2>EAGLE-3 和 DFlash 训练本身的差异</h2>
+<p>两者差异很大，不能把 EAGLE-3 training pipeline 简单换个模型名当 DFlash 用。</p>
+<p>EAGLE-3 的核心是 autoregressive/tree-style draft。训练通常学习从 target hidden states 和 token embeddings 预测下一步/多步 token，draft 过程仍带有逐步生成或 tree expansion 的味道。训练样本的关键是 target hidden states 与下一个 token 的对齐；模型常常是一层或少量 transformer layer，训练目标更接近 next-token CE / tree draft policy。</p>
+<p>DFlash 的核心是 anchored block diffusion draft。训练时随机采样 anchor token，把 anchor 后面的 block positions mask 掉，让 draft 在一个 forward 里并行预测多个 future tokens。它需要：</p>
+<pre><code data-lang="text">random anchor sampling
+masked block construction
+block attention / sparse attention mask
+target multi-layer hidden states as context
+KV injection or equivalent conditioning
+position-weighted loss
+block size / max anchors
+full-block and first-reject metrics</code></pre>
+<p>因此 DFlash 比 EAGLE-3 多了几个训练专属问题：</p>
+<p>1. block size 是否含 anchor，训练/推理必须一致。</p>
+<p>2. anchor sampling 分布直接影响接受率。</p>
+<p>3. 早期位置错误会截断整个 block，所以 loss weighting 更关键。</p>
+<p>4. target hidden states 不只是辅助输入，而是每层 draft 的主要条件信息。</p>
+<p>5. 验证时是 chain/block verify，不是 EAGLE tree verify。</p>
+<p>6. draft latency 对 block size 不线性增长，但 verify cost 会增长。</p>
+<p>EAGLE-3 训练框架中可复用的部分：</p>
+<pre><code data-lang="text">target-generated data
+hidden state extraction
+training loop / optimizer / checkpoint
+acceptance eval harness
+vocab mapping / lm_head sharing</code></pre>
+<p>不能直接复用或必须重写的部分：</p>
+<pre><code data-lang="text">sample construction
+forward signature
+attention mask
+loss weighting
+block metrics
+draft/verify cache semantics
+checkpoint config fields</code></pre>
+<h2>当前建议</h2>
+<p>我建议把路线定成“两层实现”：</p>
+<pre><code data-lang="text">算法训练参考层: vLLM speculators 的 DFlash training
+部署语义基准层: 最终推理框架，优先 cann-recipes-infer 或 SGLang DFlash path</code></pre>
+<p>短期做法：</p>
+<p>1. 读 vLLM speculators 的 DFlash training 代码，提取 block construction、loss、config、checkpoint format。</p>
+<p>2. 读 SGLang/cann-recipes-infer 的 DFlash forward 和 verify 代码，定义 deployment contract。</p>
+<p>3. 做一个 DSV4-DFlash 最小训练 harness，尽量复用 deployment forward。</p>
+<p>4. 如果为了速度先用 vLLM speculators 训练，必须把 parity test 作为入口门禁。</p>
+<p>5. 不要直接沿用 EAGLE-3 的训练 pipeline；只能复用 hidden extraction 和训练工程骨架。</p></div>
+          </article>
+        
+          <article class="turn user " data-turn-id="u10">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot user"></i>
+                <div>
+                  <strong>User</strong>
+                  <div class="meta">2026-06-15T17:01:00+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">request</span> <span class="tag">summary</span> <span class="tag">execution-plan</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><p>针对刚才讨论的内容，总结一下推荐的展开路径</p></div>
+          </article>
+        
+          <article class="turn assistant " data-turn-id="a10">
+            <header class="turn-head">
+              <div class="speaker">
+                <i class="dot assistant"></i>
+                <div>
+                  <strong>Assistant</strong>
+                  <div class="meta">2026-06-15T17:02:19+08:00</div>
+                </div>
+              </div>
+              <div class="turn-actions">
+                <div class="filter-row"><span class="tag">summary</span> <span class="tag">execution-plan</span> <span class="tag">recommendation</span></div>
+                <button type="button" class="collapse-btn turn-collapse" title="折叠或展开这一条">折叠</button>
+              </div>
+            </header>
+            <div class="qa-summary"></div>
+            <div class="turn-body"><h2>推荐展开路径</h2>
+<p>总体原则：先确定最终推理语义，再选择训练脚手架。DFlash 的接受率高度依赖 target hidden states、block mask、position、dtype、verify/cache commit 等细节；训练框架只能作为工程外壳，不能让训练语义偏离最终推理实现。</p>
+<h3>Phase 0: 冻结目标和口径</h3>
+<p>目标：</p>
+<ul>
+<li>primary target 先选 <code>DSV4-Flash</code>，除非 Pro 是明确上线目标。</li>
+<li>第一阶段用 greedy / <code>temperature=0</code>。</li>
+<li>验收主指标用 <code>accepted_with_bonus</code>，但必须同时报告 <code>accepted_draft_tokens</code>。</li>
+<li>8 个 token 可以包含 bonus，但日志中必须拆开 candidate draft、accepted draft、bonus。</li>
+</ul>
+<p>产出：</p>
+<pre><code data-lang="text">target_model_id / checkpoint_id
+tokenizer revision
+chat template revision
+decode policy
+candidate_draft_tokens
+bonus accounting
+acceptance metrics schema</code></pre>
+<p>Gate：</p>
+<pre><code data-lang="text">同一输入 greedy 输出 deterministic
+统计口径在训练/eval/推理日志中一致</code></pre>
+<h3>Phase 1: 确定部署语义基准</h3>
+<p>目标：</p>
+<ul>
+<li>以最终推理框架作为 deployment contract。</li>
+<li>当前优先参考 <code>cann-recipes-infer</code> 的 DSV4 裸推理样例和 Qwen3.5 DFlash PR。</li>
+<li>同时保留 SGLang 作为推理候选，因为 SGLang 主仓 DFlash 推理支持完整、也有 DSV4 路径。</li>
+</ul>
+<p>建议：</p>
+<pre><code data-lang="text">推理 P0: cann-recipes-infer DSV4-Flash + Qwen3.5 DFlash PR 迁移
+推理 P1: SGLang DFlash path
+推理 P2: vLLM Ascend DSV4 path</code></pre>
+<p>产出：</p>
+<pre><code data-lang="text">DSV4 target hidden extraction 接口
+DFlash draft forward 接口
+speculative verify / accepted state commit 接口
+draft config 字段: target_layer_ids, hidden_source, block_size, draft_tokens</code></pre>
+<p>Gate：</p>
+<pre><code data-lang="text">随机/小 draft 权重可跑通 shape
+verify causal mask 正确
+accepted_num / bonus token 统计正确
+cache/state commit 不错位</code></pre>
+<h3>Phase 2: 建立 train-infer parity test</h3>
+<p>目标：</p>
+<ul>
+<li>在大规模训练前，证明训练路径和推理路径语义一致。</li>
+</ul>
+<p>最小测试：</p>
+<pre><code data-lang="text">固定 tokenized prompts
+固定 target_layer_ids
+训练路径提取 selected hidden states
+推理路径提取 selected hidden states
+比较 hidden states
+同一 hidden + same draft weights 比较 draft logits
+同一 spec tokens 比较 verify logits
+比较 accepted_num / first_reject_position</code></pre>
+<p>Gate：</p>
+<pre><code data-lang="text">hidden cosine similarity 接近 1
+draft logits top-1 agreement 接近 100%
+accepted_num 逐样本一致</code></pre>
+<p>如果 parity 不过，先定位差异，不进入训练。</p>
+<h3>Phase 3: 选择训练实现方式</h3>
+<p>推荐优先级：</p>
+<p>1. 最稳：在部署推理仓内补最小 NPU training harness。</p>
+<p>2. 次稳：用 vLLM speculators 的 training loop，但复用/移植部署推理仓的 target forward 和 DFlash forward。</p>
+<p>3. 风险最高：直接用 vLLM speculators 完整训练，再导出给另一个推理框架。</p>
+<p>建议：</p>
+<ul>
+<li>vLLM speculators 是 DFlash 训练算法最好的公开参考。</li>
+<li>SGLang 更适合参考 DFlash 推理语义和部署路径。</li>
+<li>SpecForge 如果 DFlash 训练支持不足，不作为第一选择。</li>
+</ul>
+<p>产出：</p>
+<pre><code data-lang="text">minimal DFlash training harness on torch_npu
+block construction
+random anchor sampling
+position-weighted loss
+checkpoint save/load
+parity-compatible config.json</code></pre>
+<p>Gate：</p>
+<pre><code data-lang="text">1K-5K samples 能训练 loss 下降
+checkpoint 可接回推理仓
+同一 checkpoint parity 不破坏</code></pre>
+<h3>Phase 4: 小样本 smoke + 100K ablation</h3>
+<p>先做 10K-20K smoke，确认数据、口径、训练稳定性；再做 100K ablation。</p>
+<p>核心 ablation：</p>
+<pre><code data-lang="text">target layers: 3-H / wide-5 / deep-5 / 7-H
+draft depth: 3 / 5 / 7 or 8
+draft width: baseline / wider
+block: candidate 7 + bonus vs candidate 8 + bonus
+train block: 8/9/16 depending on anchor definition
+loss: uniform vs exp decay vs progressive
+distillation: CE only vs CE + top-k logits KL
+fusion: shared fused context vs layer-wise adaptive fusion</code></pre>
+<p>Gate：</p>
+<pre><code data-lang="text">controlled greedy slice accepted_with_bonus &gt;= 6/8
+accepted_draft_tokens 同步提升，而不是只靠 bonus
+first_reject_position 后移
+端到端 latency 有收益</code></pre>
+<h3>Phase 5: 扩数据和长输出验证</h3>
+<p>目标：</p>
+<ul>
+<li>从可控场景走向更通用场景，但不把通用平均值作为唯一指标。</li>
+</ul>
+<p>数据策略：</p>
+<pre><code data-lang="text">target-generated responses
+核心低熵场景优先
+再加入 general chat / code / math / structured
+长输出单独建 bucket</code></pre>
+<p>评估：</p>
+<pre><code data-lang="text">controlled benchmark
+general mixed benchmark
+domain-specific breakdown
+generated-position buckets: 0-1K, 1-4K, 4K+
+p50/p95 latency
+tok/s
+GPU/NPU utilization</code></pre>
+<p>Gate：</p>
+<pre><code data-lang="text">核心场景 accepted_with_bonus 6-7/8
+弱域不拖垮整体收益
+长输出 acceptance 不快速塌陷
+低时延指标优于 baseline</code></pre>
+<h3>Phase 6: 推理优化和框架收敛</h3>
+<p>当 acceptance 达标后，再考虑性能优化：</p>
+<pre><code data-lang="text">eager -&gt; graph / npugraph
+draft kernel fusion
+hidden state extraction overhead
+KV/state commit overhead
+batching / overlap
+candidate_draft_tokens adaptive scheduling</code></pre>
+<p>最终框架选择依据：</p>
+<pre><code data-lang="text">谁能保证 train-infer parity
+谁的 DSV4 推理低时延更好
+谁的 DFlash draft/verify 更稳定
+谁的 NPU 训练改造成本最低</code></pre>
+<h2>当前推荐路线</h2>
+<p>最现实路线：</p>
+<pre><code data-lang="text">1. 以 cann-recipes-infer 的 DSV4-Flash 裸推理和 Qwen3.5 DFlash PR 作为部署语义基准
+2. 参考 vLLM speculators 的 DFlash training 实现，提取 block/loss/training harness
+3. 在 NPU 上做最小训练 harness，尽量复用部署推理仓 forward
+4. 建立 train-infer parity gate
+5. 先 10K smoke，再 100K ablation
+6. 接回推理仓测 acceptance_with_bonus / accepted_draft_tokens / latency
+7. 达标后再扩数据、加 layer-wise fusion、做 graph/kernel 优化</code></pre>
+<p>不推荐：</p>
+<pre><code data-lang="text">直接复用 EAGLE-3 训练 pipeline 当 DFlash 训练
+直接用外部框架训完就接到另一个推理框架
+一开始同时覆盖 Flash/Pro、greedy/sampling、通用/长输出
+在 parity 未通过前启动大规模训练</code></pre></div>
+          </article>
+        </div>
+    </main>
+    <aside class="details">
+      <div class="section-title">快速跳转</div>
+      <div class="toc">
+        <button type="button" data-id="u1">
+          <i class="dot user"></i>
+          <span class="snippet">User: 我现在想训练一个 dflash 草稿模型，但是缺少经验，现在最大的风险是草稿模型的接受率，我们期望草稿 8 个 t...</span>
+        </button>
+      
+        <button type="button" data-id="tool1">
+          <i class="dot tool"></i>
+          <span class="snippet">Tool: 读取 `agent_interaction_format_spec.md`，确认可导入格式为： ```text M...</span>
+        </button>
+      
+        <button type="button" data-id="tool2">
+          <i class="dot tool"></i>
+          <span class="snippet">Tool: 参考的公开资料： - DFlash: Block Diffusion for Flash Speculative ...</span>
+        </button>
+      
+        <button type="button" data-id="a1">
+          <i class="dot assistant"></i>
+          <span class="snippet">Assistant: ## 核心判断 目标“草稿 8 个 token，平均接受 6-7 个”是一个很高的目标，需要先统一指标口径。DFl...</span>
+        </button>
+      
+        <button type="button" data-id="u2">
+          <i class="dot user"></i>
+          <span class="snippet">User: 你说的 bonus token 是指什么？</span>
+        </button>
+      
+        <button type="button" data-id="a2">
+          <i class="dot assistant"></i>
+          <span class="snippet">Assistant: `bonus token` 指的是：在一次 draft-verify 循环里，除了被接受的草稿 token 之外，...</span>
+        </button>
+      
+        <button type="button" data-id="u3">
+          <i class="dot user"></i>
+          <span class="snippet">User: 口径 A。blocksize 是否包含 anchor token 呢？又是什么意思？</span>
+        </button>
+      
+        <button type="button" data-id="a3">
+          <i class="dot assistant"></i>
+          <span class="snippet">Assistant: 在 DFlash 语境里，`anchor token` 是每个 draft block 的起点 token：它已经...</span>
+        </button>
+      
+        <button type="button" data-id="u4">
+          <i class="dot user"></i>
+          <span class="snippet">User: target model 选用 DSV4，flash 还是 pro 暂未确定；假如按你推荐的路径去做， 1. ch...</span>
+        </button>
+      
+        <button type="button" data-id="a4">
+          <i class="dot assistant"></i>
+          <span class="snippet">Assistant: ## 更新后的目标口径 当前 target model 先按 DSV4 规划，Flash/Pro 暂未最终确定。由...</span>
+        </button>
+      
+        <button type="button" data-id="u5">
+          <i class="dot user"></i>
+          <span class="snippet">User: 你讲的是项目整体执行的方向。现在想讨论下具体的细节问题： 1. 现在业界有两个草稿模型的训练框架，分别是 SGLa...</span>
+        </button>
+      
+        <button type="button" data-id="a5">
+          <i class="dot assistant"></i>
+          <span class="snippet">Assistant: ## 1. SpecForge vs vLLM speculators 公开资料显示，两者都已经把 DFlash/...</span>
+        </button>
+      
+        <button type="button" data-id="u6">
+          <i class="dot user"></i>
+          <span class="snippet">User: 补充一个信息，DSV4 在昇腾上的裸模型推理已经有样例了，https://gitcode.com/cann/can...</span>
+        </button>
+      
+        <button type="button" data-id="a6">
+          <i class="dot assistant"></i>
+          <span class="snippet">Assistant: 这个信息会改变风险排序。DSV4 在昇腾上已有裸模型推理样例，说明 target model forward、权重...</span>
+        </button>
+      
+        <button type="button" data-id="u7">
+          <i class="dot user"></i>
+          <span class="snippet">User: 再补充一个信息，https://gitcode.com/cann/cann-recipes-infer/pull/...</span>
+        </button>
+      
+        <button type="button" data-id="a7">
+          <i class="dot assistant"></i>
+          <span class="snippet">Assistant: 这个 PR 信息显著降低了“昇腾上 DFlash 推理链路是否可行”的风险。PR diff 显示它不只是文档说明，...</span>
+        </button>
+      
+        <button type="button" data-id="u8">
+          <i class="dot user"></i>
+          <span class="snippet">User: 你的建议是推理可以用 infer 仓的样例，训练看哪个框架优先看哪个更容易在昇腾上运行；但如果推理和训练不是同一个...</span>
+        </button>
+      
+        <button type="button" data-id="a8">
+          <i class="dot assistant"></i>
+          <span class="snippet">Assistant: 这个担心成立，而且对 DFlash 尤其关键。DFlash 的接受率强依赖 target hidden state...</span>
+        </button>
+      
+        <button type="button" data-id="u9">
+          <i class="dot user"></i>
+          <span class="snippet">User: sglang 应该也有支持 NPU 上的 DSV4 推理，检索一下；vllm-ascend 应该也有；我不在意必须...</span>
+        </button>
+      
+        <button type="button" data-id="a9">
+          <i class="dot assistant"></i>
+          <span class="snippet">Assistant: ## 重新检查后的框架判断 结论先说：如果只看 DSV4 在昇腾上的推理，vLLM Ascend 和 SGLang...</span>
+        </button>
+      
+        <button type="button" data-id="u10">
+          <i class="dot user"></i>
+          <span class="snippet">User: 针对刚才讨论的内容，总结一下推荐的展开路径</span>
+        </button>
+      
+        <button type="button" data-id="a10">
+          <i class="dot assistant"></i>
+          <span class="snippet">Assistant: ## 推荐展开路径 总体原则：先确定最终推理语义，再选择训练脚手架。DFlash 的接受率高度依赖 target ...</span>
+        </button>
+      </div>
+    </aside>
+  </div>
+  <script>
+        document.querySelectorAll(".turn-collapse").forEach(button => {
+          button.addEventListener("click", event => {
+            event.stopPropagation();
+            const turn = button.closest(".turn");
+            turn.classList.toggle("collapsed");
+            button.textContent = turn.classList.contains("collapsed") ? "展开" : "折叠";
+          });
+        });
+        document.querySelectorAll(".toc button").forEach(button => {
+          button.addEventListener("click", () => {
+            const target = [...document.querySelectorAll(".turn")].find(turn => turn.dataset.turnId === button.dataset.id);
+            if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+          });
+        });
+      </script>
+</body>
+</html>
