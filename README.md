@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/palimpsest-knowledge-logo-generated-512.png" alt="Palimpsest AI Infra Logo" width="160" />
+</p>
+
 # AI Infra Knowledge System
 
 这个知识库的中心不是“收集了哪些模型、论文和工具”，而是回答一个更稳定的问题：
@@ -22,21 +26,7 @@ AI Infra 不是单纯的“部署”或“工程实现”。它关心的是模�
 
 ## 体系结构
 
-```mermaid
-flowchart TB
-    A[硬件与资源约束] --> B[算子、内存与通信]
-    B --> C[训练与推理执行系统]
-    C --> D[模型架构与生成范式]
-    D --> E[服务指标与评测体系]
-    E --> F[研究判断与工程决策]
-    F --> B
-
-    D --> G[多模态、Diffusion、World Model]
-    D --> H[LLM、MoE、长上下文、投机推理]
-    B --> I[Kernel、Compiler、CANN、Triton]
-    E --> J[能力评测、系统评测、复现风险]
-    F --> K[Agent 化知识生产与代码分析]
-```
+![AI Infra Knowledge System](./assets/ai-infra-knowledge-system.svg)
 
 这张图表达的是一个闭环，而不是目录结构：
 

@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="780" viewBox="0 0 1600 780" role="img" aria-labelledby="title desc">
+  <title id="title">AI Infra Analysis Loop</title>
+  <desc id="desc">A white flat diagram showing an AI infrastructure analysis path: scenario, model, parallelism, kernels, hardware, bottleneck feedback, evaluation, and decision.</desc>
+
+  <rect x="0" y="0" width="1600" height="780" fill="#ffffff"/>
+  <g stroke="#edf4fb" stroke-width="1">
+    <path d="M0 0H1600M0 40H1600M0 80H1600M0 120H1600M0 160H1600M0 200H1600M0 240H1600M0 280H1600M0 320H1600M0 360H1600M0 400H1600M0 440H1600M0 480H1600M0 520H1600M0 560H1600M0 600H1600M0 640H1600M0 680H1600M0 720H1600M0 760H1600"/>
+    <path d="M0 0V780M40 0V780M80 0V780M120 0V780M160 0V780M200 0V780M240 0V780M280 0V780M320 0V780M360 0V780M400 0V780M440 0V780M480 0V780M520 0V780M560 0V780M600 0V780M640 0V780M680 0V780M720 0V780M760 0V780M800 0V780M840 0V780M880 0V780M920 0V780M960 0V780M1000 0V780M1040 0V780M1080 0V780M1120 0V780M1160 0V780M1200 0V780M1240 0V780M1280 0V780M1320 0V780M1360 0V780M1400 0V780M1440 0V780M1480 0V780M1520 0V780M1560 0V780M1600 0V780"/>
+  </g>
+  <path d="M0 720 C260 672 380 760 590 724 C815 686 950 744 1162 712 C1342 684 1465 704 1600 664 L1600 780 L0 780 Z" fill="#f8fbff"/>
+
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="80" y="72" font-size="42" font-weight="700" fill="#0f172a">AI Infra Analysis Loop</text>
+    <text x="80" y="106" font-size="18" fill="#64748b">Analyze from scenario and model choices down to hardware, then feed bottlenecks back into decisions.</text>
+
+    <text x="92" y="178" font-size="16" font-weight="700" fill="#2563eb">analysis path</text>
+    <text x="1010" y="178" font-size="16" font-weight="700" fill="#0891b2">feedback path</text>
+
+    <g fill="none" stroke="#2563eb" stroke-width="3">
+      <path d="M272 324H318"/>
+      <path d="M532 324H578"/>
+      <path d="M792 324H838"/>
+      <path d="M1052 324H1098"/>
+    </g>
+    <g fill="#2563eb">
+      <path d="M318 324l-11-7v14z"/>
+      <path d="M578 324l-11-7v14z"/>
+      <path d="M838 324l-11-7v14z"/>
+      <path d="M1098 324l-11-7v14z"/>
+    </g>
+
+    <g transform="translate(72 250)">
+      <rect x="4" y="8" width="200" height="148" rx="22" fill="#dbeafe" opacity="0.35"/>
+      <rect x="0" y="0" width="200" height="148" rx="22" fill="#ffffff" stroke="#dbe7f3" stroke-width="2"/>
+      <rect x="22" y="22" width="46" height="46" rx="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+      <path d="M34 48H58M46 36V60" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="46" cy="48" r="15" fill="none" stroke="#06b6d4" stroke-width="2"/>
+      <text x="22" y="96" font-size="22" font-weight="700" fill="#0f172a">Scenario</text>
+      <text x="22" y="123" font-size="14" font-weight="600" fill="#475569">SLO / Workload</text>
+    </g>
+
+    <g transform="translate(332 250)">
+      <rect x="4" y="8" width="200" height="148" rx="22" fill="#dbeafe" opacity="0.35"/>
+      <rect x="0" y="0" width="200" height="148" rx="22" fill="#ffffff" stroke="#dbe7f3" stroke-width="2"/>
+      <rect x="22" y="22" width="46" height="46" rx="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+      <path d="M46 30L64 42V62L46 74L28 62V42Z" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+      <path d="M46 30V74M28 42L64 62M64 42L28 62" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="22" y="96" font-size="22" font-weight="700" fill="#0f172a">Model</text>
+      <text x="22" y="123" font-size="14" font-weight="600" fill="#475569">MoE / Context / Diffusion</text>
+    </g>
+
+    <g transform="translate(592 250)">
+      <rect x="4" y="8" width="200" height="148" rx="22" fill="#dbeafe" opacity="0.35"/>
+      <rect x="0" y="0" width="200" height="148" rx="22" fill="#ffffff" stroke="#dbe7f3" stroke-width="2"/>
+      <rect x="22" y="22" width="46" height="46" rx="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+      <circle cx="34" cy="45" r="7" fill="#e0f7fb" stroke="#0891b2" stroke-width="2"/>
+      <circle cx="58" cy="34" r="7" fill="#e0f7fb" stroke="#0891b2" stroke-width="2"/>
+      <circle cx="58" cy="58" r="7" fill="#e0f7fb" stroke="#0891b2" stroke-width="2"/>
+      <path d="M41 43L51 37M41 48L51 55" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="22" y="96" font-size="22" font-weight="700" fill="#0f172a">Parallelism</text>
+      <text x="22" y="123" font-size="14" font-weight="600" fill="#475569">TP / EP / PP / CP</text>
+    </g>
+
+    <g transform="translate(852 250)">
+      <rect x="4" y="8" width="200" height="148" rx="22" fill="#dbeafe" opacity="0.35"/>
+      <rect x="0" y="0" width="200" height="148" rx="22" fill="#ffffff" stroke="#dbe7f3" stroke-width="2"/>
+      <rect x="22" y="22" width="46" height="46" rx="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+      <rect x="34" y="34" width="28" height="22" fill="#e0f7fb" stroke="#0891b2" stroke-width="2"/>
+      <path d="M40 42H56M40 50H56" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="22" y="96" font-size="22" font-weight="700" fill="#0f172a">Kernel</text>
+      <text x="22" y="123" font-size="14" font-weight="600" fill="#475569">Attn / GEMM / KV / Comm</text>
+    </g>
+
+    <g transform="translate(1112 250)">
+      <rect x="4" y="8" width="200" height="148" rx="22" fill="#dbeafe" opacity="0.35"/>
+      <rect x="0" y="0" width="200" height="148" rx="22" fill="#ffffff" stroke="#dbe7f3" stroke-width="2"/>
+      <rect x="22" y="22" width="46" height="46" rx="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+      <rect x="34" y="34" width="22" height="22" rx="3" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+      <path d="M29 40H20M29 50H20M62 40H72M62 50H72M40 29V20M50 29V20M40 62V72M50 62V72" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+      <text x="22" y="96" font-size="22" font-weight="700" fill="#0f172a">Hardware</text>
+      <text x="22" y="123" font-size="14" font-weight="600" fill="#475569">Compute / HBM / Link</text>
+    </g>
+
+    <g transform="translate(1368 250)">
+      <rect x="0" y="0" width="160" height="148" rx="22" fill="#ffffff" stroke="#dbe7f3" stroke-width="2"/>
+      <rect x="22" y="22" width="46" height="46" rx="12" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.5"/>
+      <path d="M32 58A17 17 0 1 1 62 58" fill="none" stroke="#f59e0b" stroke-width="2"/>
+      <path d="M47 58L58 42" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+      <circle cx="47" cy="58" r="3" fill="#2563eb"/>
+      <text x="22" y="96" font-size="22" font-weight="700" fill="#0f172a">Bottleneck</text>
+      <text x="22" y="123" font-size="14" font-weight="600" fill="#475569">Roofline / Trace</text>
+    </g>
+
+    <path d="M1312 324H1358" fill="none" stroke="#0891b2" stroke-width="3"/>
+    <path d="M1358 324l-11-7v14z" fill="#0891b2"/>
+    <text x="1136" y="438" font-size="15" font-weight="700" fill="#0891b2">hardware exposes bottlenecks</text>
+
+    <path d="M1448 398C1448 646 1238 646 1238 528" fill="none" stroke="#0891b2" stroke-width="3"/>
+    <path d="M1238 528l-7 12h14z" fill="#0891b2"/>
+
+    <g transform="translate(1102 500)">
+      <rect x="0" y="0" width="270" height="106" rx="18" fill="#f8fbff" stroke="#dbeafe" stroke-width="2"/>
+      <text x="24" y="38" font-size="20" font-weight="700" fill="#0f172a">Evaluation Evidence</text>
+      <text x="24" y="68" font-size="14" font-weight="600" fill="#64748b">Capability / Latency / Cost</text>
+    </g>
+
+    <path d="M1102 553H856" fill="none" stroke="#0891b2" stroke-width="3"/>
+    <path d="M856 553l12-7v14z" fill="#0891b2"/>
+
+    <g transform="translate(586 500)">
+      <rect x="0" y="0" width="270" height="106" rx="18" fill="#f8fbff" stroke="#dbeafe" stroke-width="2"/>
+      <text x="24" y="38" font-size="20" font-weight="700" fill="#0f172a">Design Decision</text>
+      <text x="24" y="68" font-size="14" font-weight="600" fill="#64748b">Change model / split / kernel</text>
+    </g>
+
+    <path d="M586 553H278C216 553 178 508 178 408" fill="none" stroke="#0891b2" stroke-width="3"/>
+    <path d="M178 408l-7 12h14z" fill="#0891b2"/>
+    <text x="512" y="638" font-size="17" font-weight="700" fill="#2563eb">Feedback: hardware bottlenecks and eval evidence revise the next analysis pass</text>
+
+    <g transform="translate(1180 96)">
+      <rect x="0" y="0" width="310" height="104" rx="18" fill="#f8fbff" stroke="#dbeafe" stroke-width="2"/>
+      <text x="24" y="36" font-size="20" font-weight="700" fill="#0f172a">Agent Knowledge Workflow</text>
+      <text x="24" y="66" font-size="14" font-weight="600" fill="#64748b">Paper review / Code reading / Automation</text>
+    </g>
+    <path d="M1335 200C1370 215 1400 226 1440 250" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="8 8"/>
+    <path d="M1440 250l-13-1 7-10z" fill="#0891b2"/>
+
+    <g transform="translate(70 670)">
+      <rect x="0" y="0" width="1460" height="86" rx="24" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+      <circle cx="46" cy="43" r="10" fill="#2563eb"/>
+      <text x="74" y="38" font-size="20" font-weight="700" fill="#0f172a">How to read this system</text>
+      <text x="74" y="64" font-size="14" font-weight="600" fill="#64748b">Start with a scenario, map it to model and parallelism, estimate kernels, test hardware, then feed bottlenecks back.</text>
+    </g>
+  </g>
+</svg>
