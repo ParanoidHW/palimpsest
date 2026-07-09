@@ -1,4 +1,11 @@
-更新时间：2026-05-29
+# DFlash 开源投机模型结构整理
+
+## 资料边界
+
+- 更新时间：2026-05-29
+- 用途：核查 DFlash 公开 draft 模型的源码结构和 Hugging Face 配置字段。
+- 来源：DFlash GitHub README、`dflash/model.py` 与匿名可访问的 Hugging Face `config.json`。
+- 证据边界：gated 模型只记录访问受限，不做结构猜测。
 
 ## 结论摘要
 
@@ -190,4 +197,3 @@
   - https://huggingface.co/z-lab/gpt-oss-120b-DFlash/blob/main/config.json
   - https://huggingface.co/z-lab/Kimi-K2.5-DFlash/blob/main/config.json
   - https://huggingface.co/z-lab/LLaMA3.1-8B-Instruct-DFlash-UltraChat/blob/main/config.json
-
