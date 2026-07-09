@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p output)",
+      "Bash(mv Embodied/2606.02800_paper output/2606.02800_paper)",
+      "Bash(python3 -c ' *)",
+      "Bash(tar xzf *)"
+    ]
+  }
+}
