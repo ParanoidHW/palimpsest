@@ -1,6 +1,13 @@
-# 大模型评估
+# AI Infra Evaluation
 
 本目录只归档通用、可复用、可核查的大模型评估知识，不归档某个具体项目的实现细节。
+
+## 阅读顺序
+
+1. [能力评测-维度与常用基准](能力评测-维度与常用基准.md)：先区分知识、推理、指令遵循和开放式偏好。
+2. [评测设计-复现污染与裁判偏差](评测设计-复现污染与裁判偏差.md)：再看污染、敏感性和 judge bias。
+3. [系统性能评测-延迟吞吐与Roofline](../performance_modeling/系统性能评测-延迟吞吐与Roofline.md)：把能力分数和服务体验拆开。
+4. [部署能力评测-内存算力带宽与通信](../performance_modeling/部署能力评测-内存算力带宽与通信.md)：回到硬件资源是否支撑部署。
 
 ## 整理原则
 
@@ -18,6 +25,10 @@
 - [系统性能评测-延迟吞吐与Roofline](../performance_modeling/系统性能评测-延迟吞吐与Roofline.md)
 - [kernel开销计算逻辑](../performance_modeling/kernel开销计算逻辑.md)
 - [图示生成Prompt-imagegen](图示生成Prompt-imagegen.md)
+
+## 资产说明
+
+本目录当前没有本地图片资产；结构图 prompt 保存在 [图示生成Prompt-imagegen](图示生成Prompt-imagegen.md)，真正生成的临时图不进入本目录。
 
 ## 一页判断
 
