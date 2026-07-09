@@ -1,5 +1,11 @@
 # kernel开销计算逻辑
 
+## 资料边界
+
+- 用途：把单 kernel 成本拆成 FLOPs、Bytes、Roofline 上界和运行时 overhead。
+- 主要来源：Roofline 原始论文、vLLM benchmark 术语和 MLPerf 场景定义。
+- 证据类型：工程估算框架；需要用实际 profiler 数据校准 $P_{\mathrm{eff}}$、$B_{\mathrm{eff}}$ 和 launch/sync 开销。
+
 这份笔记只记录通用的 kernel 成本估算框架，不绑定具体项目实现。
 
 ## 1. 单 kernel 的第一性近似

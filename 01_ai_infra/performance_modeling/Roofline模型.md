@@ -1,12 +1,18 @@
 # Roofline 性能模型
 
+## 资料边界
+
+- 用途：解释 Roofline 模型及其在 LLM kernel 性能分析中的应用。
+- 主要来源：Roofline 原始论文、CUDA 编程资料与 FlashAttention 的 IO-aware 分析。
+- 证据类型：理论上界与工程近似；具体硬件数字需要结合 [hardware specs](../hardware_runtime/hardware_specs/) 复核。
+
 Roofline 模型是分析计算密集型应用性能的核心工具，本文档详细介绍其在 LLM 性能评估中的应用。
 
 ## 1. 模型基础
 
 ### 1.1 核心概念
 
-Roofline 模型建立了**运算强度 (Operational Intensity)** 与** achievable performance **之间的关系。
+Roofline 模型建立了**运算强度 (Operational Intensity)** 与 **achievable performance** 之间的关系。
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

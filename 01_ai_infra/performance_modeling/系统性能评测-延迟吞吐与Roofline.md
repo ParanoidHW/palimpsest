@@ -1,5 +1,11 @@
 # 系统性能评测-延迟吞吐与Roofline
 
+## 资料边界
+
+- 用途：定义在线服务性能评测中的 TTFT、TPOT、ITL、E2EL、throughput 和 goodput。
+- 主要来源：vLLM benchmark metrics、MLPerf Inference policies 与 Roofline 原始论文。
+- 证据类型：服务 QoS 评测口径；不替代具体 serving backend 的压测结果。
+
 ## 先把能力评测和系统评测分开
 
 模型答题分数高，不代表它在线服务体验好。系统性能评测关心的是：
