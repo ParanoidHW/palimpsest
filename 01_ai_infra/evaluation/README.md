@@ -12,12 +12,12 @@
 
 ## 当前笔记
 
-- [能力评测-维度与常用基准](./能力评测-维度与常用基准.md)
-- [评测设计-复现污染与裁判偏差](./评测设计-复现污染与裁判偏差.md)
-- [部署能力评测-内存算力带宽与通信](./部署能力评测-内存算力带宽与通信.md)
-- [系统性能评测-延迟吞吐与Roofline](./系统性能评测-延迟吞吐与Roofline.md)
-- [kernel开销计算逻辑](./kernel开销计算逻辑.md)
-- [图示生成Prompt-imagegen](./图示生成Prompt-imagegen.md)
+- [能力评测-维度与常用基准](能力评测-维度与常用基准.md)
+- [评测设计-复现污染与裁判偏差](评测设计-复现污染与裁判偏差.md)
+- [部署能力评测-内存算力带宽与通信](../performance_modeling/部署能力评测-内存算力带宽与通信.md)
+- [系统性能评测-延迟吞吐与Roofline](../performance_modeling/系统性能评测-延迟吞吐与Roofline.md)
+- [kernel开销计算逻辑](../performance_modeling/kernel开销计算逻辑.md)
+- [图示生成Prompt-imagegen](图示生成Prompt-imagegen.md)
 
 ## 一页判断
 

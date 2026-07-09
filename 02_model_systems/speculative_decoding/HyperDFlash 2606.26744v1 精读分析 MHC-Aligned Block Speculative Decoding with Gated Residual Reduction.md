@@ -7,16 +7,16 @@
 - arXiv 摘要页：[https://arxiv.org/abs/2606.26744v1](https://arxiv.org/abs/2606.26744v1)
 - arXiv PDF：[https://arxiv.org/pdf/2606.26744v1](https://arxiv.org/pdf/2606.26744v1)
 - arXiv source：[https://arxiv.org/e-print/2606.26744v1](https://arxiv.org/e-print/2606.26744v1)
-- 论文 PDF：`../../source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/paper.pdf`
-- LaTeX 主文件：`../../source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/source/main.tex`
-- 原始图文件：`../../source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/source/position_acceptance_rate.pdf`、`../../source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/source/dpsk_dflash.pdf`
-- 提取文本：`../../source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/extracted_text/paper_layout.txt`
-- PDF 页面截图：`../../source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/figures/page_png/`
+- 论文 PDF：`../../_artifacts/source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/paper.pdf`
+- LaTeX 主文件：`../../_artifacts/source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/source/main.tex`
+- 原始图文件：`../../_artifacts/source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/source/position_acceptance_rate.pdf`、`../../_artifacts/source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/source/dpsk_dflash.pdf`
+- 提取文本：`../../_artifacts/source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/extracted_text/paper_layout.txt`
+- PDF 页面截图：`../../_artifacts/source/2606.26744v1_HyperDFlash_MHC-Aligned_Block_Speculative_Decoding_with_Gated_Residual_Reduction/figures/page_png/`
 
 | 图表       | 本文档用途                                                                                 | 文件                                                                                                   |
 | -------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Figure 1 | MTP 与 HyperDFlash 六个 draft positions 的 acceptance rate 趋势                             | `../assets/hyperdflash_fig1_position_acceptance_source.png`，来自 `source/position_acceptance_rate.pdf` |
-| Figure 2 | HyperDFlash 主流程裁剪图：MHC pre-collapse residual、Inherited HC-Gate Reducer、DFlash drafter | `../assets/hyperdflash_fig2_overview_source.png`，来自 `source/dpsk_dflash.pdf`，已去除原始 WPS 图中游离箭头和大块空白   |
+| Figure 1 | MTP 与 HyperDFlash 六个 draft positions 的 acceptance rate 趋势                             | `assets/hyperdflash_fig1_position_acceptance_source.png`，来自 `source/position_acceptance_rate.pdf` |
+| Figure 2 | HyperDFlash 主流程裁剪图：MHC pre-collapse residual、Inherited HC-Gate Reducer、DFlash drafter | `assets/hyperdflash_fig2_overview_source.png`，来自 `source/dpsk_dflash.pdf`，已去除原始 WPS 图中游离箭头和大块空白   |
 | Table 1  | Generic `fc` reducer 与 Inherited HC-Gate Reducer 的机制/参数量对比                            | Markdown 摘录；完整来源 `source/main.tex`                                                                   |
 | Table 2  | Non-thinking mode 主结果                                                                 | Markdown 摘录；完整来源 `source/main.tex`                                                                   |
 | Table 3  | Think-high mode 主结果                                                                   | Markdown 摘录；完整来源 `source/main.tex`                                                                   |
@@ -87,7 +87,7 @@
 
 5. **给出 position-wise failure mode 的直观图。** Figure 1 显示 MTP 在后续 draft positions 的 acceptance rate 快速下滑，HyperDFlash 虽然也随位置下降，但曲线更平滑。这支持论文的核心动机：block-parallel draft 不沿未验证 token 自回归滚动，能缓解错误累积。证据：Figure 1/Section 1。
 
-![Figure 1: position-wise acceptance|643](../assets/hyperdflash_fig1_position_acceptance_source.png)
+![Figure 1: position-wise acceptance|643](assets/hyperdflash_fig1_position_acceptance_source.png)
 
 *Figure 1 caption：Per-position acceptance rates over six drafted positions. Native MTP achieves high acceptance at the first position but degrades rapidly at later positions, while HyperDFlash maintains a smoother acceptance profile.*
 
@@ -114,7 +114,7 @@ Figure 2 的原始 PDF 由 WPS 导出，画布里包含若干游离浅灰箭头�
 
 注意：本文 draft 阶段不是 tree drafting，图里也没有 tree attention。它是 DFlash-style block drafting：anchor 后的 masked positions 在 drafter 内并行预测，然后由 target 按 speculative verification 接受前缀。
 
-![Figure 2: HyperDFlash overview|859](../assets/hyperdflash_fig2_overview_source.png)
+![Figure 2: HyperDFlash overview|859](assets/hyperdflash_fig2_overview_source.png)
 
 *Figure 2 caption 摘要：Overview of HyperDFlash. 这里嵌入的是原图主流程裁剪版，重点保留 target final MHC block、Inherited HC-Gate Reducer 和 lightweight DFlash drafter；原始图还包含上方 target feature / `pre HC_head` 辅助支路。*
 

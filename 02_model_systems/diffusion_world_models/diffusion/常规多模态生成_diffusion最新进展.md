@@ -1,6 +1,6 @@
 # 常规多模态生成与全模态 Diffusion/Flow 技术进展
 
-> 检索/整理日期：2026-07-07。范围：图像、视频、音频-视频、统一理解-生成模型、偏好/RL 后训练，以及多模态生成 serving 系统。 时间窗口按用户要求固定为 2025-09-01 之后。中间过程与逐篇 deep-review 风格分析位于 `output/ai_algorithm_survey_diffusion/multimodal/`。
+> 检索/整理日期：2026-07-07。范围：图像、视频、音频-视频、统一理解-生成模型、偏好/RL 后训练，以及多模态生成 serving 系统。 时间窗口按用户要求固定为 2025-09-01 之后。中间过程与逐篇 deep-review 风格分析位于 `../../../_artifacts/output/ai_algorithm_survey_diffusion/multimodal/`。
 
 ![常规多模态生成与全模态 Diffusion/Flow 技术进展 示意图](assets/multimodal_2026_diffusion_map.svg)
 
@@ -39,13 +39,13 @@
 
 ## 5. 逐篇精读与中间产物
 
-- `HunyuanImage 3.0` 深读：`../output/ai_algorithm_survey_diffusion/multimodal/papers/2509_hunyuanimage3/analysis.md`
-- `HunyuanVideo 1.5` 深读：`../output/ai_algorithm_survey_diffusion/multimodal/papers/2511_hunyuanvideo15/analysis.md`
-- `Seedance 2.0` 深读：`../output/ai_algorithm_survey_diffusion/multimodal/papers/2604_seedance2/analysis.md`
-- `MMControl` 深读：`../output/ai_algorithm_survey_diffusion/multimodal/papers/2604_mmcontrol/analysis.md`
-- `UniDDT` 深读：`../output/ai_algorithm_survey_diffusion/multimodal/papers/2606_uniddt/analysis.md`
-- `SPAR` 深读：`../output/ai_algorithm_survey_diffusion/multimodal/papers/2606_spar/analysis.md`
-- `Qwen-Image-2.0-RL` 深读：`../output/ai_algorithm_survey_diffusion/multimodal/papers/2606_qwen_image_rl/analysis.md`
+- `HunyuanImage 3.0` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/multimodal/papers/2509_hunyuanimage3/analysis.md`
+- `HunyuanVideo 1.5` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/multimodal/papers/2511_hunyuanvideo15/analysis.md`
+- `Seedance 2.0` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/multimodal/papers/2604_seedance2/analysis.md`
+- `MMControl` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/multimodal/papers/2604_mmcontrol/analysis.md`
+- `UniDDT` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/multimodal/papers/2606_uniddt/analysis.md`
+- `SPAR` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/multimodal/papers/2606_spar/analysis.md`
+- `Qwen-Image-2.0-RL` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/multimodal/papers/2606_qwen_image_rl/analysis.md`
 
 ## 6. 证据局限
 

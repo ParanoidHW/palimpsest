@@ -182,7 +182,7 @@ Cosmos 3 是 NVIDIA 提出的 omnimodal world model family，用一个统一 Mix
 
 **一句话结论：** Cosmos 3 要解决的是 Physical AI 中“理解、生成/仿真、动作预测被多个割裂模型分别承担”的系统性问题，目标是把 VLM、视频/图像/音频生成模型、world simulator、forward/inverse dynamics、VLA/WAM/action policy 统一到一个可扩展的 omnimodal world model 中。
 
-![Cosmos 3 overview](cosmos3_overview.png)
+![Cosmos 3 overview](../assets/cosmos3_overview.png)
 
 #### 背景：Physical AI 的核心瓶颈
 
@@ -249,7 +249,7 @@ Cosmos 3 把输入序列拆成两段：
 
 #### 论文的解决方案映射
 
-![Cosmos 3 model architecture](code/src/cosmos-main/cookbooks/cosmos3/cosmos3-model-architecture.png)
+![Cosmos 3 model architecture](../assets/mot_architecture.png)
 
 | 痛点 | Cosmos 3 的对应设计 |
 | --- | --- |
@@ -301,7 +301,7 @@ Cosmos 3 当然报告了 T2I、I2V、video/audio/action policy 等结果，但�
 
 **一句话结论：** Cosmos 3 的统一时空位置编码是一个扩展版 3D mRoPE。它给每个 token 分配三维坐标 $(t,h,w)$，再把 video、audio、action 的 $t$ 坐标换算到同一个物理时间轴上。核心不是“第几个 token”，而是“这个 token 对应真实世界里的哪个时间点和空间位置”。
 
-![mRoPE coordinate assignment](mrope_coordinate_assignment.png)
+![mRoPE coordinate assignment](../assets/mrope_coordinate_assignment.png)
 
 #### 为什么需要统一时空位置编码
 
@@ -499,7 +499,7 @@ raw modality input
 
 论文在 `Model Architecture / Encoders` 里明确说：语言、视觉、音频、动作先通过各自 encoder 映射到统一 representation space；为了让共享 transformer 和 positional embedding 区分模态，还会对非语言模态加入可学习的 modality-specific embedding。随后这些 token 被放进统一序列格式中：AR subsequence 负责理解/推理，DM subsequence 负责扩散式生成。
 
-![Cosmos 3 model architecture](code/src/cosmos-main/cookbooks/cosmos3/cosmos3-model-architecture.png)
+![Cosmos 3 model architecture](../assets/mot_architecture.png)
 
 #### 总体分工：AR 编码 vs DM 编码
 
@@ -729,7 +729,7 @@ $$
 
 Action 是 Cosmos 3 相比普通 VLM / video model 更特殊的模态。它不是文本 token，也不是图像 patch，而是物理控制/状态转移 token。
 
-![Action representation](action_representation.png)
+![Action representation](../assets/action_representation.png)
 
 论文先把不同 embodiment 的控制信号统一成 action interface：
 
@@ -858,7 +858,7 @@ vision -> audio -> action
 
 Cosmos 3 的 MoT 是“同一条 packed multimodal sequence + 每层两套 transformer pathway”。AR subsequence 走 reasoner tower，保留 VLM/LLM 的理解和自回归生成能力；diffusion subsequence 走 generator tower，学习图像、视频、音频、动作的扩散/flow matching 生成能力。两套参数分离，但 diffusion token 可以通过 dual-stream joint attention 读取 AR token 的条件信息。
 
-![MoT architecture](mot_architecture.png)
+![MoT architecture](../assets/mot_architecture.png)
 
 #### MoT 解决的核心冲突
 
@@ -1192,7 +1192,7 @@ Cosmos 3 的训练不是“一个模型从头端到端直接训完”，而是�
 
 论文的数据课程图如下：
 
-![Cosmos 3 generator data curriculum](data_curriculum.png)
+![Cosmos 3 generator data curriculum](../assets/data_curriculum.png)
 
 用公式概括，Reasoner 是自回归监督学习：
 
@@ -1939,9 +1939,9 @@ $$
 
 Reasoner pre-training 和 SFT 的类别分布图如下：
 
-![Reasoner pretraining category mix](reasoner_pretraining_category_mix.png)
+![Reasoner pretraining category mix](../assets/reasoner_pretraining_category_mix.png)
 
-![Reasoner SFT category mix](reasoner_sft_category_mix.png)
+![Reasoner SFT category mix](../assets/reasoner_sft_category_mix.png)
 
 Reasoner pre-training 数据构建流程：
 
@@ -2348,7 +2348,7 @@ $$
 
 论文构建了四类 action 数据：
 
-![Action data distribution](action_data_distribution.png)
+![Action data distribution](../assets/action_data_distribution.png)
 
 总规模：
 
@@ -2389,7 +2389,7 @@ $$
 
 多视角数据会拼成一个 canvas，并把视角布局写入 structured JSON prompt。论文图中 DROID 多视角格式是：上方 wrist camera，下方左右两个 third-person views。
 
-![DROID multiview packaging](source/src/figures/data/action/multiview_droid_16164052.jpg)
+![DROID multiview packaging](../../../_artifacts/output/2606.02800_paper/source/figures/data/action/multiview_droid_16164052.jpg)
 
 源码里的 DROID wrapper 也对应这个构建思路：
 
@@ -2646,7 +2646,7 @@ $$
 
 Cosmos 3 的 infra 不是只为训练服务，而是覆盖数据处理、训练、serving、benchmark 四个环节：
 
-![Cosmos 3 infrastructure overview](infra_overview.png)
+![Cosmos 3 infrastructure overview](../assets/infra_overview.png)
 
 论文把 infra stack 分成四个 pillar：
 
@@ -2792,7 +2792,7 @@ Cosmos 3 用四个机制解决：
 
 Joint DataLoader 图：
 
-![Joint data loader](joint_dataloader.png)
+![Joint data loader](../assets/joint_dataloader.png)
 
 ##### 2.1 Token-budgeted packed sequences
 
@@ -3237,7 +3237,7 @@ $$
 
 two-way attention 图：
 
-![Two-way attention infrastructure](two_way_attention_infra.png)
+![Two-way attention infrastructure](../assets/two_way_attention_infra.png)
 
 论文报告，相比 FlexAttention baseline，Cosmos3-Nano 的端到端训练吞吐提升：
 
@@ -3735,7 +3735,7 @@ $$
 
 Serving latency 图：
 
-![Cosmos 3 serving latency](serving_latency_combined.png)
+![Cosmos 3 serving latency](../assets/serving_latency_combined.png)
 
 ##### 10.5 vLLM-Omni features
 

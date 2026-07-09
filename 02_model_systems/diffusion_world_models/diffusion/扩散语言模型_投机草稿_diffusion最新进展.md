@@ -1,6 +1,6 @@
 # 扩散语言模型、dLLM Serving 与 Diffusion Draft 模型进展
 
-> 检索/整理日期：2026-07-07。范围：离散/掩码扩散语言模型、speculative decoding、block diffusion drafter、diffusion draft trees、cache-friendly token ordering 和 LLM serving。 时间窗口按用户要求固定为 2025-09-01 之后。中间过程与逐篇 deep-review 风格分析位于 `output/ai_algorithm_survey_diffusion/language/`。
+> 检索/整理日期：2026-07-07。范围：离散/掩码扩散语言模型、speculative decoding、block diffusion drafter、diffusion draft trees、cache-friendly token ordering 和 LLM serving。 时间窗口按用户要求固定为 2025-09-01 之后。中间过程与逐篇 deep-review 风格分析位于 `../../../_artifacts/output/ai_algorithm_survey_diffusion/language/`。
 
 ![扩散语言模型、dLLM Serving 与 Diffusion Draft 模型进展 示意图](assets/language_dllm_draft_2026_map.svg)
 
@@ -38,13 +38,13 @@
 
 ## 5. 逐篇精读与中间产物
 
-- `DFlash` 深读：`../output/ai_algorithm_survey_diffusion/language/papers/2602_dflash/analysis.md`
-- `FeF-DLLM` 深读：`../output/ai_algorithm_survey_diffusion/language/papers/2605_fef_dllm/analysis.md`
-- `DFlare` 深读：`../output/ai_algorithm_survey_diffusion/language/papers/2606_dflare/analysis.md`
-- `D2SD` 深读：`../output/ai_algorithm_survey_diffusion/language/papers/2606_d2sd/analysis.md`
-- `SimSD` 深读：`../output/ai_algorithm_survey_diffusion/language/papers/2606_simsd/analysis.md`
-- `HyperDFlash` 深读：`../output/ai_algorithm_survey_diffusion/language/papers/2606_hyperdflash/analysis.md`
-- `Set Diffusion` 深读：`../output/ai_algorithm_survey_diffusion/language/papers/2607_set_diffusion/analysis.md`
+- `DFlash` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2602_dflash/analysis.md`
+- `FeF-DLLM` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2605_fef_dllm/analysis.md`
+- `DFlare` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2606_dflare/analysis.md`
+- `D2SD` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2606_d2sd/analysis.md`
+- `SimSD` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2606_simsd/analysis.md`
+- `HyperDFlash` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2606_hyperdflash/analysis.md`
+- `Set Diffusion` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2607_set_diffusion/analysis.md`
 
 ## 6. 证据局限
 

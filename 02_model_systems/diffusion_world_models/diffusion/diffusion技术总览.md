@@ -1,6 +1,6 @@
 # Diffusion 技术总览：2025-09 后多模态、具身世界模型与扩散语言模型
 
-> 检索/整理日期：2026-07-07。用户要求忽略旧 `diffusion/` 内容；本轮交付使用新的 `output/ai_algorithm_survey_diffusion/` 中间过程和新的 `Diffusion/` 交付件。时间窗口：2025-09-01 之后。
+> 检索/整理日期：2026-07-07。用户要求忽略旧 `diffusion/` 内容；本轮交付使用新的 `../../../_artifacts/output/ai_algorithm_survey_diffusion/` 中间过程和新的 `Diffusion/` 交付件。时间窗口：2025-09-01 之后。
 
 ![Diffusion 总览示意图](assets/diffusion_overall_2026_map.svg)
 
@@ -12,9 +12,9 @@
 
 | 子领域 | 重点 deep-review 工作数 | 综合报告 |
 |---|---:|---|
-| 常规多模态生成与全模态 Diffusion/Flow 技术进展 | 7 | `output/ai_algorithm_survey_diffusion/multimodal/synthesis.md` |
-| 具身/空间/世界模型 Diffusion 技术进展 | 7 | `output/ai_algorithm_survey_diffusion/embodied_world/synthesis.md` |
-| 扩散语言模型、dLLM Serving 与 Diffusion Draft 模型进展 | 7 | `output/ai_algorithm_survey_diffusion/language/synthesis.md` |
+| 常规多模态生成与全模态 Diffusion/Flow 技术进展 | 7 | `../../../_artifacts/output/ai_algorithm_survey_diffusion/multimodal/synthesis.md` |
+| 具身/空间/世界模型 Diffusion 技术进展 | 7 | `../../../_artifacts/output/ai_algorithm_survey_diffusion/embodied_world/synthesis.md` |
+| 扩散语言模型、dLLM Serving 与 Diffusion Draft 模型进展 | 7 | `../../../_artifacts/output/ai_algorithm_survey_diffusion/language/synthesis.md` |
 
 ## 3. 总时间线
 
@@ -67,10 +67,10 @@
 
 ## 6. 子报告入口
 
-- [常规多模态生成与全模态](./常规多模态生成_diffusion最新进展.md)
-- [具身/空间/世界模型](./具身智能_diffusion最新进展.md)
-- [扩散语言模型与投机草稿](./扩散语言模型_投机草稿_diffusion最新进展.md)
+- [常规多模态生成与全模态](常规多模态生成_diffusion最新进展.md)
+- [具身/空间/世界模型](具身智能_diffusion最新进展.md)
+- [扩散语言模型与投机草稿](扩散语言模型_投机草稿_diffusion最新进展.md)
 
 ## 7. 证据局限
 
-本报告不声称这些 2026 新论文已被长期复现。引用数、新榜单和 GitHub stars 会快速变化；本文只把 2026-07-07 可追踪到的 arXiv/GitHub/项目页作为证据。逐篇分析已落在中间目录，并已追加 PDF 证据层自动抽取；有官方 GitHub 的重点工作已记录 default-branch commit SHA 和 recursive tree 路径级审计（见 `output/ai_algorithm_survey_diffusion/code_sources/code_sources.md` 与 `output/ai_algorithm_survey_diffusion/code_sources/code_path_audit.md`）。OpenReview 已做两次 API 可得性测试，21 篇中 7 篇命中 forum，但匿名 API 未取得 review notes（见 `output/ai_algorithm_survey_diffusion/openreview/openreview_status.md`）。后续若要达到完整论文复现级别，还需继续补 Figure/Table 原图裁剪、可公开/授权的 review 正文交叉核验和 clone 后的逐行源码实现一致性核验。
+本报告不声称这些 2026 新论文已被长期复现。引用数、新榜单和 GitHub stars 会快速变化；本文只把 2026-07-07 可追踪到的 arXiv/GitHub/项目页作为证据。逐篇分析已落在中间目录，并已追加 PDF 证据层自动抽取；有官方 GitHub 的重点工作已记录 default-branch commit SHA 和 recursive tree 路径级审计（见 `../../../_artifacts/output/ai_algorithm_survey_diffusion/code_sources/code_sources.md` 与 `../../../_artifacts/output/ai_algorithm_survey_diffusion/code_sources/code_path_audit.md`）。OpenReview 已做两次 API 可得性测试，21 篇中 7 篇命中 forum，但匿名 API 未取得 review notes（见 `../../../_artifacts/output/ai_algorithm_survey_diffusion/openreview/openreview_status.md`）。后续若要达到完整论文复现级别，还需继续补 Figure/Table 原图裁剪、可公开/授权的 review 正文交叉核验和 clone 后的逐行源码实现一致性核验。

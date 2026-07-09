@@ -1,6 +1,6 @@
 # 具身/空间/世界模型 Diffusion 技术进展
 
-> 检索/整理日期：2026-07-07。范围：物理 AI 世界模型、语言条件视频世界模型、VLA 扩散动作头、跨 embodiment diffusion policy、低质机器人数据利用和控制 runtime。 时间窗口按用户要求固定为 2025-09-01 之后。中间过程与逐篇 deep-review 风格分析位于 `output/ai_algorithm_survey_diffusion/embodied_world/`。
+> 检索/整理日期：2026-07-07。范围：物理 AI 世界模型、语言条件视频世界模型、VLA 扩散动作头、跨 embodiment diffusion policy、低质机器人数据利用和控制 runtime。 时间窗口按用户要求固定为 2025-09-01 之后。中间过程与逐篇 deep-review 风格分析位于 `../../../_artifacts/output/ai_algorithm_survey_diffusion/embodied_world/`。
 
 ![具身/空间/世界模型 Diffusion 技术进展 示意图](assets/embodied_world_2026_diffusion_map.svg)
 
@@ -38,13 +38,13 @@
 
 ## 5. 逐篇精读与中间产物
 
-- `Cosmos 3` 深读：`../output/ai_algorithm_survey_diffusion/embodied_world/papers/2606_cosmos3/analysis.md`
-- `Qwen-RobotWorld` 深读：`../output/ai_algorithm_survey_diffusion/embodied_world/papers/2606_qwen_robotworld/analysis.md`
-- `MMaDA-VLA` 深读：`../output/ai_algorithm_survey_diffusion/embodied_world/papers/2603_mmada_vla/analysis.md`
-- `ADV` 深读：`../output/ai_algorithm_survey_diffusion/embodied_world/papers/2603_adv/analysis.md`
-- `X-DiffVLA` 深读：`../output/ai_algorithm_survey_diffusion/embodied_world/papers/2605_x_diffvla/analysis.md`
-- `Ambient Diffusion Policy` 深读：`../output/ai_algorithm_survey_diffusion/embodied_world/papers/2606_ambient_dp/analysis.md`
-- `Action ControlNet` 深读：`../output/ai_algorithm_survey_diffusion/embodied_world/papers/2606_action_controlnet/analysis.md`
+- `Cosmos 3` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/embodied_world/papers/2606_cosmos3/analysis.md`
+- `Qwen-RobotWorld` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/embodied_world/papers/2606_qwen_robotworld/analysis.md`
+- `MMaDA-VLA` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/embodied_world/papers/2603_mmada_vla/analysis.md`
+- `ADV` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/embodied_world/papers/2603_adv/analysis.md`
+- `X-DiffVLA` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/embodied_world/papers/2605_x_diffvla/analysis.md`
+- `Ambient Diffusion Policy` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/embodied_world/papers/2606_ambient_dp/analysis.md`
+- `Action ControlNet` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/embodied_world/papers/2606_action_controlnet/analysis.md`
 
 ## 6. 证据局限
 

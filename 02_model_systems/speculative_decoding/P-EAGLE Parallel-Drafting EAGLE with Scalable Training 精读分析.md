@@ -3,13 +3,13 @@
 
 ## 0. 资料与配图索引
 
-- 论文 PDF：[`2602.01469v.pdf`](2602.01469v.pdf)
+- 论文 PDF：`2602.01469v.pdf`（本地 artifacts 中未保留）
     
-- arXiv source：[`2602.01469v_source.tar`](2602.01469v_source.tar)
+- arXiv source：`2602.01469v_source.tar`（本地 artifacts 中未保留）
     
-- LaTeX 主文件：[`source/main.tex`](source/2606.04446v1_D2SD_Accelerating_Speculative_Decoding_with_Dual_Diffusion_Draft_Models/source/main.tex)
+- LaTeX 主文件：`source/main.tex`（本地 artifacts 中未保留 P-EAGLE source）
     
-- 提取文本：[`extracted_text/main.tex`](extracted_text/main.tex)
+- 提取文本：`extracted_text/main.tex`（本地 artifacts 中未保留）
     
 - 开源代码：论文未给出仓库链接；GitHub 检索未发现明显官方 `P-EAGLE` 仓库。源码对照未进行。
     
@@ -20,11 +20,11 @@
 
 |图/表|内容|本地资源|
 |---|---|---|
-|Figure 1|GPT-OSS 120B 在 UltraChat 上的序列长度分布|[`figures/rendered/length_distribution_reasoning.png`](figures/rendered/length_distribution_reasoning.png)|
-|Figure 2|P-EAGLE 架构|[`figures/rendered/architecture_single_column_v24.png`](figures/rendered/architecture_single_column_v24.png)|
-|Figure 3|attention mask 可裁剪/复用|[`figures/rendered/attention_mask_crop.png`](figures/rendered/attention_mask_crop.png)|
-|Figure 4|依赖保持的序列切分|[`figures/rendered/dependency_aware_splitting_v3.png`](figures/rendered/dependency_aware_splitting_v3.png)|
-|Appendix Figure|regularized NTP hidden 中 $\alpha$ 衰减轨迹|[`figures/rendered/alpha_trajectory.png`](figures/rendered/alpha_trajectory.png)|
+|Figure 1|GPT-OSS 120B 在 UltraChat 上的序列长度分布|[`figures/rendered/length_distribution_reasoning.png`](assets/length_distribution_reasoning.png)|
+|Figure 2|P-EAGLE 架构|[`figures/rendered/architecture_single_column_v24.png`](assets/architecture_single_column_v24.png)|
+|Figure 3|attention mask 可裁剪/复用|[`figures/rendered/attention_mask_crop.png`](assets/attention_mask_crop.png)|
+|Figure 4|依赖保持的序列切分|[`figures/rendered/dependency_aware_splitting_v3.png`](assets/dependency_aware_splitting_v3.png)|
+|Appendix Figure|regularized NTP hidden 中 $\alpha$ 衰减轨迹|[`figures/rendered/alpha_trajectory.png`](assets/alpha_trajectory.png)|
 |Table 1|长上下文训练可扩展性对比|`source/main.tex` lines 168-183|
 |Table 2|mask 构造训练开销|`source/main.tex` lines 308-319|
 |Tables 3-7|训练 recipe 消融|`source/main.tex` lines 551-717|
@@ -77,7 +77,7 @@
 5. P-EAGLE 的设计分两层：架构上用共享可学习 hidden state + mask token embedding 处理 MTP 缺失输入；训练上用预计算 mask + sequence partitioning 处理长上下文内存和数据加载瓶颈。
     
 
-![P-EAGLE architecture](大语言模型/assets/architecture_single_column_v24.png)
+![P-EAGLE architecture](assets/architecture_single_column_v24.png)
 
 ### 3.2 模型/系统架构
 
@@ -119,7 +119,7 @@ $$
 
 P-EAGLE 的 mask 预计算基于一个观察：跨 prediction depth 的 causal pattern 对位置平移/长度截断是不变的。最大长度 mask 只构造一次，短序列 mask 用左上角子矩阵切片得到。
 
-![Amortized mask construction](大语言模型/assets/attention_mask_crop.png)
+![Amortized mask construction](assets/attention_mask_crop.png)
 
 训练开销证据：2048 token、$K=8$、UltraChat 200K examples、8 x H200 下，PARD 加载 128 examples 需要 718.5s、epoch 12h+；P-EAGLE 分别是 17.5s 和 1.8h。表格来源：`source/main.tex` lines 308-319。
 
@@ -161,7 +161,7 @@ $$
 
 论文声称使用 $S$ 个 segment 后 peak attention memory 从 $O(L^2)$ 降到 $O(L^2/S^2)$。证据：`source/main.tex` lines 400-421。
 
-![Sequence partitioning](大语言模型/assets/dependency_aware_splitting_v3.png)
+![Sequence partitioning](assets/dependency_aware_splitting_v3.png)
 
 ### 3.5 训练/实验/部署设计
 

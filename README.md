@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/palimpsest-knowledge-logo-generated-512.png" alt="Palimpsest AI Infra Logo" width="160" />
+  <img src="./00_meta/assets/palimpsest-knowledge-logo-generated-512.png" alt="Palimpsest AI Infra Logo" width="160" />
 </p>
 
 # AI Infra Knowledge System
@@ -26,21 +26,21 @@ AI Infra 不是单纯的“部署”或“工程实现”。它关心的是模�
 
 ## 体系结构
 
-![AI Infra Knowledge System](./assets/ai-infra-knowledge-system.svg)
+![AI Infra Knowledge System](./00_meta/assets/ai-infra-knowledge-system.svg)
 
 这张图表达的是一个闭环，而不是目录结构：
 
-**硬件与资源约束**决定了问题的底座。GPU、NPU、显存容量、内存带宽、片间互联、数据类型和通信语义，决定了一个算法在真实系统里能不能跑得动、跑得稳、跑得便宜。这里的入口包括 [CANN](./CANN/) 与 [大模型评估/硬件](./大模型评估/硬件/)。
+**硬件与资源约束**决定了问题的底座。GPU、NPU、显存容量、内存带宽、片间互联、数据类型和通信语义，决定了一个算法在真实系统里能不能跑得动、跑得稳、跑得便宜。这里的入口包括 [hardware runtime](./01_ai_infra/hardware_runtime/) 与 [hardware specs](./01_ai_infra/hardware_runtime/hardware_specs/)。
 
-**算子、内存与通信**是 AI Infra 的第一性分析层。Attention、GEMM、LayerNorm、MoE dispatch、KV cache、PagedAttention、通信 overlap 和 Roofline，不只是性能优化细节，而是判断模型结构是否可扩展的基本语言。相关判断沉淀在 [kernel开销计算逻辑](./大模型评估/kernel开销计算逻辑.md)、[Roofline模型](./大模型评估/Roofline模型.md) 和 [部署能力评测](./大模型评估/部署能力评测-内存算力带宽与通信.md) 中。
+**算子、内存与通信**是 AI Infra 的第一性分析层。Attention、GEMM、LayerNorm、MoE dispatch、KV cache、PagedAttention、通信 overlap 和 Roofline，不只是性能优化细节，而是判断模型结构是否可扩展的基本语言。相关判断沉淀在 [kernel开销计算逻辑](./01_ai_infra/performance_modeling/kernel开销计算逻辑.md)、[Roofline模型](./01_ai_infra/performance_modeling/Roofline模型.md) 和 [部署能力评测](./01_ai_infra/performance_modeling/部署能力评测-内存算力带宽与通信.md) 中。
 
 **训练与推理执行系统**连接论文方法和线上服务。分布式训练里的 TP、EP、CP、PP，推理里的 prefill/decode 分离、KV cache 管理、batching、speculative decoding、draft/verify 合同，本质上都在处理同一个问题：如何把模型计算图映射到受限资源上，并让延迟、吞吐和成本可控。
 
-**模型架构与生成范式**在这里被当作 infra 需求的来源，而不是孤立的算法分类。MoE 关心 expert routing 与通信隐藏；长上下文关心 KV cache 和 attention 压缩；diffusion/flow 关心 denoising step、时空 attention、量化敏感性和并行采样；多模态与 world model 关心数据管线、状态展开和长序列生成。对应内容分布在 [大语言模型](./大语言模型/)、[多模态大模型](./多模态大模型/) 和 [diffusion](./diffusion/)。
+**模型架构与生成范式**在这里被当作 infra 需求的来源，而不是孤立的算法分类。MoE 关心 expert routing 与通信隐藏；长上下文关心 KV cache 和 attention 压缩；diffusion/flow 关心 denoising step、时空 attention、量化敏感性和并行采样；多模态与 world model 关心数据管线、状态展开和长序列生成。对应内容分布在 [LLM foundations](./02_model_systems/llm_foundations/)、[speculative decoding](./02_model_systems/speculative_decoding/)、[multimodal generation](./02_model_systems/multimodal_generation/) 和 [diffusion world models](./02_model_systems/diffusion_world_models/)。
 
-**服务指标与评测体系**给工程判断收口。能力评测回答“模型会不会”，系统评测回答“服务好不好”，部署评测回答“硬件撑不撑得住”。这个知识库强调把 benchmark、SLO、TTFT、TPOT、吞吐、污染风险、裁判偏差和复现条件分开讨论，避免用单一分数替代系统判断。入口是 [大模型评估](./大模型评估/)。
+**服务指标与评测体系**给工程判断收口。能力评测回答“模型会不会”，系统评测回答“服务好不好”，部署评测回答“硬件撑不撑得住”。这个知识库强调把 benchmark、SLO、TTFT、TPOT、吞吐、污染风险、裁判偏差和复现条件分开讨论，避免用单一分数替代系统判断。入口是 [evaluation](./01_ai_infra/evaluation/) 与 [performance modeling](./01_ai_infra/performance_modeling/)。
 
-**Agent 化知识生产**是这个体系的外层工具链。论文精读、代码检视、kernel 自动生成、调研报告和可编辑材料生成，不只是内容生产任务，而是在构建一个能持续吸收新模型、新硬件、新框架的研究工作流。相关材料放在 [LLM&Agent](./LLM%26Agent/) 与 [AgentWiki](./AgentWiki/)。
+**Agent 化知识生产**是这个体系的外层工具链。论文精读、代码检视、kernel 自动生成、调研报告和可编辑材料生成，不只是内容生产任务，而是在构建一个能持续吸收新模型、新硬件、新框架的研究工作流。相关材料放在 [kernel agents](./03_agentic_workflows/kernel_agents/) 与 [agent wiki](./03_agentic_workflows/agent_wiki/)。
 
 ## 主要分析范式
 

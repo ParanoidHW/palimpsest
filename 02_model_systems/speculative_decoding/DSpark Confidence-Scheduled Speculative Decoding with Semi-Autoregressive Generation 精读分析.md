@@ -58,7 +58,7 @@ $$
 1. **半自回归 draft 架构。** DSpark 保留 DFlash 式单次并行 backbone 生成 $U_1,\dots,U_\gamma$，再用轻量 sequential block 给每个位置加入 prefix-dependent bias，从而在几乎不牺牲并行主干延迟的情况下恢复 block 内局部依赖。来源：Section 3.1，Figure 1。
     
 
-![Figure 1 DSpark architecture](大语言模型/assets/fig1_architecture.png)
+![Figure 1 DSpark architecture](assets/fig1_architecture.png)
 
 2. **低秩 Markov head 是默认实现。** 论文默认用 first-order transition bias：
     
@@ -167,7 +167,7 @@ $$
 
 由于吞吐目标中直接使用 $a_{r,j}$ 的数值，论文引入 Sequential Temperature Scaling（STS）做 post-hoc calibration，逐位置校准 cumulative product 的 ECE。来源：Section 3.2.1，Figure 6。
 
-![Figure 6 reliability](大语言模型/assets/fig6_reliability.png)
+![Figure 6 reliability](assets/fig6_reliability.png)
 
 调度阶段把 verification token 看成全局候选池，边增加 batch token 数 $B$，边估计 $\Theta=\tau\cdot \mathrm{SPS}(B)$。这里的 $\mathrm{SPS}(B)$ 是 **Steps Per Second**：当 target model 一次 verification forward 需要处理 $B$ 个 token 时，serving engine 每秒能完成多少个 decode/verification step。它不是模型质量指标，而是硬件和 serving engine 的容量曲线，通常在 engine 初始化或部署压测时 profiling 成一张查表。
 
@@ -325,7 +325,7 @@ $$
 
 ### 4.2 主结果：DSpark 提高 accepted length
 
-![Table 1 main results|924](大语言模型/assets/table1_main_results.png)
+![Table 1 main results|924](assets/table1_main_results.png)
 
 来源：Table 1、Section 4.2。离线评测关闭 confidence scheduler，所有方法固定 propose 一个 token block，以隔离 draft model 质量。
 
@@ -340,7 +340,7 @@ $$
 
 ### 4.3 为什么 DSpark 能超过纯并行和纯自回归
 
-![Figure 2 conditional acceptance](大语言模型/assets/fig2_cond_acceptance.png)
+![Figure 2 conditional acceptance](assets/fig2_cond_acceptance.png)
 
 来源：Section 4.3.1、Figure 2。
 
@@ -355,13 +355,13 @@ $$
 
 ### 4.4 模型深度与 proposal length 消融
 
-![Figure 3 depth](大语言模型/assets/fig3_depth.png)
+![Figure 3 depth](assets/fig3_depth.png)
 
 来源：Section 4.3.2、Figure 3。
 
 结论：DSpark 随 draft layers 增加而提升，且 2-layer DSpark 已超过 5-layer DFlash。导出逻辑是：局部顺序依赖建模比单纯堆并行层更高效，Markov head 的参数/延迟开销换来了更好的 sequence coherence。
 
-![Figure 4 proposal length latency](大语言模型/assets/fig4_proposal_latency.png)
+![Figure 4 proposal length latency](assets/fig4_proposal_latency.png)
 
 来源：Section 4.3.2、Figure 4。
 
@@ -378,7 +378,7 @@ $$
 
 ### 4.5 Confidence head 与调度证据
 
-![Figure 5 confidence sweep](大语言模型/assets/fig5_conf_threshold.png)
+![Figure 5 confidence sweep](assets/fig5_conf_threshold.png)
 
 来源：Section 4.3.3、Figure 5。
 
@@ -395,7 +395,7 @@ $$
 
 ### 4.6 生产部署结果
 
-![Figure 7 live frontier](大语言模型/assets/fig7_live_frontier.png)
+![Figure 7 live frontier](assets/fig7_live_frontier.png)
 
 来源：Section 5.4、Figure 7。生产环境对比 DSpark-5 与 MTP-1，部署在 DeepSeek-V4-Flash preview 和 DeepSeek-V4-Pro preview。
 
@@ -408,7 +408,7 @@ $$
 - 在 matched practical throughput 下，DSpark 使 per-user generation speed 提升：V4-Flash +60%-85%，V4-Pro +57%-78%。
     
 
-![Figure 8 load adaptive](大语言模型/assets/fig8_load_adaptive.png)
+![Figure 8 load adaptive](assets/fig8_load_adaptive.png)
 
 来源：Section 5.4、Figure 8。
 

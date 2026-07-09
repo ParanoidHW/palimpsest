@@ -1,7 +1,7 @@
 # Diffusion 模型多模态演进调研
 
 生成日期：2026-07-02  
-调研输出目录：`output/diffusion-models-deep-research/`  
+调研输出目录：`../../_artifacts/output/diffusion-models-deep-research/`  
 范围：以多模态 diffusion / flow 生成模型为主，覆盖图像、视频、音频、3D、动作/世界模型；dLLM 只作为相邻分支，不纳入多模态主演进线。
 
 ## 结论先行
@@ -19,7 +19,7 @@ Diffusion 模型的多模态演进不是“图像、视频、音频、3D”的�
 
 主线图如下。dLLM 作为相邻文本生成分支，不进入这张多模态 diffusion / flow 主线图。
 
-![多模态 diffusion / flow 演进路线图](多模态大模型/assets/diffusion_multimodal_evolution_wide_flat.png)
+![多模态 diffusion / flow 演进路线图](assets/diffusion_multimodal_evolution_wide_flat.png)
 
 ## 1. 2015-2020：从热力学扩散到 DDPM
 
@@ -606,14 +606,14 @@ dLLM 和多模态 diffusion 共享“denoise / mask recovery / iterative refinem
 
 ## 本次交付件清单
 
-- 深度调研目录：`output/diffusion-models-deep-research/`
-- 论文数据库：`output/diffusion-models-deep-research/paper_db.jsonl`
-- Phase 1 前沿：`output/diffusion-models-deep-research/phase1_frontier/frontier.md`
-- Phase 2 综述：`output/diffusion-models-deep-research/phase2_survey/survey.md`
-- Phase 3 深读：`output/diffusion-models-deep-research/phase3_deep_dive/deep_dive.md`
-- Phase 4 代码生态：`output/diffusion-models-deep-research/phase4_code/code_repos.md`
-- Phase 5 综合与 gap：`output/diffusion-models-deep-research/phase5_synthesis/`
-- Phase 6 报告和 BibTeX：`output/diffusion-models-deep-research/phase6_report/`
-- 趋势图：`output/diffusion-models-deep-research/multimodal_diffusion_timeline.png`
-- Chunk 自回归补充调研：`output/chunk-autoregressive-diffusion-research/`
-- Chunk 自回归关键图表：`多模态大模型/assets/diffusion_longseq/`
+- 深度调研目录：`../../_artifacts/output/diffusion-models-deep-research/`
+- 论文数据库：`../../_artifacts/output/diffusion-models-deep-research/paper_db.jsonl`
+- Phase 1 前沿：`../../_artifacts/output/diffusion-models-deep-research/phase1_frontier/frontier.md`
+- Phase 2 综述：`../../_artifacts/output/diffusion-models-deep-research/phase2_survey/survey.md`
+- Phase 3 深读：`../../_artifacts/output/diffusion-models-deep-research/phase3_deep_dive/deep_dive.md`
+- Phase 4 代码生态：`../../_artifacts/output/diffusion-models-deep-research/phase4_code/code_repos.md`
+- Phase 5 综合与 gap：`../../_artifacts/output/diffusion-models-deep-research/phase5_synthesis/`
+- Phase 6 报告和 BibTeX：`../../_artifacts/output/diffusion-models-deep-research/phase6_report/`
+- 趋势图：`../../_artifacts/output/diffusion-models-deep-research/multimodal_diffusion_timeline.png`
+- Chunk 自回归补充调研：`../../_artifacts/output/chunk-autoregressive-diffusion-research/`
+- Chunk 自回归关键图表：`assets/diffusion_longseq/`

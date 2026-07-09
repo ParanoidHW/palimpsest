@@ -1,37 +1,37 @@
 # JetSpec: Breaking the Scaling Ceiling of Speculative Decoding with Parallel Tree Drafting 精读分析
 
-> 资料状态：已下载 arXiv:2606.18394v3 PDF、arXiv source archive、LaTeX 源文件、PDF 页面截图，并浅克隆开源仓库 `https://github.com/hao-ai-lab/JetSpec`。本文档中的 Figure/Table 证据图均为 PDF 页面裁剪，已包含完整 caption；source 原始图也已转换或复制到 `../assets` 作为可追溯素材。代码仓库 HEAD 为 `2c7b3fae75690dfe9a188a37d7fdfd43ee0e032f`。注意：开源仓库主要覆盖推理、tree construction、tree attention 和 benchmark；未看到完整训练脚本，因此训练目标/数据构造主要依据论文与 LaTeX source。
+> 资料状态：已下载 arXiv:2606.18394v3 PDF、arXiv source archive、LaTeX 源文件、PDF 页面截图，并浅克隆开源仓库 `https://github.com/hao-ai-lab/JetSpec`。本文档中的 Figure/Table 证据图均为 PDF 页面裁剪，已包含完整 caption；source 原始图也已转换或复制到 `assets` 作为可追溯素材。代码仓库 HEAD 为 `2c7b3fae75690dfe9a188a37d7fdfd43ee0e032f`。注意：开源仓库主要覆盖推理、tree construction、tree attention 和 benchmark；未看到完整训练脚本，因此训练目标/数据构造主要依据论文与 LaTeX source。
 
 ## 0. 资料与配图索引
 
 - 原始论文页面：[https://arxiv.org/abs/2606.18394v3](https://arxiv.org/abs/2606.18394v3)
 - 原始论文 PDF：[https://arxiv.org/pdf/2606.18394v3](https://arxiv.org/pdf/2606.18394v3)
 - 原始论文源码：[https://arxiv.org/e-print/2606.18394v3](https://arxiv.org/e-print/2606.18394v3)
-- 论文 PDF：`../../2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/paper.pdf`
-- arXiv source：`../../2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/source/`
-- LaTeX 主文件：`../../2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/source/ptd.tex`
-- 提取文本：`../../2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/extracted_text/full_text.txt`
-- 页面截图：`../../2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/figures/page_png/`
-- 裁剪图表：`../../2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/figures/crops/`
-- 开源代码：`../../2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/code/JetSpec/`
+- 论文 PDF：`../../_artifacts/source/2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/paper.pdf`
+- arXiv source：`../../_artifacts/source/2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/source/`
+- LaTeX 主文件：`../../_artifacts/source/2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/source/ptd.tex`
+- 提取文本：`../../_artifacts/source/2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/extracted_text/full_text.txt`
+- 页面截图：`../../_artifacts/source/2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/figures/page_png/`
+- 裁剪图表：`../../_artifacts/source/2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/figures/crops/`
+- 开源代码：`../../_artifacts/source/2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/code/JetSpec/`
 - GitHub：`https://github.com/hao-ai-lab/JetSpec`，commit `2c7b3fae75690dfe9a188a37d7fdfd43ee0e032f`
 
 | 图表 | 本文档用途 | 文件 |
 |---|---|---|
-| Figure 1 | H100 上 DFlash/DDTree/JetSpec 端到端 speedup 对比 | `../assets/jetspec_fig1_speedup_caption.png` |
-| Figure 2 | speculative decoding 随 draft length、acceptance、draft cost 的理论 scaling | `../assets/jetspec_fig2_scaling_caption.png` |
-| Figure 3 | JetSpec causal-parallel draft head 和 tree verification 总览 | `../assets/jetspec_fig3_architecture_caption.png` |
-| Table 1 | low-budget 16/32 token 结果 | `../assets/jetspec_table1_low_budget_caption.png` |
-| Table 2 | high-budget 64/128/256 tree 结果 | `../assets/jetspec_table2_high_budget_caption.png` |
-| Table 3 | learning-rate 消融 | `../assets/jetspec_table3_lr_ablation_caption.png` |
-| Table 4-6 | loss、MoE 泛化、训练数据消融 | `../assets/jetspec_tables4_6_training_ablation_caption.png` |
-| Table 7 | causal head vs diffusion head 对 $\gamma$ 的鲁棒性 | `../assets/jetspec_table7_head_gamma_caption.png` |
-| Figure 4 | tree-quality failure mode 案例 | `../assets/jetspec_fig4_tree_quality_caption.png` |
-| Table 8-9 | top-5 branch 与 50 prompt gap 分布 | `../assets/jetspec_tables8_9_tree_gap_caption.png` |
-| Algorithm 1 | Parallel Tree Drafting 伪代码 | `../assets/jetspec_algorithm1_tree_drafting_caption.png` |
-| Table 10 | tree construction scoring 消融 | `../assets/jetspec_table10_tree_algo_caption.png` |
-| Table 11 | vLLM serving batch/budget sweep | `../assets/jetspec_table11_vllm_caption.png` |
-| Table 12 | per-draft-token cost ratio $c$ | `../assets/jetspec_table12_draft_cost_caption.png` |
+| Figure 1 | H100 上 DFlash/DDTree/JetSpec 端到端 speedup 对比 | `assets/jetspec_fig1_speedup_caption.png` |
+| Figure 2 | speculative decoding 随 draft length、acceptance、draft cost 的理论 scaling | `assets/jetspec_fig2_scaling_caption.png` |
+| Figure 3 | JetSpec causal-parallel draft head 和 tree verification 总览 | `assets/jetspec_fig3_architecture_caption.png` |
+| Table 1 | low-budget 16/32 token 结果 | `assets/jetspec_table1_low_budget_caption.png` |
+| Table 2 | high-budget 64/128/256 tree 结果 | `assets/jetspec_table2_high_budget_caption.png` |
+| Table 3 | learning-rate 消融 | `assets/jetspec_table3_lr_ablation_caption.png` |
+| Table 4-6 | loss、MoE 泛化、训练数据消融 | `assets/jetspec_tables4_6_training_ablation_caption.png` |
+| Table 7 | causal head vs diffusion head 对 $\gamma$ 的鲁棒性 | `assets/jetspec_table7_head_gamma_caption.png` |
+| Figure 4 | tree-quality failure mode 案例 | `assets/jetspec_fig4_tree_quality_caption.png` |
+| Table 8-9 | top-5 branch 与 50 prompt gap 分布 | `assets/jetspec_tables8_9_tree_gap_caption.png` |
+| Algorithm 1 | Parallel Tree Drafting 伪代码 | `assets/jetspec_algorithm1_tree_drafting_caption.png` |
+| Table 10 | tree construction scoring 消融 | `assets/jetspec_table10_tree_algo_caption.png` |
+| Table 11 | vLLM serving batch/budget sweep | `assets/jetspec_table11_vllm_caption.png` |
+| Table 12 | per-draft-token cost ratio $c$ | `assets/jetspec_table12_draft_cost_caption.png` |
 
 ## 0.1 符号表
 
@@ -83,11 +83,11 @@
 
 1. **把适合 tree construction 的因果条件化提前到并行 draft head 的 depth 维。** JetSpec 不再像 DFlash/DDTree 那样完全用 branch-agnostic per-position marginal 构树；draft head 内使用 block-causal/causal-parallel mask，让第 $i$ 个 draft slot 只能看 prefix/anchor 和更早的 draft slots。随后 tree construction 再用这些 per-depth logits 取 top-$W$ 并组合成候选树。严格说，draft head 内没有显式 tree；tree-causal mask 更准确地对应 target verification 或论文的树状验证视角。证据：Section 2.2，Figure 3，Eq. 3-6。
 
-![JetSpec architecture|1051](../assets/jetspec_fig3_architecture_caption.png)
+![JetSpec architecture|1051](assets/jetspec_fig3_architecture_caption.png)
 
 2. **给出 speculative decoding scaling 的明确瓶颈表达。** 论文用 i.i.d. acceptance 假设说明，draft length $N$ 增大只有在 $\alpha$ 高且 $Nc$ 低时才有效。JetSpec 的定位就是同时压低 $c$ 和提升树路径的 effective acceptance。证据：Eq. 1/2，Figure 2。
 
-![Speculative decoding scaling|846](../assets/jetspec_fig2_scaling_caption.png)
+![Speculative decoding scaling|846](assets/jetspec_fig2_scaling_caption.png)
 
 3. **用 causal parallel tree drafting 替代 diffusion tree 的 surrogate scoring。** Diffusion head 构树时优化的是
 
@@ -118,11 +118,11 @@ $$
 
 4. **给出高预算下的端到端证据。** 在 Qwen3-8B、temperature 0、tree budget 256 下，JetSpec 在 MATH-500 达到 9.64x speedup / $\tau=10.76$，MT-Bench 达到 4.58x / $\tau=5.94$；比 DDTree 的 8.78x / 9.81 和 4.26x / 5.41 更高。证据：Table 2，Figure 1。
 
-![Headline speedup|905](../assets/jetspec_fig1_speedup_caption.png)
+![Headline speedup|905](assets/jetspec_fig1_speedup_caption.png)
 
 5. **给出机制失败案例和统计分布。** MATH-500 prompt 0 decode step 0 中，diffusion head 的 rank-1 branch 是 `given told that`，surrogate $\sum\log r=-3.76$，但 target conditional $\sum\log p=-63.32$ nats；causal head 的 rank-1 branch `are told that` gap 只有 -0.34。50 个 prompt 统计中，$\gamma=0$ 时 diffusion 的 median gap 为 +62.81 nats，causal 为 +12.36 nats。证据：Figure 4，Table 8/9。
 
-![Tree quality failure mode|969](../assets/jetspec_fig4_tree_quality_caption.png)
+![Tree quality failure mode|969](assets/jetspec_fig4_tree_quality_caption.png)
 
 ## 3. 研究方法
 
@@ -227,7 +227,7 @@ $$
 
 Algorithm 1 用 priority queue 反复弹出最高分可扩展节点，并添加最多 $W$ 个 child，直到 node budget $B$ 用完。
 
-![Parallel Tree Drafting algorithm|673](../assets/jetspec_algorithm1_tree_drafting_caption.png)
+![Parallel Tree Drafting algorithm|673](assets/jetspec_algorithm1_tree_drafting_caption.png)
 
 ### 3.3 推理流程
 
@@ -258,7 +258,7 @@ Table 1 中 Qwen3-8B、temperature 0、budget 16 时，DFlash 与 JetSpec 很接
 
 当 budget 从 16 增到 32，DFlash 常下降，例如 GSM8K 4.80x 降到 4.21x，MATH-500 6.12x 降到 5.39x；JetSpec 则在多数任务小幅提升或保持，例如 GSM8K 4.80x 到 4.89x，MATH-500 6.06x 到 6.35x。这个现象支持论文的核心说法：额外 draft budget 只有在 tree 分支有效时才会变成 accepted tokens。
 
-![Low budget table|664](../assets/jetspec_table1_low_budget_caption.png)
+![Low budget table|664](assets/jetspec_table1_low_budget_caption.png)
 
 ### 4.2 high-budget 是 JetSpec 的主要优势区
 
@@ -274,7 +274,7 @@ Table 2 中 temperature 0、budget 256 的关键数字：
 
 temperature 1 下 JetSpec 仍领先 DDTree，但 AIME25 等更随机/困难任务的绝对 speedup 和 $\tau$ 会下降，例如 AIME25 budget 256 从 8.78x / 9.82 变为 5.94x / 7.06。结论是：causal tree drafting 对 sampling 有帮助，但 acceptance 仍受目标分布熵和采样温度限制。
 
-![High budget table|636](../assets/jetspec_table2_high_budget_caption.png)
+![High budget table|636](assets/jetspec_table2_high_budget_caption.png)
 
 ### 4.3 loss 和训练数据决定 tree 分支是否“覆盖多模态”
 
@@ -284,7 +284,7 @@ Table 6 显示 regenerated target-model continuations 很重要。这里的 rege
 
 这个区别对 speculative decoding 很关键：验证阶段接受 token 的标准是 target model 在同一上下文下是否会给出这些 token，而不是 corpus answer 是否合理或正确。因此，直接学 $y_{\mathrm{corpus}}$ 可能学到“人类/数据集答案分布”，但 target verification 看的是“目标模型生成分布”；用 $M_p$ regenerated continuation 能更好对齐 draft-target 分布。budget 256 时，JetSpec 在 GSM8K/AIME25/HumanEval/MBPP/LCB/MT-Bench 分别为 7.82/8.78/7.12/6.73/7.67/4.58x；JetSpec-Corpus 分别只有 3.36/3.66/3.53/3.27/4.42/2.63x。论文没有完整公开 regeneration 的采样温度、长度、过滤规则等细节，这是复现时需要补问的关键项。
 
-![Training ablations|737](../assets/jetspec_tables4_6_training_ablation_caption.png)
+![Training ablations|737](assets/jetspec_tables4_6_training_ablation_caption.png)
 
 ### 4.4 causal head 的收益不是只来自调 $\gamma$
 
@@ -292,7 +292,7 @@ Table 7 比较 causal head 和 diffusion head 在不同 DFlash-style depth weigh
 
 这说明 diffusion head 可以靠 loss weighting 被“推”出一定左到右偏置，但 causal head 的鲁棒性来自结构约束，而不是超参偶然调优。
 
-![Head gamma ablation|1024](../assets/jetspec_table7_head_gamma_caption.png)
+![Head gamma ablation|1024](assets/jetspec_table7_head_gamma_caption.png)
 
 ### 4.5 收益来源归因：tree 覆盖是大头，causal head 是高预算边际增益
 
@@ -320,7 +320,7 @@ Table 7 则说明 causal head 的独立贡献有条件性：在 MATH-500 上，$
 
 Table 10 中 default `accum_logp` 在 MATH-500 达到 8.15x / 9.81；entropy-guided 只有 4.76x / 5.52；hybrid 在 $\alpha \le 1$ 时与 accum-logp 接近，但 $\alpha$ 越大越差。论文的实用结论是：在 drafter logits 已经较好时，按 cumulative log-prob 做 best-first expansion 足够稳健；单看 entropy 会把 budget 花在“不确定但不一定可接受”的区域。
 
-![Tree algorithm ablation|884](../assets/jetspec_table10_tree_algo_caption.png)
+![Tree algorithm ablation|884](assets/jetspec_table10_tree_algo_caption.png)
 
 ### 4.7 serving 中 tree budget 是负载相关旋钮
 
@@ -328,7 +328,7 @@ Table 11 的表格数字显示，batch size 1 时 budget 16/32/64/128 的 TPS �
 
 这说明低 batch/低负载下更大 tree budget 更有价值；高 batch 下 verification 和 memory pressure 变重，过大 budget 会降低吞吐。这里还要注意一个论文内不一致：正文 Section 3.3 说 batch size 1 从 budget 16 到 128 是 443.3 到 968.2 TPS、3.09x 到 6.75x，但 Table 11 实际显示 224.0 到 553.3 TPS、1.75x 到 4.33x；附录文字还一处写 HumanEval，而表 caption 写 Math-500。解读时应以表格为准，并把该不一致列为复现前的待确认项。
 
-![vLLM table](../assets/jetspec_table11_vllm_caption.png)
+![vLLM table](assets/jetspec_table11_vllm_caption.png)
 
 ## 5. Related Work 对比
 
@@ -372,7 +372,7 @@ $$
 
 Table 12 说明低 $c$ 是现实可达的。在 H200 NVL、Qwen3-8B + DFlash b16 配置下，$L=1024,N=16$ 时 $c=0.845\%$，$N=256$ 时 $c=0.054\%$。这支持 Figure 2 的 ultra-low-cost 假设，但只说明 draft head 成本可被摊薄；tree verification 是否划算仍依赖 accepted length。
 
-![Draft cost table|1013](../assets/jetspec_table12_draft_cost_caption.png)
+![Draft cost table|1013](assets/jetspec_table12_draft_cost_caption.png)
 
 ### 6.2 显存与 KV cache
 
@@ -415,7 +415,7 @@ JetSpec 的工程关键点：
 
 仓库：`https://github.com/hao-ai-lab/JetSpec`  
 commit：`2c7b3fae75690dfe9a188a37d7fdfd43ee0e032f`  
-本地路径：`../../2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/code/JetSpec/`
+本地路径：`../../_artifacts/source/2606.18394v3_JetSpec_Breaking_the_Scaling_Ceiling_of_Speculative_Decoding_with_Parallel_Tree_Drafting/code/JetSpec/`
 
 | 论文机制 | 本地路径 | GitHub commit 链接 | 一致性判断 |
 |---|---|---|---|

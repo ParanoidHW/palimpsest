@@ -7,26 +7,26 @@
 - arXiv 摘要页：[https://arxiv.org/abs/2606.19348v1](https://arxiv.org/abs/2606.19348v1)
 - arXiv PDF：[https://arxiv.org/pdf/2606.19348v1](https://arxiv.org/pdf/2606.19348v1)
 - arXiv source：[https://arxiv.org/e-print/2606.19348v1](https://arxiv.org/e-print/2606.19348v1)
-- 论文 PDF：`../../2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/paper.pdf`
-- LaTeX 主文件：`../../2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/source/main.tex`
-- 表格源码：`../../2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/source/tables/`
-- 原始图文件：`../../2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/source/figures/`
-- 提取文本：`../../2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/extracted_text/full_text.txt`
-- PDF 页面截图：`../../2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/figures/page_png/`
-- HF/GitHub 核查记录：`../../2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/code/hf_meta/README.md`
+- 论文 PDF：`../../_artifacts/source/2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/paper.pdf`
+- LaTeX 主文件：`../../_artifacts/source/2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/source/main.tex`
+- 表格源码：`../../_artifacts/source/2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/source/tables/`
+- 原始图文件：`../../_artifacts/source/2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/source/figures/`
+- 提取文本：`../../_artifacts/source/2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/extracted_text/full_text.txt`
+- PDF 页面截图：`../../_artifacts/source/2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/figures/page_png/`
+- HF/GitHub 核查记录：`../../_artifacts/source/2606.19348v1_DeepSeek-V4_Towards_Highly_Efficient_Million-Token_Context_Intelligence/code/hf_meta/README.md`
 
 | 图表       | 本文档用途                                                            | 文件                                                                                             |
 | -------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Figure 1 | DeepSeek-V4-Pro-Max 性能对比，以及 V4/V3.2 的 1M 上下文 FLOPs/KV cache 成本估计 | `../assets/deepseek_v4_dsv4_performance_source.png`，来自 `source/figures/dsv4_performance.pdf`   |
-| Figure 2 | DeepSeek-V4 总体架构：CSA/HCA、DeepSeekMoE、mHC、MTP                     | `../assets/deepseek_v4_basic_arch_source.png`，来自 `source/figures/basic_arch.pdf`               |
-| Figure 3 | CSA：压缩 KV、lightning indexer、top-k sparse selection、SWA 分支        | `../assets/deepseek_v4_CSA_source.png`，来自 `source/figures/CSA.pdf`                             |
-| Figure 4 | HCA：更重 KV 压缩、dense attention、SWA 分支                              | `../assets/deepseek_v4_HCA_source.png`，来自 `source/figures/HCA.pdf`                             |
-| Figure 5 | Expert Parallelism 的 fine-grained overlap / MegaMoE pipeline     | `../assets/deepseek_v4_mega_moe_pipeline_source.png`，来自 `source/figures/mega_moe_pipeline.pdf` |
-| Figure 6 | hybrid attention 的 heterogeneous KV cache layout                 | `../assets/deepseek_v4_kv_cache_source.png`，来自 `source/figures/kv_cache.pdf`                   |
+| Figure 1 | DeepSeek-V4-Pro-Max 性能对比，以及 V4/V3.2 的 1M 上下文 FLOPs/KV cache 成本估计 | `assets/deepseek_v4_dsv4_performance_source.png`，来自 `source/figures/dsv4_performance.pdf`   |
+| Figure 2 | DeepSeek-V4 总体架构：CSA/HCA、DeepSeekMoE、mHC、MTP                     | `assets/deepseek_v4_basic_arch_source.png`，来自 `source/figures/basic_arch.pdf`               |
+| Figure 3 | CSA：压缩 KV、lightning indexer、top-k sparse selection、SWA 分支        | `assets/deepseek_v4_CSA_source.png`，来自 `source/figures/CSA.pdf`                             |
+| Figure 4 | HCA：更重 KV 压缩、dense attention、SWA 分支                              | `assets/deepseek_v4_HCA_source.png`，来自 `source/figures/HCA.pdf`                             |
+| Figure 5 | Expert Parallelism 的 fine-grained overlap / MegaMoE pipeline     | `assets/deepseek_v4_mega_moe_pipeline_source.png`，来自 `source/figures/mega_moe_pipeline.pdf` |
+| Figure 6 | hybrid attention 的 heterogeneous KV cache layout                 | `assets/deepseek_v4_kv_cache_source.png`，来自 `source/figures/kv_cache.pdf`                   |
 | Table 1  | V3.2-Base、V4-Flash-Base、V4-Pro-Base 统一内部评测                       | Markdown 摘录；完整来源 `source/tables/base_eval.tex`                                                 |
 | Table 6  | V4-Pro-Max 与闭源/开源模型的标准 benchmark 对比                              | Markdown 摘录；完整来源 `source/tables/large_eval.tex`                                                |
 | Table 7  | Flash/Pro 三种 reasoning effort mode 对比                            | Markdown 摘录；完整来源 `source/tables/small_eval.tex`                                                |
-| Figure 9 | MRCR 8-needle 随上下文长度变化                                           | `../assets/deepseek_v4_mrcr_source.png`，来自 `source/figures/mrcr.pdf`                           |
+| Figure 9 | MRCR 8-needle 随上下文长度变化                                           | `assets/deepseek_v4_mrcr_source.png`，来自 `source/figures/mrcr.pdf`                           |
 
 ## 0.1 符号表
 
@@ -102,11 +102,11 @@
 
 1. **Hybrid attention：CSA + HCA interleaving。** CSA 用 $m=4$ 压缩 KV 并通过 lightning indexer 选 top-k compressed KV；HCA 用 $m'=128$ 重压缩但保留 dense attention。两者都额外引入最近 $n_{\mathrm{win}}=128$ 的 uncompressed sliding-window KV，用来补局部依赖和 compressed block 内可见性。证据：Section 2.3、Figure 3/4。
 
-![CSA architecture](../assets/deepseek_v4_CSA_source.png)
+![CSA architecture](assets/deepseek_v4_CSA_source.png)
 
 *Figure 3 caption：Core architectures of CSA. It compresses the number of KV entries to $1/m$ times, then applies DeepSeek Sparse Attention; a small sliding-window KV set is combined with selected compressed KV entries to enhance local fine-grained dependencies.*
 
-![HCA architecture](../assets/deepseek_v4_HCA_source.png)
+![HCA architecture](assets/deepseek_v4_HCA_source.png)
 
 *Figure 4 caption：Core architectures of HCA. It uses heavier compression by consolidating every $m'(\gg m)$ KV entries into one, and adds a sliding-window KV set for local dependencies.*
 
@@ -116,11 +116,11 @@
 
 4. **把长上下文效率落实到训练/推理基础设施。** 包括 fine-grained EP overlap、TileLang kernel、deterministic/batch-invariant kernels、Muon-compatible hybrid ZeRO、compressed attention 的 CP、heterogeneous KV cache layout、on-disk KV cache。证据：Section 3。
 
-![MegaMoE EP overlap](../assets/deepseek_v4_mega_moe_pipeline_source.png)
+![MegaMoE EP overlap](assets/deepseek_v4_mega_moe_pipeline_source.png)
 
 *Figure 5 caption：Illustration of the EP scheme. Compared with Comet, the proposed EP scheme splits and schedules experts into waves for finer-grained communication-computation overlap; theoretical speedup is evaluated under the DeepSeek-V4-Flash architecture.*
 
-![KV cache layout](../assets/deepseek_v4_kv_cache_source.png)
+![KV cache layout](assets/deepseek_v4_kv_cache_source.png)
 
 *Figure 6 caption：Illustration of the KV cache layout for DeepSeek-V4. The layout separates classical CSA/HCA KV cache from state cache for SWA and unready-for-compression tokens; each classical cache block covers $\mathrm{lcm}(m,m')$ original tokens and produces $k_1$ CSA compressed tokens and $k_2$ HCA compressed tokens.*
 
@@ -143,7 +143,7 @@
 
 总体架构保留 Transformer、DeepSeekMoE 和 MTP，但把 attention 层替换为 interleaved CSA/HCA，并用 mHC 加强 residual path。Figure 2 中的 “Pre-Block Mixing / Residual Mixing / Post-Block Mixing” 对应 mHC 在 block 前后对 expanded residual streams 做 mixing；attention block 内部是 CSA 或 HCA，FFN 是 DeepSeekMoE。
 
-![DeepSeek-V4 architecture](../assets/deepseek_v4_basic_arch_source.png)
+![DeepSeek-V4 architecture](assets/deepseek_v4_basic_arch_source.png)
 
 *Figure 2 caption：Overall architecture of DeepSeek-V4 series. Attention layers use hybrid CSA/HCA, feed-forward layers use DeepSeekMoE, and conventional residual connections are strengthened with mHC.*
 
@@ -272,7 +272,7 @@ $$
 
 Figure 1 的右侧是作者估计的 1M 上下文 single-token inference FLOPs 和 accumulated KV cache。论文明确写到：在 1M context 下，V4-Pro 只需要 V3.2 的 27% single-token FLOPs 和 10% KV cache；V4-Flash 更低，为 10% FLOPs 和 7% KV cache。左侧是 Pro-Max 与闭源模型在部分 benchmark 的结果。
 
-![DeepSeek-V4 performance and cost](../assets/deepseek_v4_dsv4_performance_source.png)
+![DeepSeek-V4 performance and cost](assets/deepseek_v4_dsv4_performance_source.png)
 
 *Figure 1 caption：Left: benchmark performance of DeepSeek-V4-Pro-Max and counterparts. Right: inference FLOPs and KV cache size of DeepSeek-V4 series and DeepSeek-V3.2.*
 
@@ -363,7 +363,7 @@ Table 7 关键行摘录，完整表格见 `source/tables/small_eval.tex`：
 
 Figure 9 给出 MRCR 8-needle 随输入长度变化。Pro-Max 在 8K-128K 大致稳定在 0.90、0.85、0.94、0.90、0.92，之后到 256K 为 0.82、512K 为 0.66、1024K 为 0.59。Flash-Max 走势类似，1024K 为 0.49。
 
-![MRCR curve](../assets/deepseek_v4_mrcr_source.png)
+![MRCR curve](assets/deepseek_v4_mrcr_source.png)
 
 *Figure 9 caption：DeepSeek-V4 series performance on the MRCR task.*
 
