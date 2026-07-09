@@ -10,6 +10,16 @@
 
 因此这里的知识组织以 **AI Infra** 为核心。模型结构、训练方法、推理优化、多模态生成、硬件适配、评测体系和 Agent 工具链都不是彼此独立的主题，而是同一条系统链路上的不同层。
 
+## 目录索引
+
+| 目录 | 用途 | 建议入口 |
+| --- | --- | --- |
+| [00_meta](./00_meta/) | 仓库入口资产与临时收件箱 | [assets](./00_meta/assets/) |
+| [01_ai_infra](./01_ai_infra/) | 评测、硬件运行时、硬件规格与性能建模 | [evaluation](./01_ai_infra/evaluation/), [performance modeling](./01_ai_infra/performance_modeling/) |
+| [02_model_systems](./02_model_systems/) | LLM、投机解码、多模态生成与 diffusion/world model | [LLM foundations](./02_model_systems/llm_foundations/), [speculative decoding](./02_model_systems/speculative_decoding/) |
+| [03_agentic_workflows](./03_agentic_workflows/) | Agent 化论文精读、kernel 生成与研究工作流 | [kernel agents](./03_agentic_workflows/kernel_agents/) |
+| [04_references](./04_references/) | 预留的一手论文、数据集与参考材料索引 | [papers](./04_references/papers/), [datasets](./04_references/datasets/) |
+
 ## 核心视角
 
 AI Infra 不是单纯的“部署”或“工程实现”。它关心的是模型能力如何被资源约束、系统调度和评测口径重新塑形。
@@ -27,6 +37,8 @@ AI Infra 不是单纯的“部署”或“工程实现”。它关心的是模�
 ## 体系结构
 
 ![AI Infra Knowledge System](./00_meta/assets/ai-infra-knowledge-system.svg)
+
+图像资产归属：根 README 使用 [palimpsest-knowledge-logo-generated-512.png](./00_meta/assets/palimpsest-knowledge-logo-generated-512.png) 与 [ai-infra-knowledge-system.svg](./00_meta/assets/ai-infra-knowledge-system.svg)，这两张图属于仓库入口资产。
 
 这张图表达的是一个闭环，而不是目录结构：
 
