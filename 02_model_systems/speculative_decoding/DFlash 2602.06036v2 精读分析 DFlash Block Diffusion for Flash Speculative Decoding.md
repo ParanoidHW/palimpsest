@@ -1,3 +1,5 @@
+# DFlash: Block Diffusion for Flash Speculative Decoding 精读分析
+
 ## 0. 资料归档与图像元素
 
 本目录已归档：

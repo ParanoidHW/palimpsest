@@ -1,4 +1,6 @@
 
+# DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation 精读分析
+
 > 资料状态：本目录只有离线 PDF `DSpark_paper.pdf`；用户说明当前 arXiv 还没有，因此本次没有 LaTeX 源码可用。本文档中的示意图来自对 PDF 的整页渲染和裁剪，非原始矢量素材。若后续拿到 LaTeX 源码，建议用 `pdfimages`/源文件替换 `figures/crops/` 下的截图。
 
 ## 0. 资料与配图索引

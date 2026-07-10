@@ -1,4 +1,6 @@
 
+# P-EAGLE: Parallel-Drafting EAGLE with Scalable Training 精读分析
+
 > 资料状态：已下载 arXiv PDF、arXiv source tar，并解包 LaTeX 源文件。图片优先来自 arXiv source 中的原始 PDF 图，已额外渲染为 PNG 供 Markdown 查看；不是从论文 PDF 页面裁剪。未发现论文给出的官方代码仓库链接，代码实现只可依据论文中 vLLM implementation 声明分析，无法做源码级核验。
 
 ## 0. 资料与配图索引
