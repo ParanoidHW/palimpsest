@@ -1,0 +1,1132 @@
+LVSA: Training-Free Sparse Attention for Long Video Diffusion
+Gael Glorian
+
+arXiv:2605.31057v1 [cs.CV] 29 May 2026
+
+1
+
+∗1
+
+, Ioannis Lamprou
+
+1
+
+, Zhen Zhang
+Liu 2
+
+1
+
+, Yujie Yuan1 , and Hongsheng
+
+Distributed Parallel Technology Laboratory, Paris Research Center, Huawei Technologies France
+2
+AI Framework and Data Technology Lab, Huawei Technologies Co., Ltd.
+
+Abstract
+Dense self-attention is the compute and quality bottleneck of long-video diffusion inference: cost
+grows quadratically with the sequence length, and beyond the training horizon the model converges
+to near-static output, that is, “frozen” repetitive video. State of the art approaches are either too
+costly, e.g., they require retraining, or fail to satisfy both performance and quality objectives in a
+scalable manner. To this end, we introduce Long Video Sparse Attention (LVSA), a training-free
+model-agnostic block-sparse attention for video diffusion transformers that combines a structured
+window pattern with rotating global anchors, thus removing the fixed-grid bias which causes longrange temporal artifacts. LVSA, combined with a FlashInfer kernel, reduces compute up to 3.17×
+on Wan 2.1 1.3B at a 6× horizon, 2.98× on Wan 2.1 14B at a 6× horizon, and 3.33× on HunyuanVideo 1.5 at a 1.5× horizon, compared to dense attention. Beyond reducing compute, LVSA enables
+HunyuanVideo 1.5 generation at a 2× horizon, which is otherwise out-of-memory on a single GPU.
+Moreover, LVSA provides speedups up to 2.41× compared to RIFLEx [13] and 3.27× compared to
+UltraViCo [14] on Wan 2.1 1.3B. To demonstrate applicability across diverse platforms, we apply
+LVSA on NPUs and achieve speedups up to 2.71× on Wan 2.2 A14B and 3.24× on Wan 2.1 1.3B
+compared to dense attention. To evaluate quality in a fair way, we introduce VQeval, a tool properly
+scoring loopy video failures, which instead are rewarded in state of the art evaluators like VBenchLong [1]. LVSA is quality-neutral for generation at training horizon length and quality-positive at
+extended lengths. code: https://github.com/JiusiServe/LongVideoSparseAttention
+
+1
+
+Introduction
+
+Video diffusion transformers (DiTs) like Wan [5] and HunyuanVideo [3] have set new bars for text-tovideo generation quality, but inference costs rise steeply with the number of generated frames as standard
+self-attention brings about quadratic compute. At the 14-billion parameter scale, KV memory is pushed
+near the 80 GB GPU envelope thus making longer video generation infeasible. Moreover, with respect to
+video quality, beyond the training horizon of 81 frames for Wan and 129 frames for HunyuanVideo, dense
+attention produces frozen or looping video, which is of very low quality by an observant’s standards.
+The above compute and quality challenges have captured the interest of the research community
+[6]. Sparse VideoGen [7, 9], AdaSpa [8], Sliding Tile Attention [12], and Radial Attention [4] all target
+the quadratic cost of video self-attention with training-free block or windowed patterns. Yet, the longrange temporal-repetition failures are still hard to eliminate. On the other hand, approaches on video
+extrapolation with quality preservation fail to deescalate the compute cost: RIFLEx [13] modifies a single
+temporal RoPE frequency to extend the training horizon, while UltraViCo [14] applies a per-pair logit
+decay via a fused Sage Attention [11] kernel. Note, in this paper, we consider a single-scene scenario.
+In this work, we seek to address these shortcomings and harness the tradeoff between compute and
+quality. To do so, we make the following contributions:
+• We introduce Long-Video Sparse Attention (LVSA), a training-free block-sparse model-agnostic
+attention algorithm comprising novel rotating sparse patterns and expanded adaptive window logic.
+• We introduce a custom evaluation benchmark, namely VQeval, to properly score loopy video
+failures, in contrast to state of the art VBench-Long [1].
+∗ Corresponding author: gael.glorian@huawei.com
+
+1
+
+• We experimentally validate the efficacy of our approach across three architecturally distinct video
+DiTs for inference on a single 80GB GPU. LVSA combined with a FlashInfer kernel delivers a 3.17×
+speedup on Wan 2.1 1.3B, 2.98× on Wan 2.1 14B, and 3.33× on HunyuanVideo 1.5 at the longest
+tested generation horizon per model, while significantly outscoring dense attention on VQeval at
+a 6× horizon on both Wan models. LVSA additionally enables HunyuanVideo 1.5 generation at
+a 2× horizon (257 frames), where dense attention is infeasible due to memory exhaustion. LVSA
+outperforms UltraViCo and RIFLEx both in compute (up to 3.27×) and quality.
+• We showcase the efficacy of LVSA for video generation on NPUs. We achieve a 2.71× speedup on
+Wan 2.2 A14B and 3.24× speedup on Wan 2.1 1.3B at a 6× horizon, with good video quality.
+• We include our implementation as a plugin in a popular open-source platform.
+
+2
+
+Method
+
+A video diffusion transformer operates on a latent video tensor patchified into a sequence of N = T · P
+tokens, each of dimension d, where T is the number of latent temporal frames, from now on simply
+referred to as frames, and P = Hp · Wp is the number of spatial patches (height times width) per frame.
+Below, let t ∈ {0, 1, . . . , T − 1} denote the t-th frame and qt,p , kt,p , vt,p denote the p-th query, key, and
+value, tokens for frame t, where p ∈ {0, 1, . . . , P − 1}. The (spatio-temporal) self-attention formula for a
+query token qt,i is
+√
+exp(qt,i · kτ,p / d)
+Attn(qt,i ) =
+√ · vτ,p .
+PT −1 PP −1
+′ ′
+τ =0 p=0
+τ ′ =0
+p′ =0 exp(qt,i · kτ ,p / d)
+−1
+T
+−1 P
+X
+X
+
+(1)
+
+The (dense) attention cost for Attn(qt,i ) is O(N d) = O(T P d). The formula must be computed for
+each i and t, which leads to a prohibitive O(N 2 d) complexity for long video generation. Note that each
+query frame attends to all other frames in the temporal dimension T . Let us formalize and generalize
+this notion of per-frame attention.
+Definition 1 For a query frame t, the set of frames it attends to is denoted by A(t) ⊆ {0, 1, . . . , T − 1}.
+In dense attention, A(t) = {0, 1, . . . , T − 1}, that is, t attends to all frames.
+To enable long video generation of high quality quickly, we introduce sparsity logic. We seek to
+restrict the set of frames a query frame attends to. Thus, we perform fewer computations, yet in a smart
+way to avoid sacrificing quality. We generalize the above self-attention formula to:
+Attn(qt,i ) =
+
+√
+exp(qt,i · kτ,p / d)
+√ · vτ,p .
+P
+PP −1
+′ ′
+τ ′ ∈A(t)
+p′ =0 exp(qt,i · kτ ,p / d)
+τ ∈A(t) p=0
+−1
+X PX
+
+(2)
+
+Note the complexity to compute Attn(qt,i ) is O(|A(t)|P d). The question that now remains is to define
+A(t) for each frame t.
+Let us now define our attention pattern for each query frame t, which comprises two components. To
+maintain quality throughout time, we let each query frame attend to a set of (global) frames at key times
+during the whole time horizon. Also, each frame attends to a small (local) window of frames surrounding
+it temporally. Overall, we wish for each frame to attend to a sensible yet small number of frames, both
+locally and globally, such that compute is reduced, while quality is not compromised.
+Definition 2 The Long Video Sparse Attention (LVSA) formula is the spatio-temporal attention formula
+defined in Equation 2 with A(t) = G ∪ W(t), where
+• G = {t | t = 0, 1, . . . , T − 1 ∧ t mod Tper = 0} are equidistant global frames at a period Tper ∈ N,
+• W(t) = {t′ | wlo (t) ≤ t′ ≤ whi (t)} is a local window of frames around t with wlo (t) = max{0, t − W }
+and whi (t) = min{T − 1, t + W }, where W ∈ N is the window size and we assume 2W + 1 ≤ T .
+For a visual depiction of Definition 2, see Figure 1a. Note frame 0 is always a global anchor, thus
+ensuring queries always attend to scene-establishing content.
+Following the above definition, the user must specify Tper and W to compute the formula on the
+globally and locally attended frames. The question arises on how to select these parameters. For
+2
+
+simplicity of exposition we present LVSA with a single global set G of equidistant frames; an extension
+including more dedicated initial anchors is a straightforward generalization.
+To avoid fluctuations in compute, and maintain a constant budget per query frame, we fix a target
+budget C and let |A(t)| ≈ C, for each frame t, with deviation bounded by integer keyframe-spacing
+rounding (at most ±2 frames across the configurations we evaluate). By default, we let C be equal to
+the reference frame count of the trained model, e.g., C = 81−1
+4 + 1 = 21 frames for Wan 2.1 1.3B, as Wan
+is trained on an 81-frame horizon and has its variational auto encoder (VAE) factor set to 4. Intuitively,
+since the model is trained on a budget of C frames, we use the same budget for inference. Using a
+smaller budget would improve efficiency, yet lower quality, while using a larger budget would be costly
+and eventually intractable. Overall, the complexity of Attn(qt,i ) becomes O(CP d), for each frame t and
+patch i, yielding a total complexity of O(T CP 2 d). The latter is asymptotically linear in the number of
+frames T , thus enabling long video generation.
+One could allocate the attention budget C in any way, as long as |A(t)| ≈ C for all t. In our case,
+we assume W is already fine-tuned, see Sectionl3. We allocate
+the remaining budget to the periodic
+m
+T
+.
+This
+assignment applies to the practical
+global frames in G and respectively set Tper = C−(2W
++1)
+case where C > 2W + 1. Since Tper is an integer, the realized |G| = ⌈T /Tper ⌉ may differ from the target
+C − (2W + 1) by up to Tper − 1 frames; in our experiments this is at most two frames in either direction.
+LVSA Sparse Attention Pattern - Basic
+
+LVSA Sparse Attention Pattern - Expanded
+
+T = 45, W = 4, Tper = 4
+
+T = 45, C = 21, W = 4, Tper = 4
+naive expanded
+
+0
+
+0
+G
+
+5
+
+G ∩ W(t)
+
+10
+
+Not attended
+
+Query frame t
+
+25
+
+35
+
+35
+
+40
+
+40
+15
+
+20
+25
+Key frame τ
+
+30
+
+35
+
+Not attended
+
+25
+30
+
+10
+
+Self
+
+20
+
+30
+
+5
+
+G ∩ W(t)
+
+15
+
+20
+
+0
+
+W(t)
+
+10
+
+Self
+
+15
+Query frame t
+
+G
+
+5
+
+W(t)
+
+40
+
+A(t) = G ∪ W(t)
+|G| = 12, 2W +1 = 9
+|A(t)| = 12 + 9 = 21 for all t
+21 of 45 attended (53% sparse)
+
+0
+
+(a) Basic window
+
+5
+
+10
+
+15
+
+20
+25
+Key frame τ
+
+30
+
+35
+
+40
+
+(b) Expanded window
+
+Figure 1: Basic versus expanded window pattern. The basic adaptive window (a) wastes attention budget
+when the local window overlaps global frames, leaving the per-query attended set below the target C.
+Expanded bounds (b) account for this overlap by extending the window when needed, so every query
+frame attends to |A(f )| = |G| + min(2W + 1, T − |G|) ≈ C unique frames.
+
+Overlapping frames. We now consider the case where G∩W(t) ̸= ∅ and so some frames are included in
+both sets. A naive local window, as given in Definition 2, clips at sequence boundaries, giving edge frames
+a smaller attention budget than interior ones. A simple adaptive window shifts the range appropriately in
+′
+order to maintain a constant window size for edge cases by setting wlo
+(t) = max(0, min(t−W, T −1−2W ))
+′
+and whi (t) = min(T − 1, max(t + W, 2W )). Thus, every frame attends to exactly 2W + 1 window frames.
+However, when window frames overlap global frames, the effective number of unique non-global
+frames in the window is reduced, wasting attention budget. We introduce expanded window bounds to
+compensate for this overlap, see Algorithm 1 and Figure 1b.
+The cost of Algorithm 1 is negligible, since in practice only a few iterations of the while loop will take
+place. The algorithm runs on CPU during metadata building and does not enter the attention critical
+3
+
+Algorithm 1 Expanded window bounds for W(t)
+Require: Frame t, global frames G, window size W , total frames T
+Ensure: Assign expanded windows bounds (wlo , whi )
+′
+′
+1: (l, h) ← (wlo
+(t), whi
+(t))
+2: target ← min(2W +1, T − |G|)
+3: nonglobal ← |{t′ ∈ [l, h] | t′ ∈
+/ G}|
+4: while nonglobal < target ∧ (l > 0 ∨ h < T −1) do
+5:
+extend the side with the most room by 1; increment nonglobal if the new frame is ∈
+/G
+6: end while
+7: (wlo , whi ) ← (l, h)
+
+path. With expanded bounds, the total unique attended frames satisfy |A(t)| = |G|+min(2W +1, T −|G|)
+for each frame t, giving a uniform per-frame attention budget across the sequence. For any T ≥ 2W + 1,
+every query frame t has |A(t)| ∈ [C − δ, C + δ] with δ ≤ Tper − 1, and |A(t)| is constant across t for fixed
+G. Empirically, across all configurations used in our experiments , the loop runs at most 8 iterations per
+call (mean 1.21) and the full per-frame call takes ≈ 1.4 µs on a single CPU core. A complete metadata
+rebuild for a denoising step takes less than 200 µs, which is negligible compared to the GPU attention
+kernel.
+Rotating periodic global frames. Fixing the periodic global frames in G allows for maintaining
+information throughout the video duration. Nonetheless, it also creates a persistent bias: these frames
+are always attended to globally, while intermediate frames are only observed through local windows.
+Over the course of S denoising steps, the model’s representation of frames not in G is systematically
+impoverished. At extended lengths, this manifests as long-range temporal artifacts, e.g., repetition,
+identity drift, etc.
+To address this, we introduce rotating periodic global frames. At denoising step s = 0, 1, . . . , S −1, the
+global set Gs is different than at previous steps. We shift the members of G by s modulo Tper positions
+and define the set as a function of the denoising step as
+
+Gs = (s mod Tper + i · Tper ) mod T | i = 0, 1, . . . , ⌈T /Tper ⌉ − 1 .
+
+(3)
+
+See Figure 2 for a visual depiction.
+Two properties make this rotation principled.
+Step 0 G
+G
+G
+G
+First, over any Tper consecutive denoising steps,
+Step
+1
+G
+G
+G
+G
+every frame appears in Gs for at least one value
+Step 2
+G
+G
+G
+G
+of s, so every frame serves as a global anchor at
+Step 3
+G
+G
+G
+G
+least once per cycle, eliminating the fixed-grid bias
+Step
+4
+G
+G
+G
+G
+(when T is not a multiple of Tper , the last wrap
+..
+0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+.
+may revisit at most Tper − 1 frames within a cyFrame Index
+cle; this is empirically negligible at the keyframespacings used in our experiments). Second, the
+Figure 2: Rotating periodic global frames with
+modular wrapping ensures |Gs | = ⌈T /Tper ⌉ is conTper = 4. The set Gs shifts by one position per
+stant across s, so the per-step attention budget
+denoising step and wraps modulo T . Over any Tper
+does not change.
+consecutive steps, each frame appears as a global anAt each step we recompute the derived index
+chor exactly once.
+structures for the rotated pattern. This is pure
+CPU index arithmetic over T elements (T ranges
+from 21 at a 1× Wan horizon to 121 at a 6× horizon) and takes less than 1 ms per step, which is negligible
+compared to the GPU attention kernel.
+
+3
+
+Experiments on GPU
+
+Models. We experiment with three architecturally distinct video DiTs: (i) Wan 2.1 T2V-1.3B –
+single-stream, 1D RoPE, T5 encoder, 40 steps, (ii) Wan 2.1 T2V-14B – same architecture at 14B
+parameters, 40 steps, and (iii) HunyuanVideo 1.5 (480p) – dual-stream, 3D RoPE, Qwen2.5-VL
+encoder, 50 steps.
+
+4
+
+Figure 3: HunyuanVideo 1.5 at 2× horizon (257 frames), generated by LVSA-FI on a single 80GB GPU;
+dense attention is infeasible at this setting due to OOM (Table 1). Frames 32, 96, 160, 224 from the
+prompt coral reef (best-VQeval prompt at this cell, composite 62.9).
+Hardware.
+
+A single GPU with 80 GB, PyTorch 2.8/CUDA 12.8.
+
+Video lengths. 480 × 832 resolution. Wan: 81 (1× horizon), 161 (2×), 241 (3×), 321 (4×), 401 (5×),
+481 (6×) video frames. HunyuanVideo: 65 (0.5×), 129 (1×), 193 (1.5×) and 257 (2×) video frames.
+Prompts, seed, and scheduler. We test five diverse long descriptive prompts (around 500 tokens)
+with seed 16, classifier-free-guidance scale 5.0, and each model’s default scheduler. All cells in Sections 3.1
+and 3.2 report mean ± standard deviation over the 5-prompt set.
+Quality Metrics. We report quality results on both VBench-Long [1] (subject consistency, temporal flickering, motion smoothness, background consistency, imaging quality) and VQeval (dynamic
+quality, loop quality, text alignment), a custom benchmark we introduce. The two benchmarks are complementary: VBench rewards inter-frame similarity, which scores static or collapsed videos highly, while
+VQeval’s dynamic and loop dimensions explicitly penalize these failure modes.
+
+3.1
+
+Computational Efficiency
+
+Cross-model scaling. We measure wall time across three models (Wan 2.1 1.3B, Wan 2.1 14B, HunyuanVideo 1.5) and three backends (dense attention, LVSA via scaled-dot-product attention (SDPA),
+LVSA via FlashInfer block-sparse kernel) over five long descriptive prompts per cell at generation horizons, which are multiples of each model’s training horizon (2×–6×), see Table 1. At the longest tested
+horizon per model, LVSA with FlashInfer (LVSA-FI) achieves a 3.17× speedup on Wan 2.1 1.3B at
+a 6× horizon (481 frames; 51 min → 16 min), 2.98× on Wan 2.1 14B at 6× (238 min → 80 min), and
+3.33× on HunyuanVideo 1.5 at 1.5× (80 min → 24 min). The speedup is monotone in horizon and
+architecture-independent: the same three-model pattern emerges in single-stream/1D-RoPE (Wan) and
+dual-stream/3D-RoPE (HunyuanVideo) DiTs alike, driven by the quadratic-in-T cost of dense selfattention. At native horizon (1×), LVSA backends are at parity with dense (within ±5% wall time),
+reflecting the proportionally larger text-encoder cost when video self-attention is short.
+Feasibility at the GPU memory ceiling. Beyond speedup, LVSA enables generation that is infeasible with dense attention at a fixed GPU memory budget. On HunyuanVideo 1.5 at a 2× horizon (257
+frames), dense self-attention runs out of memory on a single 80GB GPU: the SDPA kernel attempts to
+allocate an additional 19.9 GB on top of a 74.0 GB resident process. LVSA at the same setting caps peak
+GPU memory at 60.3 GB (SDPA) / 60.4 GB (FlashInfer), leaving ∼ 19 GB of headroom and producing
+decoded video with VQeval composite 60.0 / 58.5 respectively — numbers that have no dense counterpart at this hardware scale. Dense peak memory on HunyuanVideo 1.5 grows from 38.8 GB at a 0.5×
+horizon to 67.4 GB at 1.5× before exceeding the 80 GB budget at 2×. The asymmetric feasibility story
+— HunyuanVideo 1.5 OOMs at 2× extension while Wan 2.1 14B fits comfortably at 6× (peak 57.8 GB on
+481 frames) — is architectural, not parameter-count: both models are ∼ 14B. HunyuanVideo 1.5 is dualstream, with text-encoder tokens (Qwen2.5-VL + ByT5) participating in self-attention alongside video
+tokens, whereas Wan’s text enters only via cross-attention. This extends HV’s effective self-attention
+sequence by the encoder’s output context per layer and pushes its attention activation matrix past the
+80 GB budget at 2×, while Wan 2.1 14B’s longer (481-frame) but text-free self-attention stays under.
+Figure 3 shows representative frames from the HV 1.5 2× LVSA-FI output.
+
+5
+
+Table 1: Wall time in minutes per video generation on an 80GB GPU, mean over 5 long descriptive
+prompts. “LVSA-FI” = LVSA with FlashInfer kernel; speedup is LVSA-FI vs. dense attention. HunyuanVideo (HV) 1.5 at a 2× horizon is infeasible for dense attention, while LVSA fits in ≈ 60 GB.
+Model
+
+Horizon
+
+Frames
+
+Dense (min)
+
+LVSA (min)
+
+LVSA-FI (min)
+
+Speedup (LVSA-FI)
+
+HV 1.5
+HV 1.5
+HV 1.5
+HV 1.5
+
+0.5×
+1×
+1.5×
+2×
+
+65
+129
+193
+257
+
+11.6
+37.5
+79.7
+OOM
+
+5.9
+16.7
+26.4
+57.9
+
+5.9
+16.4
+23.9
+54.9
+
+1.97×
+2.29×
+3.33×
+∞
+
+Wan 2.1 1.3B
+Wan 2.1 1.3B
+Wan 2.1 1.3B
+Wan 2.1 1.3B
+
+1×
+2×
+4×
+6×
+
+81
+161
+321
+481
+
+2.5
+7.3
+24.0
+50.8
+
+3.1
+6.5
+13.1
+19.9
+
+2.6
+5.1
+10.3
+16.0
+
+0.96×
+1.42×
+2.32×
+3.17×
+
+Wan 2.1 14B
+Wan 2.1 14B
+Wan 2.1 14B
+Wan 2.1 14B
+
+1×
+2×
+4×
+6×
+
+81
+161
+321
+481
+
+12.6
+35.8
+114.0
+237.9
+
+13.5
+28.5
+57.8
+87.2
+
+13.2
+26.0
+52.6
+79.8
+
+0.96×
+1.38×
+2.17×
+2.98×
+
+HunyuanVideo 1.5
+80
+Wall time per video (min)
+
+70
+
+Wall time scaling: dense vs LVSA vs LVSA-FlashInfer (5-prompt mean ± std)
+Wan 2.1 1.3B
+
+Dense
+LVSA (SDPA)
+LVSA (FlashInfer)
+
+200
+
+40
+
+60
+50
+
+Wan 2.1 14B
+
+250
+
+50
+
+150
+
+30
+
+40
+30
+
+20
+
+100
+
+20
+
+10
+
+50
+
+10
+0.6
+
+0.8
+
+1.0 1.2 1.4 1.6
+Horizon (× training length)
+
+1.8
+
+2.0
+
+1
+
+2
+
+3
+4
+5
+Horizon (× training length)
+
+6
+
+1
+
+2
+
+3
+4
+5
+Horizon (× training length)
+
+6
+
+Figure 4: Wall-time scaling across three video DiTs (Wan 2.1 1.3B, Wan 2.1 14B, HunyuanVideo 1.5)
+for dense attention, LVSA, and LVSA-FI. Speedup grows monotonically with the horizon for all three
+models; HunyuanVideo 1.5 at 2× horizon (257 frames) has no dense point due to OOM on 80GB GPU.
+
+3.2
+
+Video Quality
+
+Quality at training horizon. At each model’s reference length (1×), LVSA is quality-neutral with
+dense attention across all three architectures, see Table 2. VQeval composite is within ±1.0 of dense
+on all three models, and VBench-Long composite differences do not exceed 0.014. Both LVSA backends
+(SDPA and FlashInfer) give equivalent quality at the training horizon, confirming that the attention
+pattern, and not the kernel choice, determines output quality.
+Quality advantage at extended horizons. Beyond the training horizon, LVSA’s VQeval composite
+consistently outscores dense attention, with the gap widening monotonically with the horizon. On
+Wan 2.1 1.3B, the LVSA-FI advantage over dense grows from +4.7 at 2× to +11.6 at 4× and +12.1
+at 6×. The same pattern holds on Wan 2.1 14B: +3.8 at 2×, +9.7 at 4×, +12.2 at 6×. Across
+the three architectures, dense attention’s extrapolation failure beyond the training horizon means that
+dense converges to near-static output with reduced motion variation, which VQeval’s dynamic and loop
+dimensions properly penalize. LVSA’s sliding-window restriction acts as an implicit regularizer that
+preserves motion at extended horizons. The VBench-Long composite in Table 2 tells the opposite story:
+dense scores rise at extended time horizons on both Wan models. The latter is a result of the staticrewarding bias of VBench’s consistency dimensions discussed below.
+VBench-Long behavior. VBench-Long’s composite increases for dense attention at extended horizons (Wan 2.1 1.3B 6× dense at 0.891 vs 4× at 0.885 vs 2× at 0.875), because two of its dimensions
+(subject consistency, background consistency) reward static video and dense attention’s quality
+collapse at extended horizons produces increasingly frozen output, which VBench credits as “consistent.” At Wan 2.1 1.3B 6× horizon, dense subject consistency reaches 0.991, corresponding to video
+that is essentially static, while LVSA stays at 0.917, reflecting genuine motion. The motion-independent
+6
+
+Table 2: Quality metrics, mean over 5 long descriptive prompts. VQeval composite is on the [0, 100]
+scale; VBench-Long composite is on [0, 1]. Bold marks the LVSA-FI cells where LVSA-FI matches or
+exceeds dense at 4×+ extension. HunyuanVideo 1.5 at 2× has no dense baseline (OOM, Table 1). The
+two metrics diverge at Wan extension: dense’s VBench composite rises (rewarding its increasingly frozen
+output) while VQeval correctly tracks the lost motion.
+VQeval composite
+Model
+
+Horizon
+
+HV 1.5
+HV 1.5
+HV 1.5
+HV 1.5
+
+VBench-Long composite
+
+Frames
+
+Dense
+
+LVSA
+
+LVSA-FI
+
+Dense
+
+LVSA
+
+LVSA-FI
+
+0.5×
+1×
+1.5×
+2×
+
+65
+129
+193
+257
+
+56.9
+60.5
+61.0
+OOM
+
+59.1
+61.2
+60.9
+60.0
+
+57.2
+60.2
+62.5
+58.5
+
+0.887
+0.893
+0.901
+OOM
+
+0.884
+0.882
+0.897
+0.898
+
+0.883
+0.879
+0.896
+0.896
+
+Wan 2.1 1.3B
+Wan 2.1 1.3B
+Wan 2.1 1.3B
+Wan 2.1 1.3B
+
+1×
+2×
+4×
+6×
+
+81
+161
+321
+481
+
+56.5
+55.3
+50.9
+48.2
+
+56.5
+60.1
+62.1
+60.1
+
+56.7
+60.0
+62.5
+60.2
+
+0.888
+0.875
+0.885
+0.891
+
+0.888
+0.869
+0.869
+0.852
+
+0.888
+0.869
+0.869
+0.852
+
+Wan 2.1 14B
+Wan 2.1 14B
+Wan 2.1 14B
+Wan 2.1 14B
+
+1×
+2×
+4×
+6×
+
+81
+161
+321
+481
+
+57.2
+58.7
+55.0
+52.7
+
+57.2
+62.5
+64.7
+64.6
+
+58.2
+62.5
+64.8
+64.9
+
+0.909
+0.904
+0.899
+0.886
+
+0.908
+0.899
+0.893
+0.890
+
+0.909
+0.900
+0.892
+0.890
+
+(a) Dense attention (VQeval 37.6, subject consistency 0.991).
+
+(b) LVSA (VQeval 53.1, subject consistency 0.917).
+
+Figure 5: Wan 2.1 1.3B at a 6× horizon (481 frames), prompt cat window, same seed. Frames 20, 200,
+380, 460 shown for each backend. Dense converges to near-static output — the cat barely moves across
+∼ 440 frames — while LVSA produces genuine pose and lighting variation. This is the failure mode
+VBench-Long’s subject consistency rewards and VQeval correctly penalizes.
+imaging quality dimension tells the opposite story: at Wan 2.1 14B 6×, LVSA scores 0.598 vs dense
+0.522 (+0.076). The VQeval results above therefore correctly capture quality at the horizons where the
+speedup matters most. Figure 5 makes the frozen-video failure mode visually concrete: dense’s high
+subject consistency reflects an essentially static output, while LVSA generates real motion at the
+same horizon, same seed, same prompt.
+
+3.3
+
+Comparison to State of the Art
+
+We compare LVSA head-to-head against two recent training-free extrapolation methods on Wan 1.3B:
+RIFLEx [13], which modifies a single temporal RoPE frequency, and UltraViCo [14], which applies
+a per-pair attention-logit decay with a fused SageAttention kernel. We run UltraViCo via its native
+ultra-wan branch and port RIFLEx to Wan in-house (the reference implementation ships only for
+HunyuanVideo and CogVideoX). All configurations tested comprise a single 80GB GPU, 50 denoising
+steps, seed 16, 480 × 832, and the same 5-prompt suite. The results are summarized in Table 3. To
+match UltraViCo’s reference configuration, this comparison uses 50 denoising steps and 84r − 3 frame
+counts (165/249/333) where r is the extrapolation ratio (training horizon multiplier), versus 40 steps and
+80r+1 counts (161/321/481) in Table 1. Absolute wall times here are therefore ∼ 25–30% higher than the
+corresponding cells in the cross-model sweep (802 s vs 618 s for LVSA-FI at 4×), while LVSA-FI-vs-dense
+7
+
+Table 3: LVSA vs. training-free extrapolation baselines on Wan 2.1 1.3B across 5 long descriptive
+prompts. VQeval is composite score (mean ± std); latency is mean seconds per video on a single
+80GB GPU. Frame counts (165/249/333) follow UltraViCo’s reference parameterization 84r − 3. Bold
+marks the best cell per column.
+2× (165f)
+Method
+Dense
+RIFLEx
+UltraViCo
+LVSA (SDPA)
+LVSA-FI
+LVSA-FI speedup vs. Dense
+LVSA-FI speedup vs. RIFLEx
+LVSA-FI speedup vs. UltraViCo
+
+3× (249f)
+
+4× (333f)
+
+VQeval
+
+latency (s)
+
+VQeval
+
+latency (s)
+
+VQeval
+
+latency (s)
+
+57.2 ± 6.4
+57.8 ± 7.8
+62.1 ± 6.1
+64.1 ± 4.5
+63.7 ± 5.4
+
+566
+564
+741
+502
+395
+
+51.1 ± 4.2
+51.1 ± 4.4
+60.4 ± 3.8
+62.5 ± 3.8
+62.3 ± 3.8
+
+1,145
+1,149
+1,544
+796
+621
+
+52.4 ± 3.5
+53.6 ± 3.0
+58.8 ± 5.4
+62.4 ± 1.9
+62.3 ± 2.2
+
+1,930
+1,931
+2,621
+1,021
+802
+
+1.43×
+1.43×
+1.88×
+
+1.84×
+1.85×
+2.48×
+
+2.40×
+2.41×
+3.27×
+
+speedup ratios agree within 3% (2.40× vs 2.33× at 4×).
+Quality. LVSA achieves the highest VQeval composite at every horizon: +6.5, +11.2, +9.9 over dense
+at r = 2/3/4; +5.9, +11.2, +8.7 over RIFLEx; and +1.7, +1.9, +3.5 over UltraViCo. The gap to dense
+widens with horizon, consistent with the dense-attention quality collapse documented in Section 3.2: by
+4×, dense has collapsed (composite 52.4) while LVSA-FI maintains 62.3. RIFLEx alone is statistically
+indistinguishable from dense on VQeval (∆ ∈ [+0.5, +1.2] across ratios, within prompt-level σ ≥ 3) —
+modifying a single RoPE frequency addresses positional extrapolation but does not prevent the denseattention quality collapse. UltraViCo’s per-pair logit decay does mitigate the collapse (+4.8 to +9.3
+VQeval over dense) but at a steep latency cost (next paragraph), and LVSA still leads it on quality at
+every ratio. On VBench-Long, dense and RIFLEx edge LVSA on the composite at 4× by ∼ 0.01 points
+(driven by subject consistency climbing from 0.949 at 2× to 0.986 at 4× as dense’s output becomes
+increasingly frozen — see Section 3.2), but LVSA leads on imaging quality by +0.09 to +0.10 points at
+every ratio, the only VBench sub-dimension that measures per-frame content independent of temporal
+stasis. The SDPA and FlashInfer backends of LVSA are quality-equivalent (|∆|VQeval ≤ 0.4 at every
+ratio).
+Efficiency. LVSA is the only method in this comparison which reduces compute over dense attention.
+RIFLEx modifies RoPE frequencies only and touches zero attention FLOPs, so its latency is statistically
+indistinguishable from dense (0.99–1.00×, within ±1 s at every ratio). UltraViCo’s per-pair attentionlogit decay requires dense attention over the full N ×N logit matrix and adds kernel overhead: 1.31–1.36×
+dense latency at r = 2/3/4. LVSA-FI yields 1.43×, 1.84×, 2.40× speedup over dense and 1.88×, 2.48×,
+3.27× over UltraViCo at r = 2/3/4, at identical VRAM. The FlashInfer kernel contributes a further
+1.27–1.28× over the SDPA backend at r ≥ 3 (796 s → 621 s at 3×, 1,021 s → 802 s at 4×), confirming
+that block-sparse kernel outperforms the per-frame SDPA Python loop at long sequences.
+Orthogonality and composition. RIFLEx modifies RoPE frequencies (different tensor), UltraViCo
+modifies attention-logit magnitudes, and LVSA modifies attention support. LVSA and RIFLEx operate
+on fully orthogonal tensors, compose without interaction and produce valid videos with no implementation conflict. Empirically, the composition trades a small amount of VQeval dynamic quality for slightly
+tighter VBench-Long consistency: LVSA+RIFLEx VQeval is 66.8/65.1/66.8 vs LVSA 67.9/68.1/66.8 at
+r = 2/3/4, while VBench composite moves 0.899/0.884/0.893 vs LVSA 0.873/0.883/0.881. Neither side
+clearly wins the composition; LVSA’s sparse pattern already captures most of what RIFLEx’s singlefrequency rescaling would provide. LVSA and UltraViCo act on the same tensor but on disjoint aspects
+(support vs. magnitude); a fused implementation applies UltraViCo’s λij factor inside LVSA’s sparse
+kernel.
+
+8
+
+Table 4: LVSA performance on NPU: Timings refer to iteration time averages in seconds over 40 steps.
+(a) Wan 2.1 1.3B
+
+4
+
+LVSA
+
+(b) Wan 2.2 A14B
+
+Frames
+
+Dense
+
+161 (2×)
+321 (4×)
+481 (6×)
+
+480 × 832
+15.71
+16.89
+50.18
+32.29
+103.87
+47.76
+
+Speedup
+0.93×
+1.55×
+2.17×
+
+161 (2×)
+321 (4×)
+481 (6×)
+
+720 × 1280
+66.45
+53.73
+232.88
+103.81
+499.47
+154.27
+
+1.24×
+2.24×
+3.24×
+
+Frames
+
+Dense
+
+LVSA
+
+Speedup
+
+161 (2×)
+321 (4×)
+481 (6×)
+
+480 × 832
+10.30
+13.16
+30.89
+24.27
+62.76
+35.46
+
+0.78×
+1.27×
+1.77×
+
+161 (2×)
+321 (4×)
+481 (6×)
+
+720 × 1280
+40.44
+39.22
+138.87
+74.09
+294.93
+108.90
+
+1.03×
+1.87×
+2.71×
+
+Experiments on NPU
+
+We port LVSA into vLLM-Omni [10] and provide some initial experimental results, which demonstrate
+the applicability of LVSA across diverse hardware. For a 40-step inference at a 6× horizon (481 frames)
+with LVSA (with a standard NPU kernel), we obtain a 2.17× speedup (480 × 832), 3.24× speedup
+(720 × 1280), and quality-positive result for Wan 2.1-1.3B on one NPU. For Wan 2.2-A14B, 40-step
+inference on 8 NPUs with an Ulysses [2] sequence parallelism configuration, we obtain a 1.77× speedup
+(480 × 832), 2.71× speedup (720 × 1280) and quality-positive result. All preliminary results are given in
+Table 4. Timings are given as iteration time averages in seconds to avoid any pre- and post-processing bias
+in vLLM-Omni. Timings, and speedups, remain stable across five different complex prompts of possibly
+different length. In terms of quality, the gap between dense attention and LVSA grows comparatively to
+the demonstrated one for GPUs in the previous section.
+
+5
+
+Conclusion
+
+We presented LVSA, a training-free block-sparse attention for long-video diffusion inference. We showed
+the significant benefits of LVSA across diverse models, architectures, and hardware, both on generation
+performance and quality, and the impact brought about compared to state of the art baselines. Future
+work may target further performance improvements, as well as generalizing the above benefits to a
+multi-scene video generation scenario.
+
+References
+[1] Ziqi Huang, Yinan He, Jiashuo Yu, Fan Zhang, Chenyang Si, Yuming Jiang, Yuanhan Zhang, Tianxing Wu,
+Qingyang Jin, Nattapol Chanpaisit, Yaohui Wang, Xinyuan Chen, Limin Wang, Dahua Lin, Yu Qiao, and
+Ziwei Liu. VBench: Comprehensive benchmark suite for video generative models. In Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern Recognition, 2024.
+[2] Sam Ade Jacobs, Masahiro Tanaka, Chengming Zhang, Minjia Zhang, Shuaiwen Leon Song, Samyam Rajbhandari, and Yuxiong He. Deepspeed ulysses: System optimizations for enabling training of extreme long
+sequence transformer models. arXiv preprint arXiv:2309.14509, 2023.
+[3] Weijie Kong, Qi Tian, Zijian Zhang, Rox Min, Zuozhuo Dai, Jin Zhou, Jiangfeng Xiong, Xin Li, Bo Wu,
+Jianwei Zhang, et al. Hunyuanvideo: A systematic framework for large video generative models. arXiv
+preprint arXiv:2412.03603, 2024.
+[4] Xingyang Li*, Muyang Li*, Tianle Cai, Haocheng Xi, Shuo Yang, Yujun Lin, Lvmin Zhang, Songlin Yang,
+Jinbo Hu, Kelly Peng, Maneesh Agrawala, Ion Stoica, Kurt Keutzer, and Song Han. Radial attention:
+O(n log n) sparse attention with energy decay for long video generation. arXiv preprint arXiv:2506.19852,
+2025.
+[5] Team Wan, Ang Wang, Baole Ai, Bin Wen, Chaojie Mao, Chen-Wei Xie, Di Chen, Feiwu Yu, Haiming Zhao,
+Jianxiao Yang, Jianyuan Zeng, Jiayu Wang, Jingfeng Zhang, Jingren Zhou, Jinkai Wang, Jixuan Chen, Kai
+Zhu, Kang Zhao, Keyu Yan, Lianghua Huang, Mengyang Feng, Ningyi Zhang, Pandeng Li, Pingyu Wu,
+Ruihang Chu, Ruili Feng, Shiwei Zhang, Siyang Sun, Tao Fang, Tianxing Wang, Tianyi Gui, Tingyu Weng,
+Tong Shen, Wei Lin, Wei Wang, Wei Wang, Wenmeng Zhou, Wente Wang, Wenting Shen, Wenyuan Yu,
+Xianzhong Shi, Xiaoming Huang, Xin Xu, Yan Kou, Yangyu Lv, Yifei Li, Yijing Liu, Yiming Wang, Yingya
+
+9
+
+Zhang, Yitong Huang, Yong Li, You Wu, Yu Liu, Yulin Pan, Yun Zheng, Yuntao Hong, Yupeng Shi, Yutong
+Feng, Zeyinzi Jiang, Zhen Han, Zhi-Fan Wu, and Ziyu Liu. Wan: Open and advanced large-scale video
+generative models. arXiv preprint arXiv:2503.20314, 2025.
+[6] Faraz Waseem and Muhammad Shahzad. Video is worth a thousand images: Exploring the latest trends in
+long video generation. ACM Comput. Surv., 58(6), December 2025.
+[7] Haocheng Xi, Shuo Yang, Yilong Zhao, Chenfeng Xu, Muyang Li, Xiuyu Li, Yujun Lin, Han Cai, Jintao
+Zhang, Dacheng Li, et al. Sparse videogen: Accelerating video diffusion transformers with spatial-temporal
+sparsity. arXiv preprint arXiv:2502.01776, 2025.
+[8] Yifei Xia, Suhan Ling, Fangcheng Fu, Yujie Wang, Huixia Li, Xuefeng Xiao, and Bin Cui. Training-free and
+adaptive sparse attention for efficient long video generation. In ICCV, 2025.
+[9] Shuo Yang, Haocheng Xi, Yilong Zhao, Muyang Li, Jintao Zhang, Han Cai, Yujun Lin, Xiuyu Li, Chenfeng
+Xu, Kelly Peng, et al. Sparse videogen2: Accelerate video generation with sparse attention via semanticaware permutation. arXiv preprint arXiv:2505.18875, 2025.
+[10] Peiqi Yin, Jiangyun Zhu, Han Gao, Chenguang Zheng, Yongxiang Huang, Taichang Zhou, Ruirui Yang,
+Weizhi Liu, Weiqing Chen, Canlin Guo, et al. vllm-omni: Fully disaggregated serving for any-to-any multimodal models. arXiv preprint arXiv:2602.02204, 2026.
+[11] Jintao Zhang, Jia Wei, Haofeng Huang, Pengle Zhang, Jun Zhu, and Jianfei Chen. Sageattention: Accurate
+8-bit attention for plug-and-play inference acceleration, 2025.
+[12] Peiyuan Zhang, Yongqi Chen, Runlong Su, Hangliang Ding, Ion Stoica, Zhengzhong Liu, and Hao Zhang.
+Fast video generation with sliding tile attention. arXiv preprint arXiv:2502.04507, 2025.
+[13] Min Zhao, Guande He, Yixiao Chen, Hongzhou Zhu, Chongxuan Li, and Jun Zhu. Riflex: A free lunch for
+length extrapolation in video diffusion transformers. arXiv preprint arXiv:2502.15894, 2025.
+[14] Min Zhao, Hongzhou Zhu, Yingze Wang, Bokai Yan, Jintao Zhang, Guande He, Ling Yang, Chongxuan
+Li, and Jun Zhu. Ultravico: Breaking extrapolation limits in video diffusion transformers. arXiv preprint
+arXiv:2511.20123, 2025.
+
+10
+
+

@@ -1,0 +1,1617 @@
+arXiv:2603.09721v2 [cs.CV] 18 Apr 2026
+
+FrameDiT: Diffusion Transformer with Matrix Attention for
+Efficient Video Generation
+Minh Khoa Le1
+Kien Do2
+Duc Thanh Nguyen3
+Truyen Tran 1
+1
+Applied Artificial Intelligence Initiative, Deakin University, Australia
+2
+3
+FPT Smart Cloud, Vietnam
+Deakin University, Australia
+1,3
+{minh.le, duc.nguyen, truyen.tran}@deakin.edu.au
+2
+kiendd6@fpt.com
+
+Abstract
+High-fidelity video generation remains challenging for diffusion models due to the difficulty of modeling complex
+spatio-temporal dynamics efficiently. Recent video diffusion methods typically represent a video as a sequence of
+spatio-temporal tokens which can be modeled using Diffusion Transformers (DiTs). However, this approach faces a
+trade-off between the strong but expensive Full 3D Attention and the efficient but temporally limited Local Factorized Attention. To resolve this trade-off, we propose Matrix
+Attention, a frame-level temporal attention mechanism that
+processes an entire frame as a matrix and generates query,
+key, and value matrices via matrix-native operations. By
+attending across frames rather than tokens, Matrix Attention effectively preserves global spatio-temporal structure
+and adapts to significant motion. We build FrameDiT-G,
+a DiT architecture based on Matrix Attention, and further introduce FrameDiT-H, which integrates Matrix Attention with Local Factorized Attention to capture both
+large and small motion. Extensive experiments show that
+FrameDiT-H achieves state-of-the-art results across multiple video generation benchmarks, offering improved temporal coherence and video quality while maintaining efficiency comparable to Local Factorized Attention.
+
+1. Introduction
+Generative models have witnessed remarkable progress in
+recent years. Among various approaches, Diffusion Models
+[16, 45] have emerged as the dominant paradigm, achieving
+success in synthesizing high-fidelity images that are indistinguishable from real [21, 22, 33–35, 38]. Extending this
+success from static images to videos represents the next major frontier, with transformative impact across content creation, filmmaking, and world model [4, 17, 25, 26, 31, 40,
+59].
+
+Table 1. Comparison of our proposed Global and Hybrid (Global–
+Local) factorized attention mechanisms (bold) with existing attention designs for DiT. The symbols ✓, ✗ indicate whether each
+method possesses a given property.
+
+Property
+
+Full 3D
+
+Spatio-Temporal Factorized
+Local
+
+Global
+
+Hybrid
+
+Handling
+Large Motion
+
+✓
+
+✗
+
+✓
+
+✓
+
+Computationally
+Efficient
+
+✗
+
+✓
+
+✓
+
+✓
+
+Fusing Global
+and Local
+
+✗
+
+✗
+
+✗
+
+✓
+
+A video is not simply a collection of independent frames
+but a temporally coherent sequence governed by complex
+spatio-temporal relationships. The main challenge in video
+generation is therefore to model these dependencies both
+effectively and efficiently. Early video diffusion models
+[1, 17, 32] rely on 3D U-Nets with factorized spatiotemporal layers. More recent works [18, 31, 44, 48, 51, 55, 62]
+adopt the Diffusion Transformer (DiT) architecture [37],
+which scales better with model size and support long-range
+temporal modeling. Within DiT-based models, attention
+mechanisms generally fall into two main categories:
+1. Full 3D Attention [12, 24, 27, 44, 48, 51, 55]: video is
+treated as a sequence of T × N tokens, and joint spatialtemporal attention is applied. While highly expressive, its computational
+complexity grows quadratically
+
+as O T 2 N 2 , making it expensive for high-resolution
+or long-duration video synthesis.
+2. (Spatially) Local Factorized Attention [7, 18, 30,
+31, 62]: spatial attention is first applied within each
+frame, followed by temporal attention across frames
+for each spatial location. This reduces complexity to
+
+Mean
+
+Var
+
+Final Layer
+
+Scale
+
+Scale
+
+MLP
+
+MLP
+
+AdaLN
+
+AdaLN
+
+Scale
+MLP
+
+AdaLN
+
+×𝑀
+Temporal Block
+
+Scale
+
+Fusion
+
+Scale
+
+Scale
+
+Attention
+
+Matrix Attention
+
+AdaLN
+
+AdaLN
+
+AdaLN
+
+(a) Local
+
+(b) Global (ours)
+
+(c) Global-Local (ours)
+
+Spatial Block
+
+Matrix
+Attn
+
+Attn
+
+token
+
+Tokenizer
+
+frame
+Figure 1. Overview of the proposed FrameDiT. Built on the Diffusion Transformer with interleaved Spatial and Temporal blocks.
+(a) Local: conventional local factorized attention; (b) Global (ours): replaces temporal attention with Matrix Attention for frame-level
+temporal attention; (c) Global–Local Hybrid (ours): combines local and global temporal attention for unified spatio-temporal modeling.
+
+
+O T 2 N + T N 2 . However, the temporal attention only
+links tokens at corresponding spatial positions, making
+these models struggle to capture large motions, where
+objects do not remain spatially aligned across frames.
+These two designs expose a clear trade-off between expressiveness and computational efficiency, motivating the question: Can we design a DiT architecture that captures temporal coherence as effectively as Full 3D Attention while
+remaining as efficient as factorized attention?
+To answer this question, we propose Matrix Attention, a
+novel attention mechanism for video modeling that operates
+at the frame level rather than the token level. It treats each
+input frame as a matrix, where rows correspond to tokens
+and columns correspond to token embedding dimensions,
+and uses matrix-native operations to compute query, key,
+and value matrices for attending over other frames. As a
+result, Matrix Attention effectively captures global spatiotemporal structure and remains robust to large motion - unlike the spatially local temporal attention used in prior work
+[7, 18, 30, 31, 62].
+We integrate Matrix Attention into DiT to create
+FrameDiT, a new factorized video diffusion transformer
+with two temporal block variants: Global version that uses
+only Matrix Attention, and Global-Local Hybrid version
+that additionally incorporates standard temporal attention
+for fine-grained modeling. As summarized in Table 1, our
+
+model achieves the "best of both worlds": it achieves the
+expressiveness of Full 3D Attention while maintaining the
+computational efficiency of Local Factorized Attention.
+We evaluate FrameDiT across a wide range of video generation benchmarks, including UCF-101, Sky-Timelapse,
+Taichi-HD (128/256), and FaceForensics. The Global variant consistently improves temporal coherence with minimal
+computational overhead, while the Hybrid variant achieves
+state-of-the-art FVD and FVMD on multiple datasets. We
+further analyze long video generation, model size scaling, data efficiency, and runtime/memory characteristics,
+demonstrating that Matrix Attention maintains efficiency
+comparable to factorized attention while improving the temporal consistency.
+In summary, our contributions are:
+• Matrix Attention - a novel frame-level temporal attention
+mechanism that captures the global spatio-temporal structure in videos.
+• FrameDiT-G - a spatio-temporally factorized DiT architecture built on Matrix Attention for video diffusion models, and FrameDiT-H - an enhanced hybrid version that integrates local factorized attention to jointly model global
+and local motion.
+• Extensive experiments demonstrating the effectiveness
+and efficiency of FrameDiT-G and FrameDiT-H compared to existing baselines.
+
+2. Preliminaries
+
+3. Method
+
+2.1. Diffusion Models
+
+In this section, we provide a detailed explanation of our proposed method, as illustrated in Figure 1. The core idea of
+FrameDiT is Matrix Attention, a frame-level temporal attention mechanism designed to efficiently model the complex spatio-temporal dependencies inherent in video data.
+We first detail the formulation of Matrix Attention and then
+describe how to integrate it into DiT.
+
+Diffusion models [16] generate data by reversing a forward
+diffusion process. The forward process is a Markov chain
+with Gaussian transition kernels q (xk |xk−1 ) that gradually
+transforms a clean data sample x ∼ p (x) into Gaussian
+noise xK ∼ N (0, I). The transition
+is designed so that
+
+q (xk |x) has the form N ak x, σk2 I , allowing to sample xk
+directly from x as:
+  x_{k}=a_{k}x+\sigma _{k}\epsilon ,\ \;\epsilon \sim \mathcal {N}\left (0,I\right ),\label {eq:forward} 
+
+(1)
+
+where ak , σk are non-negative functions of k with a dea2
+creasing signal-to-noise ratio σk2 . When a2k + σk2 = 1,
+k
+the model is variance-preserving
+[46],
+√ as in DDPM [16],
+√
+where ak =
+ᾱk and σk =
+1 − ᾱk . The reverse
+process is defined by
+parameterized
+Gaussian
+
+ transitions
+2
+pθ (xk−1 |xk ) = N µθ,k,k−1 (xk ) , ωk|k−1 I , with mean:
+  \mu _{\theta ,k,k-1}\left (x_{k}\right ) & =\frac {a_{k-1}}{a_{k}}x_{k}\label {eq:reverse-mean}\\ & +\left (\sqrt {\sigma _{k-1}^{2}-\omega _{k-1|k}^{2}}-\frac {\sigma _{k}a_{k-1}}{a_{k}}\right )\epsilon _{\theta }\left (x_{k},k\right ),\nonumber
+
+
+
+σ2
+a2k
+2
+2
+and the variance ωk|k−1
+:= η 2 σk−1
+1 − σk−1
+(η ∈
+2
+2
+a
+k
+
+k−1
+
+[0, 1]). The noise network ϵθ (xk , k) is trained to recover
+the Gaussian noise ϵ used in the forward process (see Equation (1)) by minimizing the noise matching (NM) loss:
+  \mathcal {L}_{\text {NM}}\left (\theta \right )=\Expect _{x,k,\epsilon }\left [\left \Vert \epsilon _{\theta }\left (x_{k},k\right )-\epsilon \right \Vert ^{2}\right ]\label {eq:noise-matching} 
+
+3.1. Matrix Attention
+A fundamental challenge in video diffusion is modeling the
+intricate relationships between spatial and temporal dimensions. As discussed in Section §1, existing Factorized approaches typically restrict temporal attention to tokens at
+identical spatial locations across frames. While this design
+reduces computational cost compared to Full 3D Attention,
+it also increases learning complexity and makes it difficult
+to ensure object-level consistency across frames. To overcome these limitations, we introduce Matrix Attention, a
+frame-level attention mechanism that operates at the frame
+level rather than the token level. The key idea is to represent each frame z t as a matrix, z t ∈ RN ×D where N is the
+number of tokens per frame and D is the feature dimensionality of each token, and leverage matrix-native operations to
+compute similarities between frames.
+First, we map z t to query, key, and value matrices
+q t , k t ∈ RNqk ×Dqk , v t ∈ RNv ×Dv using corresponding
+matrix-native operations as follows:
+  q^{t} & =U_{q}^{\intercal }z^{t}W_{q}+B_{q},\\ k^{t} & =U_{k}^{\intercal }z^{t}W_{k}+B_{k},\\ v^{t} & =U_{v}^{\intercal }\latent ^{t}W_{v}+B_{v},\label {eq:matrix-linear}
+
+(3)
+(6)
+
+where x ∼ p (x), k ∼ Uniform (1, K), and ϵ ∼ N (0, I).
+
+2.2. Diffusion Models for Video Generation
+Applying diffusion models to video generation requires designing the network ϵθ to not only capture temporal coherence but also scale effectively to long sequences. Ho
+et al. [17] address this by employing a factorized 3D UNet architecture, which first applies spatial attention within
+each frame and then temporal attention across tokens at corresponding spatial locations. Meanwhile, Ma et al. [31]
+adopt Vision Transformers [9] as the backbone for ϵθ and
+systematically evaluate different spatial-temporal factorization strategies, including variants proposed in prior work
+[27]. Their experiments show that the spatial-temporal attention similar to the one in [17] achieves the best results.
+However, restricting temporal attention to tokens at the
+same spatial locations is less effective when handling large
+motions between frames, since moving objects rarely stay
+aligned spatially [55]. Therefore, subsequent works such as
+[44, 48, 51, 55] leverage Full 3D Attention over all spatiotemporal tokens to achieve better temporal coherence.
+
+where Uq , Uk ∈ RN ×Nqk , Uv ∈ RN ×Nv , Wq , Wk ∈
+RD×Dqk , Wv ∈ RD×Dv are learnable row- and columnweight matrices; Bq , Bk ∈ RNqk ×Dqk and Bv ∈ RNv ×Dv
+are bias matrices. It is worth noting that each row of q t , k t ,
+and v t contains combined information between all tokens
+in the frame z t , allowing to capture different aspects at the
+T
+frame level. Applying this to all frames z := [z t ]t=1 ∈
+T
+T
+RT ×N ×D in a video, we obtain q := [q t ]t=1 , k := [k t ]t=1
+T
+∈ RT ×Nqk ×Dqk , and v := [v t ]t=1 ∈ RT ×Nv ×Dv . The attention output is defined as:
+  u=\text {MatrixAttention}\left (\query ,\key ,\mvalue \right )=\text {Softmax}\left (\text {Sim}\left (\query ,\key \right )\right )\cdot \mvalue . 
+(7)
+Here, S := Sim (q, k) ∈ RT ×T is a similarity matrix where
+′
+each entry S t,t measures the similarity between two matri′
+ces q t , k t , and can be computed via the scaled Frobenius
+inner product
+  S^{t,t'}=\frac {\langle q^{t},k^{t}\rangle _{\text {F}}}{\sqrt {N_{qk}D_{qk}}}, 
+
+(8)
+
+FrameDiT-H
+
+Latte
+
+A boat accelerating to gain speed.
+
+A cow bending down to drink water from a river.
+
+A train accelerating to gain speed.
+Figure 2. Text-to-video generation comparison between Latte and our FrameDiT-H. We show 4 of 16 generated frames.
+
+where ⟨q t , k t ⟩F is the Frobenius inner product between q t
+and k t . To enhance expressiveness, Multi-head Matrix Attention can be obtained by splitting q, k, and v along their
+row and column dimensions, and applying standard Matrix
+Attention to each partition (i, j):
+  u_{i,j}=\text {MatrixAttention}\left (\query _{i,j},\key _{i,j},\mvalue _{i,j}\right ), 
+Nqk
+
+Dqk
+
+Nv
+
+(9)
+Dv
+
+where qi,j , ki,j ∈ RT × m × n , vi,j ∈ RT × m × n , and
+m, n denote the number of row and column splits, respectively. The final output u is reconstructed by concatenating
+all partitions ui,j .
+
+3.2. FrameDiT
+Our FrameDiT architecture is designed based on DiT with
+interleaved spatial and temporal blocks, as shown in Figure 1. This decoupling is critical for computational efficiency. While the spatial blocks are left unchanged, the temporal blocks are designed with our Matrix Attention. We
+propose and analyze two variants that represent a trade-off
+between simplicity and expressive power.
+FrameDiT-G: Global-only We replace the local temporal attention with our proposed Matrix Attention, enabling
+the model to perform temporal attention at the frame level.
+This configuration serves to isolate the effectiveness of the
+global, frame-level context provided by Matrix Attention.
+FrameDiT-H: Global-Local Hybrid Recognizing that
+temporal dynamics in video exist at multiple scales - from
+
+fine-grained pixel motion to high-level scene changes, our
+FrameDiT architecture employs a Global-Local Hybrid approach. This variant uses two parallel attention branches,
+spatially local temporal attention to capture fine-grained
+motion and local consistency, and Matrix Attention operates
+on the frame matrices, capturing frame-level information,
+and object-level consistency across distant spatial positions.
+We fuse output of two branches elocal , eglobal by concatenating and projecting them by a linear layer.
+  e=\text {MLP}\left (\text {concat}\left (e_{\text {local}},e_{\text {global}}\right )\right ) 
+
+(10)
+
+Complexity The computational
+cost of FrameDiT-G
+
+is O T N 2 + T 2 Nqk , coming from spatial attention and our frame-level Matrix Attention, while
+FrameDiT-H adds spatially local
+ temporal attention
+on top O T N 2 + T 2 N + T 2 Nqk . When Nqk ≪ N ,
+the T 2 Nqk term is negligible, making complexity of
+FrameDiT-H is nearly identical to the Local Factorized
+Attention. In practice, for high-resolution videos, spatial attention dominates, and both variants match the efficiency of
+factorized designs while adding global temporal context at
+minimal overhead. For long sequences, temporal attention
+dominate, and both models maintain the same efficiency
+while avoiding quadratic cost of full 3D attention.
+
+3.3. Integrating Matrix Attention into existing
+Video DiTs
+In this section, we describe how Matrix Attention can be
+integrated into existing video DiT architectures. We focus
+
+16 32
+
+1000
+500
+
+64
+Video length
+
+128
+
+16 32
+
+Full 3D
+
+64
+Video length
+
+128
+
+Local Factorized
+
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0.0
+16 32
+
+8
+
+Peak Memory (GB)
+
+Latency (s)
+
+1500
+
+FLOPs
+
+FVD
+
+2000
+
+350
+300
+250
+200
+150
+100
+
+64
+Video length
+
+FrameDiT-H
+
+128
+
+6
+4
+2
+16 32
+
+64
+Video length
+
+128
+
+FrameDiT-G
+
+Figure 3. Scaling with video length. We compare Local Factorized, Full 3D attention, and our FrameDiT variants as video length increases
+from 16 to 128 frames on the 128 × 128 Taichi dataset. From left to right: FVD, FLOPs, inference latency, and peak memory. While Full
+3D achieves competitive quality, it exhibits steep growth in computational and memory costs. In contrast, our models maintain comparable
+or better FVD while scaling more efficiently, with latency and memory close to Local Factorized attention.
+
+on Local Factorized models, including Latte[31], OpenSora
+1.3 [62], and OpenSora-Plan 1.1 [27].
+Our primary design introduces Matrix Attention as an
+additional temporal branch alongside the original Local
+Factorized temporal attention. The outputs of the two
+branches are fused via a learnable gating mechanism. This
+hybrid design preserves the pretrained temporal modeling
+capacity while enabling global temporal interaction through
+Matrix Attention. We explore both softmax and concatenation gate. For softmax gate, we initialize the gate such that
+the pretrained Local Factorized branch receives a dominant
+weight (≈ 0.97), while Matrix Attention receives a small
+initial weight (≈ 0.03). This ensures the model behavior
+at early training closely matches the pretrained. However,
+both the softmax gate and the Matrix Attention parameters
+change minimally during training. We attribute this to small
+gradient value induced by softmax: when one branch dominates, the gradient flowing to the suppressed branch becomes extremely small, making it difficult for Matrix Attention to learn effectively. Therefore, the hybrid model fails
+to exploit the additional temporal modeling capacity.
+To mitigate this problem, we adopt the concatenation
+through a linear layer. It is initialized using Kaiming initialization [13] for weights and zero for bias. Compared
+to softmax, it avoids early saturation and enables more balanced gradient flow between branches. Empirically, it leads
+to stable training and consistent performance gains.
+We further investigate a more aggressive design in which
+the original Local Factorized temporal attention is completely removed and replaced by Matrix Attention. Although after training, this configuration successfully follows prompts and produces visually plausible frames, the
+generated frames resemble a sequence of independent images rather than a coherent video. We hypothesize that
+the pretrained Local Factorized temporal attention encodes
+strong motion priors that are difficult to recover when replaced entirely. Since Matrix Attention is newly initialized
+
+and trained from scratch, removing the pretrained local factorized temporal attention eliminates critical inductive bias
+and destabilizes temporal coherence. This observation motivates our hybrid design, which preserves existing local
+branch while improving it with global temporal interaction.
+
+4. Related Work
+Video generation aims to synthesize realistic videos that
+exhibit both high-quality appearance and coherent motion. Early approaches use generative adversarial networks (GANs), such as MoCoGAN [49], DIGAN [57],
+StyleGAN-V [43], and MoStGAN-V [41], which model
+temporal dynamics through recurrent or convolutional architectures. While these methods demonstrate promising
+modeling, GAN-based video generators suffer from mode
+collapse, training instability, and difficulty scaling to higher
+resolutions or longer durations. Another line of work employs autoregressive video transformers such as VideoGPT
+[54], MAGVIT [56], VideoPoet [23] which model videos as
+sequences of discrete tokens. These approaches are effective for reconstruction and prediction tasks, but often struggle to scale to high-resolution, high-fidelity synthesis due to
+their sequential generation.
+With the success of diffusion models in image generation, recent research has extended diffusion-based methods to video. Early video diffusion models [1, 17] employ 3D U-Nets with factorized spatio-temporal attention,
+where spatial and temporal attentions are applied separately.
+Later works [1, 2, 38, 58] improve scalability by moving from pixel space to latent space, enabling larger models and longer sequences. Later on, the strong scalability of Diffusion Transformers (DiTs) [37] in image generation has inspired their adoption for video. These models
+[11, 18, 30, 31, 42, 62] commonly employ Local Factorized
+Attention, allowing the reuse of pretrained text-to-image
+backbones and finetuning on video data. However, this for-
+
+mulation assumes motions alignment across frames. As a
+result, the model must rely on heavy implicit transmission
+between layers, and fails to maintain consistency of objects.
+To address this limitations, several recent video diffusion
+models [5, 12, 24, 27, 44, 48, 51, 55] adopt full 3D attention,
+which treats video as a sequence of space-time tokens and
+applies joint attention. This improves temporal coherence
+and motion stability, but comes at a significant computational cost, scaling quadratically with both temporal length
+and spatial resolution. Consequently, Full 3D Attention is
+difficult to apply to longer videos or higher resolutions.
+A complementary line of work aims to improve efficiency of Full 3D Attention. One approach [8, 60] is limiting attention to local spatial or temporal neighborhoods,
+motivated by the observation that attention maps tend to
+be sparse, but they typically depend on pretrained Full 3D
+Attention models and sacrifice global context awareness.
+Other approaches [6, 10] explore linear attention to reduce
+quadratic complexity, enabling long video generation, but
+often struggle to match the expressiveness of standard attention or require complex training pipelines.
+These developments highlight an open important challenge: how to achieve the strength of Full 3D Attention
+while retaining the efficiency of Factorized Attention.
+
+5. Experiment
+5.1. Experimental Setup
+Datasets Following prior studies [31, 48], we conduct
+experiments on four video datasets: UCF-101 [47], SkyTimelapse [53], FaceForensics [39], and Taichi-HD [39].
+During training, we randomly sample 16-frame clips from
+each video using frame interval of 3. For the 128×128
+Taichi-HD setting, we train with longer clips up to 128
+frames to further evaluate long-range temporal coherence.
+Evaluation metrics We evaluate video quality and temporal consistency using Fréchet Video Distance (FVD) [50],
+Fréchet Video Motion Distance (FVMD) [28]. For framelevel, we report Fréchet Inception Distance (FID) [15]. All
+metrics are computed over 2,048 generated video clips.
+Training Setting Models at 128 × 128 are trained from
+scratch with global batch size 16 for 150K steps. With
+N = 64, we choose Nqk = 32, Nv = 256 and and use 32
+attention heads along the column dimension. Each experiment requires approximately 54 H100 GPU hours. Models
+at 256 × 256 are trained from scratch for 200k steps with
+N = 256, Nqk = 128, Nv = 512, and 128 column attention heads, requiring about 280 H100 GPU hours per experiment. Training uses AdamW with learning rate 1e−4. We
+employ standard training techniques, including exponential
+moving average with a decay rate of 0.999, gradient clipping, and noise clipping.
+
+5.2. Video Generation
+5.2.1. Comparison between attention mechanisms
+Figure 3 presents a comparison of FVD, FLOPs, latency,
+and peak memory between our proposed FrameDiT-G/H
+and other DiT variants employing Local Factorized attention (LF-DiT) and Full 3D attention (Full3D-DiT) on the
+128×128 Taichi-HD dataset, with video lengths ranging
+from 16 to 128 frames. FrameDiT-G/H consistently outperforms LF-DiT and achieves performance comparable to
+Full3D-DiT across all video lengths, demonstrating the effectiveness of the proposed Matrix Attention.
+In terms of computational efficiency, Full3D-DiT exhibits a sharp increase in FLOPs, latency, and memory overhead as video length grows, quickly becoming prohibitively
+expensive. In contrast, FrameDiT-G/H scales much more
+gracefully, maintaining latency and memory overhead close
+to LF-DiT while delivering substantially improved generation quality. Overall, FrameDiT-G/H achieves a strong balance between effectiveness and efficiency.
+5.2.2. Comparision with existing video generative models
+We further compare FrameDiT-G/H with existing GANbased [43, 49, 57] and diffusion-based [4, 14, 29, 31, 32, 58]
+video generation methods for 16-frame video synthesis at
+256×256 resolution, following the evaluation protocol of
+[14, 31, 43]. The diffusion-based baselines cover diverse
+architectural designs, including U-Net–based models (e.g.,
+LVDM [14], PVDM [58]), DiTs with Local Factorized Attention (e.g., FVDM [29], Latte [31]), and DiT variants employing causal Full 3D Attention (e.g., AR-Diffusion [48]).
+During our experiments, we observed that the reported
+performance of AR-Diffusion on Taichi-HD appeared unusually strong - showing roughly a 32% improvement in
+FVD over the next-best method Latte. To validate this result, we re-evaluated AR-Diffusion using its publicly available official checkpoints1 under our evaluation protocol.
+Interestingly, the reproduced results yielded substantially
+higher (i.e., worse) FVD scores than reported in the original
+paper, specifically 100.9 vs. 66.3 on Taichi-HD and 84.0 vs.
+71.9 on FaceForensics. For fairness, all comparisons with
+AR-Diffusion are based on our reproduced results.
+As shown in Table 2, FrameDiT-G consistently outperforms Latte across all datasets while maintaining comparable computational efficiency, demonstrating the advantage
+of global Matrix Attention over Local Factorized Attention
+for video modeling. Nevertheless, FrameDiT-G still trails
+AR-Diffusion on UCF101 and Sky-Timelapse, indicating
+that relying solely on frame-level global attention is insufficient for fully realistic video synthesis. By incorporating
+hybrid global-local attention, FrameDiT-H further improves
+performance, surpassing all baselines and establishing new
+1 Link: https://github.com/iva-mzsun/AR-Diffusion
+
+Table 2. Comparison of our FrameDiT-G/H with baselines for
+generating 16-frame videos at 256 × 256 resolution. Baseline
+results are reported from their original papers. * indicates results
+obtained using the official AR-Diffusion checkpoints.
+Model
+
+UCF101
+
+Sky
+
+Taichi-HD
+
+Face
+
+MoCoGAN [49]
+DIGAN [57]
+StyleGAN-V [43]
+VideoGPT [54]
+PVDM [58]
+LVDM [14]
+VIDM [32]
+FVDM [29]
+Diffusion Forcing [4]
+Latte [31]
+AR-Diffusion [48]
+AR-Diffusion*
+
+2886.9
+1630.2
+1431.0
+2880.6
+343.6
+372.9
+294.7
+468.2
+274.5
+202.2
+186.6
+181.9
+
+206.6
+83.1
+79.5
+222.7
+55.4
+95.2
+57.4
+106.1
+251.9
+42.7
+40.8
+40.2
+
+128.1
+143.5
+540.2
+99.0
+121.9
+194.6
+202.0
+97.1
+66.3
+100.9
+
+124.7
+62.5
+47.4
+185.9
+355.9
+55.0
+99.5
+27.1
+71.9
+84.0
+
+FrameDiT-G
+FrameDiT-H
+
+201.6
+170.1
+
+40.6
+39.5
+
+96.8
+95.5
+
+21.5
+16.6
+
+Model
+
+140
+
+Local Factorized
+Full 3D
+FrameDiT-G
+FrameDiT-H
+
+120
+
+FVD
+
+100
+80
+60
+40
+0
+
+100 200 300 400 500 600 700 800
+
+Model size (Million)
+
+Figure 4. FVD comparison of different models as increasing
+model size. Each bubble shows a model variant, where y-axis
+reports FVD, and bubble diameter is proportional to GFLOPs.
+
+state-of-the-art results across all datasets. In particular, it
+achieves approximately a 9% improvement in FVD over
+AR-Diffusion on UCF101 and a 39% gain over Latte on
+FaceForensics, highlighting its effectiveness in modeling
+complex motion patterns, fast-moving foreground objects,
+and slowly evolving backgrounds.
+
+5.3. Text-to-Video Generation
+We evaluate the effectiveness of Matrix Attention on realworld text-to-video (T2V) generation by building upon a
+pretrained Latte model for T2V obtained from [31]. Specifically, we augment each Local Factorized temporal attention layer in Latte with an additional Matrix Attention module, forming FrameDiT-H. With the original number of tokens per frame is N = 1024, we set Nqk = 1, and
+Nv = 2 and choose 512 column attention heads, resulting
+
+the model FrameDiT-H with additional 314M parameters
+from 1B Latte model. During training, all pretrained Latte
+parameters are kept frozen, and only the newly introduced
+Matrix Attention modules are updated. The resulting model
+is trained on the Pexels-400K dataset [20] for 100K steps
+with a global batch size of 8 at 512×512 resolution. Total
+training time costs 480 hours of H100 gpu.
+We benchmark FrameDiT-H against recent T2V approaches that use either Local Factorized [27, 31, 52] or Full
+3D Attention [12, 27, 51] on the VBench [19] - which provides a comprehensive evaluation across multiple dimensions, including visual fidelity, semantic alignment, temporal coherence, and motion dynamics.
+As shown in Table 3, FrameDiT-H consistently outperforms Latte across several key metrics, including Quality
+Score (81.69 vs. 79.72), Semantic Score (68.84 vs. 67.58),
+Subject Consistency (95.10 vs. 88.88), Motion Smoothness
+(95.97 vs. 94.63), and Dynamic Degree (70.83 vs. 68.89).
+These improvements stem from the introduced Matrix Attention modules, which enable more effective modeling of
+global video dynamics that are not captured by Latte. Figure 2 shows that our model achieves comparable aesthetic
+quality to Latte while significantly improving subject, and
+background consistency, and motion smoothness. Compared with other Local-Factorized-Attention-based models such as Lavie and OpenSora-Plan 1.1, FrameDiT-H
+achieves substantially higher Dynamic Degree while maintaining competitive performance in Quality Score, Semantic
+Score, Subject Consistency, and Motion Smoothness. This
+demonstrates the strength of Matrix Attention in modeling
+large and complex motion patterns.
+Moreover, our model narrows the gap in performance
+comparing to Full 3D models. For instance, it achieves a
+Quality Score of 81.69, close to LTX-Video’s 82.30. Wan
+2.1 achieves the highest Total Score (84.26); however, it
+benefits from larger and carefully curated training datasets.
+In contrast, FrameDiT-H is trained solely on the publicly
+available Pexels-400K dataset while keeping the pretrained
+backbone frozen. Therefore, the observed gains can be attributed directly to the Matrix Attention mechanism rather
+than increased data scale or full-model retraining.
+
+5.4. Ablation study
+To validate our design and quantify the contribution of each
+component, we conduct many ablation experiments, each is
+performed on 16-frame 128 × 128 Taichi-HD dataset.
+Normalizations of row-weight matrix U We study effect of different normalization strategies applied to the rowweight matrix U , which controls how spatial tokens are
+synthesized into the frame-level matrix representation. Table 4 shows the comparison between four configurations: no
+normalization, softmax, and ℓ1 , ℓ2 -normalization. Among
+
+Table 3. Performance comparison of various text-to-video generation models on the VBench benchmark.
+Model
+
+#Params
+
+Attention
+Type
+
+Total
+Score
+
+Quality
+Score
+
+Semantic
+Score
+
+Subject
+Consistency
+
+Background
+Consistency
+
+Temporal
+Flickering
+
+Motion
+Smoothness
+
+Dynamic
+Degree
+
+Temporal
+Style
+
+Latte [31]
+Lavie [52]
+OpenSoraPlan 1.1 [27]
+OpenSoraPlan 1.3 [27]
+LTX-Video [12]
+Wan 2.1 [51]
+
+1B
+3B
+1B
+2.7B
+1.9B
+2B
+
+Factorized
+Factorized
+Factorized
+Full 3D
+Full 3D
+Full 3D
+
+77.29
+77.08
+78.00
+77.23
+80.00
+84.26
+
+79.72
+78.78
+80.91
+80.14
+82.30
+85.30
+
+67.58
+70.31
+66.38
+65.62
+70.79
+80.09
+
+88.88
+91.41
+95.73
+97.79
+96.56
+96.34
+
+95.40
+97.47
+96.73
+97.24
+97.20
+97.29
+
+98.89
+98.30
+99.03
+99.20
+99.34
+99.49
+
+94.63
+96.38
+98.28
+99.05
+98.86
+97.44
+
+68.89
+49.72
+47.72
+30.28
+54.35
+85.56
+
+24.76
+25.93
+23.87
+22.47
+22.62
+25.31
+
+FrameDiT-H
+
+1.3B
+
+Matrix
+
+79.12
+
+81.69
+
+68.84
+
+95.10
+
+96.37
+
+97.16
+
+95.97
+
+70.83
+
+24.84
+
+Table 4. Comparison of the normalization for row-weight matrix U . Result shows that softmax achieves the best overall performance across FVD, FVMD, and FID metrics.
+
+Table 5. Effect of the row-weight dimension N qk . Smaller
+Nqk provides stronger compression and lower GFLOPs, while
+largerNqk consistently improves FVD, FVMD.
+
+U normalization
+
+FVD↓
+
+FVMD↓
+
+FID↓
+
+Nqk
+
+GFLOPs
+
+FVD↓
+
+FVMD↓
+
+FID↓
+
+No
+Softmax
+ℓ1 -normalization
+ℓ2 -normalization
+
+70.31
+66.15
+66.79
+67.13
+
+990.00
+943.32
+987.43
+984.72
+
+14.44
+13.45
+13.83
+13.44
+
+1
+2
+4
+8
+16
+32
+64
+
+341.60
+342.03
+342.89
+344.62
+348.07
+354.96
+368.75
+
+72.16
+71.71
+70.50
+69.41
+68.21
+67.40
+66.15
+
+1042.76
+1044.55
+1035.34
+1000.23
+990.02
+959.91
+943.32
+
+14.47
+14.81
+14.74
+14.45
+14.30
+14.01
+13.45
+
+these, softmax normalization yields the best performance
+achieving an FVD of 66.15 and an FVMD of 943.32. This
+hints that normalizing U , particularly via softmax, ensures
+the synthesized frame representation within the original embedding manifold, resulting in more stable temporal attention and stronger overall performance.
+Size of row-weight matrix U We analyze the impact of Nqk , number of synthesized key/query tokens in
+FrameDiT-G by varying it from 1 to 64, with N = 64.
+As shown in Table 5, performance degrades as Nqk decreases, with FVD increasing from 66.15 (Nqk = 64)
+to 72.16 (Nqk = 1), while FVMD rises from 943.32 to
+1042.76, indicating reduced temporal modeling capacity
+under stronger compression. Even in the extreme case of
+compressing all 64 spatial tokens into a single row matrix,
+the model remains stable and maintains reasonable performance. This observation suggests that the row-weight matrix U can perform lossy data compression, filtering redundant spatial information within each frame while preserving sufficient information for temporal attention. In contrast, increasing Nqk improves model performance, while
+adding only marginal GFLOPs, confirming that the mechanism provides a flexible and efficient quality-cost tradeoff. Meanwhile, since spatial attention remains unchanged
+across configurations, the frame-level metric FID shows
+only minor variations as Nqk changes.
+Scaling model size We train Local Factorized, Full Attention, and our FrameDiT models over 4 model size configs (S, B, L, XL) on Taichi dataset at 128 × 128 resolution
+with 16 frames. Figure 4 demonstrates how their FVD at
+
+150k training steps scales with model capacity. As model
+size increases, all methods benefit from additional capacity; however, our FrameDiT-G and FrameDiT-H consistently outperform the Local Factorized baseline and achieve
+performance comparable to, or better than, Full 3D Attention models. Notably, the performance gap widens at larger
+scales: our models exhibit larger reductions in FVD, attaining the best overall result at the XL configuration while
+maintaining competitive computational cost.
+
+6. Conclusion
+In this paper, we introduced Matrix Attention, a frame-level
+attention that leverages matrix-native operations to construct queries, keys, and values, help preserve the inherent
+spatio-temporal structure of video data. Building on this
+mechanism, we proposed FrameDiT-G and FrameDiT-H,
+factorized DiT architectures that balance expressiveness
+and computational efficiency for video diffusion models.
+Extensive experiments across diverse benchmarks demonstrate that FrameDiT-H delivers strong video quality, and
+competitive or SOTA performance while maintaining practical efficiency. In future work, we plan to further explore
+the design and parameterization of the row-weight matrix U
+to enhance temporal representation.
+
+References
+[1] Andreas Blattmann, Tim Dockhorn, Sumith Kulal,
+Daniel Mendelevitch, Maciej Kilian, Dominik Lorenz,
+Yam Levi, Zion English, Vikram Voleti, Adam Letts,
+et al. Stable video diffusion: Scaling latent video
+diffusion models to large datasets. arXiv preprint
+arXiv:2311.15127, 2023. 1, 5
+[2] Andreas Blattmann, Robin Rombach, Huan Ling,
+Tim Dockhorn, Seung Wook Kim, Sanja Fidler, and
+Karsten Kreis. Align your latents: High-resolution
+video synthesis with latent diffusion models. In Proceedings of the IEEE/CVF conference on computer
+vision and pattern recognition, pages 22563–22575,
+2023. 5
+[3] Joao Carreira and Andrew Zisserman. Quo vadis,
+action recognition? a new model and the kinetics dataset. In proceedings of the IEEE Conference
+on Computer Vision and Pattern Recognition, pages
+6299–6308, 2017. 13
+[4] Boyuan Chen, Diego Martí Monsó, Yilun Du, Max
+Simchowitz, Russ Tedrake, and Vincent Sitzmann.
+Diffusion forcing: Next-token prediction meets fullsequence diffusion. Advances in Neural Information
+Processing Systems, 37:24081–24125, 2024. 1, 6, 7
+[5] Guibin Chen, Dixuan Lin, Jiangping Yang, Chunze
+Lin, Junchen Zhu, Mingyuan Fan, Hao Zhang, Sheng
+Chen, Zheng Chen, Chengcheng Ma, et al. Skyreelsv2: Infinite-length film generative model. arXiv
+preprint arXiv:2504.13074, 2025. 6
+[6] Junsong Chen, Yuyang Zhao, Jincheng Yu, Ruihang Chu, Junyu Chen, Shuai Yang, Xianbang Wang,
+Yicheng Pan, Daquan Zhou, Huan Ling, et al. Sanavideo: Efficient video generation with block linear diffusion transformer. arXiv preprint arXiv:2509.24695,
+2025. 6
+[7] Yuren Cong, Mengmeng Xu, Christian Simon, Shoufa
+Chen, Jiawei Ren, Yanping Xie, Juan-Manuel PerezRua, Bodo Rosenhahn, Tao Xiang, and Sen He. Flatten: optical flow-guided attention for consistent textto-video editing. arXiv preprint arXiv:2310.05922,
+2023. 1, 2
+[8] Hangliang Ding, Dacheng Li, Runlong Su, Peiyuan
+Zhang, Zhijie Deng, Ion Stoica, and Hao Zhang.
+Efficient-vdit: Efficient video diffusion transformers
+with attention tile. arXiv preprint arXiv:2502.06155,
+2025. 6
+[9] Alexey Dosovitskiy. An image is worth 16x16 words:
+Transformers for image recognition at scale. arXiv
+preprint arXiv:2010.11929, 2020. 3
+[10] Mohsen Ghafoorian, Denis Korzhenkov, and
+Amirhossein Habibian.
+Attention surgery: An
+efficient recipe to linearize your video diffusion
+
+transformer. arXiv preprint arXiv:2509.24899, 2025.
+6
+[11] Agrim Gupta, Lijun Yu, Kihyuk Sohn, Xiuye Gu,
+Meera Hahn, Fei-Fei Li, Irfan Essa, Lu Jiang, and José
+Lezama. Photorealistic video generation with diffusion models. In European Conference on Computer
+Vision, pages 393–411. Springer, 2024. 5
+[12] Yoav HaCohen, Nisan Chiprut, Benny Brazowski,
+Daniel Shalem, Dudu Moshe, Eitan Richardson, Eran
+Levin, Guy Shiran, Nir Zabari, Ori Gordon, et al. Ltxvideo: Realtime video latent diffusion. arXiv preprint
+arXiv:2501.00103, 2024. 1, 6, 7, 8
+[13] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and
+Jian Sun. Delving deep into rectifiers: Surpassing
+human-level performance on imagenet classification.
+In Proceedings of the IEEE international conference
+on computer vision, pages 1026–1034, 2015. 5
+[14] Yingqing He, Tianyu Yang, Yong Zhang, Ying Shan,
+and Qifeng Chen. Latent video diffusion models for
+high-fidelity long video generation. arXiv preprint
+arXiv:2211.13221, 2022. 6, 7
+[15] Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp Hochreiter.
+Gans trained by a two time-scale update rule converge
+to a local nash equilibrium. In Advances in Neural
+Information Processing Systems. Curran Associates,
+Inc., 2017. 6, 13
+[16] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. Advances in neural
+information processing systems, 33:6840–6851, 2020.
+1, 3
+[17] Jonathan Ho, Tim Salimans, Alexey Gritsenko,
+William Chan, Mohammad Norouzi, and David J
+Fleet. Video diffusion models. Advances in neural
+information processing systems, 35:8633–8646, 2022.
+1, 3, 5
+[18] Wenyi Hong, Ming Ding, Wendi Zheng, Xinghan
+Liu, and Jie Tang. Cogvideo: Large-scale pretraining
+for text-to-video generation via transformers. arXiv
+preprint arXiv:2205.15868, 2022. 1, 2, 5
+[19] Ziqi Huang, Yinan He, Jiashuo Yu, Fan Zhang,
+Chenyang Si, Yuming Jiang, Yuanhan Zhang, Tianxing Wu, Qingyang Jin, Nattapol Chanpaisit, et al.
+Vbench: Comprehensive benchmark suite for video
+generative models. In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition, pages 21807–21818, 2024. 7
+[20] jovianzm.
+Pexels-400k.
+https : / /
+huggingface . co / datasets / jovianzm /
+Pexels-400k, 2025. Accessed: 2025-03-07. 7
+[21] Duc Kieu, Kien Do, Toan Nguyen, Dang Nguyen, and
+Thin Nguyen. Bidirectional diffusion bridge models.
+In Proceedings of the 31st ACM SIGKDD Conference
+
+on Knowledge Discovery and Data Mining V.2, pages
+1139–1148, New York, NY, USA, 2025. Association
+for Computing Machinery. 1
+[22] Duc Kieu, Kien Do, Tuan Hoang, Thao Minh Le,
+Tung Kieu, Dang Nguyen, and Thin Nguyen. Universal multi-domain translation via diffusion routers. In
+The Fourteenth International Conference on Learning
+Representations, 2026. 1
+[23] Dan Kondratyuk, Lijun Yu, Xiuye Gu, José Lezama,
+Jonathan Huang, Grant Schindler, Rachel Hornung,
+Vighnesh Birodkar, Jimmy Yan, Ming-Chang Chiu,
+et al. Videopoet: A large language model for zero-shot
+video generation. arXiv preprint arXiv:2312.14125,
+2023. 5
+[24] Weijie Kong, Qi Tian, Zijian Zhang, Rox Min,
+Zuozhuo Dai, Jin Zhou, Jiangfeng Xiong, Xin Li, Bo
+Wu, Jianwei Zhang, et al. Hunyuanvideo: A systematic framework for large video generative models.
+arXiv preprint arXiv:2412.03603, 2024. 1, 6
+[25] Minh-Quan Le, Yuanzhi Zhu, Vicky Kalogeiton, and
+Dimitris Samaras. What about gravity in video generation? post-training newton’s laws with verifiable
+rewards, 2025. 1
+[26] Minh-Quan Le, Gaurav Mittal, Cheng Zhao, David
+Gu, Dimitris Samaras, and Mei Chen.
+Pisces:
+Annotation-free text-to-video post-training via optimal transport-aligned rewards, 2026. 1
+[27] Bin Lin, Yunyang Ge, Xinhua Cheng, Zongjian Li,
+Bin Zhu, Shaodong Wang, Xianyi He, Yang Ye,
+Shenghai Yuan, Liuhan Chen, et al. Open-sora plan:
+Open-source large video generation model. arXiv
+preprint arXiv:2412.00131, 2024. 1, 3, 5, 6, 7, 8
+[28] Jiahe Liu, Youran Qu, Qi Yan, Xiaohui Zeng, Lele
+Wang, and Renjie Liao. Fr\’echet video motion distance: A metric for evaluating motion consistency in
+videos. arXiv preprint arXiv:2407.16124, 2024. 6, 13
+[29] Yaofang Liu, Yumeng Ren, Xiaodong Cun, Aitor Artola, Yang Liu, Tieyong Zeng, Raymond H Chan, and
+Jean-michel Morel. Redefining temporal modeling in
+video diffusion: The vectorized timestep approach.
+arXiv preprint arXiv:2410.03160, 2024. 6, 7
+[30] Haoyu Lu, Guoxing Yang, Nanyi Fei, Yuqi Huo,
+Zhiwu Lu, Ping Luo, and Mingyu Ding. Vdt: Generalpurpose video diffusion transformers via mask modeling. arXiv preprint arXiv:2305.13311, 2023. 1, 2, 5
+[31] Xin Ma, Yaohui Wang, Xinyuan Chen, Gengyun Jia,
+Ziwei Liu, Yuan-Fang Li, Cunjian Chen, and Yu Qiao.
+Latte: Latent diffusion transformer for video generation. Transactions on Machine Learning Research,
+2025. 1, 2, 3, 5, 6, 7, 8
+[32] Kangfu Mei and Vishal Patel. Vidm: Video implicit
+diffusion models. In Proceedings of the AAAI con-
+
+ference on artificial intelligence, pages 9117–9125,
+2023. 1, 6, 7
+[33] Ron Mokady, Amir Hertz, Kfir Aberman, Yael Pritch,
+and Daniel Cohen-Or. Null-text inversion for editing
+real images using guided diffusion models. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages 6038–6047, 2023.
+1
+[34] Toan Nguyen, Kien Do, Duc Kieu, and Thin Nguyen.
+h-edit: Effective and flexible diffusion-based editing via doob’s h-transform. In Proceedings of the
+Computer Vision and Pattern Recognition Conference,
+pages 28490–28501, 2025.
+[35] Alex Nichol, Prafulla Dhariwal, Aditya Ramesh,
+Pranav Shyam, Pamela Mishkin, Bob McGrew, Ilya
+Sutskever, and Mark Chen. Glide: Towards photorealistic image generation and editing with text-guided
+diffusion models. arXiv preprint arXiv:2112.10741,
+2021. 1
+[36] Alexander Quinn Nichol and Prafulla Dhariwal. Improved denoising diffusion probabilistic models. In
+International conference on machine learning, pages
+8162–8171. PMLR, 2021. 13
+[37] William Peebles and Saining Xie. Scalable diffusion models with transformers. In Proceedings of the
+IEEE/CVF international conference on computer vision, pages 4195–4205, 2023. 1, 5
+[38] Robin Rombach, Andreas Blattmann, Dominik
+Lorenz, Patrick Esser, and Björn Ommer. Highresolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF conference
+on computer vision and pattern recognition, pages
+10684–10695, 2022. 1, 5, 13
+[39] Andreas Rössler, Davide Cozzolino, Luisa Verdoliva, Christian Riess, Justus Thies, and Matthias
+Nießner. Faceforensics: A large-scale video dataset
+for forgery detection in human faces. arXiv preprint
+arXiv:1803.09179, 2018. 6
+[40] David Ruhe, Jonathan Heek, Tim Salimans, and Emiel
+Hoogeboom. Rolling diffusion models. In Proceedings of the 41st International Conference on Machine
+Learning. JMLR.org, 2024. 1
+[41] Xiaoqian Shen, Xiang Li, and Mohamed Elhoseiny.
+Mostgan-v: Video generation with temporal motion
+styles. In Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition, pages
+5652–5661, 2023. 5
+[42] Uriel Singer, Adam Polyak, Thomas Hayes, Xi Yin,
+Jie An, Songyang Zhang, Qiyuan Hu, Harry Yang,
+Oron Ashual, Oran Gafni, et al. Make-a-video: Textto-video generation without text-video data. arXiv
+preprint arXiv:2209.14792, 2022. 5
+
+[43] Ivan Skorokhodov, Sergey Tulyakov, and Mohamed
+Elhoseiny. Stylegan-v: A continuous video generator with the price, image quality and perks of stylegan2. In Proceedings of the IEEE/CVF conference on
+computer vision and pattern recognition, pages 3626–
+3636, 2022. 5, 6, 7
+[44] Kiwhan Song, Boyuan Chen, Max Simchowitz,
+Yilun Du, Russ Tedrake, and Vincent Sitzmann.
+History-guided video diffusion.
+arXiv preprint
+arXiv:2502.06764, 2025. 1, 3, 6
+[45] Yang Song and Stefano Ermon. Generative modeling
+by estimating gradients of the data distribution. Advances in neural information processing systems, 32,
+2019. 1
+[46] Yang Song, Jascha Sohl-Dickstein, Diederik P
+Kingma, Abhishek Kumar, Stefano Ermon, and Ben
+Poole. Score-based generative modeling through
+stochastic differential equations.
+arXiv preprint
+arXiv:2011.13456, 2020. 3
+[47] Khurram Soomro, Amir Roshan Zamir, and Mubarak
+Shah. Ucf101: A dataset of 101 human actions
+classes from videos in the wild. arXiv preprint
+arXiv:1212.0402, 2012. 6
+[48] Mingzhen Sun, Weining Wang, Gen Li, Jiawei Liu,
+Jiahui Sun, Wanquan Feng, Shanshan Lao, SiYu
+Zhou, Qian He, and Jing Liu. Ar-diffusion: Asynchronous video generation with auto-regressive diffusion. In Proceedings of the Computer Vision and Pattern Recognition Conference, pages 7364–7373, 2025.
+1, 3, 6, 7
+[49] Sergey Tulyakov, Ming-Yu Liu, Xiaodong Yang, and
+Jan Kautz. Mocogan: Decomposing motion and content for video generation. In Proceedings of the IEEE
+conference on computer vision and pattern recognition, pages 1526–1535, 2018. 5, 6, 7
+[50] Thomas Unterthiner, Sjoerd Van Steenkiste, Karol
+Kurach, Raphael Marinier, Marcin Michalski, and
+Sylvain Gelly. Towards accurate generative models
+of video: A new metric & challenges. arXiv preprint
+arXiv:1812.01717, 2018. 6, 13
+[51] Team Wan, Ang Wang, Baole Ai, Bin Wen, Chaojie
+Mao, Chen-Wei Xie, Di Chen, Feiwu Yu, Haiming
+Zhao, Jianxiao Yang, et al. Wan: Open and advanced
+large-scale video generative models. arXiv preprint
+arXiv:2503.20314, 2025. 1, 3, 6, 7, 8
+[52] Yaohui Wang, Xinyuan Chen, Xin Ma, Shangchen
+Zhou, Ziqi Huang, Yi Wang, Ceyuan Yang, Yinan He,
+Jiashuo Yu, Peiqing Yang, et al. Lavie: High-quality
+video generation with cascaded latent diffusion models. International Journal of Computer Vision, 133(5):
+3059–3078, 2025. 7, 8
+[53] Wei Xiong, Wenhan Luo, Lin Ma, Wei Liu, and Jiebo
+Luo. Learning to generate time-lapse videos using
+
+multi-stage dynamic generative adversarial networks.
+In Proceedings of the IEEE Conference on Computer
+Vision and Pattern Recognition, pages 2364–2373,
+2018. 6
+[54] Wilson Yan, Yunzhi Zhang, Pieter Abbeel, and
+Aravind Srinivas.
+Videogpt: Video generation
+using vq-vae and transformers.
+arXiv preprint
+arXiv:2104.10157, 2021. 5, 7
+[55] Zhuoyi Yang, Jiayan Teng, Wendi Zheng, Ming
+Ding, Shiyu Huang, Jiazheng Xu, Yuanming Yang,
+Wenyi Hong, Xiaohan Zhang, Guanyu Feng, et al.
+Cogvideox: Text-to-video diffusion models with an
+expert transformer. ICLR 2025, 2025. 1, 3, 6
+[56] Lijun Yu, Yong Cheng, Kihyuk Sohn, José Lezama,
+Han Zhang, Huiwen Chang, Alexander G Hauptmann, Ming-Hsuan Yang, Yuan Hao, Irfan Essa, et al.
+Magvit: Masked generative video transformer. In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, pages 10459–10469,
+2023. 5
+[57] Sihyun Yu, Jihoon Tack, Sangwoo Mo, Hyunsu
+Kim, Junho Kim, Jung-Woo Ha, and Jinwoo Shin.
+Generating videos with dynamics-aware implicit
+generative adversarial networks.
+arXiv preprint
+arXiv:2202.10571, 2022. 5, 6, 7
+[58] Sihyun Yu, Kihyuk Sohn, Subin Kim, and Jinwoo
+Shin. Video probabilistic diffusion models in projected latent space. In Proceedings of the IEEE/CVF
+conference on computer vision and pattern recognition, pages 18456–18466, 2023. 5, 6, 7
+[59] Peiyuan Zhang, Yongqi Chen, Runlong Su, Hangliang
+Ding, Ion Stoica, Zhengzhong Liu, and Hao Zhang.
+Fast video generation with sliding tile attention. arXiv
+preprint arXiv:2502.04507, 2025. 1
+[60] Peiyuan Zhang, Haofeng Huang, Yongqi Chen, Will
+Lin, Zhengzhong Liu, Ion Stoica, Eric P Xing, and
+Hao Zhang. Faster video diffusion with trainable
+sparse attention. arXiv e-prints, pages arXiv–2505,
+2025. 6
+[61] Yang Zheng, Adam W Harley, Bokui Shen, Gordon
+Wetzstein, and Leonidas J Guibas. Pointodyssey: A
+large-scale synthetic dataset for long-term point tracking. In Proceedings of the IEEE/CVF International
+Conference on Computer Vision, pages 19855–19865,
+2023. 13
+[62] Zangwei Zheng, Xiangyu Peng, Tianji Yang, Chenhui Shen, Shenggui Li, Hongxin Liu, Yukun Zhou,
+Tianyi Li, and Yang You. Open-sora: Democratizing efficient video production for all. arXiv preprint
+arXiv:2412.20404, 2024. 1, 2, 5
+
+A. Theoretical Proof of Matrix Attention
+
+Each element of Afact is computed as
+
+This section derives the attention maps of our Matrix Attention and compare it with Full 3D and Local Factorized,
+showing that Local Factorized is our special case. Let
+T
+z = [zt ]t=1 denote video features, where the feature of
+frame t is zt ∈ RN ×D . We represent index of token as a
+pair (t, n) where t denotes the frame index, n denotes the
+spatial token index within the frame. After flattening all
+tokens in temporal-spatial order, the full attention matrix
+is A ∈ R(T N )×(T N ) , with each element A [(t, n) , (t′ , n′ )]
+specifies how much token (t′ , n′ ) attends to token (t, n).
+We omit softmax, scaling terms, and MLP biases since they
+do not affect structure of the attention map.
+Full 3D Attention computes output as
+  y=A_{\text {full}}zW_{v}, 
+
+(11)
+
+where y is the output, attention map Afull is unconstrained.
+As a result, each token (t, n) can directly attend to any token
+(t′ , n′ ).
+Local Factorized Attention replaces this with spatial and
+temporal attention. For each frame t, the spatial attention
+operates only within that frame
+
+  & A_{\text {fact}}\left [\left (t,n\right ),\left (t',n'\right )\right ]\\ = & \sum _{i,j}H\left [\left (t,n\right ),\left (i,j\right )\right ]S\left [\left (i,j\right ),\left (t',n'\right )\right ]\\ = & H\left [\left (t,n\right ),\left (t',n\right )\right ]S\left [\left (t',n\right ),\left (t',n'\right )\right ],
+
+(20)
+since H [(t, n) , (i, j)] = 0 if j
+̸= n, and
+S [(i, j) , (t′ , n′ )] = 0 if i ̸= n′ . Thus, the interaction
+between tokens (t, n) and (t′ , n′ ) relies solely on the single
+intermediate token (t′ , n).
+  \left (t^{\prime },n^{\prime }\right )\xrightarrow [\text {spatial}]{S}\left (t^{\prime },n\right )\xrightarrow [\text {temporal}]{H}\left (t,n\right ). 
+In the FrameDiT-G model, spatial attention remains the
+same x = SzWv′ , while temporal attention is replaced by
+Matrix Attention, which is computed as
+  y & =\underbrace {U_{q}^{\intercal }xW_{q}}_{\text {key}}\underbrace {W_{k}^{T}xU_{k}}_{\text {query}}\underbrace {U_{v,}^{\intercal }xW_{v}''}_{\text {value}}\\ & =U_{q}^{\intercal }HU_{k}U_{v}^{\intercal }SzW_{v}'W_{v}''.
+(22)
+
+(12)
+
+Letting H ′ = Uq⊺ HUk Uv⊺ , this simplifies to
+
+where xt,n is the output of spatial attention at position
+(t, n), St ∈ RN ×N is the spatial attention map. Stacking
+all frames:
+  x=SzW_{v}',\label {eq:fact_attn_spatial} 
+(13)
+
+  y=H^{\prime }SzW_{v}=A_{\text {mat}}zW_{v}. 
+
+  x_{t,n}=\sum _{n'}S_{t}\left [n,n'\right ]z_{t,n^{\prime }}W_{v}', 
+
+witth S = diag (S1 , . . . , ST ) ∈ R(T N )×(T N ) is the block
+diagonal matrix, meaning no information exchange across
+frames. Then, temporal attention compute output for each
+spatial index n as
+  y_{t,n}=\sum _{t'}H_{n}\left [t,t'\right ]x_{t^{\prime },n}W_{v}'', 
+
+  y & =xW_{q}W_{k}^{T}x^{T}xW_{s}''=HxW_{v}'',\label {eq:spatial_attn_temporal}
+
+  & A_{\text {mat}}\left [\left (t,n\right ),\left (t',n'\right )\right ]\\ = & \sum _{i,j}H'\left [\left (t,n\right ),\left (i,j\right )\right ]S\left [\left (i,j\right ),\left (t',n'\right )\right ]\\ = & \sum _{j=1}^{N}H'\left [\left (t,n\right ),\left (t',j\right )\right ]S\left [\left (t',j\right ),\left (t',n'\right )\right ].
+
+(26)
+
+Unlike Local Factorized, the interaction between (t, n) and
+N
+(t′ , n′ ) may pass through all spatial tokens {t′ , j}j=1 .
+
+(15)
+
+where H ∈ R(T N )×(T N ) is attention matrix, defined by
+  \begin {cases} H\left [\left (t,n\right ),\left (t^{\prime },n^{\prime }\right )\right ]=H_{n}\left [t,t^{\prime }\right ] & \text {if }n=n^{\prime }\\ H\left [\left (t,n\right ),\left (t^{\prime },n^{\prime }\right )\right ]=0 & \text {otherwise}. \end {cases}\text {}\label {eq:h_attn_matrix} 
+(16)
+Replace x in Equation (15) by Equation (13):
+  y=HSzW_{v}'W_{v}''=A_{\text {fact}}zW_{v}, 
+
+′
+
+One noteworthy point is that H is not constrained like in
+Equation (16). Each element of Amat is computed as
+
+(14)
+
+Hn ∈ RT ×T is the temporal attention map. We can also
+rewrite for all spatial indexes in the matrix form:
+
+(23)
+
+(17)
+
+which reveals that Local Factorized Attention implicitly assumes attention matrix must be factorized into Afact = HS.
+
+  \left (t^{\prime },n^{\prime }\right )\xrightarrow [\text {spatial}]{S}\left \{ \left (t^{\prime },j\right )\right \} _{j=1}^{n}\xrightarrow [\text {temporal}]{H}\left (t,n\right ) 
+This removes the single-token bottleneck imposed by Local
+Factorized Attention while remaining significantly more efficient than Full 3D Attention. In case when Uq = Uk =
+Uv = I, H ′ reduces to H, and Matrix Attention collapses exactly to the temporal attention used in Local Factorized Attention. Thus, Local Factorized Attention naturally emerges as a special case of our formulation, corresponding to the identity row-weight matrices of Matrix Attention.
+
+FVD↓
+
+FVMD↓
+
+FID↓
+
+16
+
+32
+
+64
+
+128
+
+16
+
+32
+
+64
+
+128
+
+16
+
+32
+
+64
+
+128
+
+FrameDiT-H-Concat
+
+66.15
+
+126.90
+
+225.39
+
+256.40
+
+943.32
+
+478.14
+
+125.81
+
+70.10
+
+13.45
+
+15.48
+
+17.54
+
+22.29
+
+FrameDiT-H-Gated
+
+67.55
+
+130.88
+
+233.27
+
+265.25
+
+964.13
+
+528.42
+
+153.65
+
+89.23
+
+13.14
+
+15.29
+
+17.50
+
+21.42
+
+Table 6. Comparison between different Fusion layers for FrameDiT-H. FrameDiT-H-Concat is the model using Concat+MLP fusion,
+and FrameDiT-H-Gated is the model using sigmoid fusion described in B.3.
+
+B. Additional Experiment
+B.1. Additional Implementation Details
+We train all models using the DDPM framework with 1000
+training diffusion steps. According to [36], we choose to
+learn both mean and variance of the reverse process to improve log-likelihood, increasing sample quality using the
+loss function
+  L=L_{\text {simple}}+\lambda L_{\text {vlb}}, 
+(27)
+with λ = 10−3 .
+We employ the noise-parameterization for all models.
+For the latent representation, we use the Stable Diffusion
+2.0 autoencoder [38], encoding each frame independently
+with a compression ratio of {1, 8}. We use this VAE to ensure that improvement is solely from the diffusion modeling
+rather than the reconstruction quality of the autoencoder.
+For dataset, we preprocess them by center crop, and resize to desire resolution. We randomly sample with fixed
+frame interval 3 from videos, except interval 1 for TaichiHD 128 × 128 at 128 frames. Our model and all baselines
+are implemented using the Latte codebase and trained under the exact same settings to ensure fair comparison. All
+conditioning inputs, including noise levels and class labels,
+are injected into the network through AdaLN-Zero layers.
+For all experiments, training is performed in FP16 precision for computational efficiency. We clip maximum norm
+of gradients to 1.0 from 100,000 training steps to stabilize training, and exponential moving average (EMA) of
+the model weights with a 0.999 decay. To improve highresolution quality at 256 × 256, we jointly train on both
+videos and images, with 8 images for each video. We use
+the AdamW optimizer with a learning rate of 1 × 10−4 . We
+use DDPM sampler with 250 sampling steps for all models.
+For UCF101, we apply classifier-free guidance with CFG =
+7.0.
+We evaluate models using both video-level and framelevel metrics. For video-level evaluation, we adopt FVD
+[50] and FVMD [28]. FVD computes the Fréchet distance
+between feature distributions of real and generated videos,
+where features are extracted using a pretrained I3D network [3]; it reflects both overall video quality and temporal coherence. FVMD focuses specifically on motion
+
+consistency: it tracks keypoints using a pretrained PIPs++
+model [61] to obtain motion trajectories, then measures the
+Fréchet distance between the real and generated motion features. Since FVMD processes videos in 16-frame chunks,
+longer sequences lead to more chunks, therefore, produce
+lower FVMD values. For this reason, we report the relative FVMD improvement over Local Factorized Attention
+to better reflect motion consistency gains across different
+sequence lengths. For frame-wise metrics, we report FID
+[15], evaluating the similarity between real and generated
+frame distributions using Inception features, providing a
+measure of overall image realism.
+
+B.2. Additional Result
+Comparison between different attention mechanisms
+Figure 5 present qualitative results of different attention
+mechanism on Taichi-HD at 128 × 128 resolution for video
+lengths of 128 frames. Local Factorized Attention fails
+to preserve human structure, producing inconsistent body
+movements; these issues worsen as sequence length increases. In contrast, both Full 3D Attention, FrameDiT-G
+and FrameDiT-H maintain stable temporal dynamics across
+all lengths, producing smooth, consistent human motion
+even for 128-frame videos.
+Because the Stable Diffusion 2.0 autoencoder is trained
+primarily on high-resolution datasets, encoding images at
+128 × 128 may degrade small or fine-grained details such as
+facial features and hands. As a result, the generated videos
+may exhibit blurred or distorted small structures, reflecting
+a limitation of the underlying Image VAE.
+Comparision with existing video generative models
+Figure 6 presents qualitative comparisons on UCF101
+dataset between prior video generative models and our
+approach. Latte often produces temporally inconsistent
+videos; for example, in the second sample of Latte, the
+scene begins with a single person but unexpectedly introduces an additional person mid-sequence, revealing weak
+long-range temporal modeling. This issue comes from its
+Local Factorized Attention, which cannot preserve framelevel information during temporal attention.
+AR-Diffusion produces sharp frames but exhibits minimal motion, partly due to its use of a frame interval of 1 and
+
+independent noise levels during training. In contrast, our
+method produces videos with stable temporal dynamics and
+maintains coherence even for fast-moving foreground objects, demonstrating stronger modeling of complex motion
+and global temporal structure.
+
+B.3. Aditional ablation study
+Fusion mechanism For FrameDiT-H, we investigate alternative fusion mechanisms that combine local and global
+temporal features. In addition to the default Concat+MLP
+fusion, we evaluate a gated fusion variant where a learnable scalar gate adaptively controls the contribution of each
+branch:
+  e=\sigma \left (\alpha \right )\times e_{\text {local}}+\left (1-\sigma \left (\alpha \right )\right )\times e_{\text {global}}, 
+
+(28)
+
+where σ (·) denotes the sigmoid function, and α are
+learnable parameters. We denote the two variants as
+FrameDiT-H-Concat and FrameDiT-H-Gated, respectively.
+As shown in Table 6, FrameDiT-H-Concat achieves
+stronger results on video-level metrics across all sequence
+lengths, indicating that preserving the full information from
+both branches leads to better temporal modeling. In contrast, FrameDiT-H-Gated performs slightly better on FID,
+suggesting that gated fusion can improve frame-wise spatial quality but at the cost of discarding some temporal information. Overall, the results highlight that both local and
+global temporal information are essential, and that aggressively filtering one branch via a sigmoid gate may hurt video
+consistency.
+
+Local Factorized
+Full 3D
+FrameDiT-G
+FrameDiT-H
+Figure 5. Qualitative comparison on 128-frame Taichi-HD 128 × 128. Local Factorized Attention exhibits severe temporal drift and
+collapsing human structure. In contrast, Full 3D model and FrameDiT-G, FrameDiT-H remain stable even at 128 frames, generating smooth
+and coherent motion. The slight blurring of small regions (hands, face) arises from the low-resolution encoding of the Stable Diffusion 2.0
+autoencoder.
+
+Latte
+AR-Diffusion
+FrameDiT-G
+FrameDiT-H
+Latte
+AR-Diffusion
+FrameDiT-G
+FrameDiT-H
+
+Figure 6. Qualitative comparison on UCF101 between prior video generative models and our approach.
+
+
