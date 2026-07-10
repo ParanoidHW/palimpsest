@@ -1,11 +1,22 @@
+# Towards Automated Kernel Generation in the Era of LLMs
+
+## 资料边界
+
+- 用途：整理 LLM-driven kernel generation 的综述框架、SFT/RL 路线、agent 环境和数据/评测资源。
+- 来源：https://github.com/flagos-ai/awesome-LLM-driven-kernel-generation
+- 本地资产：`assets/Pasted image 20260614204147.png`、`assets/Pasted image 20260614204608.png`、`assets/Pasted image 20260614204647.png`、`assets/Pasted image 20260614204218.png`。
+
 https://github.com/flagos-ai/awesome-LLM-driven-kernel-generation
-![[Pasted image 20260614204147.png]]
+
+![LLM driven kernel generation overview](assets/Pasted%20image%2020260614204147.png)
 
 LLM4Kernel：
-![[Pasted image 20260614204608.png|981]]
+
+![LLM4Kernel overview](assets/Pasted%20image%2020260614204608.png)
 
 Agent4Kernel：
-![[Pasted image 20260614204647.png|1005]]
+
+![Agent4Kernel overview](assets/Pasted%20image%2020260614204647.png)
 
 根据论文第 2 节的背景介绍，传统的算子（Kernel）生成与优化主要分为以下两种范式：
 ## 1. 基于专家编写与领域特定抽象 (Expert-written Paradigm)
@@ -263,7 +274,7 @@ RL 的重点不在于现成的答案，而在于**“尝试-反馈-改进”**�
 ## 5. 核心发现与定量分析 (示例)
 根据论文整理的各 Benchmarks 发展趋势：
 
-![[Pasted image 20260614204218.png|678]]
+![Kernel agent quantitative analysis](assets/Pasted%20image%2020260614204218.png)
 ## 6. 未来挑战
 尽管进展飞速，但论文指出仍存在以下挑战：
 - **奖励入侵 (Reward Hacking)**：模型可能为了刷分而写出在实际部署中不稳定的代码。
@@ -284,52 +295,52 @@ RL 的重点不在于现成的答案，而在于**“尝试-反馈-改进”**�
 | 分类 / 数据资源 | 发布时间 | 描述 | 访问方式 |
 | :--- | :--- | :--- | :--- |
 | **I. Structured Datasets (Hugging Face & Benchmarks)** | | | |
-| The Stack v2 [Lozhkov et al., 2024] | 02/2024 | Unsupervised CUDA/Triton Corpus | [[Data]](https://huggingface.co/datasets/bigcode/the-stack-v2) |
-| HPC-Instruct [HPC-AI Tech, 2024] | 06/2024 | Instructions for CUDA/MPI/OpenMP | [[Data]](https://huggingface.co/datasets/hpcgroup/hpc-instruct) |
-| KernelBook [Paliskara and Saroufim, 2025] | 05/2025 | Torch-Triton Aligned Corpus | [[Data]](https://huggingface.co/datasets/cuda-mode/kernelbook) |
-| KernelBench samples | 02/2025 | Kernel Code Snapshots and Profiling Data | [[Data]](https://github.com/kernelbench/kernelbench) |
+| The Stack v2 [Lozhkov et al., 2024] | 02/2024 | Unsupervised CUDA/Triton Corpus | [Data](https://huggingface.co/datasets/bigcode/the-stack-v2) |
+| HPC-Instruct [HPC-AI Tech, 2024] | 06/2024 | Instructions for CUDA/MPI/OpenMP | [Data](https://huggingface.co/datasets/hpcgroup/hpc-instruct) |
+| KernelBook [Paliskara and Saroufim, 2025] | 05/2025 | Torch-Triton Aligned Corpus | [Data](https://huggingface.co/datasets/cuda-mode/kernelbook) |
+| KernelBench samples | 02/2025 | Kernel Code Snapshots and Profiling Data | [Data](https://github.com/kernelbench/kernelbench) |
 | **II. Code-Centric Corpora (GitHub Repositories)** | | | |
 | **Layer 1: High-Performance Operator Libraries** | | | |
-| CUTLASS | 12/2017 | CUDA C++ Template Library for Matrix Ops | [[Code]](https://github.com/NVIDIA/cutlass) |
-| FlashAttention | 05/2022 | Fast and Memory-Efficient Exact Attention | [[Code]](https://github.com/Dao-AILab/flash-attention) |
-| FlagAttention | 11/2023 | Memory Efficient Attention Operators in Triton | [[Code]](https://github.com/FlagOpen/FlagAttention) |
-| AoTriton | 02/2024 | AOT-compiled Triton kernels for AMD ROCm | [[Code]](https://github.com/ROCm/aotriton) |
-| xFormers | 11/2021 | Hackable and Optimized Transformer Blocks | [[Code]](https://github.com/facebookresearch/xformers) |
-| Liger-Kernel | 08/2024 | Efficient Triton Kernels for LLM Training | [[Code]](https://github.com/linkedin/Liger-Kernel) |
-| FlagGems | 04/2024 | Triton-based Operator Library for LLMs | [[Code]](https://github.com/FlagOpen/FlagGems) |
-| Bitsandbytes | 09/2022 | K-bit Quantization Kernels for LLMs | [[Code]](https://github.com/TimDettmers/bitsandbytes) |
-| Gemlite | 09/2024 | Low-Bit Matrix Multiplication Triton Kernels | [[Code]](https://github.com/mobiusml/gemlite) |
-| FlashInfer | 01/2025 | Kernel Library for Efficient LLM Serving | [[Code]](https://github.com/flashinfer-ai/flashinfer) |
-| FBGEMM | 05/2021 | Low-Precision Matrix Multiplication | [[Code]](https://github.com/pytorch/FBGEMM) |
-| Transformer Engine | 09/2022 | Acceleration Library for Transformer Models | [[Code]](https://github.com/NVIDIA/TransformerEngine) |
-| DeepGEMM | 09/2025 | Clean and Efficient FP8 GEMM Kernels | [[Code]](https://github.com/deepseek-ai/DeepGEMM) |
-| Tile Kernels | 04/2026 | A Kernel Library Written in TileLang | [[Code]](https://github.com/tile-lang/tile-kernels) |
+| CUTLASS | 12/2017 | CUDA C++ Template Library for Matrix Ops | [Code](https://github.com/NVIDIA/cutlass) |
+| FlashAttention | 05/2022 | Fast and Memory-Efficient Exact Attention | [Code](https://github.com/Dao-AILab/flash-attention) |
+| FlagAttention | 11/2023 | Memory Efficient Attention Operators in Triton | [Code](https://github.com/FlagOpen/FlagAttention) |
+| AoTriton | 02/2024 | AOT-compiled Triton kernels for AMD ROCm | [Code](https://github.com/ROCm/aotriton) |
+| xFormers | 11/2021 | Hackable and Optimized Transformer Blocks | [Code](https://github.com/facebookresearch/xformers) |
+| Liger-Kernel | 08/2024 | Efficient Triton Kernels for LLM Training | [Code](https://github.com/linkedin/Liger-Kernel) |
+| FlagGems | 04/2024 | Triton-based Operator Library for LLMs | [Code](https://github.com/FlagOpen/FlagGems) |
+| Bitsandbytes | 09/2022 | K-bit Quantization Kernels for LLMs | [Code](https://github.com/TimDettmers/bitsandbytes) |
+| Gemlite | 09/2024 | Low-Bit Matrix Multiplication Triton Kernels | [Code](https://github.com/mobiusml/gemlite) |
+| FlashInfer | 01/2025 | Kernel Library for Efficient LLM Serving | [Code](https://github.com/flashinfer-ai/flashinfer) |
+| FBGEMM | 05/2021 | Low-Precision Matrix Multiplication | [Code](https://github.com/pytorch/FBGEMM) |
+| Transformer Engine | 09/2022 | Acceleration Library for Transformer Models | [Code](https://github.com/NVIDIA/TransformerEngine) |
+| DeepGEMM | 09/2025 | Clean and Efficient FP8 GEMM Kernels | [Code](https://github.com/deepseek-ai/DeepGEMM) |
+| Tile Kernels | 04/2026 | A Kernel Library Written in TileLang | [Code](https://github.com/tile-lang/tile-kernels) |
 | **Layer 2: Framework & System Integration** | | | |
-| PyTorch (ATen) | 10/2016 | Foundational Tensor Library for C++ and Python | [[Code]](https://github.com/pytorch/pytorch) |
-| vLLM | 06/2023 | High-Efficient Serving Engine | [[Code]](https://github.com/vllm-project/vllm) |
-| SGLang | 12/2023 | Structured Generation Language for LLMs | [[Code]](https://github.com/sgl-project/sglang) |
-| llama.cpp | 03/2023 | LLM Inference in C/C++ | [[Code]](https://github.com/ggerganov/llama.cpp) |
-| TensorRT-LLM | 08/2023 | TensorRT Toolbox for LLM Inference | [[Code]](https://github.com/NVIDIA/TensorRT-LLM) |
-| DeepSpeed | 10/2019 | System for Large Scale Model Training | [[Code]](https://github.com/microsoft/DeepSpeed) |
+| PyTorch (ATen) | 10/2016 | Foundational Tensor Library for C++ and Python | [Code](https://github.com/pytorch/pytorch) |
+| vLLM | 06/2023 | High-Efficient Serving Engine | [Code](https://github.com/vllm-project/vllm) |
+| SGLang | 12/2023 | Structured Generation Language for LLMs | [Code](https://github.com/sgl-project/sglang) |
+| llama.cpp | 03/2023 | LLM Inference in C/C++ | [Code](https://github.com/ggerganov/llama.cpp) |
+| TensorRT-LLM | 08/2023 | TensorRT Toolbox for LLM Inference | [Code](https://github.com/NVIDIA/TensorRT-LLM) |
+| DeepSpeed | 10/2019 | System for Large Scale Model Training | [Code](https://github.com/microsoft/DeepSpeed) |
 | **Layer 3: Domain-Specific Languages** | | | |
-| Triton | 07/2019 | Open-Source GPU Programming Language | [[Code]](https://github.com/triton-lang/triton) |
-| TileLang | 04/2024 | Tile-based Optimization Language | [[Code]](https://github.com/tile-lang/tile-lang) |
-| cuTile | 12/2025 | NVIDIA’s DSL for Tile-centric Programming | [[Link]](https://developer.nvidia.com/) |
+| Triton | 07/2019 | Open-Source GPU Programming Language | [Code](https://github.com/triton-lang/triton) |
+| TileLang | 04/2024 | Tile-based Optimization Language | [Code](https://github.com/tile-lang/tile-lang) |
+| cuTile | 12/2025 | NVIDIA’s DSL for Tile-centric Programming | [Link](https://developer.nvidia.com/) |
 | **III. Knowledge Bases & Educational Resources** | | | |
 | **Documentation & Guides** | | | |
-| CUDA Guide | 06/2007 | CUDA C++ Programming Guide | [[Docs]](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html) |
-| PTX ISA | 06/2007 | PTX ISA Reference | [[Docs]](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html) |
-| Tuning Guides | 05/2020 | NVIDIA Architecture Tuning Guides | [[Docs]](https://docs.nvidia.com/cuda/) |
+| CUDA Guide | 06/2007 | CUDA C++ Programming Guide | [Docs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html) |
+| PTX ISA | 06/2007 | PTX ISA Reference | [Docs](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html) |
+| Tuning Guides | 05/2020 | NVIDIA Architecture Tuning Guides | [Docs](https://docs.nvidia.com/cuda/) |
 | **Community Indices & Tutorials** | | | |
-| GPU-MODE | 01/2024 | Resource Stream & KernelBook | [[List]](https://github.com/cuda-mode) |
-| Triton Index | 01/2024 | Community Index for Triton Optimization | [[List]](https://github.com/triton-lang/triton) |
-| Awesome-CUDA | 06/2016 | Community Curated List for CUDA | [[List]](https://github.com/vincentfpgarcia/awesome-cuda) |
-| Awesome-GPU | 12/2023 | Awesome GPU Engineering List | [[List]](https://github.com/YosysHQ/awesome-gpu) |
-| LeetCUDA | 05/2023 | CUDA Programming Exercises | [[Code]](https://github.com/CisMine/LeetCUDA) |
-| Triton-Puzzles | 01/2023 | Puzzles for Learning Triton | [[Code]](https://github.com/srush/Triton-Puzzles) |
-| Colfax Research | 01/2011 | Technical Hub Dedicated to HPC and AI | [[Link]](https://colfaxresearch.com/) |
-| Nsight Compute | 09/2018 | Kernel Profiling Guide | [[Docs]](https://docs.nvidia.com/nsight-compute/index.html) |
-| CUDA Course | 07/2024 | GitHub Repo for CUDA Course | [[Docs]](https://github.com/hkust-gz-hpcl/CUDA-Course) |
+| GPU-MODE | 01/2024 | Resource Stream & KernelBook | [List](https://github.com/cuda-mode) |
+| Triton Index | 01/2024 | Community Index for Triton Optimization | [List](https://github.com/triton-lang/triton) |
+| Awesome-CUDA | 06/2016 | Community Curated List for CUDA | [List](https://github.com/vincentfpgarcia/awesome-cuda) |
+| Awesome-GPU | 12/2023 | Awesome GPU Engineering List | [List](https://github.com/YosysHQ/awesome-gpu) |
+| LeetCUDA | 05/2023 | CUDA Programming Exercises | [Code](https://github.com/CisMine/LeetCUDA) |
+| Triton-Puzzles | 01/2023 | Puzzles for Learning Triton | [Code](https://github.com/srush/Triton-Puzzles) |
+| Colfax Research | 01/2011 | Technical Hub Dedicated to HPC and AI | [Link](https://colfaxresearch.com/) |
+| Nsight Compute | 09/2018 | Kernel Profiling Guide | [Docs](https://docs.nvidia.com/nsight-compute/index.html) |
+| CUDA Course | 07/2024 | GitHub Repo for CUDA Course | [Docs](https://github.com/hkust-gz-hpcl/CUDA-Course) |
 
 ---
 **注**：表格中的日期对应资源的首次发布日期，各项目至今仍在活跃更新中。[Data Resources](https://alphaxiv.org/abs/2601.15727?page=5)

@@ -1,6 +1,15 @@
-# 整体总结
+# AscendCraft
 
-![[Pasted image 20260614223507.png|1017]]
+## 资料边界
+
+- 用途：记录 AscendCraft 的 DSL-guided transcompilation 路线和 AscendC kernel generation 观点。
+- 本地资产：[assets/Pasted image 20260614223507.png](assets/Pasted%20image%2020260614223507.png)。
+- 相关索引：[Kernel Agents Paper Index](0.%20Awesome%20Papers%20on%20LLM&Agent%20for%20kernel.md)。
+
+![AscendCraft overview](assets/Pasted%20image%2020260614223507.png)
+
+## 整体总结
+
 这篇论文提出了 **AscendCraft**，这是一个利用大语言模型（LLM）通过领域特定语言（DSL）引导，自动生成华为昇腾（Ascend）NPU 高性能算子内核（Kernel）的框架。
 
 以下是该研究提出的问题、解决思路和方案的详细解释：
