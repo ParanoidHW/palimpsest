@@ -1,5 +1,11 @@
 # Diffusion 模型多模态演进调研
 
+## 资料边界
+
+- 生成日期：2026-07-02。
+- 调研输出目录：`../../_artifacts/output/diffusion-models-deep-research/`。
+- 范围：以多模态 diffusion / flow 生成模型为主，覆盖图像、视频、音频、3D、动作/世界模型；dLLM 只作为相邻分支。
+
 生成日期：2026-07-02  
 调研输出目录：`../../_artifacts/output/diffusion-models-deep-research/`  
 范围：以多模态 diffusion / flow 生成模型为主，覆盖图像、视频、音频、3D、动作/世界模型；dLLM 只作为相邻分支，不纳入多模态主演进线。
