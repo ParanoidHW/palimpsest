@@ -1,5 +1,12 @@
 # DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence 精读分析
 
+## 资料边界
+
+- 论文版本：arXiv:2606.19348v1。
+- 用途：精读 DeepSeek-V4 的 1M context、CSA/HCA、mHC、MoE overlap、KV cache 和 post-training 基础设施设计。
+- 本地证据：PDF、LaTeX 源码、提取文本、源码图与 HF/GitHub 核查记录均索引在“资料与配图索引”。
+- 证据边界：HF/GitHub API 访问失败的配置和权重元数据标为未验证，不作为确定结论。
+
 > 资料状态：已下载 arXiv:2606.19348v1 PDF、arXiv source archive、LaTeX 源码、正文提取文本和 58 页 PDF 渲染截图。本文档嵌入的 Figure 已改用 LaTeX source 中的原始 PDF 素材转换出的 PNG，caption 以 Markdown 文本紧贴图片保留；Table 不再使用页面截图，改用 LaTeX 表格源码整理成 Markdown 摘录，并指向完整 `.tex`。论文声称 checkpoint 位于 Hugging Face collection，并在正文给出 `DeepSeek-V4-Pro/tree/main/inference` 实现链接；本次环境访问 Hugging Face/GitHub API 超时或 DNS 失败，因此未能独立读取 HF `config.json`、权重文件列表或 DeepGEMM PR 元数据，开源配置核查状态标为未验证。
 
 ## 0. 资料与配图索引
