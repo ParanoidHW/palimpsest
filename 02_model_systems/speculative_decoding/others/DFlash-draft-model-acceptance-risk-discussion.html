@@ -1092,7 +1092,7 @@ eval: accepted_draft_tokens 和 accepted_with_bonus 都报</code></pre>
               </div>
             </header>
             <div class="qa-summary"></div>
-            <div class="turn-body"><p>这个信息会改变风险排序。DSV4 在昇腾上已有裸模型推理样例，说明 target model forward、权重加载、基础 tokenizer/template 和 CANN/torch_npu 环境的风险下降；但它不等价于 DFlash 训练链路已经可用。</p>
+            <div class="turn-body"><p>这个信息会改变风险排序。DSV4 在昇腾上已有裸模型推理样例，说明 target model forward、权重加载、基础 tokenizer/template 和 CANN 与 torch_npu 环境的风险下降；但它不等价于 DFlash 训练链路已经可用。</p>
 <p>从该样例对当前项目的影响看：</p>
 <p>1. primary target 更倾向先选 Flash</p>
 <p>如果样例或当前资源对 Flash 支持更成熟，而 Pro 需要更多卡或更复杂部署，第一阶段低时延 infra 验证建议先 pin DSV4-Flash。先证明 draft/verify 能在 Flash 上形成低时延收益，再评估 Pro 是否需要独立 draft。</p>
