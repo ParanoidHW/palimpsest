@@ -1,5 +1,12 @@
 # Token Sparse Attention 精读：把任意 token mask 转换为连续 QKV 的 gather/attention/scatter 管线
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Multimodal custom attention](../surveys/multimodal-custom-attention.md)
+> - 证据资产：`../assets/papers/token-sparse-attention/`
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
+
 ## 来源与图示索引
 
 - 论文：*Token Sparse Attention: Efficient Long-Context Inference with Interleaved Token Selection*，本地 `paper.pdf` 共 16 页；本次 artifacts 未包含官方实现，kernel 细节仅以论文为准。

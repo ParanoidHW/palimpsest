@@ -1,10 +1,17 @@
 # Cosmos 3 精读：把非典型双流 Mask 分解为两次标准 varlen Attention
 
-> 资料状态：本 survey folder 未保留 Cosmos 3 PDF/官方源码 snapshot；本分析基于知识库中已完成的一手材料索引 [`Cosmos3.md`](../../../../02_model_systems/multimodal_generation/典型模型/Cosmos3.md)（记录 arXiv `2606.02800`、LaTeX source 与 `NVIDIA/cosmos-framework` commit `3a5314b7dd3c3abb84df71627ecb10ef8423dbdd`）。因此本文能核验该本地精读记录中的 source/code line reference，但本轮没有重新执行 Cosmos code。最终交付应将 PDF 原图和源码 snapshot 一并归档，以消除该证据边界。
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Multimodal custom attention](../surveys/multimodal-custom-attention.md)
+> - 证据资产：`../../../../02_model_systems/multimodal_generation/assets/papers/cosmos-3/`
+> - 相关文档：[Cosmos 3 完整精读](../../../../02_model_systems/multimodal_generation/papers/cosmos-3.md)，[Figure inventory](../evidence/figure-inventory.md)
+
+> 资料状态：本 survey folder 未保留 Cosmos 3 PDF/官方源码 snapshot；本分析基于知识库中已完成的一手材料索引 [`Cosmos3.md`](../../../../02_model_systems/multimodal_generation/papers/cosmos-3.md)（记录 arXiv `2606.02800`、LaTeX source 与 `NVIDIA/cosmos-framework` commit `3a5314b7dd3c3abb84df71627ecb10ef8423dbdd`）。因此本文能核验该本地精读记录中的 source/code line reference，但本轮没有重新执行 Cosmos code。最终交付应将 PDF 原图和源码 snapshot 一并归档，以消除该证据边界。
 
 ## 0. 资料、图示与关键名词
 
-![Cosmos 3 two-way flat attention（知识库基于论文/实现整理的机制图）](../../../../02_model_systems/multimodal_generation/assets/two_way_attention_infra.png)
+![Cosmos 3 two-way flat attention（知识库基于论文/实现整理的机制图）](../../../../02_model_systems/multimodal_generation/assets/papers/cosmos-3/two-way-attention-infra.png)
 
 上图最重要的不是模型画成两座塔，而是可见性方向：Reasoner/AR query 只读本 sample 的 AR 历史；Generator/diffusion query 可读同 sample 的 AR + Generator tokens；AR 不会读回 noisy diffusion tokens。
 
@@ -16,7 +23,7 @@
 | two-way flat attention | 两次 variable-length attention call 的 implementation lowering | 一个 dense `[L,L]` custom attention bias | 本地精读 infrastructure §3 |
 | `cu_seqlens` | packed varlen segment offset | token-token mask | `two_way_attention_infra.png` / code 索引 |
 
-另一个建议在最终报告嵌入的论文源图是 [`mot_architecture.png`](../../../../02_model_systems/multimodal_generation/assets/mot_architecture.png)：它解释参数路径分离；本图解释 attention 可见性与 kernel lowering。两图不能互相替代。
+另一个建议在最终报告嵌入的论文源图是 [`mot_architecture.png`](../../../../02_model_systems/multimodal_generation/assets/papers/cosmos-3/mot-architecture.png)：它解释参数路径分离；本图解释 attention 可见性与 kernel lowering。两图不能互相替代。
 
 ## 1. 统一多模态模型究竟要解决什么冲突
 

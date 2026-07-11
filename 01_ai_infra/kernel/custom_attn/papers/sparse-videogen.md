@@ -1,5 +1,12 @@
 # Sparse VideoGen 精读：按视频时空先验选择结构化 mask，并把非连续时间访问重排成 block-sparse kernel 可吃的布局
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Multimodal custom attention](../surveys/multimodal-custom-attention.md)
+> - 证据资产：`../assets/papers/sparse-videogen/`
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
+
 ## 来源与图示索引
 
 - 论文：*Sparse VideoGen: Accelerating Video Diffusion Transformers with Spatial-Temporal Sparsity*，本地 `paper.pdf` 共 17 页。当前 artifacts 未包含官方代码，以下 kernel/API 表述仅来自论文与伪码。

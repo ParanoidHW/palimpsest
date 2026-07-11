@@ -1,5 +1,12 @@
 # MInference 1.0 精读：把动态稀疏 mask 编译成 pattern-specific index 与 Triton FlashAttention 遍历
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Multimodal custom attention](../surveys/multimodal-custom-attention.md)
+> - 证据资产：`../assets/papers/minference/`
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
+
 ## 来源与图示索引
 
 - 论文：*MInference 1.0: Accelerating Pre-filling for Long-context LLMs via Dynamic Sparse Attention*，本地 `paper.pdf` 共 27 页。论文给出实现细节，但当前 artifacts 未有官方仓库快照，故不能把论文伪码当作已代码审计的 API。

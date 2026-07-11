@@ -1,5 +1,12 @@
 # FrameDiT 精读：不是 sparse mask，而是把时序全连接压缩到帧级矩阵 attention
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Multimodal custom attention](../surveys/multimodal-custom-attention.md)
+> - 证据资产：`../assets/papers/framedit/`
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
+
 ## 来源、代码与图示索引
 
 - 论文：*FrameDiT: Diffusion Transformer with Matrix Attention for Efficient Video Generation*，本地 `paper.pdf` 共 16 页。

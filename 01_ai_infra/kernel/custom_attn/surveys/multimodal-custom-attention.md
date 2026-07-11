@@ -1,9 +1,15 @@
 # 多模态稀疏 Attention 与定制 Mask Kernel 调研
 
+> [!info] 文档关系
+> - 文档类型：Survey
+> - 领域入口：[README](../README.md)
+> - 证据资产：`../assets/papers/`
+> - 相关文档：[Selection](../evidence/selection.md)，[Figure inventory](../evidence/figure-inventory.md)
+
 > **版本**：图文精读版，2026-07-10。
 > **读者**：设计/评审多模态 attention kernel、长视频 runtime、统一模型训练与 serving 的工程人员。
 > **范围**：高分辨率 VLM 理解、视频/世界模型生成、理解-生成统一模型；NVIDIA CUDA 为主。
-> **证据包**：[检索、PDF、源码、逐篇精读与图清单](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/)。原论文图均保留完整 caption；图的结论不替代正文和源码核验。
+> **证据包**：[选篇与图表证据](../evidence/selection.md)。原论文图均保留完整 caption；图的结论不替代正文和源码核验。
 
 ---
 
@@ -87,7 +93,7 @@ $$
 
 **它解决什么**：高分辨率 VLM 若把所有 high-resolution patch token 与 low-resolution image/text token 做全量 self-attention，视觉细节越多，decoder attention 成本越快爆炸。
 
-![FlexAttention VLM Fig.2](assets/papers/2407_flexattention_vlm/fig2_hierarchical_vlm_selection_caption.png)
+![FlexAttention VLM Fig.2](../assets/papers/flexattention-vlm/fig2_hierarchical_vlm_selection_caption.png)
 
 *原论文 Fig.2，ECCV 2024：高分辨率选择模块根据 input attention map 取区域 token，再与低分辨率图像和文本 token 做 hierarchical self-attention。*
 
@@ -98,7 +104,7 @@ H_l=\operatorname{Attn}([H_{\text{low}},H_{\text{text}},\operatorname{Gather}(H_
 \quad S_{l+1}=\operatorname{Select}(\operatorname{Map}(H_l)).
 $$
 
-**kernel 含义**：这是 `selected indices -> gather -> compact attention`，不是先构造高分辨率 token 对的 dense mask。最合适的是 compact/varlen QKV kernel；选择器的 attention map 仍需计入总成本。官方 README 证实它是 LLaVA v1.5 7B 高分辨率 VLM 实现，但本次未逐行核验其 CUDA backend，因此不把任何特定 Triton/FlashAttention 声称归因给该论文。详细证据见 [逐篇分析](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/papers/2407_flexattention_vlm/analysis.md)。
+**kernel 含义**：这是 `selected indices -> gather -> compact attention`，不是先构造高分辨率 token 对的 dense mask。最合适的是 compact/varlen QKV kernel；选择器的 attention map 仍需计入总成本。官方 README 证实它是 LLaVA v1.5 7B 高分辨率 VLM 实现，但本次未逐行核验其 CUDA backend，因此不把任何特定 Triton/FlashAttention 声称归因给该论文。详细证据见 [逐篇分析](../papers/flexattention-vlm.md)。
 
 ---
 
@@ -106,7 +112,7 @@ $$
 
 **它解决什么**：统一 backbone 中，AR reasoner 既要保持 causal、不能被 noisy diffusion token 污染；generator 又要读取同样本的 reasoner、图像/视频/动作条件，并在自身 token 内双向去噪。一个通用 mixed mask 虽然正确，但 kernel 看到的是复杂可见性，容易产生 padding-equivalent work。
 
-![Cosmos 3 two-way attention](assets/papers/2606_cosmos3/two_way_attention_infra.png)
+![Cosmos 3 two-way attention](../../../../02_model_systems/multimodal_generation/assets/papers/cosmos-3/two-way-attention-infra.png)
 
 *Cosmos 3 本地论文/源码资产：将一个混合 attention layer lowering 为 reasoner 与 generator 两个调用。*
 
@@ -119,7 +125,7 @@ $$
 
 packed batch 组织为 $[R_0,G_0,R_1,G_1,\ldots]$，每个 $G_i$ 只读本样本 $[R_i,G_i]$。本地论文材料记录：相对 FlexAttention baseline，Cosmos3-Nano 端到端训练吞吐增加 22%；Hopper 使用 FlashAttention-3，GB200 使用 NATTEN/CUTLASS 路线。
 
-**工程判断**：当非典型 mask 可以 lower 为少量 causal/full rectangular segments 时，拆成 multiple varlen calls 往往优于把任意 predicate 暴露给通用 sparse kernel。它是统一模型的首选优化顺序。实现证据在本地 [Cosmos 3 精读](../../../02_model_systems/multimodal_generation/典型模型/Cosmos3.md) 的 two-way attention 小节及 [逐篇分析](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/papers/2606_cosmos3/analysis.md)。
+**工程判断**：当非典型 mask 可以 lower 为少量 causal/full rectangular segments 时，拆成 multiple varlen calls 往往优于把任意 predicate 暴露给通用 sparse kernel。它是统一模型的首选优化顺序。实现证据在本地 [Cosmos 3 精读](../../../../02_model_systems/multimodal_generation/papers/cosmos-3.md) 的 two-way attention 小节及 [逐篇分析](../papers/cosmos-3.md)。
 
 ---
 
@@ -127,11 +133,11 @@ packed batch 组织为 $[R_0,G_0,R_1,G_1,\ldots]$，每个 $G_i$ 只读本样本
 
 **它解决什么**：teacher-forcing 能并行、稳定地训练 AR diffusion，但输入含 clean history 和 noisy target；推理时又是自生成 chunk。普通 causal mask 或一个 forward-only mask 都不足以表达其训练目标，更不能自动支持 Jacobian-vector product (JVP)。
 
-![Causal-rCM Fig.3](assets/papers/2606_causal_rcm/fig3_causal_training_paradigms_caption.png)
+![Causal-rCM Fig.3](../assets/papers/causal-rcm/fig3_causal_training_paradigms_caption.png)
 
 *原论文 Fig.3：TF 使用干净历史，DF 使用不同噪声级别的历史，SF 在自生成历史上 rollout 并使用 KV cache。图注完整保留。*
 
-![Causal-rCM Fig.4](assets/papers/2606_causal_rcm/fig4_recipe_comparison_caption.png)
+![Causal-rCM Fig.4](../assets/papers/causal-rcm/fig4_recipe_comparison_caption.png)
 
 *原论文 Fig.4：Causal-rCM 将 TF consistency initialization 与 SF-DMD 组合；这解释训练 recipe，不单独证明 kernel 的收益。*
 
@@ -149,7 +155,7 @@ $$
 
 **实现细节（代码已核验）**：官方 commit `ed3cb14` 的 `rcm/utils/blockmask.py` 将它表示为 `BlockPattern` 和 `AttnMaskSpec`；`_make_mask_fn()` 只计算 query/key block id，`create_block_mask()` 缓存编译后的 Flex `BlockMask`。`teacher_forcing` 和 `block_causal` 对齐到默认 128-token block；`flash_attention_jvp_triton.py` 用同一 mask 参与 primal 与 JVP。即 mask 是 operator contract，而不是 score 后处理。Magi range 路径的 forward/JVP 证据存在，但源码注释表明其 backward 支持有边界，不能宣称所有 backend 等价。
 
-**结论与风险**：论文报告的 10x convergence 是 continuous-time CM、training recipe、JVP 和系统配置的端到端结果，不能仅归因给 kernel。详见 [Causal-rCM 精读](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/papers/2606_causal_rcm/analysis.md)。
+**结论与风险**：论文报告的 10x convergence 是 continuous-time CM、training recipe、JVP 和系统配置的端到端结果，不能仅归因给 kernel。详见 [Causal-rCM 精读](../papers/causal-rcm.md)。
 
 ---
 
@@ -157,7 +163,7 @@ $$
 
 **它解决什么**：固定 local window 可能漏掉长程身份/运动依赖；把 global frame 加进窗口后，又会与局部窗口重叠，浪费原本固定的 attention budget。
 
-![LVSA Fig.1](assets/papers/2605_lvsa/fig1_expanded_window_caption.png)
+![LVSA Fig.1](../assets/papers/lvsa/fig1_expanded_window_caption.png)
 
 *原论文 Fig.1：左侧 basic window 因 window 与 global frames 重叠而浪费预算；右侧 expanded window 保持每个 query frame 的 attended set 大小。*
 
@@ -169,17 +175,17 @@ $$
 
 其中 $\mathcal G$ 是 rotating periodic global anchors，$\mathcal W(t)$ 是会在重叠时扩展的本地窗口。它保证近似恒定预算 $|\mathcal A(t)|\approx C$，而不是固定矩形窗口。
 
-![LVSA Table 1](assets/papers/2605_lvsa/table1_wall_time_caption.png)
+![LVSA Table 1](../assets/papers/lvsa/table1_wall_time_caption.png)
 
 *原论文 Table 1：不同模型和 horizon 的 wall time。HunyuanVideo 1.5 在 2x horizon 的 dense attention OOM，LVSA-FI 约占 60GB。*
 
-![LVSA Fig.4](assets/papers/2605_lvsa/fig4_wall_time_scaling_caption.png)
+![LVSA Fig.4](../assets/papers/lvsa/fig4_wall_time_scaling_caption.png)
 
 *原论文 Fig.4：wall time 随 horizon 增长的趋势；不同模型曲线受模型规模、训练长度与 80GB GPU 设置约束，不应跨模型直接比较。*
 
 **实现细节（代码已核验）**：`lvsa/sparse_attention.py:275-304` 的 `ring_block_frame_csr()` 返回 `int32 indptr` 与 `int32 indices`，并明确写明 FlashInfer `BlockSparseAttentionWrapper` 跳过未列的 frame blocks，**不构造** dense `[Sq,Sk]` mask。`_build_flashinfer_csr()` 还构造 compact frame layout 和 copy instructions。关键 host-device 事实在 `ensure_device():601-607`：`fi_indptr/fi_indices` 故意保留 CPU，供 host mask builder/FlashInfer planning pass 使用，planner 再创建运行期 device copy。
 
-这回答了“CPU 生成能否直接给 kernel”：**CPU 可生成 CSR；GPU kernel 不直接从 host RAM 读 CSR**。若 metadata 随 denoising step 变化，应缓存或增量更新，否则 planner 成本会侵蚀稀疏收益。详细路径、复杂度和质量边界见 [LVSA 精读](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/papers/2605_lvsa/analysis.md)。
+这回答了“CPU 生成能否直接给 kernel”：**CPU 可生成 CSR；GPU kernel 不直接从 host RAM 读 CSR**。若 metadata 随 denoising step 变化，应缓存或增量更新，否则 planner 成本会侵蚀稀疏收益。详细路径、复杂度和质量边界见 [LVSA 精读](../papers/lvsa.md)。
 
 ---
 
@@ -187,7 +193,7 @@ $$
 
 **它解决什么**：原 MoBA 的一维均匀 key block 划分不匹配视频的 temporal、spatial 和 3D 邻域；固定 top-k 也可能对不同 head 分配错误预算。
 
-![VMoBA Fig.2](assets/papers/2506_vmoba/fig2_vmoba_pipeline_caption.png)
+![VMoBA Fig.2](../assets/papers/vmoba/fig2_vmoba_pipeline_caption.png)
 
 *原论文 Fig.2：layer-wise recurrent block partition -> global/threshold block selection -> 仅在 selected blocks 上计算 sparse attention。*
 
@@ -199,7 +205,7 @@ $$
 
 **实现细节（代码已核验）**：`src/vmoba.py:530-710` 先 `calc_chunks`，gather K/V，计算 $[C,H,S]$ gate，然后 `topk`/threshold 得到 bool `gate_mask`。下一步以 `nonzero` 获得 selected query indices，生成 `moba_cu_seqlen_q` 和 `moba_cu_seqlen_kv`，最后调用 FlashAttention varlen forward/backward。
 
-因此 VMoBA **暂时会有 dense gate tensor**，但不会把 token-pair dense mask 传进 FlashAttention；稀疏性最终是 `indices + compact QKV + cu_seqlens`。风险也随之清楚：`gate`, `topk/sort`, `nonzero`, gather/scatter 和 LSE merge 是控制面成本。release code 的 default `threshold_type=query_head` 与论文中 per-head global 描述存在复现差异，应在基准配置中固定。详见 [VMoBA 精读](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/papers/2506_vmoba/analysis.md)。
+因此 VMoBA **暂时会有 dense gate tensor**，但不会把 token-pair dense mask 传进 FlashAttention；稀疏性最终是 `indices + compact QKV + cu_seqlens`。风险也随之清楚：`gate`, `topk/sort`, `nonzero`, gather/scatter 和 LSE merge 是控制面成本。release code 的 default `threshold_type=query_head` 与论文中 per-head global 描述存在复现差异，应在基准配置中固定。详见 [VMoBA 精读](../papers/vmoba.md)。
 
 ---
 
@@ -207,7 +213,7 @@ $$
 
 **它解决什么**：video diffusion 有 $S$ 个 denoising steps。即使 sparse attention 每一步很快，若每个 step、每个 head 都重新预测 mask，mask planner 本身可能吞掉节省的计算；统一 threshold 又忽略 head 的不同重要性和误差曲线。
 
-![HASTE Fig.4](assets/papers/2605_haste/fig4_tmr_ebc_framework_caption.png)
+![HASTE Fig.4](../assets/papers/haste/fig4_tmr_ebc_framework_caption.png)
 
 *原论文 Fig.4：左侧 Temporal Mask Reuse (TMR) 用 query-key stability 判定每 head 是否复用 cached mask；右侧 Error-guided Budgeted Calibration (EBC) 在离线 prompt pool 上为不同 head 分配 threshold。*
 
@@ -216,7 +222,7 @@ $$
 - **TMR（在线）**：锚点 step $t_a$ 的 mask $M^{(h)}_{t_a}$ 不必每步刷新。通过当前和锚点 Q/K 的轻量 drift proxy 判断是否复用。
 - **EBC（离线）**：在固定全局 sparsity budget 下，根据不同 head 的 error-vs-sparsity 曲线配置不同 threshold；不改底层 sparse kernel。
 
-论文的关键系统洞见是：只缓存/复用 **稀疏 descriptor**，而不是缓存完整 $N\times N$ mask。Table 4 的端到端提升说明 TMR 与 EBC 的目标不同，但由于本次未找到官方实现，不能断言 descriptor 是 CSR、BlockMask 还是某个 Triton 数据结构，也不能声称其在 CPU 或 GPU 上生成。详细数据与证据强度见 [HASTE 精读](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/papers/2605_haste/analysis.md)。
+论文的关键系统洞见是：只缓存/复用 **稀疏 descriptor**，而不是缓存完整 $N\times N$ mask。Table 4 的端到端提升说明 TMR 与 EBC 的目标不同，但由于本次未找到官方实现，不能断言 descriptor 是 CSR、BlockMask 还是某个 Triton 数据结构，也不能声称其在 CPU 或 GPU 上生成。详细数据与证据强度见 [HASTE 精读](../papers/haste.md)。
 
 ---
 
@@ -224,13 +230,13 @@ $$
 
 **它解决什么**：视频 DiT 的 3D full attention 随帧数/分辨率二次增加。直接移植 LLM mask 会破坏 temporal dependency；即使发现了 temporal slash pattern，也可能因非连续 memory layout 跑得很慢。
 
-![Sparse VideoGen Fig.4](assets/papers/2502_sparse_videogen/fig4_svg_workflow_caption.png)
+![Sparse VideoGen Fig.4](../assets/papers/sparse-videogen/fig4_svg_workflow_caption.png)
 
 *原论文 Fig.4：SVG 对每个 attention head 用 sampled rows 在线比较 spatial/temporal sparse attention 与 full attention 的 MSE，并选择相应 kernel。*
 
 **机制**：spatial head 的可见性接近帧内/邻帧 block；temporal head 对应相同 spatial position 的跨帧 slash。它用 online profiling 将 head dispatch 给 spatial 或 temporal kernel，并通过 layout transformation 把原本不连续的 temporal gather 改造成硬件友好访问。
 
-**实现判断**：论文说明原型使用 Triton 和 FlashInfer，但本次未取得可审计官方 kernel 源码，因此不能把它的具体 mask metadata 格式写成事实。它最重要的工程启发是：`发现 sparse pattern` 和 `把 pattern 排列成 coalesced tiles` 是两件事，前者没有后者不会得到理论 speedup。详见 [Sparse VideoGen 精读](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/papers/2502_sparse_videogen/analysis.md)。
+**实现判断**：论文说明原型使用 Triton 和 FlashInfer，但本次未取得可审计官方 kernel 源码，因此不能把它的具体 mask metadata 格式写成事实。它最重要的工程启发是：`发现 sparse pattern` 和 `把 pattern 排列成 coalesced tiles` 是两件事，前者没有后者不会得到理论 speedup。详见 [Sparse VideoGen 精读](../papers/sparse-videogen.md)。
 
 ---
 
@@ -238,7 +244,7 @@ $$
 
 **它解决什么**：block sparse kernel 便于 GPU 执行，但 token 重要性在 layer 和 head 间会改变；永久删除 token 会破坏后续层重新选择的机会。
 
-![Token Sparse Attention Fig.3](assets/papers/2602_token_sparse_attention/fig3_compress_attention_scatter_caption.png)
+![Token Sparse Attention Fig.3](../assets/papers/token-sparse-attention/fig3_compress_attention_scatter_caption.png)
 
 *原论文 Fig.3：每个 head 选择 token subset，compress Q/K/V 后使用任何 attention kernel；输出 scatter 回原序列并与 residual 相加。*
 
@@ -250,7 +256,7 @@ $$
 \quad O_h=\operatorname{Scatter}(\hat O_h;S_h).
 $$
 
-这解释了它为什么能复用 FlashAttention：kernel 从不需要知道稀疏 token 的原始位置，只面对连续 compact tensor。真正的代价移到 gather/contiguous conversion/scatter 和 selector；这在短序列、低 sparsity 或 head 选择高度发散时可能占主导。未获得官方代码，具体 index placement 和实现细节标为 PDF-only。详见 [Token Sparse Attention 精读](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/papers/2602_token_sparse_attention/analysis.md)。
+这解释了它为什么能复用 FlashAttention：kernel 从不需要知道稀疏 token 的原始位置，只面对连续 compact tensor。真正的代价移到 gather/contiguous conversion/scatter 和 selector；这在短序列、低 sparsity 或 head 选择高度发散时可能占主导。未获得官方代码，具体 index placement 和实现细节标为 PDF-only。详见 [Token Sparse Attention 精读](../papers/token-sparse-attention.md)。
 
 ---
 
@@ -258,13 +264,13 @@ $$
 
 **它解决什么**：长上下文 prefill 中 attention 变成延迟主导，但相同 head 在不同输入中并不共享同一组 top-k token；静态 fixed mask 的 recall 会明显下降。
 
-![MInference Fig.3](assets/papers/2407_minference/fig3_sparse_patterns_caption.png)
+![MInference Fig.3](../assets/papers/minference/fig3_sparse_patterns_caption.png)
 
 *原论文 Fig.3：A-shape、vertical-slash、block-sparse 三种 head pattern；不同输入的精确 indices 动态变化，但 pattern family 可以由 kernel-aware search 预先分配。*
 
 MInference 的分层策略是：离线给每个 head 选 pattern family；在线用近似索引构建具体 range/column/block index；随后 dispatch 三种优化 GPU kernels（论文声明 PIT、Triton、FlashAttention 相关实现）。它不是将一个大稀疏矩阵交给通用 dense kernel。
 
-它虽主要为 LLM prefill，但其模式/索引/dispatch 分离为多模态视频提供桥接：video DiT 必须把 causal pattern 改为 bidirectional spatial-temporal pattern，并把在线 planner 开销乘上 denoising steps。具体 Appendix C range/column index 讨论与证据见 [MInference 精读](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/papers/2407_minference/analysis.md)。
+它虽主要为 LLM prefill，但其模式/索引/dispatch 分离为多模态视频提供桥接：video DiT 必须把 causal pattern 改为 bidirectional spatial-temporal pattern，并把在线 planner 开销乘上 denoising steps。具体 Appendix C range/column index 讨论与证据见 [MInference 精读](../papers/minference.md)。
 
 ---
 
@@ -272,13 +278,13 @@ MInference 的分层策略是：离线给每个 head 选 pattern family；在线
 
 **它解决什么**：factorized temporal attention 便宜但难捕获大运动，full 3D attention 表达力强但难扩展。FrameDiT 选择改变 temporal interaction 的对象，而不是设计一张更稀疏的 token mask。
 
-![FrameDiT Fig.1](assets/papers/2603_framedit/fig1_matrix_attention_architecture_caption.png)
+![FrameDiT Fig.1](../assets/papers/framedit/fig1_matrix_attention_architecture_caption.png)
 
 *原论文 Fig.1：在 interleaved spatial/temporal DiT 中，以 frame-level Matrix Attention 替代 temporal token-level attention，另可组合 Global-Local hybrid。*
 
 Matrix Attention 将一帧视为矩阵，沿 frame-level 计算 Q/K/V 和 attention，而非对所有 patch token 建立时间 token-pair。它表明最优系统选择有时是**降低 token topology 的维度**。
 
-但官方 commit `359bd12` 中的公开 `models/latte_t2v.py:761-779` 对二维 mask 会转为 `-10000` bias 并 broadcast 到 score path；该实现不证明存在 custom sparse kernel。报告将“论文算法的复杂度收益”和“公开代码的 mask implementation”严格分开。详见 [FrameDiT 精读](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/papers/2603_framedit/analysis.md)。
+但官方 commit `359bd12` 中的公开 `models/latte_t2v.py:761-779` 对二维 mask 会转为 `-10000` bias 并 broadcast 到 score path；该实现不证明存在 custom sparse kernel。报告将“论文算法的复杂度收益”和“公开代码的 mask implementation”严格分开。详见 [FrameDiT 精读](../papers/framedit.md)。
 
 ---
 
@@ -392,4 +398,4 @@ $$
 - **最新性口径**：检索快照为 2026-07-10。2026 预印本的引用数不足以判定长期影响，因此以问题覆盖、原始证据、官方代码与系统贡献共同筛选。
 - **不可直接横比**：不同视频模型、GPU、horizon、质量指标、训练/推理模式不同；速度数字用于理解各自实验，不构成统一排行榜。
 
-完整候选数据库、影响力信号、逐篇证据矩阵、原图 inventory、PPT QA 与执行检查表都位于 [中间证据包](../../../_artifacts/ai_algorithm_survey_multimodal_custom_attn/)。
+正式选篇依据见 [Selection](../evidence/selection.md)，原论文图、裁剪与 QA 记录见 [Figure inventory](../evidence/figure-inventory.md)。

@@ -1,5 +1,12 @@
 # HASTE 精读：把稀疏 mask 的“控制面”从每步重算变成按 head 自适应复用
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Multimodal custom attention](../surveys/multimodal-custom-attention.md)
+> - 证据资产：`../assets/papers/haste/`
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
+
 ## 来源与图示索引
 
 - 论文：*HASTE: Training-Free Video Diffusion Acceleration via Head-Wise Adaptive Sparse Attention*，PDF 共 25 页。本分析以本地 `paper.pdf` 为一手证据；本次未获得可审计的官方代码。

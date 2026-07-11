@@ -1,10 +1,17 @@
 # FlexAttention for Efficient High-Resolution Vision-Language Models 精读
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Multimodal custom attention](../surveys/multimodal-custom-attention.md)
+> - 证据资产：`../assets/papers/flexattention-vlm/`
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
+
 来源：ECCV 2024；官方仓库 `UMass-Embodied-AGI/FlexAttention`；论文 [arXiv:2407.20228](https://arxiv.org/abs/2407.20228)。注意这篇论文的 `FlexAttention` 是模型方法名，不等于 PyTorch 同名算子 API。
 
 ## 问题与原始图
 
-高分辨率 VLM 若把全部 high-resolution image tokens 拼接到 text/low-resolution token 后做全注意力，decoder 的成本随视觉 token 数二次增长。原论文 Fig.2（本地 `figures/crops/fig2_hierarchical_vlm_selection_caption.png`）给出两阶段结构：低分辨率图像和文本先提供全局上下文；每个 FlexAttention layer 再利用 input attention map 选择局部 high-resolution tokens。
+高分辨率 VLM 若把全部 high-resolution image tokens 拼接到 text/low-resolution token 后做全注意力，decoder 的成本随视觉 token 数二次增长。原论文 Fig.2（本地 `../assets/papers/flexattention-vlm/fig2_hierarchical_vlm_selection_caption.png`）给出两阶段结构：低分辨率图像和文本先提供全局上下文；每个 FlexAttention layer 再利用 input attention map 选择局部 high-resolution tokens。
 
 ## 核心机制
 

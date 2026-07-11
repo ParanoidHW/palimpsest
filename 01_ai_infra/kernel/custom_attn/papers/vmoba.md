@@ -1,5 +1,12 @@
 # VMoBA 精读：动态 block 选择不是自定义 kernel，而是 selector + varlen FlashAttention
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Multimodal custom attention](../surveys/multimodal-custom-attention.md)
+> - 证据资产：`../assets/papers/vmoba/`
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
+
 > 资料状态：已核对 arXiv PDF（13 页）与官方 `KlingAIResearch/VMoBA` snapshot，commit `48aaccd4f14c5adb7db961058bfbb2113e392003`。它是 2025 年 arXiv work，代码为单文件参考实现；论文的完整 Video DiT 训练配置、训练入口和精确 runtime profile 未在该仓库提供，因此实现层结论必须区分“论文机制”和“reference kernel path”。
 
 ## 0. 资料、图示与符号
@@ -11,7 +18,7 @@
 | 主实验与消融 | PDF Table 1--3、Fig. 6--7 | 区分 FLOPs 降低和真实 latency；检查 selector 消融 |
 | 实际 kernel 路径 | `src/vmoba.py:339-727` | gate tensor、`nonzero`、packing、FlashAttention varlen、LSE merge |
 
-![论文 Fig. 2：VMoBA 三级流水线（PDF 第 4 页，后续应裁出图及完整 caption）](figures/page_png/page_04.png)
+![论文 Fig. 2：VMoBA 三级流水线（PDF 第 4 页，后续应裁出图及完整 caption）](../assets/papers/vmoba/fig2_vmoba_pipeline_caption.png)
 
 图 1 中蓝色的 selected block 是针对 query-head/block pair 的选择结果；它不表示一个常驻的 token-token sparse mask。
 

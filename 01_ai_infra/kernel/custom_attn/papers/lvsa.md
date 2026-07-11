@@ -1,5 +1,12 @@
 # LVSA 精读：训练外推时的窗口 + 轮转锚点，以及 CPU 生成的 Block-CSR
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Multimodal custom attention](../surveys/multimodal-custom-attention.md)
+> - 证据资产：`../assets/papers/lvsa/`
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
+
 > 资料状态：已核对 arXiv PDF（10 页）与官方 `JiusiServe/LongVideoSparseAttention` 快照，commit `1ebcc92e13d353cbc685eb8bf435e47dd5dfa062`。这是训练免费（training-free）的 inference/serving 方法，不应与通过重新训练学习 sparse pattern 的 VMoBA 混为一谈。未发现公开 OpenReview 评审；性能和质量数字为论文在其提示词集、模型、GPU 与采样设置下的报告。
 
 ## 0. 资料、配图与符号
@@ -11,7 +18,7 @@
 | CSR / host-device 边界 | `lvsa/sparse_attention.py:398-747` | `fi_indptr/fi_indices` 在 CPU；FlashInfer plan 拥有自己的 device-side copy |
 | serving 集成 | `docs/VLLM_OMNI_INTEGRATION.md` | metadata 每个 denoising step 更新，runtime 不读取 host dense mask |
 
-![论文 Fig. 1：LVSA basic/expanded sparse mask（PDF 第 3 页，后续应裁出图及完整 caption）](figures/page_png/page_03.png)
+![论文 Fig. 1：LVSA basic/expanded sparse mask（PDF 第 3 页，后续应裁出图及完整 caption）](../assets/papers/lvsa/fig1_expanded_window_caption.png)
 
 图 1 展示的是 frame-grid mask，不是 token-grid 的 dense materialization。每个彩色格会扩展为该 frame 内所有 patch token 的 block-pair。
 

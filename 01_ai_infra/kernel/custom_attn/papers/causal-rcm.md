@@ -1,5 +1,12 @@
 # Causal-rCM 精读：把 Teacher-Forcing mask 做成可 JVP 的结构化 Attention
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Multimodal custom attention](../surveys/multimodal-custom-attention.md)
+> - 证据资产：`../assets/papers/causal-rcm/`
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
+
 > 资料状态：已核对 arXiv PDF（32 页）与官方 `NVlabs/rcm` 快照，commit `ed3cb14dd936f92cdc9f9381af7369991509b41f`。本文件的图示来自论文 PDF 渲染页；后续成品应裁出完整图和 caption，而不是把图重新绘制为结论图。论文为 2026 年 technical report/ICLR 2026 仓库标注，未检索到公开 OpenReview 评审，以下性能结论按作者报告对待。
 
 ## 0. 资料、图示与术语
@@ -11,7 +18,7 @@
 | 自定义 attention/JVP | PDF §B，`extracted_text/page_15.txt`；`rcm/utils/flash_attention_jvp_triton.py` | primal 与 tangent 必须走同一可见性规则 |
 | mask lowering | `rcm/utils/blockmask.py`、`rcm/utils/magimask.py` | `BlockMask` 和 range-CSR，而非 `[L,L]` bool tensor |
 
-![论文 Fig. 3：TF/DF/SF 的训练与 KV-cache 关系（PDF 第 6 页，后续应裁图）](figures/page_png/page_06.png)
+![论文 Fig. 3：TF/DF/SF 的训练与 KV-cache 关系（PDF 第 6 页，后续应裁图）](../assets/papers/causal-rcm/fig3_causal_training_paradigms_caption.png)
 
 图 1 的关键信息是：TF 把 clean context 和 noisy target 放入同一次 packed forward；SF 则真的按 chunk rollout 并维护 KV cache。因此两者不能仅靠“改变 loss”互相替代。
 
