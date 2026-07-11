@@ -2395,7 +2395,7 @@ $$
 
 多视角数据会拼成一个 canvas，并把视角布局写入 structured JSON prompt。论文图中 DROID 多视角格式是：上方 wrist camera，下方左右两个 third-person views。
 
-![DROID multiview packaging](../../../_artifacts/output/2606.02800_paper/source/figures/data/action/multiview_droid_16164052.jpg)
+![DROID multiview packaging](../assets/cosmos3_droid_multiview_packaging.jpg)
 
 源码里的 DROID wrapper 也对应这个构建思路：
 
