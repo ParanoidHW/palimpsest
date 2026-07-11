@@ -1,150 +1,222 @@
-# 投机推理（Speculative Reasoning）生成方案调研与分析
+# 投机解码的基础合同与机制分类
 
 > [!info] 文档关系
 > - 文档类型：Survey
 > - 领域入口：[README](../README.md)
+> - 上位汇总：[Evolution](evolution.md)
 > - 证据资产：无
-> - 相关文档：[Evolution](evolution.md)
+> - 相关文档：[P-EAGLE](../papers/p-eagle.md)，[DFlash](../papers/dflash.md)，[D2SD](../papers/d2sd.md)，[JetSpec](../papers/jetspec.md)，[HyperDFlash](../papers/hyperdflash.md)，[DSpark](../papers/dspark.md)
 
-## 资料边界
+## 资料边界与阅读分工
 
-- 用途：按问题背景、技术路线、关键进展和趋势整理投机推理/投机解码路线。
-- 证据边界：趋势判断来自公开论文线索和本目录精读材料；具体 benchmark 结论需回到对应论文精读。
-- 相关入口：[投机推理方法时间演进调研](evolution.md)。
+本文只回答三件事：什么叫 lossless speculative decoding；接受率、draft/verify 成本与 speedup 上限如何联系；token/tree/block/reasoning-level 方法分别改变哪个合同。时间顺序和 2023--2026 演进只在 [Evolution](evolution.md) 维护，本文不复制时间线。
 
-"投机推理"这一说法目前在文献中主要对应两条相互交织的技术脉络:一是把经典的**投机解码(Speculative Decoding)**从"猜测下一个token"扩展到"猜测下一个推理步骤/推理路径",专门为**长思维链(Long CoT)推理模型**(如 OpenAI o1、DeepSeek-R1、QwQ、Kimi-K1.5 等)做加速;二是把投机解码本身的系统/算法设计(草稿模型选择、稀疏注意力、验证机制)进一步针对推理模型的"长输出、内存受限"特性做专门优化。下面从**问题背景 → 技术路线 → 关键进展 → 发展趋势**四个层面展开。
+经典一手来源采用 [Leviathan et al., ICML 2023](https://proceedings.mlr.press/v202/leviathan23a.html) 与 [Chen et al., 2023](https://arxiv.org/abs/2302.01318)；本地六篇工作通过具体章节承接机制、实验和 infra 证据。reasoning-level 论文若不保持 target token distribution，本文统一标为 lossy/proposal-and-verification，不借用“lossless”标签。
 
----
+## 1. Lossless correctness contract
 
-## 一、问题背景:为什么需要"投机推理"
+设 target model 的 next-token distribution 为 $p(x\mid h)$，drafter 为 $q(x\mid h)$，历史为 $h$。投机解码的正确性目标不是“草稿看起来合理”，而是最终提交 token 的边缘分布仍等于 $p$：
 
-大型推理模型(LRM)通过生成数千甚至数万 token 的思维链来提升复杂任务(数学、代码、科学推理)的准确率,但这也带来了严重的推理延迟问题。传统 token 级投机解码虽然能缓解自回归解码的顺序依赖,但其加速比存在**算法上限**:
+$$
+P_{SD}(x\mid h)=p(x\mid h).
+$$
 
-> "the probability of an entire γ-token sequence is correct falls exponentially as γ grows... This means allocating more compute for longer token drafts faces an algorithmic ceiling – making the speedup modest and hardware-agnostic." [Token级SD上限](https://www.alphaxiv.org/abs/2506.19830?page=1)
+一种标准接受-纠正规则是：先从 $q$ 采样候选 $x$，以
 
-同时,随着输出长度暴涨,推理模型的推理瓶颈从"计算受限"转向"**内存受限**"——每生成一个 token 都要读取不断增长的 KV-Cache:
+$$
+a(x)=\min\left(1,\frac{p(x\mid h)}{q(x\mid h)}\right)
+$$
 
-> "such lengthy generation shifts the inference bottleneck from compute-bound to memory-bound... loading the KV-Cache takes on average 21 ms per step, accounting for over 70% of the end-to-end latency." [内存瓶颈](https://www.alphaxiv.org/abs/2512.01278?page=1)
+接受；若拒绝，则从 residual distribution
 
-这两个问题(token级加速天花板 + 内存带宽瓶颈)催生了"投机推理"这一细分方向的多条技术路线。
+$$
+r(x\mid h)=\frac{[p(x\mid h)-q(x\mid h)]_+}{\sum_y[p(y\mid h)-q(y\mid h)]_+}
+$$
 
----
+采样 correction。于是接受分支贡献 $\min(p,q)$，拒绝分支补足 $p-q$ 的正部，合计恢复 $p$。greedy decoding 是该合同的退化情形：接受最长与 target argmax 一致的 prefix，并在首个 mismatch 用 target token 修正。
 
-## 二、主要技术路线
+### 1.1 合同成立需要什么
 
-### 路线一:步骤级/语义级投机(Step-level Speculation)
+- verifier 必须获得 target 对候选前缀各位置的 logits，且 tree/block attention 不得泄漏未来或兄弟分支。
+- sampling temperature、top-k/top-p 和 logit transforms 必须在 draft、verify 与 correction 规则中一致处理；不能先截断分布再套原公式。
+- 接受 token 的 KV state 必须与 target 对同一已提交序列的状态一致；draft-only state 不能污染 target cache。
+- 浮点/kernel 差异可能使“理论同分布”出现实现偏差，尤其是 quantized target、distributed logits 和非确定 sampling。
 
-核心思想是打破"token精确匹配"的验证标准,转而在**推理步骤**这一更粗粒度上做草稿-验证,因为推理步骤只需"语义正确"而非逐字匹配。代表工作是 [Scaling Speculative Decoding with Lookahead Reasoning](https://www.alphaxiv.org/abs/2506.19830):
+### 1.2 什么不属于 lossless
 
-- 轻量草稿模型自回归生成若干个未来推理步骤;目标模型批量并行展开每个候选步骤;一个轻量验证器(LLM-as-a-Judge / 嵌入相似度 / 目标模型打分)判断草稿步骤与目标步骤是否语义等价。
-- 关键实验发现:将 DeepSeek-R1 32B 一半以上的推理步骤替换为小模型生成的语义等价步骤,整体任务准确率变化不超过 2%,验证了步骤级投机的可行性。 [语义等价实验](https://www.alphaxiv.org/abs/2506.19830?page=2)
-- 该方法与 token 级投机解码是正交维度,二者可叠加:在 GSM8K 上,SD 单独峰值加速 1.4×,结合 Lookahead Reasoning 后提升到 2.1×。 [正交加速](https://www.alphaxiv.org/abs/2506.19830?page=3)
-- 论文还给出理论证明:在有限并行度预算下,同时使用步骤级和 token 级投机(而非单独使用任一种)才能达到最优加速比。
+- 用 reward model、embedding similarity 或 LLM judge 接受语义相近 reasoning step。
+- 让小模型生成 CoT，仅在低置信时调用大模型。
+- 为追求 final-answer accuracy/latency 而改变 target 的 token path 或采样分布。
 
-同一路线下还有 [Accelerating Large Language Model Reasoning via Speculative Search](https://www.alphaxiv.org/abs/2505.02865),将投机思想引入树搜索式推理(如 MCTS/Tree-of-Thought),用投机机制加速对多条中间推理路径的探索验证过程。
+这些方法可以有价值，但正确定位是 lossy reasoning acceleration。Evolution 的 [step-level correctness 分化](evolution.md#55-step-level--semantic-speculation-的最新分化) 讨论其时间线；本文只保留合同边界。
 
-### 路线二:奖励/验证器引导的投机解码
+## 2. Acceptance、accepted length 与速度上限
 
-[Reward-Guided Speculative Decoding (RSD)](https://www.alphaxiv.org/abs/2501.19324) 用轻量草稿模型结合过程奖励模型(process reward model)来决定何时接受草稿输出、何时切换到大模型生成,把"投机"与"奖励引导的推理质量控制"结合起来,兼顾效率与推理正确性。
+若每轮 draft $\gamma$ 个 token，逐位置条件接受概率近似为 $\alpha$，忽略相关性，则一轮提交的期望 draft prefix 长度为
 
-### 路线三:自投机 + 稀疏注意力(Self-Speculative Decoding)
+$$
+E[A]=\sum_{i=1}^{\gamma}P(A\ge i)=\sum_{i=1}^{\gamma}\alpha^i
+=\frac{\alpha(1-\alpha^\gamma)}{1-\alpha}.
+$$
 
-这条路线不引入额外的草稿模型,而是复用目标模型自身(降低部署复杂度),通过稀疏注意力机制让草稿阶段的 KV-Cache 访问量大幅降低。代表工作 [Accelerating Large-Scale Reasoning Model Inference with Sparse Self-Speculative Decoding (SparseSpec)](https://www.alphaxiv.org/abs/2512.01278):
+若 verifier 在全部 $gamma$ 个 token 都接受时额外从 target 提交一个 token，则期望提交数为
 
-- 提出 PillarAttn,复用验证阶段已经计算出的精确注意力分数来选择草稿阶段的关键 token,零额外开销地实现动态稀疏。
-- 针对推理模型特有的三个系统挑战——workload 波动、显式同步、KV-Cache 利用率低——分别设计了统一批调度器、延迟验证、动态 KV-Cache 管理。 [系统挑战](https://www.alphaxiv.org/abs/2512.01278?page=2)
-- 在 Qwen3-1.7B/8B/14B 上相比 vLLM 最高实现 2.13× 吞吐提升,相比 EAGLE3(需训练的草稿头方法)也能取得相当或更优的吞吐,且完全免训练。 [端到端加速](https://www.alphaxiv.org/abs/2512.01278?page=8)
+$$
+E[C]=1+E[A]=\frac{1-\alpha^{\gamma+1}}{1-\alpha}.
+$$
 
-同一脉络下还有更早的 MagicDec、TriForce(论文中作为对比基线出现)——它们用静态滑动窗口稀疏注意力做草稿,但在推理模型上因上下文动态性强而命中率不足,这正是 SparseSpec 试图解决的问题。
+这揭示两个上限：$\gamma$ 增大时 $E[C]$ 会在 $1/(1-\alpha)$ 附近饱和；accepted length 高不等于 speedup 高，因为 draft/tree construction 与 verify tensor shape 也增长。
 
-### 路线四:训练式草稿头方法(应用于推理场景)
+更一般的单轮成本模型：
 
-EAGLE 系列(EAGLE/EAGLE-2/EAGLE-3)、Medusa、Hydra、多token预测(MTP)等通过给目标模型加装轻量草稿头,在训练阶段学习预测多步 token,是通用投机解码里最主流的训练式路线。这类方法迁移到推理模型场景时面临的主要问题是:训练数据分布与真实长链推理输出存在差异,导致接受率在推理任务上明显下降——SparseSpec 的实验显示 EAGLE-3 和 N-gram 在推理任务上平均接受 token 数不到 2 个(满 8 个草稿 token 中),远低于其针对推理场景专门设计的 PillarAttn(6.16 个)。 [接受率对比](https://www.alphaxiv.org/abs/2512.01278?page=9)
+$$
+T_{round}=T_{draft}(\gamma,B)+T_{pack/tree}(\gamma,B)+T_{verify}(N_v,B)
++T_{accept}+T_{KV}+T_{sched},
+$$
 
-### 路线五:打破串行瓶颈 / 系统架构创新
+$$
+\mathrm{Speedup}\approx\frac{E[C]\,T_{AR-target}}{T_{round}}.
+$$
 
-一些较新的工作专注于投机解码本身的**系统架构瓶颈**而非算法层面,例如 [Mirror Speculative Decoding: Breaking the Serial Barrier in LLM Inference](https://www.alphaxiv.org/abs/2510.13161)(Apple),指出草稿生成本身的自回归特性限制了投机解码的收益上限,试图从系统层面打破这一串行障碍。类似地,[Speculative Speculative Decoding](https://www.alphaxiv.org/abs/2603.03251)(Stanford/Princeton/Together AI)这一"元级"命名也反映出社区正在反思和重构投机解码本身的设计空间。
+$B$ 是 batch/load，$N_v$ 是 target 实际验证节点数。理想化上界假设 draft/pack/scheduler 免费且一次 target forward 与单 token 一样快，则 speedup 至多 $E[C]$；真实系统永远更低。JetSpec 明确展示 [tree budget 是负载相关旋钮](../papers/jetspec.md#47-serving-中-tree-budget-是负载相关旋钮)，D2SD 也指出 [更长 accepted prefix 可能被额外 draft/verify 成本抵消](../papers/d2sd.md#44-消融结论)。
 
-### 路线六:块扩散/半自回归草稿生成
+### 2.1 应同时报告的指标
 
-近期出现了将扩散模型(diffusion)引入草稿生成的新方向,如 [DFlash: Block Diffusion for Flash Speculative Decoding](https://www.alphaxiv.org/abs/2602.06036) 和后续的 [Accelerating Speculative Decoding with Block Diffusion Draft Trees](https://www.alphaxiv.org/abs/2604.12989),以及 [DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation](https://www.alphaxiv.org/abs/2026.dspark),它们用块级/半自回归的方式一次性生成多个草稿 token 或草稿树,试图突破传统逐 token 自回归草稿模型的效率上限。这是2026年初出现的较新趋势,与推理场景强相关(长输出更受益于块级并行草稿)。
-
----
-
-## 三、路线对比小结
-
-| 维度 | Token级SD(基线) | 步骤级/语义级投机 | 自投机+稀疏注意力 | 训练式草稿头 | 块扩散/半自回归草稿 |
-|---|---|---|---|---|---|
-| 典型代表 | Leviathan et al. 2023 | Lookahead Reasoning, Speculative Search | SparseSpec, MagicDec, TriForce | EAGLE系列, Medusa, MTP | DFlash, DSpark |
-| 是否需训练 | 否(或需独立草稿模型) | 否(验证器可为通用LLM/embedding) | 否(自投机) | 是 | 部分需要 |
-| 加速瓶颈来源 | γ增长时接受率指数下降 | 已被步骤级并行突破 | 内存带宽(KV-Cache) | 分布外推理任务接受率低 | 草稿自回归串行性 |
-| 是否推理场景专用 | 通用 | 是 | 是(专为长CoT设计) | 通用(推理场景效果打折) | 通用/正在扩展到推理 |
-
----
-
-## 四、发展趋势
-
-- **粒度上移**:从"token级"投机走向"步骤级/语义级"投机,承认推理链条只需语义正确而非token精确匹配,这是解决token级SD算法天花板的关键突破口。 [步骤级投机](https://www.alphaxiv.org/abs/2506.19830?page=1)
-- **算法-系统协同设计成为主流**:单纯提高接受率已不够,必须同时解决调度不均衡、CPU-GPU同步、KV-Cache管理等系统问题才能把理论加速比兑现为真实吞吐——SparseSpec 的三项系统优化分别贡献 1.23×、1.61×、1.12× 的增益即是例证。
-- **免训练/自投机方案受到更多青睐**:训练草稿模型面临分布外泛化差、部署复杂度高的问题,尤其在推理任务上表现明显不如通用场景,这推动了自投机、稀疏注意力复用等免训练路线的发展。
-- **多层次并行的正交叠加**:token级、步骤级、稀疏注意力级等多种投机维度被证明可以正交组合、乘性叠加加速比,而非相互替代,未来系统很可能走向"多级混合投机"架构。
-- **验证器设计成为新的研究焦点**:语义验证器的选择(LLM-as-Judge vs 嵌入相似度 vs 目标模型打分)直接决定接受率与准确率的权衡,是这条路线上一个开放且持续被研究的子问题。
-- **推理效率与"过度思考"问题交叉融合**:投机推理与"高效推理"(减少不必要的思维链长度)正逐渐成为互补的两条加速路径——一条压缩生成内容,一条加速生成过程。
-- **草稿生成机制本身也在演化**:2026年出现的块扩散、半自回归草稿等方案表明,业界正尝试从根本上改变"草稿模型也需自回归"这一假设,是较新的前沿方向。
-
----
-
-## 五、值得关注的开放挑战
-
-- 步骤切分依赖简单的换行符启发式(如 `\n\n`),缺乏更智能的语义分段方法。 [局限性](https://www.alphaxiv.org/abs/2506.19830?page=10)
-- 验证器本身的计算开销与判断精度之间存在权衡,轻量高效的验证器仍是未解难题。
-- 现有大部分方法在超大模型/超长上下文(TP并行度更高)时加速比会随之衰减,系统的可扩展性仍需进一步验证。
-
-如果你对上述某条路线(比如自投机+稀疏注意力,或步骤级验证器设计)想深入了解某篇论文的具体实验细节,我可以进一步展开。
-
-## 各路线典型模型年份一览
-
-| 路线 | 代表工作 | 年份 |
+| 指标 | 回答什么 | 常见误读 |
 |---|---|---|
-| Token级SD(基线/通用) | Leviathan et al., Fast Inference from Transformers via Speculative Decoding | 2022/2023 |
-| Token级SD(基线/通用) | Chen et al., Accelerating LLM Decoding with Speculative Sampling (DeepMind) | 2023 |
-| 步骤级/语义级投机 | [Reward-Guided Speculative Decoding (RSD)](https://www.alphaxiv.org/abs/2501.19324) | 2025-01 |
-| 步骤级/语义级投机 | [Accelerating LLM Reasoning via Speculative Search](https://www.alphaxiv.org/abs/2505.02865) | 2025-05 |
-| 步骤级/语义级投机 | [Scaling Speculative Decoding with Lookahead Reasoning](https://www.alphaxiv.org/abs/2506.19830) | 2025-06 |
-| 自投机+稀疏注意力 | MagicDec | 2024 |
-| 自投机+稀疏注意力 | TriForce | 2024 |
-| 自投机+稀疏注意力 | [SparseSpec](https://www.alphaxiv.org/abs/2512.01278) | 2025-12 |
-| 训练式草稿头 | Medusa | 2023 |
-| 训练式草稿头 | EAGLE | 2024 |
-| 训练式草稿头 | Hydra | 2024 |
-| 训练式草稿头 | EAGLE-2 | 2024 |
-| 训练式草稿头 | EAGLE-3 | 2025 |
-| 系统架构创新/打破串行 | [Mirror Speculative Decoding](https://www.alphaxiv.org/abs/2510.13161)(Apple) | 2025-10 |
-| 系统架构创新/打破串行 | [Speculative Speculative Decoding](https://www.alphaxiv.org/abs/2603.03251)(Stanford/Princeton/Together) | 2026-03 |
-| 块扩散/半自回归草稿 | [DFlash](https://www.alphaxiv.org/abs/2602.06036) | 2026-02 |
-| 块扩散/半自回归草稿 | [Block Diffusion Draft Trees](https://www.alphaxiv.org/abs/2604.12989) | 2026-04 |
-| 块扩散/半自回归草稿 | [DSpark](https://www.alphaxiv.org/abs/2026.dspark) | 2026-06 |
+| acceptance rate | 每个 proposed token 被接受的概率 | 不等于一轮提交长度 |
+| accepted length | 每轮接受的 draft token 数 | 不包含 correction/bonus token 时口径会不同 |
+| draft latency | proposal 成本 | 不能只按 draft model 参数量估算 |
+| verify latency | target 对 token/tree/block 的成本 | 节点数与 attention layout 很关键 |
+| OTPS/throughput | 实际提交 output tokens/s | batch/load/backend 不同不可横比 |
+| TTFT/TPOT/P99 | 用户体验与尾延迟 | 平均 speedup 可能掩盖尾部退化 |
+| quality/distribution test | 是否保持合同 | final accuracy 相同不代表同分布 |
 
-可以看出一条清晰的时间线:2023年之前是通用token级SD和训练式草稿头方法的奠基期;2024年出现了针对长序列场景的自投机稀疏注意力方案(MagicDec、TriForce);2025年是"推理模型专用"投机方案集中爆发的一年(步骤级投机、奖励引导投机、SparseSpec等都在这一年出现,与DeepSeek-R1、o1等长CoT推理模型的普及时间点高度吻合);2026年则进一步转向对草稿生成机制本身的架构级重构(块扩散、打破串行瓶颈)。
+## 3. Mechanism taxonomy
 
----
+### 3.1 Token-chain drafting
 
-## "是否推理场景专用"怎么理解
+独立小 drafter 或 feature drafter 自回归产生 $\gamma$ 个 token，target 一次并行评分。优点是 contract 清晰、实现成熟；瓶颈是 drafter 自身仍串行，且 $\alpha^i$ 使长 prefix 概率衰减。EAGLE 类方法通过 target hidden states 提高 $q\approx p$，但仍有 sequential draft latency。
 
-这一维度问的是:**这个方法的设计动机和优化目标,是不是专门针对"长思维链推理模型"这一特定场景的特性**,还是一个通用的LLM解码加速技术、只是恰好也能用在推理模型上。具体拆解为两层含义:
+P-EAGLE 把 feature drafter 改成 parallel MTP：冻结 target，复用 hidden states，一次预测多个位置；其 mask precomputation 和 sequence partitioning 处理长上下文训练。具体机制见 [P-EAGLE 架构](../papers/p-eagle.md#32-模型系统架构)，接受与 vLLM OTPS 见 [主结果](../papers/p-eagle.md#43-acceptance-length-主结果) 和 [vLLM 结果](../papers/p-eagle.md#44-vllm-otps-主结果)。它改变的是 draft latency，不改变 target verify contract。
 
-**1. 设计动机是否来自推理模型的特有痛点**
+### 3.2 Token-tree drafting
 
-推理模型(o1、R1一类)相比普通对话模型有两个突出特征:
-- 输出极长(数千到数万token),导致推理瓶颈从"计算受限"变成"内存受限"(KV-Cache读取);
-- 生成内容有明显的"步骤"结构,且步骤内允许语义等价替换(而非逐字匹配)。
+tree 一轮提供多条候选路径，target 用 tree-causal mask 评分全部节点，再提交最长 accepted path。它把预算从“加深一条链”改成“增加 breadth/depth”，提高覆盖率；代价是 $N_v$、tree KV/layout、packing 和 scheduler 成本。
 
-专用方法(如 Lookahead Reasoning、SparseSpec)正是围绕这两个特征设计的:前者利用"步骤只需语义正确"这一推理模型特有的宽松验证条件来做步骤级投机;后者专门分析并解决了推理模型批量推理时"内存带宽成为绝对瓶颈"的问题[内存瓶颈动机](https://www.alphaxiv.org/abs/2512.01278?page=3)。这类方法如果用在短输出的普通对话模型上,收益会大幅缩水甚至无意义(比如KV-Cache本来就不大,自投机稀疏注意力的收益就很有限)。
+JetSpec 的 causal-parallel head 在一个 forward 内让 depth 位置具有 prefix conditioning，避免把 branch-agnostic per-position marginals 随意拼成路径。其 [方法公式与 tree flow](../papers/jetspec.md#32-关键公式)、[high-budget 优势](../papers/jetspec.md#42-high-budget-是-jetspec-的主要优势区) 与 [收益归因](../papers/jetspec.md#45-收益来源归因tree-覆盖是大头causal-head-是高预算边际增益) 说明：tree coverage 是主要来源，causal head 在高预算区提供边际改善，不能把全部 speedup 归给 head。
 
-**2. 通用方法在推理场景上是否会"水土不服"**
+### 3.3 Block / diffusion drafting
 
-EAGLE系列、Medusa、N-gram等属于通用投机解码方法,设计之初并非针对长CoT推理任务,而是面向一般文本生成。当它们被直接搬到推理模型上时,会暴露出适配性问题——比如 EAGLE-3 的草稿头是在通用对话/代码数据上训练的,遇到推理模型特有的"探索多种解法、频繁自我修正"这类动态多变的上下文时,接受率明显下降:
+block drafter 一次或少数步并行预测一段 token，target 仍按 token contract 验证。DFlash 用 block diffusion 解决 sequential drafter；其 [速度模型](../papers/dflash.md#31-速度模型与设计动机)、[推理流程](../papers/dflash.md#32-推理流程) 与 [serving 负载退化](../papers/dflash.md#43-serving-backend-中收益真实存在但高并发下下降) 展示算法和系统两侧。
 
-> "PillarAttn achieves an average acceptance token length of 6.16 out of 8 tokens... In comparison, both NGram and EAGLE3 can only draft fewer than 2 accepted tokens. We hypothesize this is because those reasoning tasks are out-of-distribution from EAGLE3's training datasets" [通用方法泛化性差](https://www.alphaxiv.org/abs/2512.01278?page=9)
+DFlash 的局限是 block 内 prefix dependency 弱、首个 mismatch 后缀浪费。D2SD 用 confidence 定位潜在拒绝边界，再以 variable-prefix drafter 生成共享前缀分支；见 [D2SD 推理流程](../papers/d2sd.md#33-推理流程) 与 [DFlash scaling wall](../papers/d2sd.md#41-dflash-扩大-block-的-scaling-wall)。
 
-也就是说,通用方法不是"不能用",而是"没有针对推理场景做优化,效果会打折扣";专用方法则是"从问题定义、算法设计到系统实现,全程围绕推理模型的长输出+步骤化特征展开",因此在这个特定场景下通常能拿到更高的加速比和更稳定的接受率。表格里标"通用"的方法(token级SD、Medusa、EAGLE)本身并非为推理模型而生,只是恰好可以套用;标"是"的方法则是在论文动机、实验设置(全部采用AIME、GSM8K、LiveCodeBench等推理benchmark)、甚至理论分析(如内存带宽建模)层面都专门服务于推理模型这一场景。
+HyperDFlash 不是简单加深 vanilla DFlash，而是让 block drafter 的 hidden-state reducer 对齐 target 的 mHC 架构，并用 LM-head KL distillation 约束 logits；见 [Inherited HC-Gate](../papers/hyperdflash.md#33-关键公式inherited-hc-gate-reducer)、[KL distillation](../papers/hyperdflash.md#34-关键公式lm-head-kl-distillation) 与 [6-step matched result](../papers/hyperdflash.md#41-主结果同为-6-step-budgethyperdflash-明显优于-mtp-和-vanilla-dflash)。收益来自架构对齐 + distillation 的组合。
+
+DSpark 位于纯并行 block 与纯 AR draft 之间：semi-autoregressive groups 保留部分依赖，并用 confidence scheduling 动态决定何时 verify。其 [Semi-AR 机制](../papers/dspark.md#32-semi-autoregressive-generation)、[confidence scheduling](../papers/dspark.md#33-confidence-scheduled-verification) 与 [serving batch 分析](../papers/dspark.md#63-serving-侧-batch-capacity-与调度) 表明，动态 policy 必须与 load/scheduler 联合评估。
+
+### 3.4 Reasoning-step / semantic proposals
+
+对象从 token 变成自然语言 step/thought 后，验证器通常判断语义可接受、奖励或最终答案质量。它可跳过大量 target reasoning compute，但一般不满足 $P_{SD}=p$：step segmentation 不是稳定随机变量，semantic equivalence 也不等价于 target 自由生成的路径概率。
+
+因此合理分类是：
+
+| 系统 | target token distribution | 合同 | 合理指标 |
+|---|---|---|---|
+| token/token-tree/block SD | 可保持 | lossless acceptance/correction | distribution + OTPS |
+| reward/semantic step acceptance | 通常改变 | lossy quality-cost | final accuracy、calibration、cost |
+| small-large cascade/router | 通常改变 | selective escalation | target-call rate、quality、tail latency |
+
+## 4. Draft/verify 成本按机制拆解
+
+| 机制 | $T_{draft}$ | $N_v$ / verify | 主要额外成本 | 主要收益 |
+|---|---|---|---|---|
+| sequential token | $O(\gamma)$ forwards | chain length $\gamma$ | draft KV/cache | 高 $q/p$ 对齐 |
+| parallel MTP | one/few forwards | chain positions | MTP heads、mask | 降 draft latency |
+| tree | one/few forwards + construction | all tree nodes | score/top-k/pack/tree mask | candidate coverage |
+| block diffusion | $S_d$ denoise steps | block tokens | diffusion states、context injection | block parallel proposal |
+| confidence branch | base block + VP branches | cascade tree | confidence/top-k boundaries | 减少后缀浪费 |
+| semi-AR scheduled | group forwards | adaptive | scheduler/control divergence | 质量-延迟自适应 |
+
+真实比较必须使用 bridge baseline：同 target、同 tokenizer、同 prompt、同 sampling、同 verify backend、同 batch/load，再逐步替换 drafter、tree construction 与 runtime。否则算法接受率和 CUDA graph/attention kernel/调度收益会混在一起。
+
+## 5. KV cache、attention 与 serving contract
+
+### 5.1 Cache ownership
+
+target cache 只应提交 accepted prefix。被拒绝 token/tree nodes 可以临时写入 staging KV，但必须 rollback/free；共享前缀可复用，兄弟分支不能互相可见。D2SD 的共享前缀树与 JetSpec 的 tree-causal mask都依赖这个不变量。
+
+对 $L$ 层、$n_{kv}$ KV heads、head dimension $d_h$、每元素 $b$ bytes、已提交长度 $T$：
+
+$$
+M_{KV,target}=2L n_{kv}d_hTb.
+$$
+
+tree staging 近似再加 $2L n_{kv}d_hN_vb$，paged KV 可减少碎片但不消除 bytes。长 reasoning 输出使 HBM read 与 cache capacity成为主约束；draft model 小不代表整个 pipeline 不受 target KV bandwidth 限制。
+
+### 5.2 Attention masks
+
+- chain verify：causal prefix + draft block，通常可用标准 causal/paged attention。
+- tree verify：节点只能读系统 prefix 与祖先，需要 tree mask或 ancestor indices；错误 mask 会破坏 lossless contract。
+- diffusion/block draft：block 内 attention 由 drafter 训练定义；target verify仍必须遵守 token因果性。
+- cascade tree：共享 prefix、不同 boundary/branch 需要稳定 node mapping 与 KV slot allocation。
+
+相关实现需求见 [DFlash 自定义算子](../papers/dflash.md#65-新算子与框架需求)、[JetSpec 调度/自定义算子](../papers/jetspec.md#64-调度serving自定义算子)、[DSpark serving engine 改造](../papers/dspark.md#65-新型自定义算子与-serving-engine-改造)。
+
+### 5.3 Continuous batching 与负载
+
+不同 request 的 accepted length、tree size 与 verify cadence 不同，造成 iteration time divergence。静态最大 budget 在低并发可提高单请求 speedup，在高并发会扩大 verify batch、占用 KV blocks 并降低 batch capacity。故 scheduler 应把 tree/block budget 视为 load-aware policy，而不是模型常量。
+
+端到端应报告：batch size/concurrency、prompt/output length distribution、TP degree、GPU、dtype、KV format、CUDA graphs、P50/P99、OTPS/TPOT、draft/verify breakdown 与 rejected-node memory。
+
+## 6. Acceptance 与 speedup 的常见错误归因
+
+- “accepted length 增加，所以更快”：忽略额外 branches/denoise/packing。
+- “kernel 更快，所以接受率提高”：runtime kernel 不改变 candidate distribution 时不应影响 acceptance。
+- “tree budget 更大，所以 coverage 更好”：若 score/conditioning 不一致，新增路径可能低质量且增加 verify。
+- “最终 accuracy 相同，所以 lossless”：final-answer metric 不能检验 token distribution。
+- “平均 speedup 高，所以 serving 更好”：高并发与 P99 可能退化。
+
+六篇本地证据提供了互补反例：D2SD 展示 accepted length 与 speedup 解耦；JetSpec 展示 tree budget/load 交互；DFlash 展示 serving 高并发收益下降；DSpark 展示 confidence policy 需要 runtime support；P-EAGLE 展示 draft latency 也可成为上限；HyperDFlash 展示 drafter/target architecture mismatch 会限制 proposal quality。
+
+## 7. 开放问题
+
+### Lossless correctness
+
+- quantized/distributed target 下如何测试 distribution equivalence，而不只比较 greedy output？
+- top-p、temperature、repetition penalty、grammar constraint 与 tree verify 如何组合 residual correction？
+- speculative tool use / structured output 的 side effects 如何回滚？
+
+### Candidate generation
+
+- 如何在固定 $T_{draft}+T_{verify}$ 下联合选择 depth、breadth、block size 与 denoise steps？
+- confidence 是否校准到“首个 rejection boundary”，还是只相关于 marginal token accuracy？
+- parallel head 如何保持 prefix conditioning，又不退回 sequential draft？
+
+### KV 与 serving
+
+- staging tree KV 如何与 paged attention、prefix cache、preemption 和 migration 协同？
+- load-aware controller 如何避免 request 间不公平与 P99 放大？
+- draft/target colocate、disaggregate 或跨 GPU/NPU 部署时，hidden state/logits/KV 传输何时抵消收益？
+
+### Reasoning-level
+
+- 如何定义可校准的 semantic acceptance risk，而非只用 judge preference？
+- target 是否拥有最终裁决权，错误 step 能否恢复，是否报告 path divergence？
+- lossy reasoning speedup 应如何同时报告答案质量、token/call cost 和安全失败？
+
+## 8. 最小评测清单
+
+1. 固定 target、sampling contract、backend、dtype、prompt/output 分布和 batch/load。
+2. 分开测 draft、tree/pack、verify、accept、KV/scheduler latency。
+3. 同时报 acceptance rate、accepted/committed length、OTPS、TPOT、P50/P99 和 peak KV。
+4. lossless 方法做 distribution/seed 回归；lossy reasoning 方法明确 quality-cost contract。
+5. 逐级 bridge baseline：AR target -> sequential SD -> parallel/block drafter -> tree/confidence -> runtime optimizations。
+6. 对 budget 做 load sweep，不只报最佳离线点。
+
+## 9. 与 Evolution 的双向导航
+
+- 需要时间线：读 [Evolution 的 2022--2023 lossless 奠基](evolution.md#2-2022-2023token-级-lossless-speculative-decoding-奠基) 和 [2026 parallel/tree/block 主线](evolution.md#6-2026drafter-自身并行化block-diffusion-和-parallel-tree-成为前沿)。
+- 需要合同/公式：留在本文 [lossless contract](#1-lossless-correctness-contract) 与 [speedup model](#2-acceptanceaccepted-length-与速度上限)。
+- 需要单篇证据：按 [机制分类](#3-mechanism-taxonomy) 进入六篇 Paper 的 method/result/infra 章节。

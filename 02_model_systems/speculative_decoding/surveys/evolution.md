@@ -9,6 +9,8 @@
 > 调研日期：2026-07-02  
 > 说明：本文参考本领域精读材料与 [Foundations and trends](foundations-and-trends.md) 的问题线索，并按新的论文检索、arXiv 元数据和 deep-research 六阶段结果重新组织。
 
+本文是 canonical timeline；lossless acceptance/correction 公式、accepted-length 上限、draft/verify 成本和 KV/serving 合同只在 [Foundations and trends](foundations-and-trends.md#1-lossless-correctness-contract) 维护，避免两篇 Survey 重复。
+
 ## 精读证据入口
 
 [P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md) · [D2SD](../papers/d2sd.md) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md)
@@ -68,6 +70,8 @@ target model 一次性并行评分这些 token
 ```
 
 它的贡献在于建立了 **lossless / distribution-preserving** 合同，使加速不改变 target 行为。但它也马上暴露了后续所有工作的共同瓶颈：
+
+严格的接受-纠正规则、residual distribution 与 speedup 上限见 [基础合同](foundations-and-trends.md#1-lossless-correctness-contract) 和 [acceptance 成本模型](foundations-and-trends.md#2-acceptanceaccepted-length-与速度上限)；本节只维护历史位置。
 
 - 如果要求 token 精确匹配，`γ` 越长，整段草稿全对概率越低；
 - 如果 drafter 本身也是自回归，`γ` 越长，draft latency 越高；
@@ -186,6 +190,8 @@ SparseSpec 从系统角度回答长 CoT 的问题。reasoning model 输出很长
 更尖锐地说：如果 step-level 方案只是让小模型先写 CoT 再直接采用，那它本质上就是“小模型推理”，不是 speculative decoding。只有当 target 或由 target 校准的 verifier/controller 拥有最终裁决权时，它才是 proposal-and-verification reasoning；即便如此，它也一般不能声称 lossless。
 
 ## 6. 2026：Drafter 自身并行化，Block Diffusion 和 Parallel Tree 成为前沿
+
+这些方法在机制上的统一分类及其 draft/tree/verify 成本见 [Token、Tree 与 Block taxonomy](foundations-and-trends.md#3-mechanism-taxonomy)；本节按时间顺序展开。
 
 2026 年最明显的趋势是：社区开始集中解决 **drafter 自身仍然串行** 的问题。
 
