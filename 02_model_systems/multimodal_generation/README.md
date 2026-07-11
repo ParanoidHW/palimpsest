@@ -8,18 +8,22 @@
 2. [Training data](topics/training-data.md)：补充多模态生成训练数据和阶段配置。
 3. [Diffusion evolution](surveys/diffusion-evolution.md)：看 diffusion/flow 从图像到视频、音频、3D、world model 的时间线。
 4. [Cosmos 3](papers/cosmos-3.md)：深入 reasoner/generator、MoT、数据管线、训练和 serving infra。
+5. [Cosmos 3 Q&A](supplements/cosmos-3-q-and-a.md)：按 Q1--Q12 复读位置编码、模态编码、训练数据与系统问题。
+6. [Figure inventory](evidence/figure-inventory.md)：追溯 Cosmos 3 正式资产的原编号、source/PDF 页码、caption、owner 与 QA。
 
 ## 文档索引
 
 - Survey：[Diffusion evolution](surveys/diffusion-evolution.md)
 - Topics：[Model pipeline](topics/model-pipeline.md)，[Training data](topics/training-data.md)
 - Paper：[Cosmos 3](papers/cosmos-3.md)
+- Supplement：[Cosmos 3 Q&A](supplements/cosmos-3-q-and-a.md)
+- Evidence：[Figure inventory](evidence/figure-inventory.md)
 
 ## 资产说明
 
 - `assets/topics/model-pipeline/`：多模态生成管线草图。
 - `assets/surveys/diffusion-evolution/`：diffusion 演进与长序列 diffusion 图表。
-- `assets/papers/cosmos-3/`：Cosmos 3 论文图与问答素材。
+- `assets/papers/cosmos-3/`：Cosmos 3 paper-owned 原论文图与明确标注的知识库整理图。
 
 ## 维护规则
 

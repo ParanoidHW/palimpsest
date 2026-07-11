@@ -1,0 +1,33 @@
+# Multimodal Generation 原论文图清单与 QA
+
+> [!info] 文档关系
+> - 文档类型：Evidence
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Diffusion evolution](../surveys/diffusion-evolution.md)
+> - 证据资产：`../assets/papers/cosmos-3/`
+> - 相关文档：[Cosmos 3](../papers/cosmos-3.md)，[Q&A supplement](../supplements/cosmos-3-q-and-a.md)
+
+Cosmos 3 资产来自 arXiv:2606.02800v1 的 LaTeX/TikZ/source-native figures；PDF 页码按 139 页 v1 核验。`bbox` 对 source-native export 使用资产自身 `(0,0,width,height)`。这些资产是论文图体的无损/高分辨率导出，完整 caption 在本清单中保留；正文邻近段落提供中文解释。2026-07-11 以原分辨率逐图检查图体、legend、文字与边缘。
+
+| Object / PDF 页 | Caption（完整中文转述） | Source | 正式资产 / bbox | Owner / usage | QA |
+|---|---|---|---|---|---|
+| Figure 1 / p.5 | Cosmos 3 是 Physical AI 的通用 backbone：联合建模 language、image、video、audio、action 的理解与生成，在一个架构中统一 VLM、image/video/audio generator、policy/world-action、forward 与 inverse dynamics。 | `figures/introduction/cosmos3_overview.tex` | `../assets/papers/cosmos-3/overview.png`; `(0,0,7273,2317)` | cosmos-3 / problem scope | pass；单一 Fig.1 图体、源级清晰 |
+| Figure 2 / p.6 | Cosmos 3 可在不修改架构的情况下针对不同 Physical AI 应用后训练；论文展示 synthetic data generation 与 robot policy。 | `figures/introduction/cosmos_platform.tex` | `../assets/papers/cosmos-3/platform.png`; `(0,0,1235,644)` | cosmos-3 / platform variants | pass |
+| Figure 3 / p.8 | 将异构 embodiment control 映射为共享几何组件构成的紧凑 action vector：ego/effector 使用 3D translation + 6D rotation 的 relative-pose pseudo-actions，grasp state 表示当前操控状态，domain-aware projections 处理不同长度。 | `figures/model_architecture/action/action_representation.tex` | `../assets/papers/cosmos-3/action-representation.png`; `(0,0,1134,504)` | cosmos-3 / action encoding | pass |
+| Figure 5 / p.11 | 单一 sequence 包含 AR 与 DM subsequence；AR reasoner 与 DM generator 在每层使用独立参数，DM 通过 joint attention 读取 AR 条件，而 AR 不读取 noisy DM。 | `figures/model_architecture/mot_architecture.tex` | `../assets/papers/cosmos-3/mot-architecture.png`; `(0,0,1672,763)` | cosmos-3 / MoT | pass |
+| Figure 6 / p.13 | 3D MRoPE 为 packed language/video/audio/action token 分配 $(t,h,w)$；语言三轴相同、video 三轴变化、audio/action 只用时间轴；FPS modulation 使相同真实时长在 16/24/30 FPS 下覆盖相等 position range。 | `figures/model_architecture/mrope_coordinate_assignment.tex` | `../assets/papers/cosmos-3/mrope-coordinate-assignment.png`; `(0,0,1308,320)` | cosmos-3 / position alignment | pass |
+| Reasoner data composition / p.15 | Reasoner 的 22.0M pre-training 与 2.2M SFT samples 按 OCR、VQA、reasoning、captioning、grounding、instruction 等 capability category 分解。 | `figures/data/reasoner/reasoner_stats.tex` | `../assets/papers/cosmos-3/reasoner-pretraining-mix.png`; `(0,0,497,373)` 与 `reasoner-sft-mix.png`; `(0,0,497,373)` | cosmos-3 / data stages | pass；同一原编号的两个并列子图，正文仅嵌 pre-training 子图，inventory 共同解释 |
+| Generator data curriculum / p.20 | Generator 按 pre-training、mid-training 与 post-training 逐步引入 image/video/audio、action/transfer 和专用任务数据。 | `figures/data/data_curriculum.tex` | `../assets/papers/cosmos-3/data-curriculum.png`; `(0,0,1151,350)` | cosmos-3 / curriculum | pass |
+| Action distribution / data section | 展示不同 action domain/embodiment 在训练数据中的分布，用于说明 domain-aware projection 和 sampling mixture。 | action data source figure | `../assets/papers/cosmos-3/action-data-distribution.png`; `(0,0,523,313)` | cosmos-3 / supplement data detail | pass；未用于 headline conclusion |
+| Multiview packaging / data section | 多视角 action sample 将 camera views 拼成单 canvas，并在 JSON prompt 中附 view-layout metadata。 | `figures/data/action/action_multiview_packaging.tex` | `../assets/papers/cosmos-3/droid-multiview-packaging.jpg`; `(0,0,640,540)` | cosmos-3 / Q&A data construction | pass；source-native raster |
+| Infrastructure overview / p.33 | Cosmos 3 infra 总览覆盖 joint loader、distributed training、attention/compiler/checkpoint 与 serving stack。 | `figures/infrastructure/infra_overview.tex` | `../assets/papers/cosmos-3/infra-overview.png`; `(0,0,1458,167)` | cosmos-3 / infra | pass；超宽图以原分辨率复核文字 |
+| JointDataLoader / p.38 | Joint Data-Loader 从多模态 streams 取样，以 rank-synchronous selection 和 token-budgeted/look-ahead packing 构建设备 batch。 | `sections/infrastructure/training.tex` | `../assets/papers/cosmos-3/joint-dataloader.png`; `(0,0,957,397)` | cosmos-3 / loader | pass |
+| Serving performance / p.50 | (a) Nano 720p T2V 单 GPU H100 NVL/B200 latency；(b) Nano 720p T2I 单 GPU latency；(c) B200 上 Nano/Super 720p T2V 从 1 到 8 GPU 的 latency scaling；均 lower-is-better。 | `figures/infrastructure/serving/cosmos3_serving_latency_combined_1x3_figure.tex` | `../assets/papers/cosmos-3/serving-latency.png`; `(0,0,2219,922)` | cosmos-3 / serving | pass；三个 panel 属同一 Figure，未拆成不同编号对象 |
+| Knowledge-base diagram / 无原编号 | 将 two-way mask lowering 为 AR causal varlen attention 与 DM full varlen attention 两次调用；这是知识库整理图，不是原论文证据。 | 基于 Sec.5 与固定代码快照整理 | `../assets/papers/cosmos-3/two-way-attention-infra.png`; `(0,0,942,591)` | cosmos-3 / explanation | pass；已明确标注整理图 |
+
+## 清理结论
+
+- 14 个现有资产均有 canonical owner、来源与用途；没有未解释资产。
+- `reasoner-sft-mix.png` 与 `action-data-distribution.png` 不在主 Paper 重复嵌入，但分别用于阶段对照和 data evidence，保留在 inventory。
+- `two-way-attention-infra.png` 明确是知识库整理图，不替代论文 Figure 或 runtime measurement。
+- Source-native figures 未把 PDF 页眉、页码或相邻正文带入正式资产；过程 render/crop 不进入正式引用。
