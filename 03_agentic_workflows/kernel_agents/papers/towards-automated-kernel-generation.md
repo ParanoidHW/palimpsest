@@ -1,22 +1,29 @@
 # Towards Automated Kernel Generation in the Era of LLMs
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Paper index](../evidence/paper-index.md)
+> - 证据资产：`../assets/papers/towards-automated-kernel-generation/`
+> - 相关文档：[AscendKernelGen](ascend-kernel-gen.md)，[AscendCraft](ascend-craft.md)
+
 ## 资料边界
 
 - 用途：整理 LLM-driven kernel generation 的综述框架、SFT/RL 路线、agent 环境和数据/评测资源。
 - 来源：https://github.com/flagos-ai/awesome-LLM-driven-kernel-generation
-- 本地资产：`assets/Pasted image 20260614204147.png`、`assets/Pasted image 20260614204608.png`、`assets/Pasted image 20260614204647.png`、`assets/Pasted image 20260614204218.png`。
+- 本地资产：`../assets/papers/towards-automated-kernel-generation/`。
 
 https://github.com/flagos-ai/awesome-LLM-driven-kernel-generation
 
-![LLM driven kernel generation overview](assets/Pasted%20image%2020260614204147.png)
+![LLM driven kernel generation overview](../assets/papers/towards-automated-kernel-generation/overview.png)
 
 LLM4Kernel：
 
-![LLM4Kernel overview](assets/Pasted%20image%2020260614204608.png)
+![LLM4Kernel overview](../assets/papers/towards-automated-kernel-generation/llm4kernel-overview.png)
 
 Agent4Kernel：
 
-![Agent4Kernel overview](assets/Pasted%20image%2020260614204647.png)
+![Agent4Kernel overview](../assets/papers/towards-automated-kernel-generation/agent4kernel-overview.png)
 
 根据论文第 2 节的背景介绍，传统的算子（Kernel）生成与优化主要分为以下两种范式：
 ## 1. 基于专家编写与领域特定抽象 (Expert-written Paradigm)
@@ -274,7 +281,7 @@ RL 的重点不在于现成的答案，而在于**“尝试-反馈-改进”**�
 ## 5. 核心发现与定量分析 (示例)
 根据论文整理的各 Benchmarks 发展趋势：
 
-![Kernel agent quantitative analysis](assets/Pasted%20image%2020260614204218.png)
+![Kernel agent quantitative analysis](../assets/papers/towards-automated-kernel-generation/quantitative-analysis.png)
 ## 6. 未来挑战
 尽管进展飞速，但论文指出仍存在以下挑战：
 - **奖励入侵 (Reward Hacking)**：模型可能为了刷分而写出在实际部署中不稳定的代码。

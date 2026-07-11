@@ -1,10 +1,17 @@
 # AscendKernelGen
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Paper index](../evidence/paper-index.md)
+> - 证据资产：无
+> - 相关文档：[AscendCraft](ascend-craft.md)，[Kernel generation survey](towards-automated-kernel-generation.md)
+
 ## 资料边界
 
 - 用途：记录 AscendKernelGen 的数据构建、模型训练、评估基准和 NPU kernel generation 系统设计。
 - 来源：论文、开源数据集/模型/benchmark 链接和本地索引。
-- 相关索引：[Kernel Agents Paper Index](0.%20Awesome%20Papers%20on%20LLM&Agent%20for%20kernel.md)。
+- 相关索引：[Kernel Agents Paper Index](../evidence/paper-index.md)。
 
 这篇论文提出了 **AscendKernelGen**，这是一个针对 NPU（特别是华为昇腾 Ascend 平台）内核自动生成的全栈研究框架。由于 NPU 编程涉及复杂的硬件约束、异步流水线和显式内存管理，通用大模型（如 Qwen3、Llama3）在这些任务上的表现接近 0。
 

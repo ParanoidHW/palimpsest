@@ -1,12 +1,19 @@
 # AscendCraft
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Paper index](../evidence/paper-index.md)
+> - 证据资产：`../assets/papers/ascend-craft/`
+> - 相关文档：[AscendKernelGen](ascend-kernel-gen.md)，[Kernel generation survey](towards-automated-kernel-generation.md)
+
 ## 资料边界
 
 - 用途：记录 AscendCraft 的 DSL-guided transcompilation 路线和 AscendC kernel generation 观点。
-- 本地资产：[assets/Pasted image 20260614223507.png](assets/Pasted%20image%2020260614223507.png)。
-- 相关索引：[Kernel Agents Paper Index](0.%20Awesome%20Papers%20on%20LLM&Agent%20for%20kernel.md)。
+- 本地资产：[overview.png](../assets/papers/ascend-craft/overview.png)。
+- 相关索引：[Kernel Agents Paper Index](../evidence/paper-index.md)。
 
-![AscendCraft overview](assets/Pasted%20image%2020260614223507.png)
+![AscendCraft overview](../assets/papers/ascend-craft/overview.png)
 
 ## 整体总结
 

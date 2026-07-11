@@ -1,9 +1,16 @@
 # s1: Simple test-time scaling
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Paper index](../evidence/paper-index.md)
+> - 证据资产：无
+> - 相关文档：无
+
 ## 资料边界
 
 - 用途：记录 s1 的 test-time scaling、s1K 数据筛选和 budget forcing 方法。
-- 相关索引：[Kernel Agents Paper Index](0.%20Awesome%20Papers%20on%20LLM&Agent%20for%20kernel.md)。
+- 相关索引：[Kernel Agents Paper Index](../evidence/paper-index.md)。
 - 证据边界：本文是方法摘录和解释，不包含本地代码复现。
 
 这篇文章《s1: Simple test-time scaling》由斯坦福大学等机构的研究人员发表，其核心目标是探索实现**推理模型测试时扩展（Test-time Scaling）**的最简路径。作者通过极小规模的高质量数据微调和简单的解码策略，成功在推理性能上挑战了 OpenAI 的 o1-preview。
