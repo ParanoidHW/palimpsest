@@ -104,7 +104,7 @@ H_l=\operatorname{Attn}([H_{\text{low}},H_{\text{text}},\operatorname{Gather}(H_
 \quad S_{l+1}=\operatorname{Select}(\operatorname{Map}(H_l)).
 $$
 
-**kernel 含义**：这是 `selected indices -> gather -> compact attention`，不是先构造高分辨率 token 对的 dense mask。最合适的是 compact/varlen QKV kernel；选择器的 attention map 仍需计入总成本。官方 README 证实它是 LLaVA v1.5 7B 高分辨率 VLM 实现，但本次未逐行核验其 CUDA backend，因此不把任何特定 Triton/FlashAttention 声称归因给该论文。详细证据见 [逐篇分析](../papers/flexattention-vlm.md)。
+**kernel 含义**：这是 `selected indices -> gather -> compact rectangular attention`，不是先构造高分辨率 token 对的 dense mask。其数学对象、batch varlen 映射与控制面成本见 [Paper 的 kernel mapping](../papers/flexattention-vlm.md#8-compactvarlen-kernel-映射)；论文没有声称使用 PyTorch FlexAttention、Triton sparse kernel 或 FlashAttention varlen。主结果与 selection/resolution 消融分别见 [主结果](../papers/flexattention-vlm.md#4-主结果) 和 [证据矩阵](../papers/flexattention-vlm.md#5-消融与技术主张证据矩阵)。
 
 ---
 

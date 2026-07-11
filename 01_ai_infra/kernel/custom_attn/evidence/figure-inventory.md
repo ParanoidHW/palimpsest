@@ -12,6 +12,9 @@
 | 工作 | 对象 / PDF 页 | Caption（完整中文转述） | 正式资产 / bbox | 使用 |
 |---|---|---|---|---|
 | FlexAttention VLM | Fig. 2 / p.6 | 低分辨率视觉与文本提供全局语义，各层依据 attention map 选择高分辨率局部 token，再进行层级 attention。 | `../assets/papers/flexattention-vlm/fig2_hierarchical_vlm_selection_caption.png` / `(0,0,900,570)` | 理解侧机制 |
+| FlexAttention VLM | Table 1 / p.11 | 比较 commercial chatbots、low-resolution VLMs 与 high-resolution VLMs 在 V* Bench 和 MagnifierBench 上的结果，并记录输入分辨率。 | `../assets/papers/flexattention-vlm/table1-vqa-results-caption.png` / `(0,0,900,600)`；PDF crop `(275,260,1175,860)` on 1488x2105 | 主结果与 baseline 边界 |
+| FlexAttention VLM | Fig. 4 / p.13 | 左侧比较 random、center 与 attention-map selection；右侧比较 672/1008/1344 分辨率的质量与 TFLOPs。 | `../assets/papers/flexattention-vlm/fig4-selection-resolution-ablation-caption.png` / `(0,0,1050,460)`；PDF crop `(220,210,1270,670)` | selector/resolution 消融 |
+| FlexAttention VLM | Table 5 / p.14 | 在单张 NVIDIA V100 32GB 上比较 LLaVA-HD、XAttn、FlexAttn 的 MagnifierBench/TextVQA 平均 TFLOPs 与总推理时间。 | `../assets/papers/flexattention-vlm/table5-v100-latency-caption.png` / `(0,0,700,330)`；PDF crop `(380,950,1080,1280)` | 端到端 latency |
 | MInference | Fig. 3 / p.3 | 长上下文 attention head 呈现 A-shape、Vertical-Slash 与 Block-Sparse 三类可被专用 kernel 利用的稀疏模式。 | `../assets/papers/minference/fig3_sparse_patterns_caption.png` / `(0,0,1080,585)` | pattern family |
 | MInference | Fig. 4 / p.4 | 三类稀疏模式分别通过规则、在线索引近似或 block 选择进入对应计算路径。 | `../assets/papers/minference/fig4_three_sparse_patterns_caption.png` / `(0,0,1000,430)` | dispatch |
 | MInference | Fig. 7 / p.20 | Vertical-Slash 的动态 mask 被编码为合并 range 与独立 column index，供 kernel 遍历。 | `../assets/papers/minference/fig7_vertical_slash_dynamic_mask_caption.png` / `(0,0,595,485)` | metadata |
