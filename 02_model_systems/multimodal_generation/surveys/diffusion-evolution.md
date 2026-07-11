@@ -1,13 +1,17 @@
 # Diffusion 模型多模态演进调研
 
+> [!info] 文档关系
+> - 文档类型：Survey
+> - 领域入口：[README](../README.md)
+> - 证据资产：`../assets/surveys/diffusion-evolution/`
+> - 相关文档：[Cosmos 3](../papers/cosmos-3.md)，[Model pipeline](../topics/model-pipeline.md)
+
 ## 资料边界
 
 - 生成日期：2026-07-02。
-- 调研输出目录：`../../_artifacts/output/diffusion-models-deep-research/`。
 - 范围：以多模态 diffusion / flow 生成模型为主，覆盖图像、视频、音频、3D、动作/世界模型；dLLM 只作为相邻分支。
 
 生成日期：2026-07-02  
-调研输出目录：`../../_artifacts/output/diffusion-models-deep-research/`  
 范围：以多模态 diffusion / flow 生成模型为主，覆盖图像、视频、音频、3D、动作/世界模型；dLLM 只作为相邻分支，不纳入多模态主演进线。
 
 ## 结论先行
@@ -25,7 +29,7 @@ Diffusion 模型的多模态演进不是“图像、视频、音频、3D”的�
 
 主线图如下。dLLM 作为相邻文本生成分支，不进入这张多模态 diffusion / flow 主线图。
 
-![多模态 diffusion / flow 演进路线图](assets/diffusion_multimodal_evolution_wide_flat.png)
+![多模态 diffusion / flow 演进路线图](../assets/surveys/diffusion-evolution/evolution-map.png)
 
 ## 1. 2015-2020：从热力学扩散到 DDPM
 
@@ -179,11 +183,11 @@ Cosmos 3 的关键思想可以概括为：
 
 已有本地 Cosmos 3 分析和原论文关键图如下：
 
-![Cosmos 3 overview](assets/cosmos3_overview.png)
+![Cosmos 3 overview](../assets/papers/cosmos-3/overview.png)
 
-![Cosmos 3 MoT architecture](assets/mot_architecture.png)
+![Cosmos 3 MoT architecture](../assets/papers/cosmos-3/mot-architecture.png)
 
-![mRoPE coordinate assignment](assets/mrope_coordinate_assignment.png)
+![mRoPE coordinate assignment](../assets/papers/cosmos-3/mrope-coordinate-assignment.png)
 
 趋势意义：
 
@@ -449,15 +453,15 @@ Audio / action tokens:
 
 Self Forcing 给出了这条线的关键训练范式：训练时就模拟 AR inference，用 self-generated history 和 KV caching 做 rollout，避免 teacher forcing 下“训练看真实历史、推理看自生成历史”的 exposure bias。
 
-![Self Forcing 训练范式](assets/diffusion_longseq/self_forcing_fig1_training_paradigms_caption.png)
+![Self Forcing 训练范式](../assets/surveys/diffusion-evolution/self_forcing_fig1_training_paradigms_caption.png)
 
 这直接改变 attention mask 的要求。chunk AR diffusion 的 mask 不是普通 causal triangle，也不是普通 full attention，而是“历史 chunk 可读、当前 chunk 内 denoise-local、未来 chunk 不可见”的复合结构。
 
-![Self Forcing attention mask](assets/diffusion_longseq/self_forcing_fig2_attention_masks_caption.png)
+![Self Forcing attention mask](../assets/surveys/diffusion-evolution/self_forcing_fig2_attention_masks_caption.png)
 
 在推理侧，rolling KV cache 把长视频 extrapolation 从反复重算滑窗 KV 推向持续 cache update。Self Forcing 的图 3 把三种方式对比得很清楚：bidirectional sliding window 不支持 KV cache；普通 causal sliding window 仍要重算 overlap KV；rolling KV cache 通过 eviction 和增量写入把复杂度降到 `O(TL)`。
 
-![Rolling KV cache](assets/diffusion_longseq/self_forcing_fig3_rolling_kv_caption.png)
+![Rolling KV cache](../assets/surveys/diffusion-evolution/self_forcing_fig3_rolling_kv_caption.png)
 
 但这也意味着 video diffusion serving 需要新的 runtime，而不是只换 sampler：
 
@@ -472,9 +476,9 @@ Self Forcing 给出了这条线的关键训练范式：训练时就模拟 AR inf
 
 Causal-rCM 进一步说明，这不是单点优化，而是算法和基础设施的共同设计。它把 teacher-forcing CM 作为稳定初始化，把 self-forcing DMD 作为 on-policy refinement，并明确需要 custom-mask FlashAttention-2 JVP kernel、FSDP2、context/sequence parallel、selective activation checkpointing、replayed backprop 和 KV cache 同时兼容。
 
-![Causal-rCM 统一视角](assets/diffusion_longseq/causal_rcm_fig2_divergence_caption.png)
+![Causal-rCM 统一视角](../assets/surveys/diffusion-evolution/causal_rcm_fig2_divergence_caption.png)
 
-![Causal-rCM 实现对比表](assets/diffusion_longseq/causal_rcm_table2_infra_comparison.png)
+![Causal-rCM 实现对比表](../assets/surveys/diffusion-evolution/causal_rcm_table2_infra_comparison.png)
 
 所以 chunk AR 生成和前面三类系统诉求的关系是：
 
@@ -610,16 +614,6 @@ dLLM 和多模态 diffusion 共享“denoise / mask recovery / iterative refinem
 10. TQ-DiT / Q-VDiT / Sparse VideoGen / LVSA / Causal-rCM：理解长序列 diffusion 的量化、稀疏 attention 和特殊 mask 系统诉求。
 11. Self Forcing / X-Cache / Forcing-KV / Sparse Forcing / TempAct：理解 chunk 自回归生成、rolling KV、cross-chunk cache、persistent sparse memory 和 planner-executor runtime。
 
-## 本次交付件清单
+## 正式证据入口
 
-- 深度调研目录：`../../_artifacts/output/diffusion-models-deep-research/`
-- 论文数据库：`../../_artifacts/output/diffusion-models-deep-research/paper_db.jsonl`
-- Phase 1 前沿：`../../_artifacts/output/diffusion-models-deep-research/phase1_frontier/frontier.md`
-- Phase 2 综述：`../../_artifacts/output/diffusion-models-deep-research/phase2_survey/survey.md`
-- Phase 3 深读：`../../_artifacts/output/diffusion-models-deep-research/phase3_deep_dive/deep_dive.md`
-- Phase 4 代码生态：`../../_artifacts/output/diffusion-models-deep-research/phase4_code/code_repos.md`
-- Phase 5 综合与 gap：`../../_artifacts/output/diffusion-models-deep-research/phase5_synthesis/`
-- Phase 6 报告和 BibTeX：`../../_artifacts/output/diffusion-models-deep-research/phase6_report/`
-- 趋势图：`../../_artifacts/output/diffusion-models-deep-research/multimodal_diffusion_timeline.png`
-- Chunk 自回归补充调研：`../../_artifacts/output/chunk-autoregressive-diffusion-research/`
-- Chunk 自回归关键图表：`assets/diffusion_longseq/`
+Cosmos 3 的单篇证据、源码核查与系统分析见 [Cosmos 3 Paper](../papers/cosmos-3.md)；检索缓存、PDF、源码、渲染页和执行日志仅作为过程材料保存，不作为正式知识链接。

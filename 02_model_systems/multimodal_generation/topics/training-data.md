@@ -1,11 +1,18 @@
 
 # 训推用数据集
 
+> [!info] 文档关系
+> - 文档类型：Topic
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Diffusion evolution](../surveys/diffusion-evolution.md)
+> - 证据资产：无
+> - 相关文档：[Model pipeline](model-pipeline.md)，[Cosmos 3](../papers/cosmos-3.md)
+
 ## 资料边界
 
 - 用途：记录多模态生成训练数据集、公开子集和阶段配置。
 - 证据边界：内部数据规模按原始材料口径保留；公开数据集只做用途说明，不替代数据卡。
-- 相关笔记：[多模态模型管线](多模态模型管线.md)、[Diffusion模型多模态演进调研](Diffusion模型多模态演进调研.md)。
+- 相关笔记：[Model pipeline](model-pipeline.md)、[Diffusion evolution](../surveys/diffusion-evolution.md)。
 
 ### Mamoda2 (MammothModa2) 数据集构成表
 

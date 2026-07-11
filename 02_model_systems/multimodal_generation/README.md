@@ -4,16 +4,22 @@
 
 ## 阅读顺序
 
-1. [多模态模型管线](多模态模型管线.md)：先看典型多模态生成管线和 infra 负载位置。
-2. [训推用数据集](训推用数据集.md)：补充多模态生成训练数据和阶段配置。
-3. [Diffusion模型多模态演进调研](Diffusion模型多模态演进调研.md)：看 diffusion/flow 从图像到视频、音频、3D、world model 的时间线。
-4. [典型模型/Cosmos3](典型模型/Cosmos3.md)：深入 Cosmos 3 的 reasoner/generator、MoT、数据管线、训练和 serving infra。
+1. [Model pipeline](topics/model-pipeline.md)：先看典型多模态生成管线和 infra 负载位置。
+2. [Training data](topics/training-data.md)：补充多模态生成训练数据和阶段配置。
+3. [Diffusion evolution](surveys/diffusion-evolution.md)：看 diffusion/flow 从图像到视频、音频、3D、world model 的时间线。
+4. [Cosmos 3](papers/cosmos-3.md)：深入 reasoner/generator、MoT、数据管线、训练和 serving infra。
+
+## 文档索引
+
+- Survey：[Diffusion evolution](surveys/diffusion-evolution.md)
+- Topics：[Model pipeline](topics/model-pipeline.md)，[Training data](topics/training-data.md)
+- Paper：[Cosmos 3](papers/cosmos-3.md)
 
 ## 资产说明
 
-- `assets/多模态管线*.png`：多模态生成管线草图，由 [多模态模型管线](多模态模型管线.md) 引用。
-- `assets/diffusion_multimodal_evolution_wide_flat.png` 与 `assets/diffusion_longseq/`：diffusion 演进与长序列 diffusion 图表。
-- `assets/cosmos3_overview.png`、`assets/mot_architecture.png`、`assets/cosmos_platform.png` 等：Cosmos 3 论文图与问答素材，其中 `cosmos_platform.png` 由正文图片素材清单引用。
+- `assets/topics/model-pipeline/`：多模态生成管线草图。
+- `assets/surveys/diffusion-evolution/`：diffusion 演进与长序列 diffusion 图表。
+- `assets/papers/cosmos-3/`：Cosmos 3 论文图与问答素材。
 
 ## 维护规则
 
