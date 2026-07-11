@@ -1,132 +1,124 @@
-# AscendCraft
+# AscendCraft: Automatic Ascend NPU Kernel Generation via DSL-Guided Transcompilation
 
 > [!info] 文档关系
 > - 文档类型：Paper
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[Paper index](../evidence/paper-index.md)
 > - 证据资产：`../assets/papers/ascend-craft/`
-> - 相关文档：[AscendKernelGen](ascend-kernel-gen.md)，[Kernel generation survey](towards-automated-kernel-generation.md)
+> - 相关文档：[AscendKernelGen](ascend-kernel-gen.md)，[Kernel generation survey](towards-automated-kernel-generation.md)，[Figure inventory](../evidence/figure-inventory.md)
 
-## 资料边界
+## 0. 资料与配图索引
 
-- 用途：记录 AscendCraft 的 DSL-guided transcompilation 路线和 AscendC kernel generation 观点。
-- 本地资产：[overview.png](../assets/papers/ascend-craft/overview.png)。
-- 相关索引：[Kernel Agents Paper Index](../evidence/paper-index.md)。
+- 论文：arXiv:2601.22760v1，2026-01-30；Nanjing University 与 Huawei；[官方摘要与 PDF](https://arxiv.org/abs/2601.22760)。当前为 arXiv preprint，未确认正式 venue。
+- 代码：论文没有给出可审计的公开实现或 checkpoint；因此 multi-pass prompts、mapping rules 与编译修复逻辑只能按论文描述分析。
+- OpenReview：截至 2026-07-11 未发现公开评审、decision 或 rebuttal。
+- 图表：Figure 3（框架）与 Table 1（正确性）；完整记录见 [figure inventory](../evidence/figure-inventory.md)。
 
-![AscendCraft overview](../assets/papers/ascend-craft/overview.png)
+![AscendCraft framework](../assets/papers/ascend-craft/fig3-framework-caption.png)
 
-## 整体总结
+## 0.1 符号表
 
-这篇论文提出了 **AscendCraft**，这是一个利用大语言模型（LLM）通过领域特定语言（DSL）引导，自动生成华为昇腾（Ascend）NPU 高性能算子内核（Kernel）的框架。
+| 符号 | 含义 | 作用域 | 单位/取值 | 来源 | 易混点 |
+|---|---|---|---|---|---|
+| $Comp@1$ | 首个生成候选可编译的任务比例 | 52 kernels | % | Table 1 | 不是 functional correctness |
+| $Pass@1$ | 首个候选通过参考输出验证的任务比例 | 52 kernels | % | Table 1 | 论文表述基于 compiled/generated task 口径，复现需核对脚本 |
+| $Fast_\alpha@1$ | 正确 kernel 性能达到 PyTorch eager 的至少 $\alpha$ 倍的比例 | correct kernels | % | Table 2 | $\alpha=1$ 表示不慢于 eager，不是平均 speedup |
+| $T_b$ | PyTorch eager latency | one workload | time | Sec. 5 | 不等于专家 AscendC baseline |
+| $T_g$ | generated AscendC latency | one workload | time | Sec. 5 | 需相同 shape/环境 |
 
-以下是该研究提出的问题、解决思路和方案的详细解释：
+## 0.2 术语
 
----
+| 术语 | 本文含义 | 不等于 | 证据 |
+|---|---|---|---|
+| DSL | 人工设计的 host function + kernel function 轻量中间表示 | 不是训练得到的语言，也不是通用 compiler IR | Sec. 3 |
+| category/shape-specific examples | 给 DSL 生成阶段的专家 few-shot 示例 | 不是 benchmark-independent learned policy | Sec. 4.1 |
+| transcompilation | LLM 按规则将 DSL 逐 pass 降为 AscendC | 不是确定性 compiler lowering | Sec. 4.2 |
+| refinement pass | 可选对齐/padding 修正 | 不能等同于完整 autotuning | Sec. 4.2 |
 
-## 1. 核心问题 (The Problem)
+## 1. 问题到方案
 
-在深度学习领域，算子的执行效率至关重要，但为特定的加速器（如 NPU）开发高性能算子面临以下挑战：
+直接生成 AscendC 同时要求模型处理算法、host tiling、分层存储、队列同步、对齐和冗长 API；公开语料稀缺使这些约束难以内化。AscendCraft 把一次高熵生成改成两层：先生成更短、结构化且保留 Ascend 执行语义的 DSL，再用明确映射规则做四个 LLM lowering pass。其核心假设是“约束生成空间”比“仅扩大模型或训练语料”更适合专有 NPU 编程。
 
-*   **编程模型极其复杂：** 昇腾的 AscendC 编程模型涉及复杂的内存分级（Global Memory, L1, UB, L0 等）、严格的内存对齐要求（32字节）以及精细的流水线并行控制（CopyIn-Compute-CopyOut）。
-*   **LLM 知识匮乏：** 与 CUDA 或 Triton 不同，AscendC 的公开代码库、文档和社区讨论非常稀少。这导致现有的 LLM 直接生成 AscendC 代码的正确率极低（根据文中提到的 MultiKernelBench 测试，正确率不足 5%）。
-*   **容错率低：** 低级硬件编程中微小的语法或逻辑错误（如非对齐访问）就会导致编译失败或运行奔溃。
+## 2. 方法
 
----
+### 2.1 DSL 边界
 
-## 2. 解决思路 (The Strategy)
+DSL 保留 host 端 core partition/tiling 和 kernel 端 `CopyIn -> Compute -> CopyOut`；隐藏 buffer 初始化、AscendC API 冗余与部分 alignment 参数。它仍显式表达 GM/L1/UB/L0 层级、Scalar/Vector/Cube 执行单元、queue/data dependency，因此不是把硬件细节全部抽象掉，而是选择“LLM 必须决定的性能语义”。
 
-论文的核心思路是：**不在底层细节上硬碰硬，而是通过引入一个“抽象桥梁”（DSL）来降低生成难度。**
+### 2.2 两阶段与四个 pass
 
-*   **引入轻量化 DSL：** 设计一种易于 LLM 理解的领域特定语言。这种语言隐藏了非本质的复杂性（如繁琐的对齐参数配置），但保留了关键的硬件语义（如分块策略和流水线结构）。
-*   **两阶段分层生成：** 
-    1.  **高层逻辑设计：** 让 LLM 先用 DSL 表达算子的核心算法、分块（Tiling）方案和数据流。
-    2.  **结构化翻译（下放）：** 通过一系列受约束的“翻译步骤”（Transcompilation Passes），将 DSL 逐步降低（Lowering）到最终的 AscendC 代码。
+1. 从 PyTorch model + input shape、DSL spec 以及 category/shape examples 生成 host/kernel DSL。
+2. Pass 1 生成 host tiling 与 launch；Pass 2 初始化 kernel state/queues/buffers；Pass 3 映射 compute/data movement；Pass 4 可选修正 alignment 与 padding。
+3. 每个 pass 读取前一段生成结果、相关 AscendC API、few-shot 示例和预定义映射规则。论文描述可使用编译反馈修正，但没有公开代码让人核对 retry budget、错误分类或停止条件。
 
----
+这个流程更接近“LLM 作为非确定 lowering engine”，不是传统 compiler：同一 DSL 仍可能产生不同 AscendC，语义保持依赖 prompt 和示例。
 
-## 3. 具体方案 (The Solution: AscendCraft)
+## 3. 实验设置与主结果
 
-### A. DSL 设计原则
-AscendCraft 提出的 DSL 具有以下特点：
-*   **主机-核函数分离：** 主机端（Host）负责全局规划（分块、核心分配）；内核端（Kernel）负责片上计算。
-*   **显式分阶段执行：** 强制代码结构划分为 `copyin`、`compute` 和 `copyout` 三个块，对应昇腾 AICore 的流水线模型。
-*   **自动处理复杂性：** 诸如 `DataCopyPad` 等涉及复杂对齐参数的底层指令，在 DSL 中被抽象成简单的计算原语。
+- benchmark：MultiKernelBench 中 7 类共 52 个 kernel；MatMul 与 Convolution 未纳入该表，论文脚注明它们仍在开发。
+- 环境：Ascend 910B2、CANN 8.1、PyTorch 2.6、Ubuntu 22.04；官方 driver/firmware 与 CANN 匹配（Sec. 5.1）。
+- baseline：correctness 与参考实现比较；性能相对 PyTorch eager，而不是手写 AscendC 或理论峰值。
 
-### B. 自动化流水线
-AscendCraft 的工作流程分为两个主要阶段：
+![AscendCraft Table 1](../assets/papers/ascend-craft/table1-correctness-caption.png)
 
-1.  **DSL 代码生成：**
-    *   使用类别特定的“专家示例”（Expert Examples）作为提示（Prompt），引导 LLM 生成 DSL。
-    *   LLM 只需要关注分块因子和核心逻辑，而不必担心 C++ 语法细节。
+Table 1 报告总 $Comp@1=98.1\%$、$Pass@1=90.4\%$。Pooling 的 $Pass@1=66.7\%$ 最低，Math 的 $Comp@1/Pass@1=83.3\%$。Table 2 报告 $Fast_{0.2}@1=82.7\%$、$Fast_{0.8}@1=57.7\%$、$Fast_{1.0}@1=46.2\%$；最后一个数字只表示 46.2% 达到或超过 eager，不代表平均 1.462x。
 
-2.  **四步结构化翻译（Transcompilation）：**
-    *   **Pass 1 (Host)：** 翻译主机端代码，计算 Tiling 参数。
-    *   **Pass 2 (Init)：** 初始化内核状态、管理片上内存队列（TQue/TBuf）。
-    *   **Pass 3 (Compute)：** 将 DSL 的逻辑块翻译成特定的 AICore 函数，并插入队列同步指令。
-    *   **Pass 4 (Refinement)：** 针对硬件边缘情况（如非均匀形状）自动调整内存对齐和填充（Padding）。
+论文另在 mHC 架构上展示两个新 kernel 个案，初始生成相对 eager 约 3--6x，专家优化后最高 15.9x。这里同时改变了 workload、generated implementation 和人工优化，属于案例证据，不能用于证明 52-task 总体泛化或纯自动系统的平均收益。
 
-### C. 编译反馈循环
-在翻译过程中，框架会自动调用昇腾编译器（CCE）。如果编译失败，会将错误信息反馈给 LLM 进行自我修正（Self-correction），显著提高了稳健性。
+## 4. 技术主张证据矩阵与收益归因
 
----
+| 技术点 | 声称效果 | 对照 | 证据强度 | 判断 |
+|---|---|---|---|---|
+| DSL 抽象 | 降低直接 AscendC 生成难度 | 论文引用 direct-generation 13% correctness；未给同模型 matched ablation | 混杂 | 总体有效，但无法独立归因 |
+| category/shape examples | 提供 tiling/dataflow 先验 | 无 remove-example ablation | 无直接证据 | 未验证必要性 |
+| multi-pass lowering | 每步受约束、提高稳健性 | 无 one-shot lowering 对照 | 机制 + 总体结果 | 部分支持 |
+| mapping rules/API context | 降低 hallucinated API | 无去除实验 | 间接 | 合理但未隔离 |
+| refinement pass | 修复 alignment/padding | 无 pass-level failure reduction | 无直接证据 | 未验证 |
+| DSL + lowering 全系统 | 52-task 高 correctness | Table 1/2 | 直接系统结果 | 在该 benchmark/硬件上支持 |
 
-## 4. 实验结果 (Key Findings)
+论文没有给出完整组件消融，因此收益只能归到“DSL、示例、mapping、multi-pass 的组合”，不能断言某一项贡献了多少百分点。与 AscendKernelGen 相比，这篇工作避免训练成本，却把领域知识成本转移到 DSL/spec/prompt 工程；两者的 baseline 与 benchmark 也不同，数字不可横比。
 
-*   **极高的正确性：** 在 MultiKernelBench 的 52 个算子测试中，实现了 **98.1% 的编译成功率** 和 **90.4% 的功能正确率**。
-*   **性能竞争力：** 约 **46.2%** 的生成算子性能达到或超过了 PyTorch Eager 模式。
-*   **泛化能力：** 在 DeepSeek 提出的最新 **mHC 架构** 算子上，AscendCraft 仅需一次尝试就生成了正确算子，并比 PyTorch Eager 模式快了 3 到 6 倍，经过专家微调后加速比可达 15.9 倍。
+## 5. Related Work
 
----
+| 路线 | 方法 | 优点 | 局限 | 本文差异 |
+|---|---|---|---|---|
+| Triton/TileLang | 人工/编译器 DSL | lowering 可确定、生态成熟 | Ascend 目标与语义不同 | DSL 专为 LLM 和 Ascend 设计 |
+| direct LLM generation | prompt -> AscendC | 少中间层 | 专有 API 幻觉、约束过多 | 用两阶段约束搜索空间 |
+| AscendKernelGen | 数据 + SFT + DPO | 模型内化领域知识 | 训练和数据成本高 | 本文依赖 few-shot 与规则，不训练专用模型 |
 
-## 总结
+## 6. OpenReview 与代码核验
 
-**AscendCraft** 的意义在于证明了：**对于缺乏语料库的专用硬件，与其通过海量数据训练 LLM，不如通过设计合理的抽象层（DSL）和分步骤的结构化翻译，让现有的通用 LLM 也能编写出正确的底层高性能代码。**
+未发现公开 OpenReview 页面，也未找到论文声明的公共仓库。因此无法核验 prompt 原文、四 pass 是否固定、compiler feedback 是否启用、温度/采样数、失败重试、52 个任务清单与计时脚本。正式结论只使用 PDF 的 Figure/Table/Section，不把旧 AlphaXiv 转述或二手摘要作为证据。
 
-> "AscendCraft introduces a lightweight DSL that abstracts non-essential complexity while explicitly modeling Ascend-specific execution semantics." [Abstract](https://alphaxiv.org/abs/2601.22760v1?page=1)
+## 7. Infra 分析
 
+### 7.1 执行与数据类型
 
-# DSL和转移ASC来源
-关于 DSL 的来源以及转译过程的实现，这篇论文的一个核心特点是：**它并不依赖于大规模的深度学习训练，而是基于“提示工程（Prompt Engineering）”和“结构化规则”驱动的 LLM 转换。**
+生成侧是多次 LLM inference，成本近似
 
-以下是针对你问题的详细解答：
+$$
+C_{\mathrm{LLM}}=C_{\mathrm{DSL}}+\sum_{p=1}^{P}(C_{\mathrm{prompt},p}+C_{\mathrm{decode},p})+R\,C_{\mathrm{retry}},
+$$
 
-## 1. DSL 是怎么来的？（设计来源）
+其中 $P=4$，$R$ 为编译失败后的 retry 次数；论文未报告 token 数、模型、dtype 或 latency，因此不能估算总 GPU/NPU 成本。执行侧 AscendC kernel 依赖 GM <-> on-chip buffer 搬运、queue synchronization、Vector/Cube 指令与 host tiling。有效带宽仍需 $BW_{eff}=BytesMoved/t$，但论文只给端到端 kernel 相对 latency，没有 bytes 或 counters。
 
-论文中的 DSL 并不是通过机器学习“学”出来的，而是由具有 **昇腾硬件背景的专家手动设计** 出来的。它的设计目标是作为 LLM 和底层 C++ 代码之间的“减震器”。# 整体总结
+### 7.2 CPU/NPU 异构路径
 
-*   **借鉴成熟模型：** DSL 的语法风格借鉴了 **Triton**（一种流行的 GPU 算子开发语言）。这种风格对 LLM 非常友好，因为它结构紧凑、逻辑清晰，强调分块（Tiling）和数据流。
-*   **硬件语义对齐：** 专家将昇腾 AICore 的核心特性（如 `Unified Buffer` 内存布局、`CopyIn-Compute-CopyOut` 三阶段流水线）提取出来，变成了 DSL 的强制性语法结构。
-*   **抽象复杂细节：** 专家识别出 AscendC 中最让 LLM 头疼的部分（比如复杂的内存对齐参数计算），并在 DSL 中将其简化。
-    > "The DSL adopts a compact and regular programming structure that reduces syntactic verbosity and enforces clear control flow." [DSL Design](https://alphaxiv.org/abs/2601.22760v1?page=2)
+| 阶段 | CPU/LLM host | Ascend NPU | 同步点 | 证据边界 |
+|---|---|---|---|---|
+| DSL/lowering | prompt 构造、LLM API、代码拼接 | 无 | pass dependency | 论文机制图 |
+| compile | CANN compiler、错误解析 | 无/工具链 | compiler result | retry 实现未公开 |
+| launch | tiling、shape、runtime launch | AI Core kernel | host-device metadata | Sec. 2/4 |
+| kernel | 调度与 reference | CopyIn/Compute/CopyOut | queues/events | 具体 counters 未报告 |
 
----
+## 8. 局限与待验证清单
 
-## 2. “转译”是怎么实现的？（是否需要训练？）
+- 需要 matched ablation：direct AscendC、DSL one-shot、multi-pass、去 mapping rules、去 examples。
+- benchmark 排除 MatMul/Conv，52-task 覆盖不足以代表生产算子；mHC 只有两个案例。
+- 性能基线是 eager，不是专家 AscendC、vendor library 或 roofline，46.2% 不能说明接近硬件上限。
+- 未报告模型版本、prompt、temperature、重试数、成功选择策略、计时方差与编译缓存。
+- DSL 的人工维护成本、跨 CANN 版本稳定性和新 API migration 尚未量化。
 
-这是一个非常关键的点：**AscendCraft 的转译过程不需要对 LLM 进行专门的微调（Fine-tuning）训练。** 它使用的是现成的商业大模型（如 DeepSeek-V2 或 Claude），通过以下机制完成转换：
+## 9. 对 kernel agent 的启发
 
-### A. 基于规则的提示词（In-Context Learning）
-研究者为每一个转译步骤（Pass）编写了极其详细的 **Prompt 指南**。这些指南包含：
-*   **映射映射表：** 告诉 LLM，DSL 里的某个关键字（如 `ub_buffer`）必须对应 AscendC 里的哪个数据结构（如 `TQue` 或 `TBuf`）。
-*   **API 知识库：** 把 AscendC 相关的 API 文档片段直接喂给 LLM，让它知道如何调用底层的 `DataCopy` 或计算指令。
-*   **少样本示例（Few-shot）：** 提供几组“DSL 到 AscendC”的翻译范例，让 LLM 模仿其翻译逻辑。
-
-### B. 分阶段（Multi-Pass）的流水线化处理
-为了降低 LLM 的幻觉和出错率，转译被拆解成了四个串行的任务，而不是一次性生成：
-1.  **Host 转译：** 只让 LLM 翻译主机端计算分块逻辑的代码。
-2.  **Kernel 初始化转译：** 只处理内核端的内存申请和变量初始化。
-3.  **计算逻辑转译：** 将 DSL 的计算指令一对一映射到 AscendC API。
-4.  **对齐修正：** 最后由 LLM 检查是否满足硬件的 32 字节对齐要求，并添加 `DataCopyPad`。
-
-### C. 闭环修正（无需重新训练的“学习”）
-如果在转译过程中生成的代码报错，框架会捕获编译器的错误信息（Error Log），将其作为反馈再次发送给 LLM。这种 **“编译-报错-修正”** 的循环在逻辑上替代了传统的模型训练，使模型能够根据具体的任务场景动态调整输出。
-> "If compilation errors occur, the error messages are fed back to the LLM, which is prompted to revise and fix the code before proceeding to the next pass." [Feedback](https://alphaxiv.org/abs/2601.22760v1?page=7)
-
----
-
-## 总结
-
-*   **DSL 的来源：** 领域专家根据昇腾硬件特性手动设计的逻辑抽象层。
-*   **转译的训练：** **没有进行参数级的模型训练。** 它是通过 **结构化的 Prompt 工程**、**领域专家提供的 Few-shot 示例** 以及 **多步下放（Lowering）策略**，利用 LLM 现有的推理和代码生成能力来完成的。
-
-这种方法的优势在于：即使没有几万行 AscendC 代码去喂给模型做训练，只要有几个高质量的专家模板，就能让通用大模型胜任 NPU 内核开发的重任。
+AscendCraft 的可迁移价值在“把动作空间显式分层”：agent 先决定算法/tiling，再逐步实例化 host、buffer 和 compute。后续系统应把 DSL 做成可静态验证 IR，把 LLM 只用于高层选择，并用 compiler/profiler 为每个 pass 提供局部 credit；这样才能把 prompt workflow 升级为可审计的 agentic compiler loop。

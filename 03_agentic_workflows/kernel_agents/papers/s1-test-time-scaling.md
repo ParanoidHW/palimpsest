@@ -4,293 +4,113 @@
 > - 文档类型：Paper
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[Paper index](../evidence/paper-index.md)
-> - 证据资产：无
-> - 相关文档：无
+> - 证据资产：`../assets/papers/s1-test-time-scaling/`
+> - 相关文档：[Kernel generation survey](towards-automated-kernel-generation.md)，[Figure inventory](../evidence/figure-inventory.md)
 
-## 资料边界
+## 0. 资料与配图索引
 
-- 用途：记录 s1 的 test-time scaling、s1K 数据筛选和 budget forcing 方法。
-- 相关索引：[Kernel Agents Paper Index](../evidence/paper-index.md)。
-- 证据边界：本文是方法摘录和解释，不包含本地代码复现。
+- 论文：arXiv:2501.19393v3，2025-03-01；Stanford/University of Washington/AI2；[官方摘要与 PDF](https://arxiv.org/abs/2501.19393)。论文以 ICML 样式排版，但本文未从公开 venue 页面确认正式录用状态，故不把模板等同于 venue。
+- 官方代码：[simplescaling/s1](https://github.com/simplescaling/s1/tree/77272c6e925d610257a50b520bad15330b513389)，核验 commit `77272c6e925d610257a50b520bad15330b513389`（2026-07-11）。
+- OpenReview：未发现可确认对应版本的公开 forum/reviews/decision。
+- 领域定位：这是 test-time reasoning budget 论文，不是 kernel generation 论文。收录原因仅是其预算控制思想可迁移到 kernel agent 的 generate/compile/profile/refine 回合分配。
+- 图表：Figure 2 与 Figure 4，见 [figure inventory](../evidence/figure-inventory.md)。
 
-这篇文章《s1: Simple test-time scaling》由斯坦福大学等机构的研究人员发表，其核心目标是探索实现**推理模型测试时扩展（Test-time Scaling）**的最简路径。作者通过极小规模的高质量数据微调和简单的解码策略，成功在推理性能上挑战了 OpenAI 的 o1-preview。
+![s1 data and sample efficiency](../assets/papers/s1-test-time-scaling/fig2-data-efficiency-caption.png)
 
----
+## 0.1 符号表
 
-## 1. 核心思想：简单即力量
+| 符号 | 含义 | 作用域 | 单位 | 来源 | 易混点 |
+|---|---|---|---|---|---|
+| $a$ | 一次运行实际使用的 thinking tokens | sample/budget | token | Eq. 1 | 不是总输出 token |
+| $a_{min},a_{max}$ | 预设最小/最大 reasoning budget | method | token | Eq. 1 | 最小预算靠 suppress delimiter 实现 |
+| $\mathcal A$ | 被评估的一组 budget | benchmark | set | Sec. 3.2 | 不是答案集合 |
+| $f(a)$ | 在 budget $a$ 下的 accuracy | benchmark | % | Eq. 2--3 | 非必然单调 |
+| Control | 实际 budget 落在区间内的比例 | method | % | Eq. 1 | 不等于 accuracy |
+| Scaling | 不同 budget 点间的平均性能斜率 | benchmark | accuracy/token | Eq. 2 | 依赖预算点选择 |
 
-该研究挑战了“高性能推理模型必须依赖大规模强化学习（RL）或数百万量级数据”的固有认知。其核心公式为： **高质量推理数据 (s1K) + 基础模型 (Qwen2.5-32B) + 预算强制 (Budget Forcing) = 强大的推理能力与扩展性**
+## 0.2 术语
 
-> “We seek the simplest approach to achieve test-time scaling and strong reasoning performance.”
-> 
-> Objective
-
----
-
-## 2. s1K 数据集：质量胜过数量
-
-作者仅使用了 **1,000 条** 经过精心挑选的问题和推理链进行监督微调（SFT）。数据集的筛选遵循三个准则：
-
-- **难度 (Difficulty)**：移除基础模型能轻易解决的简单问题。
-- **多样性 (Diversity)**：涵盖 50 个细分领域（如几何、组合数学、生物、物理等）。
-- **质量 (Quality)**：通过自动化过滤（如去除 ASCII 艺术、格式错误等）和人工检查确保样本质量。
-
-这些数据最初是通过 Google Gemini Flash Thinking API 蒸馏得到的。研究发现，将这三者结合比单纯增加数据量更有效：即使使用全部 59K 原始数据进行训练，性能提升也并不显著。
-
-Data Selection
-
----
-
-## 3. 预算强制 (Budget Forcing)：控制思考时间
-
-这是本文最核心的方法论，用于在推理阶段（Test-time）控制模型的思考长度：
-
-- **减少思考**：若模型思考过长，强制插入结束符（如 `Final Answer:`），促使模型直接输出当前结论。
-- **增加思考**：若模型试图过早结束，则抑制结束符的生成，并强行添加 **“Wait”**（等一下）等提示词，诱导模型重新审视并修复潜在的推理错误。
-
-这种简单的“催促”或“拖延”策略能够让模型通过自我修正（Self-correction）提高准确率。
-
-Budget Forcing
-
----
-
-## 4. 主要研究结论
-
-### 推理性能表现
-
-s1-32B 模型在仅经过 26 分钟（16 张 H100 显卡）的训练后，在 AIME24 等竞赛数学测试中表现优异：
-
-- **准确率**：在 AIME24 上，通过增加思考时间，其准确率从 50% 提升至 57%。
-- **样本效率**：s1-32B 处于样本效率的最前沿，以极少的数据量达到了与 o1-preview 相当甚至更高的水平。
-
-### 测试时扩展规律 (Scaling Laws)
-
-- **顺序扩展优于并行扩展**：相比于并行生成多个答案并进行多数投票（Parallel scaling），让模型生成更长的单一推理链（Sequential scaling）往往能带来更好的结果。
-    
-    Scaling
-- **限制因素**：尽管增加思考时间能提升性能，但这种提升会逐渐进入平台期，且受限于模型的上下文窗口（Context Window）长度。
-
----
-
-## 5. 模型对比摘要
-
-|特性|s1-32B|DeepSeek R1|OpenAI o1 系列|
+| 术语 | 本文含义 | 不等于 | 证据 |
 |---|---|---|---|
-|**训练数据量**|1,000 个样本|约 800,000+ 样本|未公开 (预计极大)|
-|**训练方法**|纯 SFT (监督微调)|多阶段 RL + SFT|大规模 RL|
-|**开源程度**|全开源 (权重、数据、代码)|开源权重|闭源 API|
-|**核心机制**|预算强制 (Budget Forcing)|强化学习激励|未公开 (思考路径可见)|
+| s1K | 1,000 个高质量、多样、困难问题及推理轨迹 | 不是全部正确：论文 grader 判 53.6% 正确 | Sec. 2 |
+| budget forcing | 在 decoding 时强制终止或抑制 end-of-thinking，并追加 `Wait` | 不是重新训练、搜索树或 verifier | Sec. 3.1 |
+| sequential scaling | 后续计算依赖前面 reasoning state | 并行采样/majority vote | Sec. 3.1 |
+| s1-32B | Qwen2.5-32B-Instruct 在 s1K 上 SFT 的模型 | 不是 kernel-specialized model | Sec. 4.1 |
 
----
+## 1. 问题到方案
 
-## 总结
+论文追问：能否不用大规模 RL，仅靠少量精炼轨迹和一个 decoding intervention 得到可控 test-time scaling。方案先按 difficulty、diversity、quality 从 59K pool 选出 s1K，再对 Qwen2.5-32B-Instruct 做 SFT；推理时达到最大 budget 就插入 end-of-thinking，低于最小 budget 而模型想结束时就抑制 delimiter 并追加 `Wait`。
 
-s1 证明了**“浅层对齐假设”**在复杂推理任务中同样适用：预训练模型已经具备了强大的推理潜力，仅需 1,000 条高质量样本即可“激活”这种能力，并能通过在推理时动态调整计算预算（思考时间）来进一步榨取性能。这为研究人员提供了一个低成本、透明且易于复现的推理模型基准。
+## 2. 数据与训练
 
-budget是怎么应用到数据集里的？如何知道到底是应该增大budget还是降低budget？
+- s1K 覆盖 50 个 domain。难度筛选使用 Qwen2.5-7B/32B 的解题表现和 reasoning length；多样性按 MSC 类别均匀采样；quality 由来源与 grader 过滤。
+- 部分轨迹由 Gemini Flash Thinking 蒸馏。teacher、grader 与最终学生存在模型依赖，论文用 ablation 说明三种筛选标准组合优于单项，但没有排除 benchmark contamination。
+- SFT 使用 16 张 H100、26 分钟；论文据此估算约 7 H100 GPU-hours。作为对照，59K 全量实验约 394 H100 GPU-hours（Sec. 5.1）。这些是训练 compute，不含数据生成、筛选、评估和 serving。
 
-15 minutes ago
+## 3. Budget forcing 机制与公式
 
-Thinking Finished
+最大 budget 是硬停止：生成到阈值后补 end-of-thinking delimiter 和可选 `Final Answer:`。最小 budget 是软延长：模型想结束时屏蔽 delimiter 并追加 `Wait`，保留已有 KV state 继续 decode。其目标不是保证更长一定更正确，而是建立可控 budget 曲线：
 
-需要先澄清一个核心概念：**“预算强制”（Budget Forcing）并不是直接写入数据集里的静态数值，而是一种在推理（测试）阶段动态干预模型行为的解码技术。**
+$$
+\mathrm{Control}=\frac{1}{|\mathcal A|}\sum_{a\in\mathcal A}\mathbf 1(a_{min}\le a\le a_{max}),
+$$
 
-模型在 s1K 数据集上微调后，学会了遵循“思考—回答”的结构。而“预算”指的就是**思考过程中生成的 Token 数量**。以下是具体的应用逻辑和决策方案：
+$$
+\mathrm{Scaling}=\frac{1}{\binom{|\mathcal A|}{2}}\sum_{a,b\in\mathcal A,b>a}\frac{f(b)-f(a)}{b-a},\qquad
+\mathrm{Performance}=\max_{a\in\mathcal A}f(a).
+$$
 
-### 1. Budget 是如何“应用”的？（技术实现）
+因为 $f$ 可能非单调，Scaling 是选定 budget 网格上的经验斜率，不是普适 scaling law。
 
-虽然 Budget Forcing 是测试时技术，但数据集 **s1K** 为其奠定了基础。
+## 4. 主结果
 
-- **数据准备阶段**：s1K 中的 1,000 条数据包含了极长的推理链（Reasoning Traces）。通过微调，模型学会了如何进行深度思考，并识别特定的结束标识符（如 `</thought>`）。
-- **测试阶段的干预**：
-    - **降低预算（强制结束）**：如果设置的 Token 限制是 1024，而模型生成到 1024 个 Token 还没停，系统会强行插入 `</thought>` 和 `Final Answer:`，截断思考并逼迫模型给出结论。
-        
-        Budget Forcing
-    - **增加预算（强制延长）**：如果模型在 512 个 Token 就想停（试图输出 `</thought>`），系统会拦截这个信号，取而代之的是手动添加一句 **“Wait”**。这会打破模型的输出惯性，让它觉得“我好像还没想完”，从而继续进行推理和自检。
-        
-        Extrapolation
+![s1 sequential and parallel scaling](../assets/papers/s1-test-time-scaling/fig4-scaling-caption.png)
 
----
+- Table 1：s1-32B（1K examples + BF）在 AIME24/MATH500/GPQA Diamond 为 56.7/93.0/59.6；无 BF 的 s1 为 50.0/92.6/56.6。AIME24 绝对 +6.7 pp，样本只有 30 题，方差需要谨慎。
+- Figure 4：AIME24 的 budget forcing 随 thinking tokens 增长总体上升；GPQA 上 sequential forcing 到约 60%，并行 majority vote 曲线约 45--52%。两曲线使用不同模型与总 token 口径，只能说明该设置下的趋势，不能证明 sequential scaling 普遍优于 parallel sampling。
+- Table 4：2x `Wait` 在 AIME24 为 53.3，相比 no extrapolation 50.0；MATH500 保持 93.0，GPQA 59.6。字符串选择本身是一个 prompt-level hyperparameter。
+- rejection sampling 按输出长度筛选出现 inverse scaling，证明“更长”不是充分条件；budget forcing 的收益依赖保留原轨迹并触发自我修正，而不是长度本身。
 
-### 2. 如何判断该增大还是降低预算？
+## 5. 技术主张证据矩阵与收益归因
 
-作者通过实验给出了几条指导原则：
+| 技术点 | 受控证据 | 强度 | 结论 |
+|---|---|---|---|
+| 1K 精选数据足够激活 reasoning | 1K 与 59K、筛选标准 ablation | 中等 | 支持样本效率，但 teacher/compute 不完全匹配 |
+| budget forcing 可扩展 compute | Fig. 4、Table 3/4 | 直接经验 | 在 s1-32B 和三项 benchmark 上支持 |
+| `Wait` 促成自我修正 | Fig. 3 个案、Table 4 string ablation | 个案 + 对照 | 部分支持，机制未普遍验证 |
+| sequential 优于 parallel | Fig. 4(b) | 混杂 | 模型/采样/计量不同，不能作普遍结论 |
+| 更长 reasoning 更好 | rejection sampling 反例 | 反证 | 不成立；需改变生成轨迹而非只筛长度 |
 
-#### A. 根据任务难度决策
+## 6. Related Work 与 OpenReview
 
-- **增大预算**：适用于“竞赛级数学”（如 AIME）或“博士级科学问题”（如 GPQA）。实验显示，在这些高难度任务上，强制增加思考 Token（甚至延长到原始长度的 4-6 倍）能显著提升准确率，因为模型有更多机会发现之前的逻辑漏洞。
-    
-    Scaling Results
-- **降低预算**：适用于对实时性要求高、或者问题相对简单的情况。如果强行让一个简单问题思考太久，模型可能会陷入“胡思乱想”或逻辑循环。
+相比 best-of-N/majority vote，budget forcing 复用单条生成状态，额外 compute 串行累积；相比 process reward/search，它没有 verifier 或分支；相比 RL reasoning models，它只做 SFT + decoding control。未发现公开 OpenReview 评审，因此无法交叉核验 reviewer concern。论文自身已暴露小 benchmark、recitation/API evaluation 问题和 scaling 饱和。
 
-#### B. 观察模型行为（自检信号）
+## 7. 代码与 infra 对照
 
-- **何时增大**：如果你发现模型初次给出的答案不一致，或者任务属于容易在细节出错的类型（如统计单词中字母的数量，见文中 Raspberry 的例子），通过插入 “Wait” 引导模型**双重检查（Double-check）**通常有效。
-- **何时停止**：论文指出，顺序扩展（Sequential Scaling）是有极限的。当尝试强制延长思考超过 6 次后，性能会进入平台期甚至下降。
-    
-    Scaling Limits
+官方仓库在核验 commit 下公开数据处理、SFT/评估与 budget forcing 示例。实现层边界是 tokenizer delimiter 与 vLLM/生成 API 行为：batch size、continued generation 与不同推理引擎会改变结果，论文 Appendix 也记录相关复现差异。
 
-#### C. 成本与精度的平衡
+参数下界：32B bf16 weights 约 64 GB；KV cache 额外成本近似
 
-作者提出了三个衡量指标来量化这种决策：
+$$
+M_{KV}=2L n_{kv} d_h T b,
+$$
 
-1. **控制力 (Control)**：你对 Token 数量的掌控是否精准？（Budget Forcing 达到了 100% 的精准控制）。
-2. **扩展斜率 (Scaling)**：每增加一个 Token 能带来多少精度收益？如果斜率变平，就没必要再增加预算。
-3. **最终性能 (Performance)**：该方法能达到的上限是多少。
+budget forcing 将 $T$ 拉长，因此 memory 与单请求 latency 线性上升。KV 可复用避免重复 prefill，但串行 decode 无法像 parallel samples 那样充分批处理。训练使用 H100/PyTorch FSDP；论文没有报告 NVLink 利用率、dtype、峰值显存或 serving throughput，不能计算有效带宽。
 
----
+## 8. 迁移到 kernel agent 的边界
 
-### 3. 不同的“增加预算”策略对比
+可迁移的是“预算控制器”，不是语言任务本身。kernel agent 的状态可以是当前实现、编译/精度/profiler 反馈，动作是继续修复、重启候选或停止。合理目标应是
 
-作者测试了多种强制延长的触发词，结果发现 **“Wait”** 的效果最好：
+$$
+\max_B\;\mathbb E[Q(k_B)]-\lambda C_{compile}(B)-\mu C_{run}(B),
+$$
 
-|触发词|AIME24 表现|效果简述|
-|---|---|---|
-|**无（仅忽略结束符）**|50.0%|效果一般，模型可能迷失方向|
-|**“Alternatively”**|50.0%|诱导模型想别的办法，但不一定能纠错|
-|**“Hmm”**|50.0%|停顿感，效果中等|
-|**“Wait”**|**53.3%**|**最有效，明确触发模型的自我修正机制**|
+其中 $Q$ 同时包含 correctness gate 与性能。单纯追加“再想一次”没有论文证据能提高 kernel correctness；必须让新增回合接收真实 compiler/profiler observation，并设硬件时间、编译队列和沙箱预算。
 
-> "We find that 'Wait' generally gives the best performance."
-> 
-> Ablations
+## 9. 局限与待验证清单
 
-### 总结
-
-你不需要在训练时知道具体 Budget，s1 的强大之处在于：**训练一个能“长考”的模型，然后在测试时根据你对速度和准确度的需求，通过“Wait”或“提前截断”来拨动那个控制性能的滑块。**
-
-所以实现上，如果需要增加预算，就是推理时碰到提前EOS，就截获这个信号，插入wait？
-
-13 minutes ago
-
-是的，你的理解非常准确。在实现层面，这是一种**推理侧的启发式干预**。
-
-具体来说，增加预算的操作流程如下：
-
-### 1. 拦截（Interception）
-
-当模型正在生成推理链（Thought Trace）时，推理引擎会监控输出。如果模型生成的下一个 Token 是预定义的**思考结束符**（如 `<|end_of_thought|>` 或特定的结束 Token），推理引擎会**拦截**这个 Token，不让它进入最终的序列。
-
-### 2. 注入（Injection）
-
-在被拦截的 Token 位置，人工强制插入一段预设的字符串。
-
-- **s1 论文的发现**：插入字符串 **`Wait`** 效果最好。
-- **原理**：这就像在对话中，当对方刚要说完时，你打断并说“等一下”。由于模型在 s1K 数据集上受过深度推理的训练，它在看到 `Wait` 后，会自动触发内部的“自检”或“重新思考”模式。
-
-### 3. 继续生成（Resumption）
-
-在插入 `Wait` 之后，模型会继续进行自回归生成。此时，模型通常会表现出以下行为：
-
-- **反思现状**：输出类似“_Wait, let me re-check my steps..._”（等一下，让我再检查一下步骤...）。
-- **发现错误**：回顾之前的推理，指出其中的逻辑漏洞。
-- **纠正答案**：在后续的推理中给出修正后的逻辑，最后再次尝试结束思考。
-
-> “We suppress the generation of the end-of-thinking token delimiter and instead append 'Wait' to the model’s current reasoning trace to encourage more exploration.”
-> 
-> Budget Forcing
-
-### 4. 控制循环（Control Loop）
-
-你可以设定这个过程重复的次数。例如：
-
-- **1x Wait**：只拦截一次结束符，让模型多想一轮。
-- **Nx Wait**：重复拦截 $N$ 次。论文实验显示，拦截 **2到4次** 通常能带来性能提升，但拦截 **6次** 之后，模型往往会开始陷入自我重复或无限循环，性能不再提升。
-
-### 总结
-
-这种方法巧妙地利用了 LLM 的**顺从性**。模型并不是真的具备“意志力”要多想，而是被你强行注入的 `Wait` “骗”入了必须继续解释和推理的语言模式中。
-
----
-
-**代码伪代码示例：**
-
-Python
-
-```python
-# 假设我们想要强制模型多思考一次
-max_waits = 1
-wait_count = 0
-
-while True:
-    token = model.generate_next_token()
-    if token == END_OF_THOUGHT_TOKEN and wait_count < max_waits:
-        sequence.append("Wait") # 强制注入
-        wait_count += 1
-        continue # 跳过结束符，继续生成
-    elif token == END_OF_THOUGHT_TOKEN:
-        break # 达到等待次数上限，允许结束
-    sequence.append(token)
-```
-
-论文提到了SFT，这一套流程怎么和SFT结合呢
-
-7 minutes ago
-
-针对你的疑问，s1 的论文展示了一个非常关键的观点：**SFT（监督微调）的作用是“激活”能力，而 Budget Forcing 的作用是“控制”表现。**
-
-要实现这套流程，SFT 必须按照特定的方式进行，才能让推理时的“强制干预”生效。具体结合流程如下：
-
----
-
-## 1. SFT 阶段：构建“可操控”的思维模式
-
-在 SFT 时，研究者并不是简单地给答案，而是构建了**特定格式**的训练数据。
-
-### A. 格式定义（Token Delimiters）
-
-在 s1K 数据集中，每条数据都严格遵守“思考”与“回答”的分离格式：
-
-- 开始思考：`<|im_start|>think`
-- 结束思考/开始回答：`<|im_start|>answer` 这使得模型在 SFT 过程中，学会了在一个**明确的边界**处停止推理。
-
-### B. 长度分布
-
-s1K 挑选的是推理链极长（Average thinking length 很大）的数据。通过 SFT，模型学到了：**“当我还没得出确定结论时，我应该持续生成推理 Token。”** 这为后续的 `Wait` 干预提供了“燃料”——如果模型没练过长推理，你喊 `Wait` 它也无话可说。
-
-> “We use token delimiters to separate the thinking stage from the answering stage... Training takes just 26 minutes on 16 NVIDIA H100 GPUs.”
-> 
-> Training
-
----
-
-## 2. 结合点：利用 SFT 习得的“统计惯性”
-
-实现上，SFT 和推理干预通过以下逻辑闭环结合：
-
-1. **SFT 建立了关联**：在微调数据中，模型见过类似的思维转折。虽然训练集里不一定全是 `Wait`，但模型学会了在推理链中进行自我修正。
-2. **推理时打破平衡**：
-    - 模型 SFT 后，会根据概率预测出 `<|im_start|>answer`。
-    - 此时你**拦截**这个 Token，强行喂给模型一个 **`Wait`**。
-    - **结合效果**：由于 SFT 赋予了模型强大的逻辑续写能力，它会根据当前语境和 `Wait` 这个新输入，计算出“自检”相关的后续 Token 概率最高（例如：“Wait, let me double check...” 的概率会瞬间盖过直接给答案的概率）。
-
----
-
-## 3. 论文中的进阶实验：条件化 SFT
-
-为了让模型更听话，作者还尝试了在 SFT 阶段加入**控制指令**，但这部分效果反而不如简单的 `Wait` 干预：
-
-- **Token-conditional SFT**：在 Prompt 里加一句“思考 2048 个 Token”。
-- **Step-conditional SFT**：在 Prompt 里加一句“思考 64 步”。
-- **实验结论**：模型其实很难通过 SFT 学会精确“数数”。哪怕你训练它听从长度指令，它也经常超支或不足。
-
-**最终方案：** 作者发现最有效的结合方式是：**用最基础的 SFT 让模型学会“长考”，然后在推理时用 Budget Forcing 硬生生地拨动它的思考长度。**
-
----
-
-## 4. 为什么 s1 的 SFT 只需要 1000 条？
-
-这是因为模型在预训练阶段已经读过海量的推理代码、数学证明和科学论文。
-
-- **SFT 的本质**：不是教模型如何推理，而是告诉模型：**“现在请进入那种‘深思熟虑’的模式，并且在我说 `Wait` 的时候，请继续保持在这个模式里。”**
-- 这种“模式切换”只需要极少的高质量样本（s1K）就能完成。
-
-> “The ability to perform reasoning is already present in our model. Our sample-efficient finetuning stage just activates it and we scale it further at test time with budget forcing.”
-> 
-> Discussion
-
-### 总结流程图
-
-1. **数据准备**：找 1000 条高难、多样、长推理的数据。
-2. **SFT 训练**：用 `think` 和 `answer` 标签训练模型，让它学会深度思考。
-3. **推理应用**：碰到结束标签就拦截，塞入 `Wait`，利用模型 SFT 后的惯性迫使其自我修正。
+- 三个 benchmark 规模有限，AIME24 对少数题变化敏感。
+- teacher/grader 数据链、潜在污染与错误 reasoning trace 对泛化的影响未完全隔离。
+- `Wait` 与 tokenizer/chat template 强绑定，跨模型迁移需要重测 delimiter 和 stopping behavior。
+- 最大预算受 context window、KV memory 和尾延迟约束，性能会饱和或反转。
+- 对 kernel agent 的最小实验应比较 fixed-turn、budget forcing、compiler-triggered continuation 与 best-of-N，并报告 correct@budget、best latency、编译次数和 wall-clock。
