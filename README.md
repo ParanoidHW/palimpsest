@@ -4,6 +4,8 @@
 
 # AI Infra Knowledge System
 
+仓库中的调研、论文精读、证据图表和对应 PPT/HTML 统一遵循 [调研知识组织规范](./00_meta/research-knowledge-organization.md)。
+
 这个知识库的中心不是“收集了哪些模型、论文和工具”，而是回答一个更稳定的问题：
 
 > 一个 AI 系统要从论文里的方法，变成可训练、可推理、可评测、可持续演进的工程系统，中间需要哪些基础设施判断？
@@ -14,7 +16,7 @@
 
 | 目录 | 用途 | 建议入口 |
 | --- | --- | --- |
-| [00_meta](./00_meta/) | 仓库入口资产与临时收件箱 | [assets](./00_meta/assets/) |
+| [00_meta](./00_meta/) | 仓库规范、入口资产与临时收件箱 | [调研知识组织规范](./00_meta/research-knowledge-organization.md) |
 | [01_ai_infra](./01_ai_infra/) | 评测、硬件运行时、硬件规格与性能建模 | [evaluation](./01_ai_infra/evaluation/), [performance modeling](./01_ai_infra/performance_modeling/) |
 | [02_model_systems](./02_model_systems/) | LLM、投机解码、多模态生成与 diffusion/world model | [LLM foundations](./02_model_systems/llm_foundations/), [speculative decoding](./02_model_systems/speculative_decoding/) |
 | [03_agentic_workflows](./03_agentic_workflows/) | Agent 化论文精读、kernel 生成与研究工作流 | [kernel agents](./03_agentic_workflows/kernel_agents/) |
