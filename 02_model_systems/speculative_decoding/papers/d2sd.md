@@ -1,5 +1,12 @@
 # D^2SD: Accelerating Speculative Decoding with Dual Diffusion Draft Models 精读分析
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Evolution](../surveys/evolution.md)
+> - 证据资产：`../assets/papers/d2sd/`
+> - 相关文档：[DFlash](dflash.md)，[JetSpec](jetspec.md)
+
 > 资料状态：已下载 arXiv:2606.04446v1 PDF、arXiv source archive 和 LaTeX 源文件。本文档中的 Figure 1/2 来自 LaTeX source 中的原始 PDF 图转 PNG；主结果表和消融表使用 PDF 页面截图作为证据。论文给出开源仓库 `https://github.com/catnanami/D2-SD`，`git ls-remote` 确认 HEAD 为 `6334b256d2f5294d61617453d1407bb3df06990f`，但本地浅克隆因 GitHub 443 连接超时失败，因此未完成代码文件级交叉验证。
 
 ## 0. 资料与配图索引
@@ -7,22 +14,17 @@
 - 原始论文页面：[https://arxiv.org/abs/2606.04446v1](https://arxiv.org/abs/2606.04446v1)
 - 原始论文 PDF：https://arxiv.org/pdf/2606.04446v1
 - 原始论文源码：https://arxiv.org/e-print/2606.04446v1
-- 论文 PDF：`../../_artifacts/source/2606.04446v1_D2SD_Accelerating_Speculative_Decoding_with_Dual_Diffusion_Draft_Models/paper.pdf`
-- arXiv source：`../../_artifacts/source/2606.04446v1_D2SD_Accelerating_Speculative_Decoding_with_Dual_Diffusion_Draft_Models/source/`
-- LaTeX 主文件：`../../_artifacts/source/2606.04446v1_D2SD_Accelerating_Speculative_Decoding_with_Dual_Diffusion_Draft_Models/source/main.tex`
-- 提取文本：`../../_artifacts/source/2606.04446v1_D2SD_Accelerating_Speculative_Decoding_with_Dual_Diffusion_Draft_Models/extracted_text/full_text.txt`
-- 页面截图：`../../_artifacts/source/2606.04446v1_D2SD_Accelerating_Speculative_Decoding_with_Dual_Diffusion_Draft_Models/figures/page_png/`
 - 代码仓库：[https://github.com/catnanami/D2-SD](https://github.com/catnanami/D2-SD)，远端 HEAD `6334b256d2f5294d61617453d1407bb3df06990f`；本地 clone 未完成。
 
 | 图表        | 本文档用途                                               | 文件                                                |
 | --------- | --------------------------------------------------- | ------------------------------------------------- |
-| Figure 1  | DFlash 与 D^2SD pipeline 对比                          | `assets/d2sd_pipeline_contrast.png`            |
-| Figure 2a | confidence 与真实 accept rate 的校准关系                    | `assets/d2sd_confidence_accuracy.png`          |
-| Figure 2b | Top-K unmask / variable-prefix branch 构造            | `assets/d2sd_topk_unmask.png`                  |
-| Page 2    | Table 1/2：block size scaling wall 与 naive branch 对比 | `assets/d2sd_page02_tables_scaling_naive.png`  |
-| Page 8    | Table 3：Qwen3-8B 主结果                                | `assets/d2sd_page08_table_qwen3_main.png`      |
-| Page 8    | Table 4：GPT-OSS-20B 主结果                             | `assets/d2sd_page08_table_gptoss_main.png`     |
-| Page 9    | Table 5/6：resampling 与 DFlash 复用消融                  | `assets/d2sd_page09_table_gptoss_ablation.png` |
+| Figure 1  | DFlash 与 D^2SD pipeline 对比                          | `../assets/papers/d2sd/d2sd_pipeline_contrast.png`            |
+| Figure 2a | confidence 与真实 accept rate 的校准关系                    | `../assets/papers/d2sd/d2sd_confidence_accuracy.png`          |
+| Figure 2b | Top-K unmask / variable-prefix branch 构造            | `../assets/papers/d2sd/d2sd_topk_unmask.png`                  |
+| Page 2    | Table 1/2：block size scaling wall 与 naive branch 对比 | `../assets/papers/d2sd/d2sd_page02_tables_scaling_naive.png`  |
+| Page 8    | Table 3：Qwen3-8B 主结果                                | `../assets/papers/d2sd/d2sd_page08_table_qwen3_main.png`      |
+| Page 8    | Table 4：GPT-OSS-20B 主结果                             | `../assets/papers/d2sd/d2sd_page08_table_gptoss_main.png`     |
+| Page 9    | Table 5/6：resampling 与 DFlash 复用消融                  | `../assets/papers/d2sd/d2sd_page09_table_gptoss_ablation.png` |
 
 ## 1. 论文基本信息
 
@@ -35,7 +37,7 @@
 
 1. **把扩散草稿从单链改造成 confidence-guided prefix tree。** 第一阶段 DFlash 生成一个 block 和每位置 confidence；D^2SD 不盲目增加 block 长度，而是估计拒绝边界并选择 top-$K$ prefix ranges，再从这些 prefix 重新生成后缀。证据：Section 3.1-3.3，Figure 1。
 
-![D2SD pipeline](assets/d2sd_pipeline_contrast.png)
+![D2SD pipeline](../assets/papers/d2sd/d2sd_pipeline_contrast.png)
 
 2. **引入第二个 variable-prefix diffusion drafter。** VP-Drafter 架构与 DFlash 类似，都是轻量 Qwen-based block diffusion model，并通过 KV 注入 target hidden features；区别在训练：VP-Drafter 被训练为能从任意 prefix length 继续补 mask，而不是只从固定 anchor 预测全 block。证据：Section 3.4。
 
@@ -47,7 +49,7 @@ $$
 
 估计“恰好接受 $i$ 个 token 后被拒绝”的概率。证据：Eq. 3/4，Figure 2a。
 
-![Confidence calibration|526](assets/d2sd_confidence_accuracy.png)
+![Confidence calibration|526](../assets/papers/d2sd/d2sd_confidence_accuracy.png)
 
 4. **Top-K unmask 将 posterior 转成可验证的共享前缀分支。** 选择
 
@@ -57,7 +59,7 @@ $$
 
 每个 $i\in\mathcal{S}$ 保留 anchor 和前 $i$ 个 DFlash token，只重新 mask 后续位置。这样得到的 $K+1$ 个候选天然共享前缀，适合 cascade attention 联合验证。证据：Eq. 5，Figure 2b。
 
-![Top-K unmask|1499](assets/d2sd_topk_unmask.png)
+![Top-K unmask|1499](../assets/papers/d2sd/d2sd_topk_unmask.png)
 
 5. **用实验拆开三类失败模式。** Table 1 显示 DFlash 单纯增大 $\gamma$ 到 24 后收益饱和，$\gamma=32$ 反而下降；Table 2/5 显示同一 drafter 上 $K$ 次 naive resampling 只带来小幅收益；Table 6/7 说明复用 DFlash 或加第三层级都不是最优。
 
@@ -138,7 +140,7 @@ $$
 
 Table 1 报告 Qwen3-8B 上 DFlash 随 block size $\gamma$ 变化的 TPF：MATH-500 从 $\gamma=8$ 的 5.04 上升到 $\gamma=16$ 的 6.05，但 $\gamma=24$ 为 6.01，$\gamma=32$ 降到 5.85；GSM8K 从 5.00 上升到 5.95/6.00 后，$\gamma=32$ 为 5.93。结论是：单链扩散 block 并不是越长越好，早期错误会让后续预算失效。
 
-![Scaling wall and naive branch tables|1156](assets/d2sd_page02_tables_scaling_naive.png)
+![Scaling wall and naive branch tables|1156](../assets/papers/d2sd/d2sd_page02_tables_scaling_naive.png)
 
 ### 4.2 Qwen3-8B 主结果
 
@@ -156,7 +158,7 @@ sampling decoding 平均值：
 
 这里的关键不是 D^2SD 在每个单项 $\alpha$ 都最高。比如 sampling 下 HumanEval/MBPP/LiveCodeBench/MT-Bench/Alpaca 的 EAGLE-3 接受长度更长，但 D^2SD 的 wall-clock speedup 仍更高，说明并行 block drafting 的低 draft latency 抵消了部分接受长度差距。
 
-![Qwen3 main table|1103](assets/d2sd_page08_table_qwen3_main.png)
+![Qwen3 main table|1103](../assets/papers/d2sd/d2sd_page08_table_qwen3_main.png)
 
 ### 4.3 GPT-OSS-20B 主结果
 
@@ -174,7 +176,7 @@ sampling 平均：
 
 但 sampling 下也有边界：LiveCodeBench 的 DFlash speedup 1.68x 高于 D^2SD 1.62x，MT-Bench 的 DFlash 1.60x 高于 D^2SD 1.59x，Alpaca 两者均为 1.58x。所以论文“平均领先”的结论成立，但开放式/采样场景下并非每个任务都严格领先。
 
-![GPT-OSS main table|1062](assets/d2sd_page08_table_gptoss_main.png)
+![GPT-OSS main table|1062](../assets/papers/d2sd/d2sd_page08_table_gptoss_main.png)
 
 ### 4.4 消融结论
 
@@ -182,7 +184,7 @@ Table 5：在四个任务平均上，DFlash 是 4.48x / $\alpha=5.75$，$+K$ nai
 
 Table 6：DFlash$\to$DFlash 复用原模型作为第二 drafter，平均 4.69x / $\alpha=6.53$，低于 D^2SD 的 5.35x / $\alpha=7.62$。这说明 top-K re-anchor 有用，但 VP-Drafter 的 variable-prefix 训练是额外收益来源。
 
-![Ablation tables|1056](assets/d2sd_page09_table_gptoss_ablation.png)
+![Ablation tables|1056](../assets/papers/d2sd/d2sd_page09_table_gptoss_ablation.png)
 
 Table 7：加第三层 VP-Drafter 后，平均 $\alpha$ 从 7.62 到 8.24，但 speedup 从 5.35x 降到 5.13x。论文解释为第三层 marginal accepted tokens 不足以覆盖额外 drafting 和 verification 成本。
 

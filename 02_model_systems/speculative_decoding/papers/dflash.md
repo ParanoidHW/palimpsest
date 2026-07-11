@@ -1,5 +1,12 @@
 # DFlash: Block Diffusion for Flash Speculative Decoding 精读分析
 
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Evolution](../surveys/evolution.md)
+> - 证据资产：`../assets/papers/dflash/`
+> - 相关文档：[D2SD](d2sd.md)，[HyperDFlash](hyperdflash.md)
+
 ## 0. 资料归档与图像元素
 
 本目录已归档：
@@ -12,7 +19,7 @@
     
 - 从 LaTeX 源码中抽取的原始 PDF 图：`extracted_figures/`（本地 artifacts 中未保留）
     
-- 从原始 PDF 图转换得到的 Markdown 配图 PNG：已复制到本目录的 `assets/`
+- 从原始 PDF 图转换得到的 Markdown 配图 PNG：已复制到正式目录 `../assets/papers/dflash/`
     
 - 官方代码仓库快照：`code/dflash/`（本地 artifacts 中未保留），remote 为 `https://github.com/z-lab/dflash`，当前提交 `94e4abc update model list`
     
@@ -34,11 +41,11 @@
 
 |论文图|PNG 配图|PDF 原图|所在 section|用途|
 |---|---|---|---|---|
-|Figure 1: speedup comparison|[`png/dflash_speedup.png`](assets/dflash_speedup.png)|`dflash_speedup.pdf`|Introduction|DFlash 与 EAGLE-3 / AR decoding 的总体速度对比|
-|Figure 2: inference design|[`png/dflash_inference_design.png`](assets/dflash_inference_design.png)|`dflash_inference_design.pdf`|Preliminaries|目标模型 hidden features 融合并注入 draft KV cache 的推理结构|
-|Figure 3: draft latency bar|[`png/draft_latency_bar.png`](assets/draft_latency_bar.png)|`draft_latency_bar.pdf`|Preliminaries|1/3/5 层 DFlash 与 1 层 EAGLE-3 的 draft cost 对比|
-|Figure 4: training attention|[`png/dflash_attn.png`](assets/dflash_attn.png)|`dflash_attn.pdf`|Method|训练时 block diffusion attention mask、anchor、mask token、跨 block 隔离|
-|Figure 5: acceptance vs epoch|[`png/acceptance_length_vs_epoch.png`](assets/acceptance_length_vs_epoch.png)|`acceptance_length_vs_epoch.pdf`|Appendix|loss decay 对收敛速度和 acceptance length 的影响|
+|Figure 1: speedup comparison|[`fig1-speedup.png`](../assets/papers/dflash/fig1-speedup.png)|`dflash_speedup.pdf`|Introduction|DFlash 与 EAGLE-3 / AR decoding 的总体速度对比|
+|Figure 2: inference design|[`fig2-inference-design.png`](../assets/papers/dflash/fig2-inference-design.png)|`dflash_inference_design.pdf`|Preliminaries|目标模型 hidden features 融合并注入 draft KV cache 的推理结构|
+|Figure 3: draft latency bar|[`fig3-draft-latency.png`](../assets/papers/dflash/fig3-draft-latency.png)|`draft_latency_bar.pdf`|Preliminaries|1/3/5 层 DFlash 与 1 层 EAGLE-3 的 draft cost 对比|
+|Figure 4: training attention|[`fig4-training-attention.png`](../assets/papers/dflash/fig4-training-attention.png)|`dflash_attn.pdf`|Method|训练时 block diffusion attention mask、anchor、mask token、跨 block 隔离|
+|Figure 5: acceptance vs epoch|[`fig5-acceptance-vs-epoch.png`](../assets/papers/dflash/fig5-acceptance-vs-epoch.png)|`acceptance_length_vs_epoch.pdf`|Appendix|loss decay 对收敛速度和 acceptance length 的影响|
 
 ## 1. 论文基本信息
 
@@ -116,7 +123,7 @@ $$
 
 因此，DFlash 的方法不是单纯“让 draft model 更准”，而是同时改变两个变量：通过 block diffusion 降低 draft 串行成本，通过 target hidden conditioning 提高 $\tau$。
 
-![Figure 3: DFlash 与 EAGLE-3 draft cost 对比](assets/draft_latency_bar.png)
+![Figure 3: DFlash 与 EAGLE-3 draft cost 对比](../assets/papers/dflash/fig3-draft-latency.png)
 
 图 3 对应这一段的关键证据：DFlash 用 block diffusion 后，draft cost 不随 draft token 数按自回归方式线性累积，因此即使 draft model 加深到 3 或 5 层，仍能保持低 draft latency。它支撑的不是最终准确率结论，而是“DFlash 有空间使用更强 drafter 而不把 draft 阶段拖慢”的系统假设。
 
@@ -124,7 +131,7 @@ $$
 
 DFlash 的一个 decoding cycle 可以拆成以下步骤。
 
-![Figure 2: DFlash 推理结构](assets/dflash_inference_design.png)
+![Figure 2: DFlash 推理结构](../assets/papers/dflash/fig2-inference-design.png)
 
 这张图对应 DFlash 推理主路径：target model 先给出 token 与 hidden context features；这些 features 经过融合后进入 draft model 的 KV cache；draft model 对 masked block 并行出 proposal；target model 再并行 verify。理解 DFlash 时要抓住图中的两个方向：横向是 speculative decoding cycle，纵向是 target features 被注入每层 draft attention。
 
@@ -165,7 +172,7 @@ $$
 
 论文 Method 的训练设计围绕“推理时会发生什么”来做对齐：
 
-![Figure 4: DFlash training attention mask](assets/dflash_attn.png)
+![Figure 4: DFlash training attention mask](../assets/papers/dflash/fig4-training-attention.png)
 
 图 4 是训练部分最重要的示意图。蓝色 target context features 是条件信息；黄色 clean response tokens 是随机采样的 anchors；绿色 mask tokens 是 block 内要并行预测的位置；白色 invisible tokens 表示 attention mask 隔离跨 block 信息。它说明 DFlash 的训练不是普通 next-token LM，也不是标准全序列 diffusion，而是把多个 speculative draft blocks 拼在一起，用稀疏 mask 一次训练多个局部 denoising 任务。
 
@@ -210,7 +217,7 @@ $$
 
 数据来源：Experiments / `tab:main-results`，Qwen3 models，thinking disabled，Transformers backend，最大生成 2048 tokens。
 
-![Figure 1: Qwen3-8B 上 DFlash、EAGLE-3 与自回归解码 speedup 对比](assets/dflash_speedup.png)
+![Figure 1: Qwen3-8B 上 DFlash、EAGLE-3 与自回归解码 speedup 对比](../assets/papers/dflash/fig1-speedup.png)
 
 图 1 是论文主张的视觉摘要：在 Qwen3-8B + Transformers backend 上，DFlash 在多个任务上显著高于 EAGLE-3。图只展示速度结果，真正解释原因需要结合下表的 \tau：DFlash 不只是 draft 快，还把平均接受长度从 EAGLE-3 的约 3 提升到约 5.5-6.5。
 
@@ -287,7 +294,7 @@ $$
 
 **随机 anchor sampling 和 loss decay 改善训练。** 数据来源：Appendix / `tab:ablation_sample_block` 与 Figure 5。随机 anchor sampling 相比 standard block construction，在 Math500 从 4.13x/\tau=4.94 提升到 4.69x/\tau=5.64，HumanEval 从 3.29x/\tau=3.86 提升到 3.90x/\tau=4.61。loss decay 图显示更快、更好的 convergence。二者共同证明训练目标确实应按 speculative acceptance 机制重写，而不是直接套标准 diffusion objective。
 
-![Figure 5: loss decay 对 acceptance length 收敛的影响](assets/acceptance_length_vs_epoch.png)
+![Figure 5: loss decay 对 acceptance length 收敛的影响](../assets/papers/dflash/fig5-acceptance-vs-epoch.png)
 
 图 5 对应上面的 loss decay 结论。它表达的是训练动态，而不是最终 benchmark speedup：对 block 内靠前位置加更高权重后，acceptance length 更快上升，最终也更高。原因和 speculative verification 的截断机制一致：越早出错，后续 token 越没有机会被接受。
 

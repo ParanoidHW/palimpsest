@@ -1,32 +1,36 @@
 
 # DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation 精读分析
 
-> 资料状态：本目录只有离线 PDF `DSpark_paper.pdf`；用户说明当前 arXiv 还没有，因此本次没有 LaTeX 源码可用。本文档中的示意图来自对 PDF 的整页渲染和裁剪，非原始矢量素材。若后续拿到 LaTeX 源码，建议用 `pdfimages`/源文件替换 `figures/crops/` 下的截图。
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[README](../README.md)
+> - 上位汇总：[Evolution](../surveys/evolution.md)
+> - 证据资产：`../assets/papers/dspark/`
+> - 相关文档：[DFlash](dflash.md)
+
+> 资料状态：核验时只有离线 PDF；用户说明当前 arXiv 还没有，因此本次没有 LaTeX 源码可用。本文档中的示意图来自 PDF 裁剪，非原始矢量素材；若后续拿到 LaTeX 源码，应使用源文件替换正式资产中的截图。
 
 ## 0. 资料与配图索引
 
-- 论文 PDF：`./DSpark_paper.pdf`，共 33 页；PDF metadata 显示 `LaTeX with hyperref`、`pdfTeX-1.40.27`，生成时间为 `2026-06-27 04:08:49 UTC`。
     
-- PDF 文本：`./extracted_text/full_text.clean.txt`，逐页文本在 `./extracted_text/page_XX.clean.txt`。
     
-- 截图素材：整页截图在 `./figures/page_png/`，核心图表裁剪在 `./figures/crops/`。
     
-- 开源代码：`./code/DeepSpec_shallow/`，remote 为 `https://github.com/deepseek-ai/DeepSpec`，当前本地浅克隆 commit 为 `0a03e19`。
+- 开源代码：`DeepSpec@0a03e19:`，remote 为 `https://github.com/deepseek-ai/DeepSpec`，当前本地浅克隆 commit 为 `0a03e19`。
     
 
 > 截图工具说明：当前环境没有直接可用的 `pdfinfo/pdftoppm`，因此使用 PyMuPDF 将 PDF 渲染为 PNG 后按坐标裁剪。可替代工具包括 Poppler 的 `pdftoppm`/`pdftocairo`、ImageMagick + Ghostscript、浏览器/Playwright PDF 截图。没有 LaTeX 源码时，这类截图是最务实的配图方案。
 
 |图表|本文档用途|文件|
 |---|---|---|
-|Figure 1|方法总览：parallel backbone + sequential head + scheduler + target verification|`./figures/crops/fig1_architecture.png`|
-|Table 1|离线 accepted length 主结果|`./figures/crops/table1_main_results.png`|
-|Figure 2|位置条件接受率，解释为什么半自回归有效|`./figures/crops/fig2_cond_acceptance.png`|
-|Figure 3|draft 层数消融|`./figures/crops/fig3_depth.png`|
-|Figure 4|proposal length 与延迟开销|`./figures/crops/fig4_proposal_latency.png`|
-|Figure 5|confidence threshold sweep|`./figures/crops/fig5_conf_threshold.png`|
-|Figure 6|confidence calibration reliability diagram|`./figures/crops/fig6_reliability.png`|
-|Figure 7|生产流量 throughput-TPS frontier|`./figures/crops/fig7_live_frontier.png`|
-|Figure 8|并发负载下的 throughput 与 verification budget|`./figures/crops/fig8_load_adaptive.png`|
+|Figure 1|方法总览：parallel backbone + sequential head + scheduler + target verification|`../assets/papers/dspark/fig1_architecture.png`|
+|Table 1|离线 accepted length 主结果|`../assets/papers/dspark/table1-main-results.png`|
+|Figure 2|位置条件接受率，解释为什么半自回归有效|`../assets/papers/dspark/fig2_cond_acceptance.png`|
+|Figure 3|draft 层数消融|`../assets/papers/dspark/fig3_depth.png`|
+|Figure 4|proposal length 与延迟开销|`../assets/papers/dspark/fig4_proposal_latency.png`|
+|Figure 5|confidence threshold sweep|`../assets/papers/dspark/fig5_conf_threshold.png`|
+|Figure 6|confidence calibration reliability diagram|`../assets/papers/dspark/fig6_reliability.png`|
+|Figure 7|生产流量 throughput-TPS frontier|`../assets/papers/dspark/fig7_live_frontier.png`|
+|Figure 8|并发负载下的 throughput 与 verification budget|`../assets/papers/dspark/fig8_load_adaptive.png`|
 
 ---
 
@@ -60,7 +64,7 @@ $$
 1. **半自回归 draft 架构。** DSpark 保留 DFlash 式单次并行 backbone 生成 $U_1,\dots,U_\gamma$，再用轻量 sequential block 给每个位置加入 prefix-dependent bias，从而在几乎不牺牲并行主干延迟的情况下恢复 block 内局部依赖。来源：Section 3.1，Figure 1。
     
 
-![Figure 1 DSpark architecture](assets/fig1_architecture.png)
+![Figure 1 DSpark architecture](../assets/papers/dspark/fig1_architecture.png)
 
 2. **低秩 Markov head 是默认实现。** 论文默认用 first-order transition bias：
     
@@ -169,7 +173,7 @@ $$
 
 由于吞吐目标中直接使用 $a_{r,j}$ 的数值，论文引入 Sequential Temperature Scaling（STS）做 post-hoc calibration，逐位置校准 cumulative product 的 ECE。来源：Section 3.2.1，Figure 6。
 
-![Figure 6 reliability](assets/fig6_reliability.png)
+![Figure 6 reliability](../assets/papers/dspark/fig6_reliability.png)
 
 调度阶段把 verification token 看成全局候选池，边增加 batch token 数 $B$，边估计 $\Theta=\tau\cdot \mathrm{SPS}(B)$。这里的 $\mathrm{SPS}(B)$ 是 **Steps Per Second**：当 target model 一次 verification forward 需要处理 $B$ 个 token 时，serving engine 每秒能完成多少个 decode/verification step。它不是模型质量指标，而是硬件和 serving engine 的容量曲线，通常在 engine 初始化或部署压测时 profiling 成一张查表。
 
@@ -327,7 +331,7 @@ $$
 
 ### 4.2 主结果：DSpark 提高 accepted length
 
-![Table 1 main results|924](assets/table1_main_results.png)
+![Table 1 main results|924](../assets/papers/dspark/table1-main-results.png)
 
 来源：Table 1、Section 4.2。离线评测关闭 confidence scheduler，所有方法固定 propose 一个 token block，以隔离 draft model 质量。
 
@@ -342,7 +346,7 @@ $$
 
 ### 4.3 为什么 DSpark 能超过纯并行和纯自回归
 
-![Figure 2 conditional acceptance](assets/fig2_cond_acceptance.png)
+![Figure 2 conditional acceptance](../assets/papers/dspark/fig2_cond_acceptance.png)
 
 来源：Section 4.3.1、Figure 2。
 
@@ -357,13 +361,13 @@ $$
 
 ### 4.4 模型深度与 proposal length 消融
 
-![Figure 3 depth](assets/fig3_depth.png)
+![Figure 3 depth](../assets/papers/dspark/fig3_depth.png)
 
 来源：Section 4.3.2、Figure 3。
 
 结论：DSpark 随 draft layers 增加而提升，且 2-layer DSpark 已超过 5-layer DFlash。导出逻辑是：局部顺序依赖建模比单纯堆并行层更高效，Markov head 的参数/延迟开销换来了更好的 sequence coherence。
 
-![Figure 4 proposal length latency](assets/fig4_proposal_latency.png)
+![Figure 4 proposal length latency](../assets/papers/dspark/fig4_proposal_latency.png)
 
 来源：Section 4.3.2、Figure 4。
 
@@ -380,7 +384,7 @@ $$
 
 ### 4.5 Confidence head 与调度证据
 
-![Figure 5 confidence sweep](assets/fig5_conf_threshold.png)
+![Figure 5 confidence sweep](../assets/papers/dspark/fig5_conf_threshold.png)
 
 来源：Section 4.3.3、Figure 5。
 
@@ -397,7 +401,7 @@ $$
 
 ### 4.6 生产部署结果
 
-![Figure 7 live frontier](assets/fig7_live_frontier.png)
+![Figure 7 live frontier](../assets/papers/dspark/fig7_live_frontier.png)
 
 来源：Section 5.4、Figure 7。生产环境对比 DSpark-5 与 MTP-1，部署在 DeepSeek-V4-Flash preview 和 DeepSeek-V4-Pro preview。
 
@@ -410,7 +414,7 @@ $$
 - 在 matched practical throughput 下，DSpark 使 per-user generation speed 提升：V4-Flash +60%-85%，V4-Pro +57%-78%。
     
 
-![Figure 8 load adaptive](assets/fig8_load_adaptive.png)
+![Figure 8 load adaptive](../assets/papers/dspark/fig8_load_adaptive.png)
 
 来源：Section 5.4、Figure 8。
 
@@ -633,7 +637,7 @@ Section 5.2-5.3 指出生产落地的困难不在 Markov head 本身，而在动
 
 仓库 README 称 DeepSpec 是用于训练和评测 speculative decoding draft models 的 full-stack codebase，包含 DSpark、DFlash、Eagle3。当前公开仓库覆盖 Qwen3/Gemma4 的训练、评测和数据准备；论文 Section 5 的 DeepSeek-V4 生产 scheduler/kernel 改造并未在仓库中完整开源。
 
-GitHub 链接：`https://github.com/deepseek-ai/DeepSpec`。本地克隆：`./code/DeepSpec_shallow/`。
+GitHub 链接：`https://github.com/deepseek-ai/DeepSpec`。本地克隆：`DeepSpec@0a03e19:`。
 
 ### 7.2 DSpark 配置规格
 
@@ -652,16 +656,16 @@ GitHub 链接：`https://github.com/deepseek-ai/DeepSpec`。本地克隆：`./co
 
 |论文机制|本地文件|GitHub 对应位置|
 |---|---|---|
-|Qwen3 DSpark config 默认规格|`./code/DeepSpec_shallow/config/dspark/dspark_qwen3_4b.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/config/dspark/dspark_qwen3_4b.py#L9-L29`|
-|DFlash-like KV/context injection|`./code/DeepSpec_shallow/deepspec/modeling/dspark/qwen3/modeling.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/qwen3/modeling.py#L44-L135`|
-|DSpark model modules：fc、Markov、confidence head|`./code/DeepSpec_shallow/deepspec/modeling/dspark/qwen3/modeling.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/qwen3/modeling.py#L202-L335`|
-|训练 forward：anchor sampling、mask block、target logits 对齐|`./code/DeepSpec_shallow/deepspec/modeling/dspark/qwen3/modeling.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/qwen3/modeling.py#L362-L525`|
-|Vanilla Markov head|`./code/DeepSpec_shallow/deepspec/modeling/dspark/markov_head.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/markov_head.py#L8-L90`|
-|TV acceptance soft label 与 loss 加权|`./code/DeepSpec_shallow/deepspec/modeling/dspark/loss.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/loss.py#L60-L70`、`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/loss.py#L231-L252`|
-|Confidence-threshold proposal 截断|`./code/DeepSpec_shallow/deepspec/eval/dspark/draft_ops.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/eval/dspark/draft_ops.py#L96-L153`|
-|Lossless rejection sampling verification|`./code/DeepSpec_shallow/deepspec/eval/base_evaluator.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/eval/base_evaluator.py#L186-L305`|
-|target cache 大小公式与 dtype|`./code/DeepSpec_shallow/deepspec/data/target_cache_dataset.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/data/target_cache_dataset.py#L42-L74`|
-|38 TB cache warning|`./code/DeepSpec_shallow/scripts/data/README.md`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/scripts/data/README.md#L121-L127`|
+|Qwen3 DSpark config 默认规格|`DeepSpec@0a03e19:config/dspark/dspark_qwen3_4b.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/config/dspark/dspark_qwen3_4b.py#L9-L29`|
+|DFlash-like KV/context injection|`DeepSpec@0a03e19:deepspec/modeling/dspark/qwen3/modeling.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/qwen3/modeling.py#L44-L135`|
+|DSpark model modules：fc、Markov、confidence head|`DeepSpec@0a03e19:deepspec/modeling/dspark/qwen3/modeling.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/qwen3/modeling.py#L202-L335`|
+|训练 forward：anchor sampling、mask block、target logits 对齐|`DeepSpec@0a03e19:deepspec/modeling/dspark/qwen3/modeling.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/qwen3/modeling.py#L362-L525`|
+|Vanilla Markov head|`DeepSpec@0a03e19:deepspec/modeling/dspark/markov_head.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/markov_head.py#L8-L90`|
+|TV acceptance soft label 与 loss 加权|`DeepSpec@0a03e19:deepspec/modeling/dspark/loss.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/loss.py#L60-L70`、`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/modeling/dspark/loss.py#L231-L252`|
+|Confidence-threshold proposal 截断|`DeepSpec@0a03e19:deepspec/eval/dspark/draft_ops.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/eval/dspark/draft_ops.py#L96-L153`|
+|Lossless rejection sampling verification|`DeepSpec@0a03e19:deepspec/eval/base_evaluator.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/eval/base_evaluator.py#L186-L305`|
+|target cache 大小公式与 dtype|`DeepSpec@0a03e19:deepspec/data/target_cache_dataset.py`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/deepspec/data/target_cache_dataset.py#L42-L74`|
+|38 TB cache warning|`DeepSpec@0a03e19:scripts/data/README.md`|`https://github.com/deepseek-ai/DeepSpec/blob/0a03e19/scripts/data/README.md#L121-L127`|
 
 **DFlash-like hidden injection。** `deepspec/modeling/dspark/qwen3/modeling.py` 中 `Qwen3DSparkAttention` 将 target hidden states 和 draft/noise hidden states 分别投影为 KV 后 concat，query 来自 draft hidden。对应论文的 injected target context + parallel block。
 
