@@ -109,10 +109,10 @@ paper_slide(13,'架构替代：FrameDiT 以 matrix attention 改变 temporal top
 # 14 detailed Causal / LVSA evidence visual
 s=prs.slides.add_slide(prs.slide_layouts[6]); s.background.fill.solid(); s.background.fill.fore_color.rgb=c(PAPER); add_title(s,'两条“真正下沉到 runtime”的路径：规则与 CSR')
 fit_image(s, ASSET/'2606_causal_rcm/fig4_recipe_comparison_caption.png', .55,1.35,5.95,3.72)
-fit_image(s, ASSET/'2605_lvsa/table1_fig4_scaling_caption.png', 6.82,1.35,5.95,3.72)
-callout(s,'Causal-rCM：规则型','BlockPattern 让 kernel/BlockMask 按 block id 判定 visibility；同一规则覆盖 TF、JVP、cache。',.7,5.35,5.55,.85,CORAL)
-callout(s,'LVSA：索引型','CSR 与 compact layout 交给 FlashInfer planning；图表说明长 horizon/80GB 情况，但不可跨模型横比。',7.0,5.35,5.55,.85,MINT)
-add_footer(s,14,'Causal-rCM Fig.4; LVSA Table 1 + Fig.4')
+fit_image(s, ASSET/'2605_lvsa/fig4_wall_time_scaling_caption.png', 6.82,1.35,5.95,3.72)
+callout(s,'Causal-rCM：规则型','BlockPattern 让 kernel/BlockMask 按 block id 判定 visibility；同一规则覆盖 TF、JVP、cache。',.7,5.28,5.55,1.02,CORAL)
+callout(s,'LVSA：索引型','CSR 与 compact layout 交给 FlashInfer planning；图表说明长 horizon/80GB 情况，但不可跨模型横比。',7.0,5.28,5.55,1.02,MINT)
+add_footer(s,14,'Causal-rCM Fig.4; LVSA Fig.4')
 
 # 15 compare representation
 s=prs.slides.add_slide(prs.slide_layouts[6]); s.background.fill.solid(); s.background.fill.fore_color.rgb=c(PAPER); add_title(s,'定制 mask 的四种表达：什么能真正跳过 tile？')

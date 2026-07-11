@@ -169,9 +169,13 @@ $$
 
 其中 $\mathcal G$ 是 rotating periodic global anchors，$\mathcal W(t)$ 是会在重叠时扩展的本地窗口。它保证近似恒定预算 $|\mathcal A(t)|\approx C$，而不是固定矩形窗口。
 
-![LVSA Table 1 and Fig.4](assets/papers/2605_lvsa/table1_fig4_scaling_caption.png)
+![LVSA Table 1](assets/papers/2605_lvsa/table1_wall_time_caption.png)
 
-*原论文 Table 1 与 Fig.4：不同 horizon 的 wall time。HunyuanVideo 1.5 在 2x horizon 的 dense attention OOM，LVSA-FI 约占 60GB；图中的速度与质量仍受模型、horizon 和 80GB GPU 设置约束。*
+*原论文 Table 1：不同模型和 horizon 的 wall time。HunyuanVideo 1.5 在 2x horizon 的 dense attention OOM，LVSA-FI 约占 60GB。*
+
+![LVSA Fig.4](assets/papers/2605_lvsa/fig4_wall_time_scaling_caption.png)
+
+*原论文 Fig.4：wall time 随 horizon 增长的趋势；不同模型曲线受模型规模、训练长度与 80GB GPU 设置约束，不应跨模型直接比较。*
 
 **实现细节（代码已核验）**：`lvsa/sparse_attention.py:275-304` 的 `ring_block_frame_csr()` 返回 `int32 indptr` 与 `int32 indices`，并明确写明 FlashInfer `BlockSparseAttentionWrapper` 跳过未列的 frame blocks，**不构造** dense `[Sq,Sk]` mask。`_build_flashinfer_csr()` 还构造 compact frame layout 和 copy instructions。关键 host-device 事实在 `ensure_device():601-607`：`fi_indptr/fi_indices` 故意保留 CPU，供 host mask builder/FlashInfer planning pass 使用，planner 再创建运行期 device copy。
 
