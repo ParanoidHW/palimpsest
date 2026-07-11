@@ -1,0 +1,588 @@
+                                                  AscendCraft: Automatic Ascend NPU Kernel
+                                                  Generation via DSL-Guided Transcompilation
+                                                     Zhongzhen Wen                                 Shudi Shao                                Zhong Li
+                                              State Key Lab for Novel Software          Software Engineering Application          State Key Lab for Novel Software
+                                               Technology, Nanjing University            Technology Laboratory, Huawei             Technology, Nanjing University
+                                                       Nanjing, China                           Shanghai, China                             Nanjing, China
+                                              wenzhongzhen@smail.nju.edu.cn                 shaoshudi@huawei.com                         lizhong@nju.edu.cn
+
+                                                           Yu Ge                                 Tongtong Xu                                Yuanyi Lin
+                                              State Key Lab for Novel Software          Software Engineering Application         Software Engineering Application
+                                               Technology, Nanjing University            Technology Laboratory, Huawei            Technology Laboratory, Huawei
+arXiv:2601.22760v1 [cs.DC] 30 Jan 2026
+
+
+
+
+                                                       Nanjing, China                          Hangzhou, China                           Hangzhou, China
+                                                   yuge@smail.nju.edu.cn                   xutongtong9@huawei.com                    linyuanyi2@huawei.com
+
+                                                                                                  Tian Zhang
+                                                                                        State Key Lab for Novel Software
+                                                                                         Technology, Nanjing University
+                                                                                                 Nanjing, China
+                                                                                               ztluck@nju.edu.cn
+
+                                         Abstract                                                            Keywords: Large Language Models, Ascend, Deep Learning
+                                         The performance of deep learning models critically depends          Kernels
+                                         on efficient kernel implementations, yet developing high-
+                                         performance kernels for specialized accelerators remains
+                                         time-consuming and expertise-intensive. While recent work           1   Introduction
+                                         demonstrates that large language models (LLMs) can gen-
+                                         erate correct and performant GPU kernels, kernel gener-                The performance of deep learning (DL) models critically
+                                         ation for neural processing units (NPUs) remains largely            depends on the efficiency of underlying DL kernels. Devel-
+                                         underexplored due to domain-specific programming models,            oping high-performance kernels is a time-consuming and
+                                         limited public examples, and sparse documentation. Con-             expertise-intensive process, requiring deep understanding
+                                         sequently, directly generating AscendC kernels with LLMs            of hardware architectures, memory hierarchies, and low-
+                                         yields extremely low correctness, highlighting a substantial        level optimization techniques. This challenge is particularly
+                                         gap between GPU and NPU kernel generation.                          evident on specialized accelerators, where achieving high
+                                            We present AscendCraft, a DSL-guided approach for                performance often requires careful orchestration of data
+                                         automatic AscendC kernel generation. AscendCraft intro-             movement and on-chip resources.
+                                         duces a lightweight DSL that abstracts non-essential com-              Recent advances in large language models (LLMs) for code
+                                         plexity while explicitly modeling Ascend-specific execution         generation have attracted significant attention from the re-
+                                         semantics. Kernels are first generated in the DSL using category-   search community, including efforts to automatically gener-
+                                         specific expert examples and then transcompiled into As-            ate DL kernels. Most existing work focuses on GPU kernels,
+                                         cendC through structured, constraint-driven LLM lowering            benefiting from abundant public corpora, extensive docu-
+                                         passes. Evaluated on MultiKernelBench across seven oper-            mentation, and mature programming ecosystems. As a result,
+                                         ator categories, AscendCraft achieves 98.1% compilation             prior studies [4, 14, 16] have demonstrated promising results
+                                         success and 90.4% functional correctness. Moreover, 46.2% of        in generating correct and performant GPU kernels using
+                                         generated kernels match or exceed PyTorch eager execution           LLMs.
+                                         performance, demonstrating that DSL-guided transcompila-               In contrast, kernel generation for neural processing units
+                                         tion can enable LLMs to generate both correct and competi-          (NPUs) remains largely unexplored. NPU programming mod-
+                                         tive NPU kernels. Beyond benchmarks, AscendCraft fur-               els are often domain-specific, with limited public examples
+                                         ther demonstrates its generality by successfully generating         and sparse documentation. As a result, LLMs lack sufficient
+                                         two correct kernels for newly proposed mHC architecture,            exposure to NPU-specific syntax, execution models, and op-
+                                         achieving performance that substantially surpasses PyTorch          timization principles. Recent evidence from MultiKernel-
+                                         eager execution.                                                    Bench [17] shows that state-of-the-art LLMs achieve a cor-
+                                                                                                             rectness rate below 5% when directly generating AscendC
+                                                                                                                     Wen et al.
+
+
+kernels, highlighting the substantial gap between GPU and                                   AI Core
+NPU kernel generation.
+   To bridge this gap, we propose AscendCraft, a DSL-                        Cube              Vector              Scalar
+guided approach for automatic AscendC kernel generation.
+At the core of AscendCraft is a lightweight domain-specific
+language (DSL) designed around three key principles. (1)
+Concise and structured syntax: the DSL adopts a compact                L0A            L0B        L0C
+and regular programming structure that reduces syntactic
+                                                                             MTE-L1
+verbosity and enforces clear control flow. This design al-
+lows the model to focus on core algorithmic decisions—such
+as tiling strategies and dataflow organization—rather than                    L1                            UB
+low-level syntactic details, while keeping programs short and                                          MTE-UB
+stable for generation. (2) Appropriate abstraction: the DSL
+deliberately hides platform-specific complexities that impose
+                                                                         MTE-GM
+significant programming burden but are not essential for ex-
+                                                                                              GM
+pressing core kernel logic. For example, unaligned memory
+access handling in AscendC requires verbose DataCopyPad
+configurations with numerous arguments; such details are                       Figure 1. Ascend architecture.
+abstracted away in the DSL to simplify generation with-
+out sacrificing correctness. (3) Targeted extensions: the
+DSL explicitly models Ascend-specific execution semantics,       our method substantially improves both compilation success
+including on-chip memory allocation (e.g., Unified Buffer us-    and functional correctness compared to direct LLM-based
+age), staged execution (CopyIn, Compute, CopyOut), and           AscendC generation, achieving a 98.1% compilation suc-
+inter-core execution structure. These targeted extensions        cess rate and an overall 90.4% functional correctness rate.
+ensure that the DSL remains expressive enough to capture         In addition, the generated kernels demonstrate competitive
+high-performance NPU kernel designs.                             performance relative to PyTorch eager execution: 82.7% of
+   Our approach consists of two stages. In the first stage,      kernels reach at least 20% of PyTorch eager performance,
+the LLM generates a high-level DSL program that describes        57.7% reach 80%, and 46.2% match or exceed PyTorch eager
+the kernel’s core computation, tiling strategy, and on-chip      baselines. Beyond benchmark evaluation, we further validate
+dataflow. The DSL examples provided to the LLM are writ-         AscendCraft on two newly proposed real-world kernels
+ten by human experts and are category-specific, with each        from the mHC architecture [20]. AscendCraft generates
+category corresponding to a class of operators that share sim-   correct implementations for both kernels in a single pass,
+ilar computation patterns and optimization objectives. These     achieving 6.6× and 3.0× speedup over PyTorch eager execu-
+examples encode common optimization strategies and exe-          tion, respectively. Starting from these generated kernels, a
+cution patterns for Ascend kernels within the same operator      human developer collaboratively optimized them with the
+category. By operating on this concise and structured DSL,       assistance of LLMs, iteratively refining performance. After
+the LLM can effectively learn category-level core design prin-   optimization, the final implementations achieved up to 15.9×
+ciples and generalize them to unseen operator configurations     and 7.2× speedups over PyTorch eager execution, respec-
+within the same category.                                        tively. These results demonstrate that a carefully designed
+   In the second stage, we transcompile the DSL into As-         DSL, together with a structured and constrained transcompi-
+cendC code through a sequence of structured LLM-based            lation pipeline, not only enables effective LLM-based kernel
+lowering passes, each responsible for translating a specific     generation for NPUs, but also provides a strong foundation
+aspect of the DSL into valid and efficient AscendC constructs.   for practical performance tuning on emerging workloads.
+Decomposing the translation process into well-defined sub-
+tasks reduces the complexity of each generation step, thereby    2     Background and Motivation
+improving both correctness and robustness. Moreover, we          2.1   Ascend NPU Architecture
+explicitly constrain the structure of the generated As-          Ascend [12] is a domain-specific neural processing unit (NPU)
+cendC program during transcompilation. In particular, each       designed from the ground up for DL workloads. Figure 1 il-
+copyin, compute, and copyout block in the DSL is mapped          lustrates the overall architecture of the Ascend NPU.
+to a corresponding AI Core function in AscendC, enforcing
+a clear execution structure and preventing invalid interleav-      Compute Units. The core computing component of As-
+ings of computation and data movement.                           cend is the AICore, which integrates multiple heterogeneous
+   We evaluate our approach on MultiKernelBench [17] across      compute units specialized for different types of operations.
+seven operator categories. Experimental results show that        Specifically, each AICore consists of three types of units:
+AscendCraft: Automatic Ascend NPU Kernel Generation via DSL-Guided Transcompilation
+
+
+Scalar Unit, Vector Unit, and Cube Unit. The Scalar unit is              and computation, but requires careful coordination of buffer
+responsible for scalar data processing and program control               usage and data dependencies across stages.
+flow. The Vector unit executes vector operations, similar                   Kernel execution is further organized into multiple blocks,
+to traditional Single Instruction Multiple Data (SIMD) ex-               which represent the smallest logical execution units. The
+ecution, where each vector instruction performs the same                 number of blocks is specified at kernel launch time, enabling
+operation on multiple data elements simultaneously, such as              parallel execution across multiple cores. AscendC also pro-
+element-wise arithmetic, normalization, activation functions,            vides explicit synchronization primitives, such as SyncAll,
+and reductions. The Cube unit is dedicated to matrix compu-              to coordinate execution across blocks when necessary.
+tations and can complete a matrix multiplication between
+matrix A (M × K) and matrix B (K × N) in a single execu-                    Tensor and Buffer Management. AscendC introduces
+tion. By allowing these units to operate in parallel, Ascend             tensor abstractions to represent data stored at different mem-
+achieves high utilization across diverse operator patterns.              ory levels. GlobalTensor represents buffers allocated in
+   Memory Hierarchy. Ascend adopts a multi-level memory                  global memory and serves as the interface for all kernel in-
+hierarchy consisting of Global Memory (GM), L1 buffers,                  puts and outputs. LocalTensor represents buffers allocated
+unified buffers and L0 buffers. Ascend exposes its on-chip               in on-chip memory, including Unified Buffer (UB), L1 buffers,
+memory hierarchy to software, enabling explicit control over             and L0 buffers (e.g., L0A, L0B, and L0C).
+data placement and movement. This design provides greater                   While these abstractions closely reflect the underlying
+flexibility for optimizing data locality and reuse [21].                 hardware, developers must explicitly manage buffer alloca-
+                                                                         tion and placement. In particular, on-chip buffers such as
+   Data Movement and Transfer Mechanism. Data trans-                     UB impose strict hardware constraints, including alignment
+fers are managed by a dedicated hardware component called                requirements (e.g., 32-byte alignment) and size granularity re-
+the Memory Transfer Engine (MTE). Ascend includes mul-                   strictions. These constraints require careful reasoning about
+tiple MTE units, each responsible for transfers originating              tensor shapes, tiling factors, and memory layouts, increasing
+from a specific memory level. Transfers within the same                  the burden of kernel development.
+MTE are executed sequentially, while transfers across differ-
+ent MTEs can proceed in parallel, enabling higher overall
+bandwidth utilization.                                                      Queues and Data Dependency Management. To coordi-
+                                                                         nate data movement and computation across heterogeneous
+   Instruction Pipelining. Ascend employs an explicit in-                hardware units, AscendC provides a queue-based mecha-
+struction pipelining mechanism to overlap computation and                nism for managing data dependencies. After a hardware unit
+data movement. Both compute operations and memory trans-                 finishes operating on a tensor, the tensor pointer is enqueued.
+fers are issued as instructions and dispatched to separate exe-          Subsequent stages dequeue the tensor, blocking if necessary
+cution queues corresponding to the Scalar, Vector, Cube, and             until the data becomes available. This mechanism makes data
+MTE units. Instructions within a single queue are executed               dependencies explicit and avoids manual synchronization
+in order, while instructions in different queues can execute             between pipeline stages.
+concurrently. This design enables fine-grained coordination                 Queues can hold multiple tensors, enabling techniques
+between computation and data transfers, improving overall                such as double buffering by increasing queue capacity. While
+throughput when properly scheduled.                                      powerful, effective use of queues requires careful design to
+                                                                         ensure correct execution order and optimal overlap between
+2.2   AscendC Programming Model                                          data transfer and computation.
+AscendC is a pipeline-based programming model designed
+for developing high-performance computational kernels on
+                                                                            Operations and Programming Complexity. AscendC
+the Ascend NPU [19]. Built on top of C++, AscendC exposes
+                                                                         defines a rich set of operations corresponding to different
+low-level hardware capabilities while providing structured
+                                                                         hardware units, including data transfer operations such as
+abstractions that simplify kernel development.
+                                                                         DataCopy, matrix operations such as Mmad on the Cube unit,
+   Execution and Pipeline Model. AscendC follows a pipeline-             and vector operations such as Adds on the Vector unit. Con-
+based execution model that decomposes kernel execution                   structing efficient kernels requires developers to carefully
+into three logical stages: CopyIn, Compute, and CopyOut. In              schedule these operations across pipeline stages, manage
+the CopyIn stage, data is explicitly transferred from global             buffer reuse, and align instruction execution with hardware
+memory to on-chip buffers via MTE operations. The Com-                   queues.
+pute stage performs arithmetic operations using the Scalar,                 Overall, while AscendC provides expressive and powerful
+Vector, or Cube units. Finally, the CopyOut stage writes re-             abstractions, writing correct and high-performance AscendC
+sults back to global memory. This explicit separation enables            kernels demands deep hardware knowledge and meticulous
+instruction pipelining and overlap between data movement                 coordination of memory allocation, data movement, and
+                                                                                                                        Wen et al.
+
+
+computation. These challenges motivate the need for higher-      2.4   Motivation
+level abstractions and automated approaches for AscendC          The limitations of direct LLM-based kernel generation moti-
+kernel generation, which we explore in this work.                vate a shift toward intermediate representations that better
+                                                                 align with the strengths of LLMs. While LLMs struggle to
+2.3   LLM for Kernel Generation                                  reliably emit low-level NPU code with strict structural and
+                                                                 hardware constraints, they are considerably more effective at
+LLMs have recently demonstrated strong capabilities in code      reasoning about higher-level algorithmic structure, dataflow,
+generation and program synthesis [5, 9], motivating their use    and tiling strategies. To bridge this gap between high-level
+in automating low-level system programming tasks [13, 15].       intent and low-level NPU kernel code, recent work advo-
+Prior work has explored LLM-based approaches for gener-          cates introducing structured intermediate representations or
+ating deep learning kernels, particularly for GPUs, where        domain-specific languages to guide LLM generation [3, 13].
+abundant public code, mature programming models, and             By constraining the generation space and explicitly encod-
+well-documented optimization patterns provide rich train-        ing hardware-relevant semantics at an appropriate level of
+ing corpora.                                                     abstraction, such representations improve both correctness
+                                                                 and controllability. Following this direction, our approach
+   LLMs for GPU Kernel Generation. Recent studies [4,            leverages an LLM-guided DSL as an intermediate step for
+10, 18] have demonstrated that LLMs can effectively assist       systematically generating AscendC kernels.
+in generating GPU kernels in CUDA or Triton. Prior work
+explores a range of paradigms, including direct code genera-     3     DSL Definition
+tion [14], multi-agent frameworks [6, 8, 22], and evolutionary   To bridge the gap between high-level kernel intent and low-
+optimization approaches [7, 11]. These methods benefit from      level AscendC implementation, we introduce a lightweight
+the rich ecosystem surrounding GPU programming, includ-          domain-specific language (DSL) tailored for Ascend kernel
+ing abundant open-source kernels, extensive documentation,       generation. The DSL is designed to be LLM-friendly, appro-
+and standardized abstractions. Consequently, LLMs are able       priately abstracted, and sufficiently expressive to capture high-
+to learn and reuse common optimization strategies—such           performance NPU kernel designs. It provides a structured,
+as tiling, shared memory utilization, and instruction-level      hardware-aware representation that exposes core execution
+parallelism—from existing corpora.                               logic—such as tiling, dataflow, and on-chip execution struc-
+                                                                 ture—while shielding the LLM from unnecessary platform-
+   Challenges in NPU Kernel Generation. In contrast, ap-         specific complexity.
+plying LLMs to NPU kernel generation presents distinct
+challenges. First, NPU programming models like AscendC              Overall Structure. An Ascend DSL program consists of
+impose specific constraints, such as strict memory align-        two components: a host function and a kernel function, which
+ment and complex synchronization across heterogeneous            respectively describe host-side execution control and on-
+compute units. These demand explicit control over memory,        chip computation. This organization follows a widely used
+data movement, and pipelines, raising code complexity and        paradigm in accelerator programming and keeps each com-
+reducing error tolerance. Second, publicly available NPU ker-    ponent concise and semantically focused. Combined with a
+nel implementations are far scarcer than GPU counterparts,       Triton-like programming style featuring compact syntax and
+limiting the training corpus for LLMs. The lack of large-        clear structure, the DSL reduces unnecessary boilerplate and
+scale, high-quality NPU code makes it difficult for LLMs to      enables LLMs to reason about kernel execution at a higher
+generate correct and efficient kernels.                          level, focusing on core algorithmic decisions such as tiling,
+                                                                 dataflow, and computation structure.
+
+   Limitations of Direct LLM-Based Code Generation.                 Host Function: Global Planning. The host function
+Due to these challenges, naively prompting LLMs to gener-        specifies global execution decisions, including core parti-
+ate low-level NPU kernels often fails to produce even syn-       tioning and tiling strategy. Core partitioning defines how
+tactically correct or compilable code [17]. The structural       the overall workload is distributed across hardware cores by
+complexity of kernels exacerbates LLM hallucinations and         explicitly specifying the number of cores and the per-core
+inconsistencies. Consequently, achieving reliable memory         workload assignment. The DSL requires these decisions to
+usage, synchronization, and compliance with hardware con-        be stated explicitly, making inter-core execution structure
+straints—such as alignment and buffer placement—remains          visible and analyzable.
+far from attainable in direct generation. These limitations         The tiling strategy specifies how global tensors are parti-
+highlight that a purely end-to-end, LLM-based approach is        tioned into tiles that fit within on-chip memory (e.g., the Uni-
+insufficient for generating functionally correct and perfor-     fied Buffer or L1). All tiling parameters—such as tile length
+mant NPU kernels.                                                or block dimensions—must be explicitly defined, together
+AscendCraft: Automatic Ascend NPU Kernel Generation via DSL-Guided Transcompilation
+
+
+                                                                         placed in copyout blocks. Multiple copyin, compute, and
+                                                                         copyout blocks are allowed, enabling the expression of multi-
+                                                                         stage pipelines and iterative computation patterns. This ex-
+                                                                         plicit staging captures Ascend-specific execution semantics
+                                                                         while imposing a clear and regular structure that is easy for
+                                                                         LLMs to generate and reason about.
+                                                                            The DSL provides a set of computation primitives covering
+                                                                         common vector and reduction operations. Their parameteri-
+                                                                         zation closely mirrors corresponding AscendC APIs, facili-
+                                                                         tating systematic and reliable translation during transcompi-
+                                                                         lation.
+
+                                                                            Design Rationale. Overall, the DSL strikes a deliberate
+                                                                         balance between abstraction and control. It hides low-level
+                                                                         AscendC details that impose significant programming bur-
+                                                                         den—such as strict memory alignment handling and ver-
+                                                                         bose DataCopyPad configurations—while explicitly model-
+                                                                         ing performance-critical aspects such as on-chip memory
+                                                                         allocation, staged execution, and inter-core structure. By
+                                                                         doing so, the DSL reduces ambiguity in LLM-generated pro-
+                                                                         grams, enables structure-preserving transcompilation, and
+                                                                         serves as an effective intermediate representation for gener-
+                                                                         ating correct and efficient AscendC kernels.
+
+                                                                         4     Method
+                                                                         Figure 3 illustrates our approach, AscendCraft, for automat-
+                                                                         ically generating AscendC kernels. AscendCraft consists
+Figure 2. An example of a Softmax kernel written in the                  of two main stages: DSL generation and transcompilation.
+proposed Ascend DSL. The example shows the separation                    In the first stage, given a kernel task, the LLM generates DSL
+between host-side execution planning and kernel-side on-                 code that describes the kernel’s core logic, guided by the
+chip computation, as well as the staged execution pattern                DSL specification and category-specific examples. In the sec-
+(copyin, compute, copyout). It demonstrates how the DSL                  ond stage, the generated DSL is transcompiled into AscendC
+expresses tiled computation, on-chip buffer usage, and core              through multiple LLM passes, following predefined mapping
+dataflow logic while abstracting low-level AscendC details.              rules in a step-by-step manner.
+
+                                                                         4.1   DSL Code Generation
+with a brief rationale explaining the underlying memory
+constraints. Finally, the host function launches the kernel              The first stage of AscendCraft is to generate DSL code
+and passes the computed tiling parameters to the kernel for              that captures the core computation and execution strategy
+on-chip execution.                                                       of an Ascend kernel. We leverage an LLM to produce DSL by
+                                                                         carefully constructing prompts that constrain the generation
+   Kernel Function: On-Chip Execution. The kernel func-                  space while preserving sufficient flexibility for optimization.
+tion describes all on-chip behavior, including buffer alloca-
+tion and computation. All temporary on-chip buffers must                    Prompt Design. The prompt for DSL code generation
+be explicitly allocated within the kernel using dedicated DSL            mainly consists of two components: (1) the DSL specification
+primitives for Unified Buffer (UB) or L1 memory. The DSL                 and (2) representative DSL examples. The DSL specification
+disallows implicit aliasing and enforces explicit buffer dec-            defines the syntax and semantics of the language, including
+laration, ensuring that data movement and buffer reuse are               the separation between host and kernel functions, explicit
+transparent to both the LLM and the downstream transcom-                 memory allocation, and the CopyIn–Compute–CopyOut ex-
+pilation process.                                                        ecution structure. Due to the concise and structured design
+   Computation within the kernel follows a staged execu-                 of the DSL, which is conceptually similar to Triton-style ker-
+tion model. Global-to-on-chip data transfers must occur in-              nel descriptions, a compact specification is sufficient for the
+side copyin blocks, computation must be enclosed within                  LLM to grasp the language rules and generate syntactically
+compute blocks, and on-chip-to-global transfers must be                  valid DSL programs.
+                                                                                                                        Wen et al.
+
+
+
+
+                                            Figure 3. Framework of AscendCraft.
+
+   Role of Category- and Shape-Specific Examples. In ad-          significantly improving correctness and robustness when tar-
+dition to the DSL specification, category- and shape-specific     geting the highly restrictive AscendC programming model.
+examples play a critical role in guiding DSL generation.
+These examples expose the LLM to optimization patterns               Overview of Multi-Pass Lowering. The transcompila-
+that are closely tied to Ascend hardware characteristics, such    tion process consists of four passes: (1) host-side translation,
+as tiling strategies, buffer usage, and data movement pat-        (2) kernel initialization translation, (3) kernel computation
+terns for different operator categories (e.g., element-wise,      translation, and (4) an optional alignment and padding re-
+reduction, or matrix operations). By providing examples that      finement pass. Each pass operates on a well-defined subset
+match the target operator type and tensor shapes, the LLM         of the DSL semantics and produces a partially completed
+can more effectively infer appropriate execution strategies       AscendC kernel, which is then consumed by the subsequent
+and avoid implausible designs.                                    pass.
+   Effectiveness of the DSL Abstraction. Our DSL is in-
+tentionally designed to be concise yet expressive, captur-           Prompt Design. For each pass, the LLM is guided by
+ing the essential patterns for high-performance Ascend ker-       a carefully constructed prompt that provides explicit con-
+nels—such as explicit memory hierarchy usage and pipeline         text and constraints for the current translation stage. The
+structure. This focused abstraction not only reduces the com-     prompt consists of four key components: (1) explicit map-
+plexity of the code generation task, but also allows the LLM to   ping rules used in this pass that specify how DSL elements
+more readily learn underlying computational and optimiza-         are translated into AscendC code, for example, mapping DSL
+tion principles from the provided examples. By abstracting        buffers to TQue or TBuf with designated execution roles and
+away hardware-specific intricacies, the LLM can concentrate       corresponding initialization patterns, (2) relevant AscendC
+on understanding and expressing algorithmic intent and per-       API information, including function signatures, buffer inter-
+formance strategies. Empirically, this enables the model to       faces, and usage constraints, (3) illustrative examples demon-
+generalize effectively from a limited set of examples and         strating the expected transformation, and (4) the partially
+produce high-quality DSL code across diverse operator in-         generated AscendC code produced by the previous pass.
+stances.
+                                                                     Pass 1: Host-Side Translation. The first pass translates
+4.2   Transcompilation                                            the host-side portion of the DSL into AscendC host code.
+After obtaining the generated DSL program, the second stage       This includes defining tiling-related data structures, com-
+of our approach transcompiles the DSL into executable As-         puting tiling parameters (e.g., per-core workload size and
+cendC code. Rather than directly generating complete As-          tile dimensions), and configuring these parameters using
+cendC kernels in a single step, we decompose the lowering         AscendC host APIs. The host code is responsible for com-
+process into a sequence of structured LLM-guided passes.          puting all execution parameters required by the kernel and
+This multi-pass design constrains generation at each stage,       launching the kernel with the appropriate number of blocks.
+AscendCraft: Automatic Ascend NPU Kernel Generation via DSL-Guided Transcompilation
+
+
+   Pass 2: Kernel Initialization. The second pass gener-                 operations with DataCopyPad and configures additional pa-
+ates the kernel initialization logic, which prepares all state           rameters such as padding size, stride, and layout transfor-
+required before entering the computation loop. Tiling param-             mation. This refinement pass improves robustness without
+eters computed on the host are copied into kernel member                 complicating earlier lowering stages.
+variables. Each kernel instance retrieves its block identifier
+using GetBlockIdx(), which is used to compute the global                    Per-Pass Correction Feedback. Our multi-pass transcom-
+memory offsets corresponding to the core’s assigned data                 pilation process ensures that each lowering pass produces
+partition.                                                               compilable AscendC code. After every pass, the generated
+   This pass also initializes on-chip memory resources. Based            code is compiled to obtain concrete compiler feedback. If
+on the DSL buffer annotations, buffers used for data transfer            compilation errors occur, the error messages are fed back to
+are mapped to AscendC tensor queues (TQue), while tempo-                 the LLM, which is prompted to revise and fix the code before
+rary working buffers are mapped to tensor buffers (TBuf).                proceeding to the next pass.
+Input and output queues are initialized with appropriate                    Benefits of Staged Transcompilation. Overall, decom-
+capacities to support pipelining and, when needed, double                posing transcompilation into multiple LLM-guided passes
+buffering.                                                               allows each step to focus on a narrow, well-defined task.
+                                                                         This design reduces hallucination, improves structural cor-
+   Pass 3: Kernel Computation Translation. The third                     rectness, and ensures that the generated AscendC kernels
+pass performs the core translation of DSL computation logic              adhere to both the semantic constraints of the DSL and the
+into AscendC kernel code. As defined in Section 3, the DSL               low-level requirements of the AscendC programming model.
+enforces a strict separation between CopyIn, Compute, and
+CopyOut stages. We preserve this structure by translating                5     Evaluation
+each DSL block into a corresponding AscendC function.                    We seek to answer the following research questions:
+   Specifically, the kernel’s Process() method implements                RQ1. Can AscendCraft generate functionally correct As-
+the per-core execution loop and invokes a sequence of stage              cendC kernels?
+functions, such as CopyInX, ComputeX, and CopyOutX. Each                 RQ2. How does the performance of kernels generated by
+stage function is defined as an __aicore__ inline func-                  AscendCraft compare to Pytorch eager execution baseline?
+tion, optionally parameterized by the loop index for global              RQ3. Can AscendCraft generalize to newly proposed op-
+memory address calculation.                                              erators outside existing benchmarks and support practical
+   Within CopyIn functions, AscendC DataCopy operations                  kernel development workflows?
+are used to transfer data from global memory to on-chip
+buffers, after which the data is enqueued to the appropri-               5.1   Experimental Setup
+ate input queues. In Compute functions, all required input
+                                                                            Benchmark. We evaluate our approach using MultiKer-
+tensors are dequeued at the beginning of the function, tem-
+                                                                         nelBench [17], a multi-platform kernel benchmark suite that
+porary buffers are accessed through pre-initialized TBuf ob-
+                                                                         supports AscendC, CUDA, and other accelerator backends.
+jects, and DSL compute operations are mapped to AscendC
+                                                                         MultiKernelBench extends KernelBench [14] by unifying ker-
+APIs. Results are enqueued to output queues or forwarded
+                                                                         nel interfaces across heterogeneous platforms. Following
+to subsequent compute stages as needed. Finally, CopyOut
+                                                                         prior work, we adopt the Level 1 task categories from Kernel-
+functions dequeue result tensors and write them back to
+                                                                         Bench, which consist of single-operator kernels with moder-
+global memory using DataCopy. Synchronization primitives
+                                                                         ate complexity and well-defined computation and memory
+such as SyncAll are inserted only when cross-kernel data
+                                                                         access patterns. These tasks cover a diverse set of operator
+dependencies are required.
+                                                                         types, including activation, reduction, normalization, and
+   By translating each DSL block into a separate function
+                                                                         mathematical operations, and are suitable for evaluating
+with a fixed role, this pass strictly constrains the structure
+                                                                         both functional correctness and performance of automati-
+of the generated kernel and prevents illegal interleavings of
+                                                                         cally generated kernels.
+data movement and computation.
+                                                                            Notably, we use the updated task shapes from the latest
+                                                                         KernelBench release [1], which scale tensor sizes to ensure
+   Pass 4: Alignment and Padding Refinement. The fi-                     kernel execution times exceed 15 ms. This setting leads to
+nal pass is optional and addresses hardware-specific edge                a more realistic and challenging evaluation: kernel launch
+cases related to memory alignment and non-uniform ten-                   overhead no longer dominates the measured runtime, mak-
+sor shapes. AscendC imposes strict alignment requirements                ing performance comparisons more scientifically meaningful.
+on data transfers (e.g., 32-byte alignment for UB accesses).             As a result, achieving Fast0.8 or Fast0.2 under this configura-
+When DSL-level tiling or tensor shapes do not naturally sat-             tion is substantially more difficult than in earlier benchmark
+isfy these constraints, this pass replaces standard DataCopy             settings.
+                                                                                                                                   Wen et al.
+
+
+Table 1. Correctness evaluation of operator implementations                    Table 2. Performance evaluation of generated AscendC ker-
+by category.                                                                   nels by operator category.
+
+      Kernel Category                    Comp@1          Pass@1                 Kernel Category      Fast0.2 @1   Fast0.8 @1   Fast1.0 @1
+      Activation (15 kernels)            100.0           100.0                  Activation              100.0        80.0         40.0
+      Loss (7 kernels)                   100.0           85.7                   Loss                    85.7         85.7         85.7
+      Math (6 kernels)                   83.3            83.3                   Math                    83.3         66.7         66.7
+                                                                       1
+      Normalization (8 kernels)          100.0           87.5                   Normalization           50.0         37.5         37.5
+      Optimizer (5 kernels)              100.0           100.0                  Optimizer               100.0        100.0        100.0
+      Reduce (5 kernels)                 100.0           100.0                  Reduce                  100.0         0.0          0.0
+      Pooling (6 kernels)                100.0           66.7                   Pooling                 50.0          0.0          0.0
+      Total (52 kernels)                 98.1            90.4                   Total                   82.7         57.7          46.2
+
+
+   Environment. All experiments are conducted on an As-                        LLM-based AscendC generation approaches [17], which ex-
+cend 910B2 NPU. We use the CANN toolkit version 8.1 and                        hibit very low end-to-end correctness—for example, Claude
+PyTorch 2.6 as the host framework. The experimental plat-                      Sonnet-4 achieves only 13.0% correctness on the same bench-
+form runs Ubuntu 22.04 with official Ascend drivers and                        mark [17].
+firmware versions matched to the CANN release. All kernels                        Across operator categories, most kernels achieve near-
+are compiled using the default Ascend compiler toolchain.                      perfect compilation rates. Activation, Normalization, Opti-
+                                                                               mizer, Reduce, and Pooling operators all reach 100% Comp@1,
+    Reported Metrics. We report the following metrics to                       demonstrating that AscendCraft can reliably generate syn-
+evaluate both the correctness and performance of generated                     tactically valid AscendC code for a wide range of common op-
+AscendC kernels: (i) Compilation Rate, the percentage of                       erator patterns. The slightly lower compilation rate observed
+generated kernels that successfully compile without errors;                    for Math operators is primarily due to the mask_cumsum ker-
+(ii) Correctness Rate (Pass@1), the percentage of compiled                     nel, which involves boolean data types that are not yet fully
+kernels that produce numerically correct outputs compared                      covered by the current prompt knowledge.
+with reference implementations; and (iii) Performance Met-                        In terms of functional correctness, performance varies
+rics, including Fast0.2 , Fast0.8 , and Fast1.0 . Fast𝑥 measures               across categories. Activation, Optimizer, and Reduce opera-
+the percentage of correct kernels whose execution time is                      tors achieve 100% Pass@1, benefiting from well-structured
+within 𝑥× of the performance of reference implementations.                     dataflow patterns and clear reduction semantics. Normaliza-
+    Fast0.2 captures whether the generated kernel satisfies ba-                tion operators also show strong correctness, reaching 87.5%
+sic performance requirements, such as leveraging vectorized                    Pass@1. Pooling operators exhibit relatively lower Pass@1,
+execution instead of scalar operations and utilizing multiple                  which we attribute to their more complex control flow and
+AI cores. Fast0.8 indicates that the kernel adopts a reasonably                boundary-sensitive computations, making them more prone
+efficient algorithm and dataflow strategy suitable for practi-                 to subtle logic errors during generation.
+cal deployment. Fast1.0 denotes kernels whose performance                         Overall, these results demonstrate that the combination
+is on par with or better than the reference implementations.                   of a structured DSL, category-specific exemplars, and multi-
+                                                                               pass transcompilation with explicit structural constraints
+5.2    RQ1: Correctness                                                        can significantly improve the correctness of automatically
+Table 1 summarizes the results across different operator                       generated AscendC kernels, even across a diverse set of op-
+categories from MultiKernelBench. Overall, AscendCraft                         erator types.
+achieves a compilation success rate of 98.1% and a func-
+tional correctness rate of 90.4% across a total of 52 kernels.                 5.3   RQ2: Performance
+This represents a substantial improvement over prior direct                    Table 2 summarizes the performance of the generated As-
+                                                                               cendC kernels. Fast𝛼 denotes the percentage of kernels whose
+1 MatMul and Convolution kernels are not included in this evaluation and are   execution time reaches at least 𝛼× that of the PyTorch eager
+part of ongoing work. AscendC Cube programming provides both high-level        execution baseline, with 𝛼 ∈ 0.2, 0.8, 1.0.
+and low-level interfaces. The low-level interface is highly complex, while       Overall, AscendCraft produces a large fraction of ker-
+the high-level interface differs substantially from the standard AscendC       nels with competitive performance. Across all operator cat-
+programming model, lacking explicit copyin, compute, and copyout stages
+as well as queue-based execution. To address these challenges, we are          egories, 82.7% of kernels achieve at least 20% of PyTorch
+exploring the use of CATLASS [2] as an alternative target language for         eager performance, 57.7% reach 80%, and 46.2% match or
+these kernels.                                                                 exceed the eager baseline. These results demonstrate that the
+AscendCraft: Automatic Ascend NPU Kernel Generation via DSL-Guided Transcompilation
+
+
+proposed DSL-guided transcompilation approach is able to                 single pass. Under the evaluated input shapes, the generated
+recover effective dataflow organization and tiling strategies            kernels achieve a 6.6× speedup over PyTorch eager execution
+for a wide range of operators, even without manual tuning.               for mHC_post, and a 3.0× speedup for mHC_post_grad. These
+   Performance varies across operator categories. Activation,            results demonstrate that the proposed DSL and transcompi-
+Optimizer and Loss operators exhibit strong performance,                 lation pipeline generalize beyond benchmark operators and
+where much of the observed speedup is attributed to effective            can effectively handle emerging workloads with complex
+operator fusion. Math operators also achieve high perfor-                computation patterns.
+mance under relaxed thresholds, with a substantial portion                  Starting from the generated kernels, we further invited
+of kernels even surpassing PyTorch eager execution. Notably,             an experienced AscendC developer to perform optimization
+for several Math kernels, the performance gains are not due              with the assistance of LLMs. Thanks to the structured and
+to fusion but instead stem from genuine kernel optimizations             readable code produced by AscendCraft, the developer
+tailored to the computation patterns of these operators.                 was able to complete optimization for both kernels within
+   Normalization operators exhibit lower performance, par-               one day, with optimization strategies expressed in natural
+ticularly under stricter thresholds. These operators often               language and translated into code by the LLM. Without such
+involve multi-stage computations and intermediate reduc-                 a structured starting point, directly optimizing raw AscendC
+tions, making their performance more sensitive to memory                 code using LLMs would be extremely challenging, as current
+layout, execution ordering, and reduction strategies. While              models struggle to generate correct low-level kernel imple-
+AscendCraft is able to generate correct and functional                   mentations from scratch [17]. After optimization, the final
+implementations for these operators, achieving peak perfor-              implementations achieved up to 15.9× and 7.2× speedup
+mance may require more fine-grained, expert-written exam-                over PyTorch eager execution, respectively.
+ples that expose hardware-specific optimization patterns.                   This case study highlights two important aspects of As-
+   For Reduce operators, we observe that performance im-                 cendCraft. First, it can serve as a practical tool for rapidly
+provements largely depend on low-level instruction control               bootstrapping correct NPU kernels for newly emerging oper-
+and reduction primitives, which are difficult to express purely          ators. Second, the generated kernels provide a high-quality
+at the DSL level. This suggests that certain optimizations re-           starting point for further expert-level optimization, signif-
+main challenging to infer from high-level abstractions alone.            icantly reducing development cost while retaining strong
+These observations highlight promising directions for future             performance potential.
+work, including automatic optimization across both the DSL
+level and the generated AscendC code. Importantly, Ascend-
+Craft already provides a strong and correct starting point,
+upon which further performance tuning can be systemati-                  6    Conclusion
+cally applied.                                                           This paper presents AscendCraft, a DSL-guided framework
+   Overall, the results demonstrate that AscendCraft can                 for automatic AscendC kernel generation using large lan-
+automatically generate performant AscendC kernels for many               guage models. By introducing a concise and NPU-aware DSL
+common operator categories, while also revealing opportuni-              and a structured, multi-pass transcompilation pipeline, As-
+ties for further optimization on more complex and performance-           cendCraft effectively bridges the gap between high-level
+sensitive workloads.                                                     kernel intent and low-level NPU execution semantics. The
+                                                                         proposed design enables LLMs to focus on core algorithmic
+5.4   RQ3: Practical Usage                                               decisions while avoiding the complexity and brittleness of
+To evaluate the practical applicability of AscendCraft, we               directly generating platform-specific kernel code.
+apply it to a real and recently proposed kernel development                 Experimental results on MultiKernelBench demonstrate
+task. Specifically, we consider the Manifold-Constrained                 that AscendCraft substantially improves both compilation
+Hyper-Connections (mHC) introduced in DeepSeek [20],                     success and functional correctness compared to direct LLM-
+which represents a newly proposed model structure not cov-               based AscendC generation, while producing performance-
+ered by existing benchmark suites.                                       competitive kernels relative to PyTorch eager execution.
+   We focus on two kernels, mHC_post and mHC_post_grad.                  Across a diverse set of operator categories, a significant
+To evaluate our approach, we first implement their reference             fraction of the generated kernels match or exceed eager
+behavior using PyTorch APIs and specify representative in-               baselines, highlighting the effectiveness of the proposed DSL
+put shapes as task definitions. These specifications are then            abstractions and structured transcompilation. Moreover, ex-
+provided to AscendCraft, which automatically generates                   periments on newly proposed mHC architecture show that
+the corresponding DSL programs and transcompiles them                    AscendCraft can generalize beyond benchmark workloads,
+into AscendC code.                                                       generating correct kernels that significantly surpass PyTorch
+   Despite the novelty of this kernel, AscendCraft is able to            eager performance, further validating its practicality for real-
+generate functionally correct AscendC implementations in a               world NPU kernel development.
+                                                                                                                                                    Wen et al.
+
+
+   Overall, AscendCraft shows that combining appropri-                              2025. KernelEvolve: Scaling Agentic Kernel Coding for Heterogeneous
+ate abstractions with structured generation can make LLM-                           AI Accelerators at Meta. arXiv preprint arXiv:2512.23236 (2025).
+based kernel synthesis practical for NPUs. Future work will                    [12] Heng Liao, Jiajin Tu, Jing Xia, Hu Liu, Xiping Zhou, Honghui Yuan,
+                                                                                    and Yuxing Hu. 2021. Ascend: a Scalable and Unified Architecture for
+focus on improving performance on more complex and per-                             Ubiquitous Deep Neural Network Computing : Industry Track Paper.
+formance sensitive operators, as well as exploring joint opti-                      In 2021 IEEE International Symposium on High-Performance Computer
+mization across both the DSL and generated AscendC code                             Architecture (HPCA). 789–801. doi:10.1109/HPCA51647.2021.00071
+to further close the gap with expert-tuned implementations.                    [13] Qingyuan Liu, Zou Mo, Hengbin Zhang, Dong Du, Yubin Xia, and
+                                                                                    Haibo Chen. 2025. Sharpen the Spec, Cut the Code: A Case for Gen-
+                                                                                    erative File System with SYSSPEC. arXiv preprint arXiv:2512.13047
+References                                                                          (2025).
+                                                                               [14] Anne Ouyang, Simon Guo, Simran Arora, Alex L. Zhang, William
+ [1] 2025. KernelBench v0.1. https://scalingintelligence.stanford.edu/blogs/        Hu, Christopher Ré, and Azalia Mirhoseini. 2025. KernelBench: Can
+     kernelbenchv01/                                                                LLMs Write Efficient GPU Kernels? arXiv:2502.10517 [cs.LG] https:
+ [2] 2026. CATLASS. https://gitcode.com/cann/catlass                                //arxiv.org/abs/2502.10517
+ [3] 2026. Spec Kit. https://github.github.io/spec-kit/                        [15] Shailja Thakur, Baleegh Ahmad, Hammond Pearce, Benjamin Tan,
+ [4] Carlo Baronio, Pietro Marsella, Ben Pan, Simon Guo, and Silas Al-              Brendan Dolan-Gavitt, Ramesh Karri, and Siddharth Garg. 2024. Veri-
+     berti. 2025. Kevin: Multi-Turn RL for Generating CUDA Kernels.
+                                                                                    Gen: A Large Language Model for Verilog Code Generation. ACM
+     arXiv:2507.11948 [cs.LG] https://arxiv.org/abs/2507.11948                      Trans. Des. Autom. Electron. Syst. 29, 3, Article 46 (April 2024), 31 pages.
+ [5] DeepSeek-AI, Qihao Zhu, Daya Guo, Zhihong Shao, Dejian Yang,                   doi:10.1145/3643681
+     Peiyi Wang, Runxin Xu, Y. Wu, Yukun Li, Huazuo Gao, Shirong Ma,           [16] Anjiang Wei, Tianran Sun, Yogesh Seenichamy, Hang Song, Anne
+     Wangding Zeng, Xiao Bi, Zihui Gu, Hanwei Xu, Damai Dai, Kai                    Ouyang, Azalia Mirhoseini, Ke Wang, and Alex Aiken. 2025. Astra: A
+     Dong, Liyue Zhang, Yishi Piao, Zhibin Gou, Zhenda Xie, Zhewen                  multi-agent system for gpu kernel performance optimization. arXiv
+     Hao, Bingxuan Wang, Junxiao Song, Deli Chen, Xin Xie, Kang Guan,               preprint arXiv:2509.07506 (2025).
+     Yuxiang You, Aixin Liu, Qiushi Du, Wenjun Gao, Xuan Lu, Qinyu             [17] Zhongzhen Wen, Yinghui Zhang, Zhong Li, Zhongxin Liu, Linna
+     Chen, Yaohui Wang, Chengqi Deng, Jiashi Li, Chenggang Zhao, Chong              Xie, and Tian Zhang. 2025. MultiKernelBench: A Multi-Platform
+     Ruan, Fuli Luo, and Wenfeng Liang. 2024. DeepSeek-Coder-V2:                    Benchmark for Kernel Generation. arXiv:2507.17773 [cs.DC] https:
+     Breaking the Barrier of Closed-Source Models in Code Intelligence.             //arxiv.org/abs/2507.17773
+     arXiv:2406.11931 [cs.SE] https://arxiv.org/abs/2406.11931                 [18] Jiin Woo, Shaowei Zhu, Allen Nie, Zhen Jia, Yida Wang, and Youngsuk
+ [6] Jinye Du, Quan Yuan, Zuyao Zhang, Yanzhi Yi, Jiahui Hu, Wangyi                 Park. 2025. Tritonrl: Training llms to think and code triton without
+     Chen, Yiyang Zhu, Qishui Zheng, Wenxiang Zou, Xiangyu Chang,                   cheating. arXiv preprint arXiv:2510.17891 (2025).
+     et al. 2025. AKG kernel Agent: A Multi-Agent Framework for Cross-         [19] Bartłomiej Wróblewski, Gioele Gottardo, and Anastasios Zouzias. 2025.
+     Platform Kernel Synthesis. arXiv preprint arXiv:2512.23424 (2025).             Parallel Scan on Ascend AI Accelerators. In Greeks in AI Symposium
+ [7] Ping Guo, Chenyu Zhu, Siyuan Chen, Fei Liu, Xi Lin, Zhichao Lu,                2025. https://openreview.net/forum?id=wPepcNWMhs
+     and Qingfu Zhang. 2025. EvoEngineer: Mastering Automated CUDA             [20] Zhenda Xie, Yixuan Wei, Huanqi Cao, Chenggang Zhao, Chengqi
+     Kernel Code Evolution with Large Language Models. arXiv preprint               Deng, Jiashi Li, Damai Dai, Huazuo Gao, Jiang Chang, Kuai Yu, Liang
+     arXiv:2510.03760 (2025).                                                       Zhao, Shangyan Zhou, Zhean Xu, Zhengyan Zhang, Wangding Zeng,
+ [8] Kelun Lei, Hailong Yang, Huaitao Zhang, Xin You, Kaige Zhang,                  Shengding Hu, Yuqing Wang, Jingyang Yuan, Lean Wang, and Wen-
+     Zhongzhi Luan, Yi Liu, and Depei Qian. 2025. PRAGMA: A Profiling-              feng Liang. 2026. mHC: Manifold-Constrained Hyper-Connections.
+     Reasoned Multi-Agent Framework for Automatic Kernel Optimization.              arXiv:2512.24880 [cs.CL] https://arxiv.org/abs/2512.24880
+     arXiv preprint arXiv:2511.06345 (2025).                                   [21] Yuhang Zhou, Zhibin Wang, Guyue Liu, Shipeng Li, Xi Lin, Zibo
+ [9] Raymond Li, Loubna Ben Allal, Yangtian Zi, Niklas Muennighoff,                 Wang, Yongzhong Wang, Fuchun Wei, Jingyi Zhang, Zhiheng Hu,
+     Denis Kocetkov, Chenghao Mou, Marc Marone, Christopher Akiki,
+                                                                                    Yanlin Liu, Chunsheng Li, Ziyang Zhang, Yaoyuan Wang, Bin Zhou,
+     Jia Li, Jenny Chim, Qian Liu, Evgenii Zheltonozhskii, Terry Yue                Wanchun Dou, Guihai Chen, and Chen Tian. 2025. Squeezing Operator
+     Zhuo, Thomas Wang, Olivier Dehaene, Mishig Davaadorj, Joel Lamy-               Performance Potential for the Ascend Architecture. In Proceedings
+     Poirier, João Monteiro, Oleh Shliazhko, Nicolas Gontier, Nicholas              of the 30th ACM International Conference on Architectural Support for
+     Meade, Armel Zebaze, Ming-Ho Yee, Logesh Kumar Umapathi, Jian                  Programming Languages and Operating Systems, Volume 2 (Rotterdam,
+     Zhu, Benjamin Lipkin, Muhtasham Oblokulov, Zhiruo Wang, Rudra                  Netherlands) (ASPLOS ’25). Association for Computing Machinery,
+     Murthy, Jason Stillerman, Siva Sankalp Patel, Dmitry Abulkhanov,               New York, NY, USA, 1156–1171. doi:10.1145/3676641.3716243
+     Marco Zocca, Manan Dey, Zhihan Zhang, Nour Fahmy, Urvashi Bhat-           [22] Xinguo Zhu, Shaohui Peng, Jiaming Guo, Yunji Chen, Qi Guo, Yuanbo
+     tacharyya, Wenhao Yu, Swayam Singh, Sasha Luccioni, Paulo Vil-                 Wen, Hang Qin, Ruizhi Chen, Qirui Zhou, Ke Gao, Yanjun Wu, Chen
+     legas, Maxim Kunakov, Fedor Zhdanov, Manuel Romero, Tony Lee,                  Zhao, and Ling Li. 2025. QiMeng-Kernel: Macro-Thinking Micro-
+     Nadav Timor, Jennifer Ding, Claire Schlesinger, Hailey Schoelkopf,             Coding Paradigm for LLM-Based High-Performance GPU Kernel Gen-
+     Jan Ebert, Tri Dao, Mayank Mishra, Alex Gu, Jennifer Robinson, Car-            eration. arXiv:2511.20100 [cs.DC] https://arxiv.org/abs/2511.20100
+     olyn Jane Anderson, Brendan Dolan-Gavitt, Danish Contractor, Siva
+     Reddy, Daniel Fried, Dzmitry Bahdanau, Yacine Jernite, Carlos Muñoz
+     Ferrandis, Sean Hughes, Thomas Wolf, Arjun Guha, Leandro von
+     Werra, and Harm de Vries. 2023. StarCoder: may the source be with
+     you! arXiv:2305.06161 [cs.CL] https://arxiv.org/abs/2305.06161
+[10] Shangzhan Li, Zefan Wang, Ye He, Yuxuan Li, Qi Shi, Jianling Li, Yong-
+     gang Hu, Wanxiang Che, Xu Han, Zhiyuan Liu, et al. 2025. Autotriton:
+     Automatic triton programming with reinforcement learning in llms.
+     arXiv preprint arXiv:2507.05687 (2025).
+[11] Gang Liao, Hongsen Qin, Ying Wang, Alicia Golden, Michael Kuchnik,
+     Yavuz Yetim, Jia Jiunn Ang, Chunli Fu, Yihan He, Samuel Hsia, et al.
+

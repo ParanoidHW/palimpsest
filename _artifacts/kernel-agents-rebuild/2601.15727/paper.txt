@@ -1,0 +1,581 @@
+                                                         Towards Automated Kernel Generation in the Era of LLMs
+                                                     Yang Yu1 , Peiyu Zang1,2 , Chi Hsu Tsai1,3 , Haiming Wu1,4 , Yixin Shen1,5 ,
+                                                    Jialing Zhang1,6 , Haoyu Wang1,7 , Zhiyou Xiao1,3 , Jingze Shi8 , Yuyu Luo8 ,
+                                                           Wentao Zhang3 , Chunlei Men1 , Guang Liu1 and Yonghua Lin1
+                                                                       1
+                                                                         Beijing Academy of Artificial Intelligence
+                                                                                 2
+                                                                                   Beijing Normal University
+                                                                                      3
+                                                                                        Peking University
+                                                                              4
+                                                                                Beijing Institute of Technology
+                                                                                      5
+                                                                                        Cornell University
+                                                                                 6
+                                                                                   Beijing Jiaotong University
+arXiv:2601.15727v3 [cs.LG] 6 Jun 2026
+
+
+
+
+                                                                                7
+                                                                                  Renmin University of China
+                                                             8
+                                                               Hong Kong University of Science and Technology (Guangzhou)
+
+                                                                Abstract                               AI systems [Kaplan et al., 2020]. Consequently, specialized
+                                                                                                       accelerators such as GPUs and NPUs have become the foun-
+                                            The performance of modern AI systems is funda-             dation of large-scale training and inference [Choquette et al.,
+                                            mentally constrained by the quality of their under-        2021; Liao et al., 2021]. Their performance is largely gov-
+                                            lying GPU kernels, which translate high-level al-          erned by kernels implementing fundamental operations, such
+                                            gorithmic semantics into low-level hardware op-            as matrix multiplication and attention, which dominate exe-
+                                            erations. Achieving near-optimal kernels requires          cution time in LLM workloads. As a result, overall system
+                                            expert-level understanding of hardware architec-           throughput, efficiency, and cost are often determined more by
+                                            tures and programming models, making kernel en-            kernel quality than by hardware peak performance.
+                                            gineering a critical but notoriously time-consuming
+                                            and non-scalable process. Recent advances in                  Despite their foundational role, the development of effi-
+                                            large language models and LLM-based agents have            cient kernels remains a formidable engineering challenge.
+                                            opened new possibilities for automating kernel gen-        Achieving near-peak hardware utilization requires deep ex-
+                                            eration and optimization. LLMs are well-suited             pertise in both algorithmic design and hardware-specific in-
+                                            to compress expert-level kernel knowledge that is          tricacies. Furthermore, kernel optimization is inherently non-
+                                            difficult to formalize, while agentic systems fur-         scalable: implementations are often tightly coupled to par-
+                                            ther enable scalable optimization by casting kernel        ticular hardware architectures and workload characteristics,
+                                            development as an iterative, feedback-driven loop.         which hinders their reuse and generalization across differ-
+                                            Rapid progress has been made in this area. How-            ent GPU generations or hardware vendors [Wu, 2023]. Al-
+                                            ever, the field remains fragmented and lacks a sys-        though compiler-based autotuning approaches partially alle-
+                                            tematic perspective for LLM-driven kernel gener-           viate these scalability challenges through automated sched-
+                                            ation. This survey addresses this gap by provid-           ule generation and optimization, they remain fundamentally
+                                            ing a structured overview of existing approaches,          constrained by manually designed search spaces, scheduling
+                                            spanning LLM-based approaches and agentic op-              primitives, and optimization priors.
+                                            timization workflows, and systematically organiz-             In response to these challenges, LLMs and agentic systems
+                                            ing the datasets and benchmarks that underpin              have emerged as a promising paradigm for kernel genera-
+                                            learning and evaluation in this domain. More-              tion and optimization. Trained on large-scale code reposi-
+                                            over, key open challenges and future research di-          tories and technical documentation, LLMs encode substan-
+                                            rections are further outlined, aiming to establish         tial expertise in hardware-aware programming, enabling them
+                                            a comprehensive reference for the next genera-             to bridge the gap between high-level algorithmic specifica-
+                                            tion of automated kernel optimization. To keep             tions and low-level implementations. Beyond one-shot code
+                                            track of this field, we maintain an open-source            generation, agentic frameworks leverage iterative execution
+                                            GitHub repository at https://github.com/flagos-ai/         feedback to refine candidate kernels, facilitating scalable and
+                                            awesome-LLM-driven-kernel-generation.                      more open-ended exploration of complex optimization spaces
+                                                                                                       across workloads and hardware platforms. Consequently,
+                                                                                                       LLMs and agents are increasingly becoming a foundation for
+                                        1   Introduction                                               automated kernel development.
+                                        Rapid scaling of large language models (LLMs) has made            Despite rapid progress, research on LLM-driven kernel
+                                        efficient hardware utilization a central challenge in modern   generation remains fragmented and lacks a systematic syn-
+                                             LLM4Kernel                              Agent4Kernel                                        Datasets                        Benchmarks
+
+
+                                                                               AutoKernel        EvoKernel
+                                                                                                                           TileKernels
+                                                                                                                                                                                           SOL-ExecBench
+                  2026-03              InCoder
+                                                             Kernel-Smith
+                                                                                                 KernelSkill
+                                                                               K-Search
+                                                                                                                                                                  ISO-Bench
+                                      Dr.Kernel               CUDA Agent
+                                                                                                                              HPC-ops
+                                                                                                 MaxCode                                                                                   FlashInfer-
+                                    AscendKernelGen                             DiffAgent
+                                                                                                                                                                                             Bench
+                                                                                                   AKG                                                   cuTile
+                  2025-12               CUDA-L2
+                                                                            KernelBand
+
+                                     QiMeng-Kernel               KernelCoder                    KernelGen
+                                                                                                                              ConCuR                                                   CUDAEval
+                                                                                                EvoEngineer
+                                          TritonRL                               STARK
+                                                                                                                                                     Robust-kbench                   BackendBench
+                                                                                 FM Agent                                  DeepGEMM
+                  2025-09                  CUDA-L1                                                  Astra
+                                                                   AutoTriton
+                                                                                                                                                                                  ROCm-Bench
+                                              Kevin                                             QiMeng-Attention
+                                                                            SwizzlePerf                                    KernelBook             MultiKernelBench
+
+
+                                                 KernelLLM                                           GEAK
+                  2025-06                                                         CUDA-LLM
+                                                                                                                     KB-samples                                              TritonBench
+                                                                                                                                            FlashInfer
+
+                  2025-02                                                                          AI CUDA Engineer                                                      KernelBench
+                                                                                      Nvidia
+                                                                                     Workflow                                            Liger-Kernel
+                                                                                                                   FlagGems
+
+                                                                                                                                                                   ParEval
+                                                                                                            bitsandbytes          FlagAttention
+
+
+
+
+Figure 1: Illustration of the growth trend in the field of LLM-driven kernel generation. We organize these research works chronologically and
+categorically based on their publication dates and the domains they belong to.
+
+
+thesis. This survey addresses this gap by presenting a                                                         utilize tools to perform actions beyond the model’s internal
+unified overview of the field, clarifying foundational con-                                                    knowledge and receive environmental feedback.
+cepts, and highlighting emerging methodologies and trends.                                                     Kernel Programming and Code Generation. Kernel gen-
+A key contribution is our consolidated resource infrastruc-                                                    eration and optimization have traditionally followed two
+ture, which features a structured organization of training-                                                    paradigms. The first relies on expert-written kernels and
+ready kernel datasets and a literature collection tailored for                                                 domain-specific abstractions, such as CUDA, CUTLASS,
+retrieval-augmented generation (RAG), designed to facilitate                                                   and TileLang, which enable fine-grained hardware optimiza-
+data-driven research in this specialized kernel-generation do-                                                 tion but require substantial architecture-specific expertise.
+main. Moving beyond a synthesis of existing methodolo-                                                         The second centers on compiler-driven frameworks, such as
+gies, we also highlight critical open challenges and propose                                                   Halide and TVM, which optimize kernels through schedul-
+promising research directions, aiming to establish a founda-                                                   ing and autotuning. While improving programmability, these
+tional reference for the next generation of innovation in LLM-                                                 approaches remain constrained by predefined search spaces,
+driven kernel generation.                                                                                      scheduling primitives, and handcrafted optimization rules.
+                                                                                                               In contrast, LLM-based agents leverage knowledge distilled
+2    Background                                                                                                from large-scale code corpora and execution feedback to en-
+LLMs and LLM-based Autonomous Agents. The foun-                                                                able scalable and open-ended kernel optimization.
+dation of modern LLMs is the Transformer architec-                                                                In parallel, LLMs have advanced code generation from
+ture [Vaswani et al., 2017], which functions as the probabilis-                                                code completion to complex software engineering tasks.
+tic predictor trained via the next token prediction objective.                                                 However, kernel generation differs fundamentally from
+Given a sequence of tokens x = (x1 , . . . , xT ), the model                                                   general-purpose code synthesis: beyond functional correct-
+maximizes the joint probability:                                                                               ness, it must satisfy stringent performance requirements and
+                            T                                                                                  adapt to hardware-specific execution characteristics. Conse-
+                                                                                                               quently, it is more closely aligned with performance-oriented
+                            Y
+             P (x) =              P (xt | x1 , . . . , xt−1 ; θ).
+                            t=1
+                                                                                                               program synthesis and compiler optimization, necessitat-
+                                                                                                               ing specialized techniques beyond generic LLM-based code
+This objective enables the model to internalize world knowl-                                                   generation. This trend is also emerging in broader paral-
+edge and reasoning patterns implicitly during pretraining.                                                     lel programming systems, where LLMs have been applied
+   While LLMs serve as the cognitive engine for reasoning                                                      to performance-oriented optimization beyond kernel gener-
+and decision-making, autonomous agents extend this capabil-                                                    ation [Wei et al., 2025a].
+ity by integrating additional system components such as plan-
+ning, memory, and tool-use mechanisms, and interact with
+the environment through trial and error [Wang et al., 2024].                                                   3           LLM for Kernels Generation
+In this framework, the LLM functions as the “brain”, or-                                                       Building on advances in LLM-driven code generation, re-
+chestrating actions through reasoning strategies. And agents                                                   cent work has increasingly applied LLMs to the generation
+of high-performance GPU kernels. To highlight the method-          nel generations, combined with effective multi-turn RL meth-
+ological patterns that have emerged across this landscape,         ods to address the biased policy gradient issue and alleviates
+the following sections review two dominant families of post-       lazy optimization problem. Kernel-Smith [Du et al., 2026]
+training techniques used to specialize LLMs for kernel gen-        presents a stable evolution-oriented post-training recipe, and
+eration: supervised fine-tuning and reinforcement learning.        the Triton kernels generated by this framework achieve a 70%
+                                                                   fast1 score on KernelBench level 1. Finally, AscendKer-
+3.1   Supervised Fine-Tuning                                       nelGen [Cao et al., 2026b] expands the alignment learning
+Supervised fine-tuning (SFT) has become a central method-          paradigm to Ascend NPUs and generates AscendC kernels,
+ology for enabling LLMs to synthesize high-quality kernels,        combining CoT-based SFT with DPO (Direct Preference Op-
+relying on paired datasets that capture both high-level com-       timization).
+putational intent and low-level kernel implementation pat-
+terns. KernelLLM [Fisches et al., 2025] adopts this strat-         4     LLM Agent for Kernels Generation
+egy by collecting samples and using the Triton compiler to
+produce aligned PyTorch–Triton examples, and applies in-           Relying on foundational LLMs alone typically reduces kernel
+struction tuning with structured prompts that explicitly en-       development to a static one-pass inference process. In con-
+code the mapping between computation and kernel structure.         trast, LLM-based agents introduce autonomy and feedback
+And ConCuR [Kong et al., 2025] further generates and cu-           into the optimization loop by enabling planning, tool use,
+rates high-quality kernel datasets with reasoning traces, mo-      and evaluation of intermediate results. This closed-loop, self-
+tivated by the observation that the structure and clarity of       improving paradigm allows agent-based approaches to scale
+model reasoning can strongly affect kernel correctness and         kernel optimization across diverse workloads and hardware
+performance. Fine-tuning on such data leads to KernelCoder,        platforms, while sustaining long-horizon, fatigue-free explo-
+a model capable of generating CUDA kernels that achieve            ration. Concretely, we categorized recent agent-driven ad-
+17% on the fast1 metric of KernelBench [Ouyang et al.,             vancements into four structural dimensions: learning mecha-
+2025] level 1. Moreover, to address the stringent demands of       nisms, external memory management, hardware profiling in-
+industrial software development, InCoder-32B [Yang et al.,         tegration, and multi-agent orchestration.
+2026] introduces a three-stage data curation pipeline consist-
+ing of pre-training, mid-training, and post-training, achieving    4.1    Learning Mechanisms
+a fast1 score of 22.2% on KernelBench Level 1.                     This category studies how LLM agents interact with execu-
+                                                                   tion environments and learn effective kernel generation strate-
+3.2   Reinforcement Learning                                       gies through trial-and-error. Initial approaches view kernel
+Reinforcement learning further enhances kernel generation          generation as iterative refinement. Caesar in KernelBench uti-
+via iterative feedback. Kevin [Baronio et al., 2025] models        lizes simple feedback loops to refine kernels, while Inference-
+kernel generation as a multi-turn optimization using cross-        Time Scaling [Chen et al., 2025b] demonstrates that scaling
+turn reward attribution for long-horizon credit assignment.        test-time compute and reflection significantly boost kernel
+CUDA-L1 introduces contrastive RL with an LLM-as-a-                quality. To manage complexity, PEAK [Tariq et al., 2025]
+judge for dense feedback, and is refined by CUDA-L2 [Su            employs a modular iterative stepwise refinement strategy.
+et al., 2025], which reports performance improvements over         AutoKernel [Jaber and Jaber, 2026] profiles the full model to
+cuBLAS on its evaluated workloads. SparseRL [Wang et               identify computational bottlenecks and employs an iterative
+al., 2026] leverages RL to generate high-performance CUDA          optimization process to refine the corresponding kernel im-
+code for sparse matrix operations. CUDA Agent [Dai et al.,         plementations. MaxCode [Ou et al., 2026] further unifies ex-
+2026] introduces a large-scale agentic reinforcement learn-        isting iterative search methods under a max-reward reinforce-
+ing system, including a skill-augmented CUDA development           ment learning framework, combined with a natural language
+environment with automated verification and profiling to pro-      critique model converting raw execution feedback into diag-
+vide reliable reward signals, achieving state-of-the-art results   nostic insights. K-Search [Cao et al., 2026a] leverages LLMs
+on KernelBench, delivering a 99% faster rate over PyTorch          as world models, utilizing their prior domain knowledge to
+Eager on KernelBench Level-1.                                      guide the search process. It decouples high-level algorithmic
+   In addition to CUDA kernel generation, recent studies have      planning from low-level program instantiation, and demon-
+investigated RL-based approaches for Triton kernel genera-         strates strong performance on diverse and complex kernels.
+tion. AutoTriton [Li et al., 2025d] generates Triton kernel           Furthermore, a large body of agent-based methods em-
+with the model trained by RL and addresses reward spar-            ploys iterative refinement for GPU kernel generation target-
+sity by combining structural assessments of generated kernels      ing diverse model architectures, programming languages, and
+with execution-based runtime rewards, while TritonRL [Woo          hardware backends. For example, DiffAgent [Zhu et al.,
+et al., 2025] extends this line of work through hierarchical       2026] adopts iterative refinement to accelerate diffusion mod-
+reward decomposition and explicit verification of code out-        els, TritonX [Hammond et al., 2025] uses iterative refinement
+puts and intermediate reasoning traces. QiMeng-Kernel [Zhu         within a state machine to cover kernels of complete PyTorch
+et al., 2025] further structures optimization by applying RL       ATen backends, and KernelGen [BAAI, 2025] leverages test-
+hierarchically to macro-thinking strategies rather than low-       time scaling and reflection techniques to enable kernel gen-
+level implementation. Dr. Kernel [Liu et al., 2026] intro-         eration for multi-chip backends. Moreover, many existing
+duces a robust distributed GPU environment for Triton ker-         CLI-based agents such as Claude Code or OpenCode also
+support iterative refinement, and AKO [Xie et al., 2026] pro-     ture and instruction set to convert the high-level thinking lan-
+vides harnesses for such coding agents to enable agentic ker-     guage into low-level CUDA code, and implements the high-
+nel optimization and achieve state-of-the-art performance on      performance FlashAttention on different GPUs. SwizzlePerf
+challenging benchmarks.                                           [Tschand et al., 2025] explicitly tackles the swizzling prob-
+   To escape local optima, recent frameworks adopt                lem, which explicitly injects precise architectural specifica-
+population-based evolution. Lange et al. [Lange et al., 2025]     tions into the prompt context and restricts the search space
+optimize translation CUDA via mutation and crossover. FM          specifically to swizzling patterns that focus solely on maxi-
+Agent [Li et al., 2025a] includes an evolutionary stage with      mizing the L2 cache hit rate.
+the principles of diversity preservation, adaptive evolution,        Complementing this, agents leverage dynamic feedback.
+and multi-population dynamics. Advanced population dy-            CUDA-LLM [Chen et al., 2025c] incorporates detailed tar-
+namics are also introduced in EvoEngineer [Guo et al., 2025],     get GPU specifications (e.g., warp size, cache size) into the
+which decouples traversal techniques from population man-         agent’s prompt. Simultaneously, compilation logs and run-
+agement. GPU Kernel Scientist [Andrews and Witteveen,             time performance metrics are also aggregated to guide the
+2025] employs a multi-stage evolutionary workflow to ad-          optimization process. TritonForge [Li et al., 2025b] uti-
+dress the challenge of optimizing HIP kernels for the AMD         lizes profiling-guided feedback loops to iteratively analyze
+accelerators. And cuPilot [Chen et al., 2025a] guides evolu-      and identify performance bottlenecks. PRAGMA [Lei et al.,
+tion through high-level semantic strategies.                      2025] uses a specialized profiling module to parse low-level
+                                                                  quantitative metrics into an interpretable natural language
+4.2   External Memory Management                                  suggestion. KernelBand [Ran et al., 2025] clusters runtime
+Complex kernel optimization often requires domain-specific        behavior of potential kernels to reduce the exploration space
+knowledge, such as CUDA APIs and hardware instruction             and utilizes profiling data as context to guide the selection of
+sets that may be hallucinated or forgotten by the LLM. Agents     optimization strategies.
+in this category augment generation with relevant skills, do-
+main knowledge, or prior interaction experiences, which           4.4    Multi-Agent Orchestration
+serve as an external memory for LLMs. KernelEvolve [Liao          Recognizing that kernel development inherently involves het-
+et al., 2025] advances the external knowledge management          erogeneous abilities ranging from algorithmic planning to
+paradigm by integrating a sophisticated hardware-specific         low-level coding and debugging, recent work increasingly
+knowledge base specifically tailored for heterogeneous AI ac-     adopts multi-agent designs that explicitly decompose these
+celerators. Beyond retrieving unstructured textual context, re-   responsibilities into coordinated roles.
+cent work has explored utilizing structured representations as       STARK [Dong et al., 2025] structures generation into Plan-
+external memory to guide model inference. Work such as            Code-Debug phases to emulate the human team, AKG [Du
+ReGraphT [Gong et al., 2025] proposes a novel framework           et al., 2025] leverages similar modularity to achieve cross-
+that treats a reasoning graph as a domain-specific external       platform synthesis, while Astra [Wei et al., 2025b] special-
+memory for CUDA code optimization. In this approach, the          izes this multi-agent approach for production-grade SGLang
+logical transitions between optimization states of large lan-     kernels. CudaForge [Zhang et al., 2025b] employs a
+guage models are externalized into a static, navigable graph      Coder-Judge framework driven by hardware-level feedback,
+structure for the small language model to retrieve. Kernel-       whereas KForge [Sereda et al., 2025] adapts this dual-agent
+Blaster [Dong et al., 2026] enables agents to learn from ex-      model to new platforms using only single-shot example su-
+perience by accumulating knowledge into a retrievable persis-     pervision. Addressing scale, KernelFalcon [Team and Con-
+tent CUDA knowledge base, EvoKernel [Zheng et al., 2026]          tributors, 2024] employs a multi-agent system to tackle the
+further introduces a value-driven memory and retrieved prior      challenge of GPU kernel generation of full machine learning
+experiences or trajectories with different priorities. Kernel-    architectures, where the system specifically addresses hier-
+Skill [Sun et al., 2026] provides a dual-level memory archi-      archical task decomposition and delegation through coordi-
+tecture, where reusable expert skills are curated in the long-    nated manager and worker agents. Moreover, GEAK [Wang
+term memory.                                                      et al., 2025] targets AMD GPUs, integrating the generator,
+                                                                  reflector, evaluator and optimizer within a Triton-based work-
+4.3   Hardware Profiling Integration                              flow.
+The third dimension addresses the hardware-agnostic nature
+of standard LLMs by configuring the agent’s persona profile
+with hardware specifications, and iteratively reasoning over
+                                                                  5     Datasets
+performance profiling feedback.                                   The effectiveness of LLM-driven kernel generation depends
+   QiMeng-TensorOp [Zhang et al., 2025a] triggers LLMs            critically on the availability of domain-specific data. Un-
+to analyze and distill low-level hardware documentation ac-       like general software engineering tasks, kernel generation re-
+cording to user input into the generation prompt, while           quires models to capture hardware intrinsics, parallel execu-
+QiMeng-GEMM [Zhou et al., 2025b] generates General Ma-            tion semantics, and memory hierarchy constraints. We cate-
+trix Multiplication (GEMM) with the meta-prompt, which of-        gorize existing resources into two groups: (1) Training Cor-
+fers universal templates for various general optimization tech-   pora, comprising structured datasets and kernel code repos-
+niques and platform-specific optimization details. QiMeng-        itories used for model training; and (2) Knowledge Bases,
+Attention [Zhou et al., 2025a] considers target GPU architec-     which typically provide domain-specific knowledge for RAG.
+     Data        Resource                                           Description                                             Access
+     I. Structured Datasets (Hugging Face & Benchmarks)
+     02/2024     The Stack v2 [Lozhkov et al., 2024]                Unsupervised CUDA/Triton Corpus                         [Data]
+     06/2024     HPC-Instruct [HPC-AI Tech, 2024]                   Instructions for CUDA/MPI/OpenMP                        [Data]
+     05/2025     KernelBook [Paliskara and Saroufim, 2025]          Torch-Triton Aligned Corpus                             [Data]
+     02/2025     KernelBench samples                                Kernel Code Snapshots and Profiling Data                [Data]
+     II. Code-Centric Corpora (GitHub Repositories)
+     Layer 1: High-Performance Operator Libraries
+     12/2017 CUTLASS                                                CUDA C++ Template Library for Matrix Ops                [Code]
+     05/2022 FlashAttention                                         Fast and Memory-Efficient Exact Attention               [Code]
+     11/2023 FlagAttention                                          Memory Efficient Attention Operators in Triton          [Code]
+     02/2024 AoTriton                                               AOT-compiled Triton kernels for AMD ROCm                [Code]
+     11/2021 xFormers                                               Hackable and Optimized Transformer Blocks               [Code]
+     08/2024 Liger-Kernel                                           Efficient Triton Kernels for LLM Training               [Code]
+     04/2024 FlagGems                                               Triton-based Operator Library for LLMs                  [Code]
+     09/2022 Bitsandbytes                                           K-bit Quantization Kernels for LLMs                     [Code]
+     09/2024 Gemlite                                                Low-Bit Matrix Multiplication Triton Kernels            [Code]
+     01/2025 FlashInfer                                             Kernel Library for Efficient LLM Serving                [Code]
+     05/2021 FBGEMM                                                 Low-Precision Matrix Multiplication                     [Code]
+     09/2022 Transformer Engine                                     Acceleration Library for Transformer Models             [Code]
+     09/2025 DeepGEMM                                               Clean and Efficient FP8 GEMM Kernels                    [Code]
+     04/2026 Tile Kernels                                           A Kernel Library Written in TileLang                    [Code]
+     Layer 2: Framework & System Integration
+     10/2016 PyTorch (ATen)                                         Foundational Tensor Library for C++ and Python          [Code]
+     06/2023 vLLM                                                   High-Efficient Serving Engine                           [Code]
+     12/2023 SGLang                                                 Structured Generation Language for LLMs                 [Code]
+     03/2023 llama.cpp                                              LLM Inference in C/C++                                  [Code]
+     08/2023 TensorRT-LLM                                           TensorRT Toolbox for LLM Inference                      [Code]
+     10/2019 DeepSpeed                                              System for Large Scale Model Training                   [Code]
+     Layer 3: Domain-Specific Languages
+     07/2019 Triton                                                 Open-Source GPU Programming Language                    [Code]
+     04/2024 TileLang                                               Tile-based Optimization Language                        [Code]
+     12/2025 cuTile                                                 NVIDIA’s DSL for Tile-centric Programming               [Link]
+     III. Knowledge Bases & Educational Resources
+     Documentation & Guides
+     06/2007 CUDA Guide                                             CUDA C++ Programming Guide                              [Docs]
+     06/2007 PTX ISA                                                PTX ISA Reference                                       [Docs]
+     05/2020 Tuning Guides                                          NVIDIA Architecture Tuning Guides                       [Docs]
+     Community Indices & Tutorials
+     01/2024 GPU-MODE                                               Resource Stream & KernelBook                            [List]
+     01/2024 Triton Index                                           Community Index for Triton Optimization                 [List]
+     06/2016 Awesome-CUDA                                           Community Curated List for CUDA                         [List]
+     12/2023 Awesome-GPU                                            Awesome GPU Engineering List                            [List]
+     05/2023 LeetCUDA                                               CUDA Programming Exercises                              [Code]
+     01/2023 Triton-Puzzles                                         Puzzles for Learning Triton                             [Code]
+     01/2011 Colfax Research                                        Technical Hub Dedicated to HPC and AI                   [Link]
+     09/2018 Nsight Compute                                         Kernel Profiling Guide                                  [Docs]
+     07/2024 CUDA Course                                            GitHub Repo for CUDA Course                             [Docs]
+
+Table 1: A structured overview of training corpora and kernel knowledge bases. Note that the dates in the table correspond to the initial
+release; the libraries themselves continue to undergo active development.
+
+
+   Training corpora include both structured datasets and raw          from open-source libraries, training and inference frame-
+kernel repositories. Structured datasets typically pair high-         works, and domain-specific languages. Complementing ex-
+level intents with optimized implementations, whereas repos-          ecutable code, knowledge bases supply hardware and opti-
+itories provide collections of expert-written kernels drawn           mization knowledge through technical documentation, pro-
+gramming guides, tutorials, and community resources. Such         metrics in TritonBench [Li et al., 2025c]; hardware cover-
+knowledge can be incorporated into model pretraining or ac-       age, where benchmarks increasingly extend beyond NVIDIA
+cessed dynamically through RAG. A comprehensive sum-              GPUs to encompass AMD GPUs, Huawei NPUs, and Google
+mary of these resources is provided in Table 1. The dates         TPUs (such as MultiKernelBench [Wen et al., 2025]); and
+reported correspond to the initial release of each resource.      workload diversity, where evaluation has shifted from simple
+                                                                  operators toward production-grade kernels derived from real-
+6     Benchmark                                                   world frameworks, systems, and AI workloads. For example,
+                                                                  FlashInfer-Bench and SOL-ExecBench [Lin et al., 2026] fo-
+This section focuses on systematic benchmarking of kernel         cus on critical kernels derived from production systems and
+generation and provides a structured overview of represen-        emerging AI models, and BackendBench [Saroufim et al.,
+tative evaluation benchmarks, including both evaluation met-      2025] targets complex edge cases.
+rics and benchmark datasets, to lay a solid foundation for sub-
+sequent method comparison and performance analysis.
+                                                                  7   Challenges and Opportunities
+6.1   Metrics                                                     Despite rapid progress, LLM-driven kernel generation re-
+Kernel evaluation typically considers three aspects: correct-     mains a nascent research area. Advancing from proof-of-
+ness, performance, and composite quality metrics. Most            concept systems to robust and scalable deployment requires
+benchmarks adopt execution-based testing, where generated         addressing challenges spanning evaluation, data, agent ca-
+kernels are executed and compared against reference CUDA          pabilities, infrastructure, and human-AI collaboration. This
+or PyTorch implementations. Since kernel generation is in-        section reviews these challenges and outlines promising di-
+herently stochastic, evaluations are often repeated across mul-   rections for future research.
+tiple samples and random seeds.                                   Evaluation Reliability and Generalization. Reliable eval-
+   Correctness measures whether a generated kernel pro-           uation remains a fundamental challenge for LLM-driven ker-
+duces outputs consistent with a reference implementation          nel generation. Existing systems are vulnerable to reward
+within predefined numerical tolerances. Evaluation criteria       hacking, where kernels achieve favorable benchmark scores
+vary across kernel types and precision formats (e.g., FP16,       without delivering corresponding benefits in practical deploy-
+BF16, and FP8), reflecting their distinct numerical character-    ments. At the same time, current benchmarks often cover lim-
+istics. Detailed evaluation protocols are provided in Flashin-    ited workloads, hardware platforms, and execution settings,
+ferBench [Xing et al., 2026].                                     raising concerns about the generalization of reported meth-
+   Performance is primarily measured by runtime speedup           ods. Furthermore, the impact of kernel-level improvements
+relative to a reference implementation, typically using wall-     on end-to-end AI systems remains insufficiently understood.
+clock execution time averaged over repeated trials. Some          Future evaluation frameworks should emphasize robustness
+benchmarks further compare achieved performance against           against reward hacking, broad generalization across work-
+Speed-of-Light (SOL) estimates, which approximate the the-        loads or platforms, and system-level assessment, providing
+oretical efficiency limit of the target hardware.                 a more reliable measure of real-world effectiveness.
+   In addition, Efficiency refers to how effectively the gen-     Data Scarcity and Synthetic Scaling. Data scarcity re-
+erated operators utilize computation resources during execu-      mains a major bottleneck for LLM-driven kernel genera-
+tion, and Compatibility is considered when evaluating op-         tion. High-performance kernels are sparsely represented in
+erator generation techniques across different hardware plat-      existing corpora, and predominantly contain final implemen-
+forms or languages. Composite metrics jointly assess mul-         tations while largely omitting optimization trajectories and
+tiple dimensions of kernel quality. Representative examples       hardware-aware expertise. As a result, critical signals for
+include Similarity, which evaluates code similarity using lex-    learning kernel optimization remain limited. Promising di-
+ical, syntactic, and dataflow features; and fastp , which com-    rections include large-scale kernel dataset construction, syn-
+bines correctness and performance by measuring the propor-        thetic data generation, and the collection of execution-driven
+tion of generated kernels that are both correct and achieve a     optimization traces. Such resources could support both model
+speedup greater than p:                                           training and agentic learning, and may be essential for scaling
+                    N                                             kernel generation capabilities.
+                 1 X
+       fastp =         1(correcti ∧ {speedupi > p}).       (1)    Agentic Training and Harness Engineering. Kernel opti-
+                 N i=1
+                                                                  mization poses a challenging long-horizon task that requires
+                                                                  reasoning over iterative cycles of generation, execution, pro-
+6.2   Benchmark Datasets                                          filing, and refinement. Current foundation models are not
+As summarized in Table 2, kernel benchmarks are progres-          explicitly trained for such long-horizon optimization trajec-
+sively evolving toward more realistic and comprehensive           tories, while existing agentic systems often rely on hand-
+evaluation. This evolution is reflected in three dimensions:      crafted workflows that struggle with exploration efficiency,
+metrics, where evaluation has expanded from correctness and       context management, and long-term credit assignment. Fu-
+runtime speedup (ParEval [Nichols et al., 2024]) to compre-       ture progress may require advances in both long-horizon
+hensive measures of efficiency, robustness, and overall kernel    agentic training and autonomous harness engineering. More-
+quality. Examples include fastp in KernelBench, efficiency        over, recent advances in general-purpose coding agents (e.g.,
+  Name                       Time    Metrics        Hardware Description
+  ParEval                    01/2024 C    S         N A         420 expert-selected tasks across 12 algorithmic domains for
+                                        E                       benchmarking general parallel code generation.
+  KernelBench               02/2025 C f             N           250 PyTorch-to-CUDA kernel generation tasks, curated from
+                                                                popular GitHub repositories and official PyTorch operators, for
+                                                                evaluating AI/DL kernel generation.
+  TritonBench               02/2025 C S S           N           TritonBench evaluates Triton kernel generation via two sub-
+                                        E*                      sets: 184 high-level kernels sourced from popular GitHub
+                                                                projects (TritonBench-G) and 166 fusion tasks derived from
+                                                                diverse PyTorch operators with different frequencies of usage
+                                                                (TritonBench-T).
+  MultiKernel-Bench         07/2025 C S             H N G       285-task benchmark across 14 operator categories for multi-
+                                                                platform DL kernel synthesis.
+  TritonBench-revised       07/2025 C S             A           An AMD GPU-centric evaluation dataset comprising 30
+  & ROCm Benchmark                                              expert-verified ROCm kernels and an adapted version of
+                                                                TritonBench-G, specifically optimized for AMD GPU perfor-
+                                                                mance benchmarking.
+  Robust-kbench             09/2025 C S             N           A robustness-focused benchmark featuring 9 deep learning task
+                                                                categories, derived by refining and extending KernelBench.
+  BackendBench              09/2025 C S             N           A rigorous evaluation framework that enforces PyTorch’s offi-
+                                                                cial core library standards. Current use cases primarily lever-
+                                                                age NVIDIA CUDA and Triton, yet the architecture remains
+                                                                backend-agnostic.
+  CUDAEval                  10/2025 C S             N           Leveraging 313 curated tasks from the Stack v2 to benchmark
+                                                                the efficacy of reasoning transfer in CUDA code optimization.
+  FlashInfer-Bench          01/2026 C f             N           Provide a unified schema describing kernel definitions, work-
+                                                                loads, implementations, and evaluations, including eight repre-
+                                                                sentative kernel types used in LLM inference.
+  SOL-ExecBench             03/2026 SOL             N           A benchmark for GPU kernel optimization built around hard-
+                                       Score                    ware Speed-of-Light (SOL) targets.
+  *
+    Efficiency here is defined as the ratio of the operator’s measured throughput to the theoretical maximum performance.
+
+Table 2: Benchmark datasets for kernel generation and optimization. Metrics: C Correctness, S Speedup, E Efficiency, f fastp , S
+Similarity. Hardware Platforms: N NVIDIA GPUs, H HUAWEI NPUs, G Google TPUs, A AMD GPUs.
+
+
+Claude Code, OpenCode) suggest that kernel optimization            is to establish effective feedback loops between human
+may not require developing task-specific agents from scratch.      expertise and agentic exploration. While human-in-the-
+Instead, foundation agents can be specialized through harness      loop guidance can guide optimization through high-level
+engineering, leveraging domain-specific environments, tools,       objectives and constraints, human-from-the-loop learning
+and feedback to enable scalable agentic performance engi-          enables knowledge discovered by agents to be transferred
+neering.                                                           back to developers. Given the verifiable nature of kernel
+                                                                   optimization, such bidirectional collaboration may create an
+Scalable Infrastructure for Synthesis and Training.
+                                                                   effective cycle of human and agent co-evolving, expanding
+Scalable infrastructure remains a critical bottleneck for large-
+                                                                   the frontier of automated performance engineering.
+scale data synthesis and agentic training. Key challenges in-
+clude building distributed and securely isolated sandbox en-
+vironments for execution, addressing latency mismatches be-        8   Conclusion
+tween agent rollout and kernel compilation and verification,
+                                                                   This survey highlights the transformative potential of LLMs
+and designing fault-tolerant, multi-device services that ensure
+                                                                   and agentic systems for automating kernel generation and
+stable and efficient training at scale. Advances in such infras-
+                                                                   optimization, synthesizing recent advances in methodolo-
+tructure are essential for transforming kernel synthesis and
+                                                                   gies alongside the development of kernel-centric datasets and
+data sampling from low-throughput, ad-hoc experimentation
+                                                                   benchmarks. Looking ahead, future progress will depend on
+into a systematic, data-driven evolutionary process, enabling
+                                                                   more reliable evaluation protocols, as well as the data infras-
+continuous improvement of agentic kernel optimization sys-
+                                                                   tructure and harness engineering required for agentic kernel
+tems.
+                                                                   generation. These advances have the potential not only to al-
+Human-AI Collaboration for Kernel Generation.                      leviate the burden of manual kernel engineering, but also to
+Human-AI collaboration represents a promising alternative          unlock substantial productivity gains for rapidly scaling AI
+to fully autonomous kernel optimization. A central challenge       infrastructure.
+References                                                      [Guo et al., 2025] Ping Guo, Chenyu Zhu, et al. Evo-
+[Andrews and Witteveen, 2025] Martin Andrews and Sam              engineer: Mastering automated cuda kernel code evo-
+                                                                  lution with large language models.    arXiv preprint
+  Witteveen. Gpu kernel scientist: An llm-driven frame-
+                                                                  arXiv:2510.03760, 2025.
+  work for iterative kernel optimization. In ICML Workshop,
+  2025.                                                         [Hammond et al., 2025] Alec M Hammond,            Aram
+[BAAI, 2025] BAAI.      KernelGen.        https://github.com/     Markosyan, et al.     Agentic operator generation for
+  flagos-ai/KernelGen, 2025.                                      ML ASICs. arXiv preprint arXiv:2512.10977, 2025.
+[Baronio et al., 2025] Carlo Baronio, Pietro Marsella, et al.   [HPC-AI Tech, 2024] HPC-AI Tech. hpc-instruct: A dataset
+  Kevin: Multi-turn rl for generating cuda kernels. arXiv         for hpc instruction tuning. https://huggingface.co/datasets/
+  preprint arXiv:2507.11948, 2025.                                hpcgroup/hpc-instruct, 2024. Hugging Face Dataset.
+[Cao et al., 2026a] Shiyi Cao, Ziming Mao, et al. K-search:     [Jaber and Jaber, 2026] Jaber Jaber and Osama Jaber. Autok-
+  Llm kernel generation via co-evolving intrinsic world            ernel: Autonomous gpu kernel optimization via iterative
+  model. arXiv preprint arXiv:2602.19128, 2026.                    agent-driven search. arXiv preprint arXiv:2603.21331,
+                                                                   2026.
+[Cao et al., 2026b] Xinzi Cao, Jianyang Zhai, et al. As-
+  cendkernelgen: A systematic study of llm-based kernel         [Kaplan et al., 2020] Jared Kaplan, Sam McCandlish, et al.
+  generation for neural processing units. arXiv preprint          Scaling laws for neural language models. arXiv preprint
+  arXiv:2601.07160, 2026.                                         arXiv:2001.08361, 2020.
+[Chen et al., 2025a] Jinwu Chen, Qidie Wu, et al. cupilot: A    [Kong et al., 2025] Lingcheng Kong, Jiateng Wei, et al. Con-
+  strategy-coordinated multi-agent framework for cuda ker-        cur: Conciseness makes state-of-the-art kernel generation.
+  nel evolution. arXiv preprint arXiv:2512.16465, 2025.           CoRR, abs/2510.07356, 2025.
+[Chen et al., 2025b] Terry Chen, Bing Xu, et al. Automating     [Lange et al., 2025] Robert Tjarko Lange, Qi Sun, et al. To-
+  gpu kernel generation with deepseek-r1 and inference time       wards robust agentic cuda kernel benchmarking, verifica-
+  scaling. NVIDIA Developer Blog, 2025.                           tion, and optimization. arXiv preprint arXiv:2509.14279,
+                                                                  2025.
+[Chen et al., 2025c] Wentao Chen, Jiace Zhu, et al. Cuda-
+  llm: Llms can write efficient cuda kernels. arXiv preprint    [Lei et al., 2025] Kelun Lei, Hailong Yang, et al. Pragma:
+  arXiv:2506.09092, 2025.                                         A profiling-reasoned multi-agent framework for automatic
+[Choquette et al., 2021] Jack Choquette, Wishwesh Gandhi,         kernel optimization. arXiv preprint arXiv:2511.06345,
+                                                                  2025.
+  et al. Nvidia A100 tensor core gpu: Performance and in-
+  novation. IEEE Micro, 41(2):29–35, 2021.                      [Li et al., 2025a] Annan Li, Chufan Wu, et al. The fm agent.
+[Dai et al., 2026] Weinan Dai, Hanlin Wu, et al. Cuda agent:       arXiv preprint arXiv:2510.26144, 2025.
+  Large-scale agentic rl for high-performance cuda kernel       [Li et al., 2025b] Haonan Li, Keyu Man, et al. Tritonforge:
+  generation. arXiv preprint arXiv:2602.24286, 2026.               Profiling-guided framework for automated triton kernel
+[Dong et al., 2025] Juncheng Dong, Yang Yang, et al. Stark:        optimization. arXiv preprint arXiv:2512.09196, 2025.
+  Strategic team of agents for refining kernels. arXiv          [Li et al., 2025c] Jianling Li, ShangZhan Li, et al. Triton-
+  preprint arXiv:2510.16996, 2025.                                 bench: Benchmarking large language model capabilities
+[Dong et al., 2026] Kris Shengjun Dong, Sahil Modi, et al.         for generating triton operators. In ACL, pages 23053–
+  Kernelblaster: Continual cross-task cuda optimization            23066, 2025.
+  via memory-augmented in-context reinforcement learning.       [Li et al., 2025d] Shangzhan Li, Zefan Wang, et al. Autotri-
+  arXiv preprint arXiv:2602.14293, 2026.                           ton: Automatic triton programming with reinforcement
+[Du et al., 2025] Jinye Du, Quan Yuan, et al. Akg kernel           learning in llms. arXiv preprint arXiv:2507.05687, 2025.
+  agent: A multi-agent framework for cross-platform kernel      [Liao et al., 2021] Heng Liao, Jiajin Tu, et al. Ascend: a
+  synthesis. arXiv preprint arXiv:2512.23424, 2025.                scalable and unified architecture for ubiquitous deep neu-
+[Du et al., 2026] He Du, Qiming Ge, et al. Kernel-smith: A         ral network computing: Industry track paper. In HPCA,
+  unified recipe for evolutionary kernel optimization. arXiv       pages 789–801. IEEE, 2021.
+  preprint arXiv:2603.28342, 2026.                              [Liao et al., 2025] Gang Liao, Hongsen Qin, et al. Kernele-
+[Fisches et al., 2025] Zacharias V. Fisches, Sahan Paliskara,      volve: Scaling agentic kernel coding for heterogeneous ai
+   et al. Kernelllm: Making kernel development more acces-         accelerators at meta. arXiv preprint arXiv:2512.23236,
+   sible, 6 2025.                                                  2025.
+[Gong et al., 2025] Junfeng Gong, Zhiyi Wei, et al. From        [Lin et al., 2026] Edward Lin, Sahil Modi, et al. Sol-
+  large to small: Transferring cuda optimization expertise         execbench: Speed-of-light benchmarking for real-world
+  via reasoning graph. arXiv preprint arXiv:2510.19873,            gpu kernels against hardware limits. arXiv preprint
+  2025.                                                            arXiv:2603.19173, 2026.
+[Liu et al., 2026] Wei Liu, Jiawei Xu, et al. Dr. kernel: Rein-   [Wang et al., 2026] Yaoyu Wang, Hankun Dai, et al. Mas-
+   forcement learning done right for triton kernel generations.     tering sparse CUDA generation through pretrained models
+   arXiv preprint arXiv:2602.05885, 2026.                           and deep reinforcement learning. In ICLR, 2026.
+[Lozhkov et al., 2024] Anton Lozhkov, Raymond Li, et al.          [Wei et al., 2025a] Anjiang Wei, Allen Nie, et al. Improv-
+   Starcoder 2 and the stack v2: The next generation. arXiv         ing parallel program performance with llm optimizers via
+   preprint arXiv:2402.19173, 2024.                                 agent-system interfaces. In ICML, 2025.
+[Nichols et al., 2024] Daniel Nichols, Joshua H. Davis, et al.    [Wei et al., 2025b] Anjiang Wei, Tianran Sun, et al. Astra: A
+   Can large language models write parallel code? In HPDC,          multi-agent system for gpu kernel performance optimiza-
+   page 281–294, 2024.                                              tion. arXiv preprint arXiv:2509.07506, 2025.
+[Ou et al., 2026] Jiefu Ou, Sapana Chaudhary, et al. Max-         [Wen et al., 2025] Zhongzhen Wen, Yinghui Zhang, et al.
+   code: A max-reward reinforcement learning frame-                 Multikernelbench: A multi-platform benchmark for kernel
+   work for automated code optimization. arXiv preprint             generation. arXiv eprints, pp. arXiv–2507, 2025.
+   arXiv:2601.05475, 2026.                                        [Woo et al., 2025] Jiin Woo, Shaowei Zhu, et al. Tritonrl:
+[Ouyang et al., 2025] Anne Ouyang, Simon Guo, et al. Ker-           Training llms to think and code triton without cheating.
+   nelbench: Can LLMs write efficient GPU kernels? In               arXiv preprint arXiv:2510.17891, 2025.
+   ICML, 2025.                                                    [Wu, 2023] Peng Wu. Pytorch 2.0: The journey to bringing
+[Paliskara and Saroufim, 2025] Sahan Paliskara and Mark             compiler technologies to the core of pytorch (keynote). In
+   Saroufim. Kernelbook, 5 2025.                                    CGO, 2023.
+[Ran et al., 2025] Dezhi Ran, Shuxiao Xie, et al. Kernel-         [Xie et al., 2026] Shuxiao Xie, Shuyang Xie, et al. AKO:
+   band: Boosting llm-based kernel optimization with a hi-          Agentic kernel optimization. https://tongminglaic.github.
+   erarchical and hardware-aware multi-armed bandit. arXiv          io/AKO, 2026. Technical report.
+   preprint arXiv:2511.18868, 2025.                               [Xing et al., 2026] Shanli Xing, Yiyan Zhai, et al.
+[Saroufim et al., 2025] Mark Saroufim, Jiannan Wang, et al.         Flashinfer-bench: Building the virtuous cycle for ai-
+   Backendbench: An evaluation suite for testing how well           driven llm systems. arXiv preprint arXiv:2601.00227,
+   llms and humans can write pytorch backends, 2025.                2026.
+[Sereda et al., 2025] Taras Sereda, Tom St John, et al.           [Yang et al., 2026] Jian Yang, Wei Zhang, et al. Incoder-32b:
+   Kforge: Program synthesis for diverse ai hardware accel-         Code foundation model for industrial scenarios. arXiv
+   erators. arXiv preprint arXiv:2511.13274, 2025.                  preprint arXiv:2603.16790, 2026.
+[Su et al., 2025] Songqiao Su, Xiaofei Sun, et al. Cuda-          [Zhang et al., 2025a] Xuzhi Zhang, Shaohui Peng, et al.
+   l2: Surpassing cublas performance for matrix multipli-           Qimeng-tensorop:        Automatically generating high-
+   cation through reinforcement learning. arXiv preprint            performance tensor operators with hardware primitives.
+   arXiv:2512.02551, 2025.                                          arXiv preprint arXiv:2505.06302, 2025.
+[Sun et al., 2026] Qitong Sun, Jun Han, et al. Kernelskill: A     [Zhang et al., 2025b] Zijian Zhang, Rong Wang, et al.
+   multi-agent framework for gpu kernel optimization. arXiv         Cudaforge: An agent framework with hardware feed-
+   preprint arXiv:2603.10085, 2026.                                 back for cuda kernel optimization.          arXiv preprint
+                                                                    arXiv:2511.01884, 2025.
+[Tariq et al., 2025] Muhammad Usman Tariq, Abhinav
+                                                                  [Zheng et al., 2026] Yujie Zheng, Zhuo Li, et al. Towards
+   Jangda, et al. Peak: A performance engineering ai-
+                                                                    cold-start drafting and continual refining: A value-driven
+   assistant for gpu kernels powered by natural language
+                                                                    memory approach with application to npu kernel synthe-
+   transformations. arXiv preprint arXiv:2512.19018, 2025.
+                                                                    sis. arXiv preprint arXiv:2603.10846, 2026.
+[Team and Contributors, 2024] PyTorch Team and Contrib-
+                                                                  [Zhou et al., 2025a] Qirui Zhou, Shaohui Peng, et al.
+   utors. Kernelfalcon: Autonomous GPU kernel generation
+                                                                    QiMeng-attention: SOTA attention operator is generated
+   via deep agents, 2024. Accessed: 2026-01-02.
+                                                                    by SOTA attention algorithm. In ACL, 2025.
+[Tschand et al., 2025] Arya Tschand, Muhammad Awad,               [Zhou et al., 2025b] Qirui Zhou, Yuanbo Wen, et al.
+   et al.      Swizzleperf: Hardware-aware llms for gpu             Qimeng-gemm:           Automatically generating high-
+   kernel performance optimization.            arXiv preprint       performance matrix multiplication code by exploiting
+   arXiv:2508.20258, 2025.                                          large language models. In AAAI, 2025.
+[Vaswani et al., 2017] Ashish Vaswani, Noam Shazeer, et al.       [Zhu et al., 2025] Xinguo Zhu, Shaohui Peng, et al. Qimeng-
+   Attention is all you need. NeurIPS, 30, 2017.                    kernel: Macro-thinking micro-coding paradigm for llm-
+[Wang et al., 2024] Lei Wang, Chen Ma, et al. A survey on           based high-performance gpu kernel generation. arXiv
+   large language model based autonomous agents. Frontiers          preprint arXiv:2511.20100, 2025.
+   of Computer Science, 18(6):186345, 2024.                       [Zhu et al., 2026] Haowei Zhu, Puyuan Yang, et al. Diff-
+[Wang et al., 2025] Jianghui Wang, Vinay Joshi, et al. Geak:        bench meets diffagent: End-to-end llm-driven diffu-
+   Introducing triton kernel ai agent & evaluation bench-           sion acceleration code generation.          arXiv preprint
+   marks. arXiv preprint arXiv:2507.23194, 2025.                    arXiv:2601.03178, 2026.
+
