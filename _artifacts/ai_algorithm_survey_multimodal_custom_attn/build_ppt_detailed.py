@@ -125,7 +125,7 @@ add_footer(s,15,'Cross-paper implementation synthesis')
 s=prs.slides.add_slide(prs.slide_layouts[6]); s.background.fill.solid(); s.background.fill.fore_color.rgb=c(PAPER); add_title(s,'长序列 host-device 数据流：传 metadata，不传 dense pair mask')
 blocks=[('CPU static planner','geometry / cache\nCSR int32',MINT),('GPU dynamic selector','Q/K drift / top-k\nindices',GOLD),('Plan / pack','page plan / compact QKV\ncu_seqlens',CORAL),('Attention kernel','only nnz tiles /\ncompact sequence',MINT)]
 for i,(a,b,col) in enumerate(blocks):
-    x=.6+i*3.18; add_box(s,x,2.15,2.56,1.35,col,col,True); add_text(s,a,x+.16,2.43,2.25,.26,14,INK,True,PP_ALIGN.CENTER); add_text(s,b,x+.16,2.86,2.25,.35,11,INK,False,PP_ALIGN.CENTER); 
+    x=.6+i*3.18; add_box(s,x,2.15,2.56,1.35,col,col,True); add_text(s,a,x+.16,2.43,2.25,.26,14,INK,True,PP_ALIGN.CENTER); add_text(s,b,x+.16,2.86,2.25,.35,11,INK,False,PP_ALIGN.CENTER)
     if i<3: add_text(s,'->',x+2.62,2.65,.35,.25,18,INK,True,PP_ALIGN.CENTER)
 callout(s,'允许','静态 window/anchor：CPU 一次性 CSR、pinned metadata、FlashInfer plan；每 request 的 page list 也可由 host scheduler 供给。',.82,4.45,5.7,1.05,MINT)
 callout(s,'禁止','CPU 生成 L x L bool/fp16 mask 再拷 GPU。64K 单 bool mask 已 4GiB；per-step top-k CPU 往返还会同步 pipeline。',6.85,4.45,5.7,1.05,CORAL)
