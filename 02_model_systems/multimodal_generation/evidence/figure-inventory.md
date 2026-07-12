@@ -52,4 +52,31 @@ Cosmos 3 资产来自 arXiv:2606.02800v1 的 LaTeX/TikZ/source-native figures；
 | Survey pipeline evolution | 知识库整理图 | `../assets/surveys/multimodal-diffusion-infra/pipeline-evolution.svg` | pass |
 | Survey optimization matrix | 知识库整理图 | `../assets/surveys/multimodal-diffusion-infra/optimization-infra-matrix.svg` | pass |
 | Survey trends/infra | OpenRouter ICU 基于完整 Survey Markdown 生成的整理图；request `74741304-81a2-4ba7-a4b6-37d0a6b9969e` | `../assets/surveys/multimodal-diffusion-infra/survey-trends-infra-generated.png` | pass；1024x1024 原分辨率复核，无重叠/空白 |
+
+## 完整 Paper 精读新增视觉（2026-07-12）
+
+以下是完整精读提升后新增的第二类证据图。bbox 使用各 paper review 的 PDF page render 像素坐标 `(x,y,width,height)`；每张图均经过 contact-sheet 初筛和原分辨率逐图 QA。
+
+| Paper / Object / PDF 页 | 完整 caption | Source dimensions / bbox | 正式资产 / usage | QA |
+|---|---|---|---|---|
+| LDM Table 18 / p.28 | Comparing compute requirements during training and inference throughput with state-of-the-art generative models. Compute during training in V100-days; throughput measured in samples/sec on one NVIDIA A100; footnotes preserve source and evaluation qualifications. | `1530x1980`; `(120,240,1290,770)` | `../assets/papers/ldm/table18_compute_throughput_caption.png`; compute/throughput evidence | pass |
+| DiT Figure 6 / p.6 | Scaling the DiT model improves FID at all stages of training. The top row holds patch size constant; the bottom row holds model size constant. | `1530x1980`; `(110,145,1315,610)` | `../assets/papers/dit/fig6-scaling-curves-caption.png`; model/patch scaling | pass |
+| Transfusion Table 5 / p.10 | Performance of 0.76B Transfusion models with and without intra-image bidirectional attention. Patch size is 2x2 latent pixels. | `1836x2376`; `(325,620,1195,365)` | `../assets/papers/transfusion/table5-attention-ablation-caption.png`; mask ablation | pass |
+| Transfusion Table 8 / p.12 | Performance with and without limiting sampled diffusion noise to `t=500` when images precede the caption; models use U-Net adapters encoding 2x2 latent patches. | `1836x2376`; `(325,205,1195,395)` | `../assets/papers/transfusion/table8-noise-limit-caption.png`; noisy-image/text conflict | pass |
+| DC-AE Figure 4 / p.4 | Illustration of Residual Autoencoding. Non-parametric shortcuts let neural modules learn residuals around space-to-channel operations; `C` is channel count and `R` image size. | `1700x2200`; `(225,180,1350,625)` | `../assets/papers/dcae/fig4-residual-autoencoding-caption.png`; mechanism | pass |
+| Sparse VideoGen Figure 5 / p.5 | Hardware-efficient layout transformation: non-contiguous temporal-head sparsity is converted from token-major to contiguous frame-major layout for block-sparse attention. | `1700x2200`; `(848,172,753,560)` | `../assets/papers/sparse-videogen/fig5-layout-transformation-caption.png`; layout mechanism | pass |
+| FEB-Cache Table 5 / p.6 | Ablation on method components. | `1700x2200`; `(125,1275,690,190)` | `../assets/papers/feb-cache/table5_component_ablation_caption.png`; component attribution | pass |
+| BAGEL Figure 7 / p.13 | Emerging curves across pre-training stages. Capabilities improve at different rates; understanding/generation emerge before editing, and VAE+ViT features outperform VAE-only especially for intelligent editing. | `1530x1980`; `(145,170,1220,1190)` | `../assets/papers/bagel/fig7-emerging-curves-caption.png`; checkpoint/result evidence | pass |
+| HunyuanVideo 1.5 Figure 2 / p.4 | Architecture of the Unified Diffusion Transformer. | `1701x2200`; `(280,800,1200,960)` | `../assets/papers/hunyuanvideo-1-5/fig2_unified_dit_caption.png`; unified DiT mechanism | pass |
+| PixelDiT Table 5 / p.8 | Ablations of PixelDiT-XL on ImageNet 256x256; incremental components include RoPE/RMSNorm, dual-level path, token compaction and pixel-wise AdaLN. OOM marks the uncompacted dual-level variant. | `1489x2105`; `(755,1115,620,450)` | `../assets/papers/pixeldit/table5_core_ablation_caption.png`; core ablation | pass |
+| SwiftFusion Figure 10 / p.12 | Ablation studies in SwiftFusion. | `1700x2200`; `(135,270,1555,295)` | `../assets/papers/swiftfusion/fig10-ablation-caption.png`; component attribution | pass |
+| Causal-rCM Table 5 / p.16 | Ablation of initialization strategies for 4-step SF-DMD. | `1786x2526`; `(435,250,920,530)` | `../assets/papers/causal-rcm/table5_initialization_ablation_caption.png`; initialization evidence | pass |
+
+以下三张为 paper-level AI 生成解释图，不属于原论文证据，均由对应完整 `analysis.md` 作为 OpenRouter ICU document input 生成并在原分辨率检查：
+
+| Owner | 正式资产 | 用途 / QA |
+|---|---|---|
+| BAGEL | `../assets/papers/bagel/algorithm-analysis-generated.png` | 机制、证据边界与 Infra 总结；pass |
+| DC-AE | `../assets/papers/dcae/algorithm-analysis-generated.png` | 压缩率、token 与系统收益总结；pass |
+| Causal-rCM | `../assets/papers/causal-rcm/algorithm-analysis-generated.png` | TF/CM/SF 与 custom kernel 关系；pass |
 - Source-native figures 未把 PDF 页眉、页码或相邻正文带入正式资产；过程 render/crop 不进入正式引用。
