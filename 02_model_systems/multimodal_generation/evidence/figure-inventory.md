@@ -30,4 +30,26 @@ Cosmos 3 资产来自 arXiv:2606.02800v1 的 LaTeX/TikZ/source-native figures；
 - 14 个现有资产均有 canonical owner、来源与用途；没有未解释资产。
 - `reasoner-sft-mix.png` 与 `action-data-distribution.png` 不在主 Paper 重复嵌入，但分别用于阶段对照和 data evidence，保留在 inventory。
 - `two-way-attention-infra.png` 明确是知识库整理图，不替代论文 Figure 或 runtime measurement。
+
+## Multimodal Diffusion Infra Survey 新增资产（2026-07-12）
+
+以下原论文对象均由独立 deep review 从 PDF 裁剪，完整 caption 随图保留；源页渲染为 `1530x1980` 或对应论文原始渲染尺寸，bbox 和逐图 QA 的精确记录保存在各 paper-local inventory。正式资产以 paper 为 canonical owner。
+
+| Paper / Object | Source / usage | 正式资产 | QA |
+|---|---|---|---|
+| LDM Figure 2 | arXiv:2112.10752，PDF p.3；pixel→latent 管线 | `../assets/papers/ldm/fig2-perceptual-semantic-compression.png` | pass；单一对象、完整 caption、原分辨率复核 |
+| DiT Figure 3 | arXiv:2212.09748，PDF p.3；backbone | `../assets/papers/dit/fig3-dit-architecture.png` | pass |
+| Transfusion Figure 4 | arXiv:2408.11039，PDF p.4；mixed mask | `../assets/papers/transfusion/fig4-mixed-attention-mask.png` | pass |
+| BAGEL Figure 2 | arXiv:2505.14683，PDF p.4；MoT | `../assets/papers/bagel/fig2-mot-architecture.png` | pass |
+| PixelDiT Figure 2 | arXiv:2511.20645，PDF p.4；dual-level pixel path | `../assets/papers/pixeldit/fig2-dual-level-architecture.png` | pass |
+| DC-AE Table 3 | arXiv:2410.10733，PDF p.9；效率/显存 | `../assets/papers/dcae/table3-imagenet-efficiency.png` | pass |
+| HunyuanVideo 1.5 Table 7 | arXiv:2511.18870，PDF p.11；SSTA latency | `../assets/papers/hunyuanvideo-1-5/table7-inference-speed.png` | pass |
+| Sparse VideoGen Figure 7 | arXiv:2502.01776，PDF p.8；端到端分解 | `../assets/papers/sparse-videogen/fig7-end-to-end-breakdown.png` | pass |
+| FEB-Cache Figure 3 | arXiv:2503.07120，PDF p.4；cache mechanism | `../assets/papers/feb-cache/fig3-cache-mechanism.png` | pass |
+| SwiftFusion Figure 6 | arXiv:2601.20273，PDF p.7；Torus scheduling | `../assets/papers/swiftfusion/fig6-torus-scheduling.png` | pass |
+| Causal-rCM Figure 4 | arXiv:2606.25473，PDF p.5；训练管线 | `../assets/papers/causal-rcm/fig4-pipeline-comparison.png` | pass |
+| Survey stack/workload | 知识库整理图 | `../assets/surveys/multimodal-diffusion-infra/stack-and-workload.svg` | pass；SVG 原分辨率/文字边界复核 |
+| Survey pipeline evolution | 知识库整理图 | `../assets/surveys/multimodal-diffusion-infra/pipeline-evolution.svg` | pass |
+| Survey optimization matrix | 知识库整理图 | `../assets/surveys/multimodal-diffusion-infra/optimization-infra-matrix.svg` | pass |
+| Survey trends/infra | OpenRouter ICU 基于完整 Survey Markdown 生成的整理图；request `74741304-81a2-4ba7-a4b6-37d0a6b9969e` | `../assets/surveys/multimodal-diffusion-infra/survey-trends-infra-generated.png` | pass；1024x1024 原分辨率复核，无重叠/空白 |
 - Source-native figures 未把 PDF 页眉、页码或相邻正文带入正式资产；过程 render/crop 不进入正式引用。

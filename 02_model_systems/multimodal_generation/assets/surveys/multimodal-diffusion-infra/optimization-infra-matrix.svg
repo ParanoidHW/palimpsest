@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="920" viewBox="0 0 1500 920">
+  <style>text{font-family:Arial,SimHei,sans-serif;fill:#17202a;letter-spacing:0}.h{font-size:31px;font-weight:700}.t{font-size:19px;font-weight:700}.b{font-size:15px}.s{font-size:14px;fill:#52616b}.cell{stroke:#5d6d7e;stroke-width:1.5}.head{fill:#273746}.wh{fill:#fff;font-size:18px;font-weight:700}</style>
+  <rect width="1500" height="920" fill="#f8f9f9"/><text x="45" y="55" class="h">总耗时 = 去噪步数 × 单步时间 + Codec/调度：优化到 Infra 的映射（整理图）</text>
+  <rect x="45" y="90" width="1410" height="55" class="head"/><text x="65" y="125" class="wh">方向</text><text x="325" y="125" class="wh">算法机制</text><text x="660" y="125" class="wh">软件 / Kernel</text><text x="1020" y="125" class="wh">硬件与部署要求</text>
+  <g>
+    <rect x="45" y="145" width="250" height="110" class="cell" fill="#fdebd0"/><text x="65" y="185" class="t">减少去噪步数</text><text x="65" y="218" class="s">distillation / consistency</text>
+    <rect x="295" y="145" width="335" height="110" class="cell" fill="#fff"/><text x="315" y="182" class="b">减少 NFE，通常直接乘法降时延</text><text x="315" y="214" class="b">主要风险在质量、稳定性、训练成本</text>
+    <rect x="630" y="145" width="360" height="110" class="cell" fill="#fff"/><text x="650" y="182" class="b">sampler/runtime 支持新 schedule</text><text x="650" y="214" class="b">Infra 新需求相对有限</text>
+    <rect x="990" y="145" width="465" height="110" class="cell" fill="#fff"/><text x="1010" y="182" class="b">同硬件直接受益；低步数后单步 kernel</text><text x="1010" y="214" class="b">占比上升，cache 跨 step 机会下降</text>
+
+    <rect x="45" y="255" width="250" height="120" class="cell" fill="#d5f5e3"/><text x="65" y="297" class="t">Token reduction</text><text x="65" y="330" class="s">VAE/DC-AE/compaction</text>
+    <rect x="295" y="255" width="335" height="120" class="cell" fill="#fff"/><text x="315" y="294" class="b">减少 N，attention 约按 N²、MLP 按 N</text><text x="315" y="326" class="b">channel 宽度与重建质量是反向代价</text>
+    <rect x="630" y="255" width="360" height="120" class="cell" fill="#fff"/><text x="650" y="294" class="b">VAE tiling/fusion、packed sequence</text><text x="650" y="326" class="b">动态 shape 编译与 batch bucketing</text>
+    <rect x="990" y="255" width="465" height="120" class="cell" fill="#fff"/><text x="1010" y="294" class="b">降低 HBM/互联；channel 过宽会转移到 GEMM</text><text x="1010" y="326" class="b">codec 可能成为独立 accelerator/NPU 任务</text>
+
+    <rect x="45" y="375" width="250" height="120" class="cell" fill="#d6eaf8"/><text x="65" y="417" class="t">低比特 attention</text><text x="65" y="450" class="s">FP8/INT8/FP4</text>
+    <rect x="295" y="375" width="335" height="120" class="cell" fill="#fff"/><text x="315" y="414" class="b">降低 QKV/score/value 带宽与算力</text><text x="315" y="446" class="b">误差随 denoise step/head 变化</text>
+    <rect x="630" y="375" width="360" height="120" class="cell" fill="#fff"/><text x="650" y="414" class="b">量化/反量化融合、scale 管理</text><text x="650" y="446" class="b">需 head-dim/shape 特化 kernel</text>
+    <rect x="990" y="375" width="465" height="120" class="cell" fill="#fff"/><text x="1010" y="414" class="b">原生低比特 Tensor Core 与 accumulator</text><text x="1010" y="446" class="b">支持决定收益；FP8 并非所有 head dim 都有效</text>
+
+    <rect x="45" y="495" width="250" height="125" class="cell" fill="#f5eef8"/><text x="65" y="537" class="t">稀疏 attention</text><text x="65" y="570" class="s">window/block/head routing</text>
+    <rect x="295" y="495" width="335" height="125" class="cell" fill="#fff"/><text x="315" y="534" class="b">降低有效边数；可能动态 profiling</text><text x="315" y="566" class="b">稀疏率不等于端到端加速</text>
+    <rect x="630" y="495" width="360" height="125" class="cell" fill="#fff"/><text x="650" y="534" class="b">block mask/CSR、layout transform</text><text x="650" y="566" class="b">gather/scatter 与 custom FA kernel</text>
+    <rect x="990" y="495" width="465" height="125" class="cell" fill="#fff"/><text x="1010" y="534" class="b">HBM 随机访问、cache line、NPU sparse ops</text><text x="1010" y="566" class="b">需要规则块稀疏和足够长序列摊销元数据</text>
+
+    <rect x="45" y="620" width="250" height="125" class="cell" fill="#fadbd8"/><text x="65" y="662" class="t">DiT feature cache</text><text x="65" y="695" class="s">Tea/FEB/PAB-like reuse</text>
+    <rect x="295" y="620" width="335" height="125" class="cell" fill="#fff"/><text x="315" y="659" class="b">跨 step 重用 attention/MLP 特征</text><text x="315" y="691" class="b">质量漂移与低步数收益递减</text>
+    <rect x="630" y="620" width="360" height="125" class="cell" fill="#fff"/><text x="650" y="659" class="b">cache table、版本/step 一致性</text><text x="650" y="691" class="b">异步 prefetch、CPU/NVMe offload</text>
+    <rect x="990" y="620" width="465" height="125" class="cell" fill="#fff"/><text x="1010" y="659" class="b">HBM 容量与 PCIe/CXL 带宽并重</text><text x="1010" y="691" class="b">只有 transfer 可与 compute 重叠时 offload 才成立</text>
+
+    <rect x="45" y="745" width="250" height="125" class="cell" fill="#e5e7e9"/><text x="65" y="787" class="t">分布式并行</text><text x="65" y="820" class="s">SP/CP/CFG/EP</text>
+    <rect x="295" y="745" width="335" height="125" class="cell" fill="#fff"/><text x="315" y="784" class="b">切 token/head/CFG/expert 以降单卡峰值</text><text x="315" y="816" class="b">通信形态随 attention/mask 改变</text>
+    <rect x="630" y="745" width="360" height="125" class="cell" fill="#fff"/><text x="650" y="784" class="b">Ulysses/Ring/Torus、one-sided comm</text><text x="650" y="816" class="b">拓扑感知 overlap 与 admission control</text>
+    <rect x="990" y="745" width="465" height="125" class="cell" fill="#fff"/><text x="1010" y="784" class="b">机内 NVLink/互联与跨机 IB/NIC 分层</text><text x="1010" y="816" class="b">短序列/低 batch 可能无法摊销通信</text>
+  </g>
+</svg>

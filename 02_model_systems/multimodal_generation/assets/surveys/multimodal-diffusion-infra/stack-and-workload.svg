@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900">
+  <style>
+    text{font-family:Arial,SimHei,sans-serif;fill:#17202a;letter-spacing:0}.h{font-size:32px;font-weight:700}.t{font-size:21px;font-weight:700}.b{font-size:17px}.s{font-size:15px;fill:#46535f}.box{stroke:#273746;stroke-width:2;rx:6}.arr{stroke:#273746;stroke-width:3;fill:none;marker-end:url(#a)}
+  </style>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#273746"/></marker></defs>
+  <rect width="1500" height="900" fill="#f7f9fa"/>
+  <text x="60" y="58" class="h">Diffusion 多模态生成：软件栈与负载映射（整理图）</text>
+  <rect x="60" y="95" width="930" height="95" class="box" fill="#d6eaf8"/><text x="85" y="132" class="t">场景 / SLA</text><text x="85" y="166" class="b">图像与编辑 · 视频/音视频 · 交互数字人 · 世界模型 · 统一理解生成</text>
+  <rect x="60" y="220" width="930" height="105" class="box" fill="#d5f5e3"/><text x="85" y="258" class="t">API、编排与部署框架</text><text x="85" y="291" class="b">Diffusers / Transformers · vLLM-Omni · SGLang diffusion · 模型专用 pipeline</text>
+  <rect x="60" y="355" width="930" height="110" class="box" fill="#fdebd0"/><text x="85" y="393" class="t">阶段感知调度</text><text x="85" y="426" class="b">AR prefill/decode · diffusion denoise · VAE/codec · CFG · SR · reward/后处理</text><text x="85" y="450" class="s">continuous batching 不能把 append-only KV 与 overwrite/recompute latent 当作同一种 request state</text>
+  <rect x="60" y="495" width="930" height="110" class="box" fill="#f5eef8"/><text x="85" y="533" class="t">切分与并行</text><text x="85" y="566" class="b">TP · sequence/context parallel · Ulysses/Ring/Torus · CFG parallel · pipeline · expert parallel</text><text x="85" y="590" class="s">相比 LLM decode，更接近重复的大规模 prefill；跨 step cache 是 feature reuse，不是标准 KV reuse</text>
+  <rect x="60" y="635" width="930" height="110" class="box" fill="#fadbd8"/><text x="85" y="673" class="t">Kernel / Runtime</text><text x="85" y="706" class="b">FA/varlen · block sparse · custom mask/JVP · FP8/低比特 attention · fused layout/gather/scatter</text>
+  <rect x="60" y="775" width="930" height="80" class="box" fill="#e5e7e9"/><text x="85" y="810" class="t">硬件</text><text x="270" y="810" class="b">Tensor FLOPS · HBM 容量/带宽 · NVLink/IB/NIC · CPU RAM/PCIe · NVMe</text>
+  <path d="M525 190 V218 M525 325 V353 M525 465 V493 M525 605 V633 M525 745 V773" class="arr"/>
+  <rect x="1050" y="95" width="390" height="220" class="box" fill="#fff"/><text x="1075" y="133" class="t">离线/单图视频</text><text x="1075" y="170" class="b">- 单步长序列 GEMM/attention</text><text x="1075" y="201" class="b">- 多步重复，compute-bound 为主</text><text x="1075" y="232" class="b">- 高分辨率后 attention/HBM 上升</text><text x="1075" y="263" class="b">- VAE 与 SR 形成独立峰值</text>
+  <rect x="1050" y="345" width="390" height="245" class="box" fill="#fff"/><text x="1075" y="383" class="t">流式/AR diffusion</text><text x="1075" y="420" class="b">- clean/noisy history 与 chunk cache</text><text x="1075" y="451" class="b">- 高频小批次、严格首帧/帧间延迟</text><text x="1075" y="482" class="b">- JVP/custom mask 增加 kernel 特化</text><text x="1075" y="513" class="b">- cache + 通信 + HBM 同时敏感</text><text x="1075" y="544" class="b">- prefetch/offload 必须 deadline-aware</text>
+  <rect x="1050" y="620" width="390" height="235" class="box" fill="#fff"/><text x="1075" y="658" class="t">统一 AR + diffusion</text><text x="1075" y="695" class="b">- 两种 loss/attention/mask</text><text x="1075" y="726" class="b">- AR KV 与 diffusion feature cache 共存</text><text x="1075" y="757" class="b">- MoT/MoE 引入条件路由与权重驻留</text><text x="1075" y="788" class="b">- runtime 需 phase-aware admission</text><text x="1075" y="819" class="b">- 资源池可共享，但队列不应盲目合并</text>
+</svg>
