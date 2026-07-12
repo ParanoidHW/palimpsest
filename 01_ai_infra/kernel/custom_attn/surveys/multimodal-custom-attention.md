@@ -6,14 +6,14 @@
 > - 证据资产：`../assets/papers/`
 > - 相关文档：[Selection](../evidence/selection.md)，[Figure inventory](../evidence/figure-inventory.md)
 
-> **版本**：图文精读版，2026-07-10。
+> **版本**：图文精读版，2026-07-12。
 > **读者**：设计/评审多模态 attention kernel、长视频 runtime、统一模型训练与 serving 的工程人员。
-> **范围**：高分辨率 VLM 理解、视频/世界模型生成、理解-生成统一模型；NVIDIA CUDA 为主。
+> **范围**：高分辨率 VLM 理解、视频/世界模型生成、理解-生成统一模型；论文与源码证据以 NVIDIA CUDA 为主，另含面向非 SIMT DSA 的工程推演。
 > **证据包**：[选篇与图表证据](../evidence/selection.md)。原论文图均保留完整 caption；图的结论不替代正文和源码核验。
 
 ---
 
-## 执行摘要：先回答四个问题
+## 执行摘要：先回答五个问题
 
 ### 1. 最新多模态非典型 attention 在做什么？
 
@@ -58,6 +58,17 @@ $$
 $$
 
 这还没有乘 batch、head，也没有包含 QKV/KV cache。FlashAttention 不 materialize scores，但若仍枚举每个 $(q\_tile,k\_tile)$，并不会把二次算术量变成 sparse。
+
+### 5. 非 SIMT DSA 为什么更难承载通用 sparse mask？
+
+GPU 可以依赖 warp/CTA 调度、通用 load/store 和软件 kernel 变体吸收一部分不规则性；非 SIMT DSA 往往更依赖**空间映射、显式数据流、固定执行 tile、片上 SRAM 布局和预编排调度**。因此，通用 mask 不是“换一种 CSR 格式”就结束，而是要同时解决四个约束：
+
+1. **表达通用性**：predicate、CSR、selected segments 和动态 selector 必须 lower 为硬件可执行的 work graph；
+2. **负载均衡**：每个 query row、head、request 和 denoising step 的 active tile 数不同，最慢 PE 而非总 `nnz` 决定 barrier 时间；
+3. **数据局部性**：把长任务迁移到空闲 PE 会增加 NoC shuffle、K/V/scale 复制并降低 SRAM reuse；
+4. **量化兼容性**：当 scale fetch/dequant 与固定执行 tile 或 SRAM layout 绑定时，ragged sparse tile 会在 padding、repack/regroup、细粒度 scale 和 fallback 之间制造新代价。
+
+第四点有严格前提：若 mask 只稀疏 sequence/token 维，而 quant group 独立地沿 channel/head-dim 维组织，二者可以正交；不能笼统宣称“稀疏必然与量化冲突”。完整术语、成立条件和设计模型见 [4.4--4.9](#44-非-simt-dsa-上的问题边界)。
 
 ---
 
@@ -367,6 +378,183 @@ $$
 | 多模态质量 | grounding、空间定位、identity、motion、loop、audio/action sync |
 | serving | TTFT、TPOT、batch 混合、cache reuse、fallback 率、CPU planner utilization |
 
+### 4.4 非 SIMT DSA 上的问题边界
+
+> [!warning] 证据边界
+> 本节是从前述 CUDA kernel、CSR planner、selector/pack 和 descriptor reuse 证据向非 SIMT DSA 做的**工程抽象**，不是上述论文已经验证的 DSA 实现或性能结论。具体 DSA 的 PE 组织、量化轴、片上存储和调度能力不同，必须以目标硬件规格和编译器行为为准。
+
+这里的 **DSA（domain-specific accelerator）** 指针对一类张量/神经网络算子设计的领域专用加速器；“非 SIMT”强调它不以 GPU 式 warp 内单指令多线程和通用 CTA 调度作为主要执行抽象。典型实现更依赖编译器提前决定：哪一个 tile 在哪组 PE 上计算、数据放在哪个 SRAM bank、通过哪条 NoC 路径搬运、何时同步和归约。
+
+因此问题不应写成“DSA 的 PE 是静态的”。更准确的表述是：**空间映射和显式调度的数据流缺少 SIMT warp/CTA scheduler 对细粒度不规则性的通用兜底**。某些 DSA 仍有动态队列、work stealing 或可编程控制核，但这些能力通常受队列深度、控制面积、NoC、bank layout 和数据驻留约束。
+
+从模型到 DSA 的完整链路是：
+
+```text
+attention visibility semantics
+  -> mask IR / descriptor
+  -> sparse work graph
+  -> tile shape + quant compatibility
+  -> PE placement + SRAM/NoC placement
+  -> explicit schedule / dataflow
+  -> compute + communication + quantization + synchronization
+```
+
+只比较 `nnz_blocks` 会漏掉后三步。相同 `nnz` 的两个 mask，如果 row degree、head 分布、scale placement 或 K/V reuse 不同，实际时间可以完全不同。
+
+### 4.5 术语表：PPT 中的词分别指什么
+
+| 术语 | 本文含义 | 为什么与 sparse attention 相关 |
+|---|---|---|
+| **SIMT** | Single Instruction, Multiple Threads；GPU warp 中多个线程执行同一指令流 | warp/CTA scheduler 可以在一定程度上用并发 CTA 隐藏不同 tile 的时长差异 |
+| **DSA** | Domain-Specific Accelerator，领域专用加速器 | 通常以固定/有限 tile、显式数据流和片上存储为主要优化边界 |
+| **PE** | Processing Element，执行 MAC、向量、归约或专用算子的处理单元 | sparse row 分配不均会形成 PE bubble、尾部和 barrier 等待 |
+| **execution tile** | 一次硬件指令或数据流模板处理的 $M\times N\times K$ 数据块 | mask 只激活 tile 的一部分时，会出现 partial/ragged tile 或 padding work |
+| **spatial mapping** | 把循环维、tile 和数据显式映射到 PE/PE group | 迁移 work 能均衡计算，却可能破坏数据驻留和相邻 PE 的复用 |
+| **dataflow** | 数据在 PE、SRAM、NoC 和归约单元之间的生产/消费顺序 | sparse graph 改变 producer-consumer 数量与时间，可能打破固定流水 |
+| **SRAM** | 片上静态存储，常按 bank 分布 | gather、repack 和跨 PE 迁移可能造成 bank conflict、容量溢出或 reuse 下降 |
+| **NoC** | Network-on-Chip，片上互连 | 重新均衡 PE、复制 K/V/scale 或跨簇归约都会增加 NoC bytes 和拥塞 |
+| **bubble** | PE 因没有就绪 work、数据或 scale 而空闲的周期 | row degree 不均、bank stall 或显式依赖会产生空洞 |
+| **barrier tail** | 多个 PE/cluster 同步时，其他单元等待最慢者结束的尾部 | 端到端时间接近最大 PE 完成时间，而不是平均时间 |
+| **mask predicate** | 用 `visible(q,k)`、block id、offset、stream id 等规则在线判定可见性 | 表达能力强，但 DSA 需要把分支 lower 为有限模板或显式 work list |
+| **CSR** | `indptr + indices` 表示每个 query row 连接的 key block | 存储随 `nnz_blocks` 增长，但 row degree 不均会直接转成负载偏斜 |
+| **selected segments** | selector 产生的 token/block index、segment length 和 `cu_seqlens` | 需要 gather/pack；DSA 还要决定 compact tensor 的物理布局与 scale 归属 |
+| **descriptor** | 描述 sparse work 的紧凑 metadata，而非 $L\times L$ dense mask | descriptor 越通用，decode、indirection、队列和控制面积通常越大 |
+| **mask IR** | 编译器/运行时可消费的中间表示，统一语义、动态性和物理约束 | 它是从模型 mask 到 DSA work graph 的契约，不等于某个固定 CSR ABI |
+| **lowering** | 将高层 mask 语义变成 rectangle、block graph、CSR、segment 或 fallback 的过程 | 决定哪些 tile 能真正跳过，以及后端是否能执行 |
+| **indirection** | 通过 index/descriptor 间接找到 K/V、scale 或输出位置 | 增加 metadata load、地址生成和不连续访存 |
+| **pattern specialization** | 为 window、causal、top-k 等模式准备专用模板/指令 | 性能高但模板会膨胀，长尾 pattern 可能重编译或 fallback |
+| **fallback** | 当前 mask、shape、dtype 或 quant layout 不被专用路径支持时退回通用/稠密路径 | fallback 率决定线上收益，不能只报告命中专用路径时的速度 |
+| **quant group** | 共享一组 scale/zero-point 的元素集合；可能沿 tensor、channel、head-dim/K 或 block 组织 | 是否与 sparse tile 冲突取决于 group axis 和硬件绑定关系 |
+| **scale / zero-point** | 将整数值映射回实数范围的量化参数；对称量化可不使用显式 zero-point | scale 粒度越细，参数和 fetch/dequant 控制越多，但通常量化误差更小 |
+| **scale fetch** | 从寄存器、SRAM 或 metadata buffer 读取当前 group 的 scale | irregular tile 若需要多组 scale，可能增加带宽和 stall |
+| **dequant / requant** | 计算前从整数恢复到计算域；输出或重分组后再次量化 | repack 后若 group membership 改变，可能需要重新计算 scale 或 requantize |
+| **ragged/partial tile** | tile 中只有部分 row、column 或 block 有效 | 要么 pad 做无效 MAC，要么拆 tile/repack 并承担控制和搬运成本 |
+| **padding** | 用无效元素补齐硬件 tile，保持规则执行 | 实现简单，但会增加无效 MAC、SRAM/NoC bytes，稀疏率可能只存在于逻辑上 |
+| **repack/regroup** | gather 选中元素到新布局，或重新组织量化/执行 group | 改善阵列利用率，但增加 gather/scatter、metadata、NoC 和 layout conversion |
+| **fine-grained scale** | 缩小 quant group，为更小 tile/通道保存独立 scale | 通常降低量化误差，但增加 scale 存储、读取、dequant lane 和控制复杂度 |
+| **load CV** | PE work/time 的变异系数 $\sigma/\mu$ | 用于刻画负载离散程度；必须与 p95/p50 和 barrier tail 一起看 |
+
+### 4.6 mask 通用性为什么比 GPU kernel 更难
+
+一个通用 `MaskSpec` 可能允许四种物理表达：predicate、CSR、selected segments 和 dense fallback。GPU 软件栈可以为它们编译多个 kernel，并让 CTA scheduler 在运行时分派；DSA 若想用一条通用路径承载，需要在硬件或微码中加入：
+
+1. descriptor decoder 和多种 index/address generation；
+2. 动态 work queue、依赖计数和不等长 row 的结束判定；
+3. K/V/scale 的间接寻址与跨 bank gather；
+4. 可变长度 online softmax、归约和输出 scatter；
+5. 不支持 pattern 的 fallback 与状态切换。
+
+这些功能会占用控制面积、metadata 带宽和片上容量。反过来，如果只保留少量规则模板，则会产生 pattern specialization 的组合爆炸：`mask family × block size × head dim × dtype × quant group × layout × forward/backward`。因此工程目标不是“支持任意 mask”，而是找到一个**有界的 mask IR**：覆盖目标 workload 的主要 pattern，同时能静态证明 tile、依赖、量化和存储约束。
+
+建议把 IR 至少拆成语义与物理两层：
+
+```python
+@dataclass
+class MaskSpec:
+    kind: Literal['split_stream', 'block_causal', 'window_anchor',
+                  'csr_blocks', 'selected_segments']
+    geometry: TokenGeometry
+    dynamic: Literal['static', 'per_request', 'per_step', 'per_layer_head']
+
+@dataclass
+class QuantLayout:
+    dtype: Literal['int8', 'int4', 'fp8']
+    axis: Literal['tensor', 'channel', 'head_dim', 'token', 'block']
+    group_size: int
+    scale_location: Literal['register', 'sram', 'memory']
+    binding: Literal['independent', 'exec_tile', 'sram_bank']
+
+@dataclass
+class AttentionPlan:
+    work_items: SparseWorkGraph
+    pe_placement: PEPlacement
+    kv_locations: BufferPlacement
+    scale_ids: ScaleMap
+    compatibility: Literal['exact', 'pad', 'repack', 'requantize', 'fallback']
+```
+
+`MaskSpec` 只回答“谁能看谁”；`QuantLayout` 回答“整数如何解释、scale 在哪里、是否与 tile/bank 绑定”；`AttentionPlan` 才回答“在这块 DSA 上怎样执行”。把三者混成一个 CSR 会丢失优化和正确性所需的信息。
+
+### 4.7 负载均衡：总 `nnz` 不是执行时间
+
+令 $p$ 表示 PE 或 PE cluster。DSA 上更合理的目标不是均分 active block 数，而是最小化最大完成时间：
+
+$$
+T_{\text{E2E}} = T_{\text{lower}} + T_{\text{dispatch}}
++ \max_p \left(
+T_{\text{compute},p} + T_{\text{mask},p} + T_{\text{NoC},p}
++ T_{\text{SRAM-stall},p} + T_{\text{quant},p} + T_{\text{sync},p}
+\right) + T_{\text{output}}.
+$$
+
+各项分别表示：有效/填充 MAC、descriptor decode、片上搬运、bank/容量 stall、scale/dequant/requant、barrier/归约等待。即使两个 plan 的总 `nnz` 相同，只要最大 PE 的 row degree、K/V reuse 或 scale fetch 数不同，$T_{\text{E2E}}$ 就不同。
+
+负载均衡与局部性存在直接冲突：
+
+- **保持 data affinity**：让使用同一 K/V page 和 scale 的 row 留在同一 cluster，可提高 SRAM reuse，但热点 head/row 会形成长尾；
+- **迁移 work**：把长 row 拆给空闲 PE，可降低 compute tail，却需要 NoC shuffle、K/V/scale 复制和跨 PE softmax/LSE merge；
+- **切小 tile**：调度更灵活，但 descriptor、queue、归约和 scale fetch 的固定成本占比升高；
+- **切大 tile**：数据复用更好，但 partial tile 和 padding-equivalent work 增加。
+
+因此 planner 应按**估计时间**而不是 `nnz` 分配 work。估价模型至少需要 active/padded MAC、K/V/scale bytes、bank affinity、NoC hop/拥塞、归约 fan-in 和 quant compatibility。
+
+### 4.8 稀疏 tile 与量化功能何时冲突
+
+#### 4.8.1 不是所有稀疏都与量化冲突
+
+Attention mask 通常稀疏 query/key 的 sequence 维；权重/激活 quant group 可能沿 channel 或 head-dim/K 维。若硬件允许每个 active token tile 独立引用原有 channel scale，且 scale fetch/dequant 不要求固定 $M\times N\times K$ tile，那么二者可以正交。
+
+冲突主要在以下条件出现：
+
+1. quant/dequant 单元按固定 execution tile 启动，partial tile 仍必须消耗完整通路；
+2. scale ID 隐含在 tile id、page id 或 SRAM bank layout 中，compact/reorder 后无法直接沿用；
+3. 一个 sparse tile 跨越多个 quant group，需要多次 scale fetch 或拆分计算；
+4. 多个小 sparse tile 被 regroup 到同一硬件 tile，但来自不同值域/scale group；
+5. K/V 与 scale 必须共同驻留，负载迁移需要同时复制 data 和 quant metadata；
+6. online softmax、LSE merge 或输出 requant 对 accumulator precision、归约顺序有额外限制。
+
+#### 4.8.2 六条处理路径及其代价
+
+| 路径 | 做法 | 主要收益 | 主要代价 | 数值注意事项 |
+|---|---|---|---|---|
+| **mask/quant aligned pattern** | 训练或 lowering 时约束 sparse block 对齐 execution tile、page 和 quant group | 最少控制与搬运，最适合 DSA | 稀疏模式自由度下降，可能影响质量或稀疏率 | 需验证 selector/mask 约束后的任务质量 |
+| **padding** | partial tile 补零/无效元素，沿用原 scale | 无需改 group membership，硬件路径简单 | 无效 MAC、SRAM/NoC bytes 和 barrier tail 增加 | padding 必须在 softmax 语义上保持不可见，不能仅把量化值写成零 |
+| **repack but preserve scale IDs** | gather active block 到连续 buffer，同时携带原始 `scale_id` | 提高阵列占用，不必重新校准 scale | gather/scatter、scale indirection、metadata 和 NoC；可能降低连续访存/reuse | 一个 tile 多 scale 时需要多段 dequant 或 lane mask |
+| **regroup/requantize** | compact 后重新组成 quant group，计算/选择新 scale | 形成规则 tile，可减少 scale indirection | planner、统计、requant、额外 buffer；动态场景可能过慢 | 跨异质值域 regroup 或错误校准会改变误差分布 |
+| **fine-grained scale** | 缩小 group，使 scale 更贴近 sparse tile | 通常降低量化误差并减少跨组 partial tile | scale bytes/fetch、dequant lane 和控制复杂度增加 | “细粒度 scale 导致精度更差”通常不成立；风险主要是实现/校准错误 |
+| **fallback** | 对不兼容 pattern 使用 dense/高精度/通用路径 | 正确性边界清晰 | 收益取决于 fallback 率，batch 内混合还会破坏调度 | 必须逐路径验证数值一致性 |
+
+特别注意 padding 的语义：量化整数零不一定代表 real zero，且 attention mask 的“不可见”要求该位置不能进入 max、exp、sum 和 AV。正确做法是由有效位/predicate 排除，或使用与量化零点一致且不会参与 softmax 的专用路径；只补一个整数 `0` 不等于正确 masked attention。
+
+#### 4.8.3 `T_quant` 应怎样拆
+
+统一时间模型中的量化项不是单个常数，可按 plan 分解：
+
+$$
+T_{\text{quant},p} = T_{\text{scale-fetch},p}
++ T_{\text{dequant},p} + T_{\text{requant},p}
++ T_{\text{scale-indirection},p} + T_{\text{quant-stall},p}.
+$$
+
+- padding 路径主要增加 $T_{\text{compute}}$ 和 memory/NoC bytes，不一定增加 scale 数；
+- preserve-scale repack 主要增加 `scale_id` indirection、gather 和多 scale dequant；
+- regroup/requantize 增加 scale 统计、requant 和临时 buffer；
+- fine-grained scale 增加 scale bytes/fetch，但通常改善量化误差。
+
+### 4.9 DSA 评测与设计检查表
+
+| 维度 | 必测项 | 失败信号 |
+|---|---|---|
+| mask IR | pattern 覆盖率、descriptor bytes、decode cycles、compile/cache hit | descriptor 成本随 dense pair 数增长；频繁重编译 |
+| PE balance | per-PE active/padded MAC、time p50/p95、load CV、barrier tail | 平均利用率高但 p95 长；最慢 cluster 主导 |
+| data placement | SRAM hit、bank conflict、spill、K/V/scale copy bytes | work stealing 后 NoC bytes 超过节省的 HBM/compute |
+| NoC | bytes、hop、热点 link、multicast/reduction fan-in | 某些 head/row 形成路由热点或归约拥塞 |
+| quant | group axis/size、scale bytes/fetch、dequant/requant cycles、partial-group ratio | scale fetch 或 requant 成为新瓶颈 |
+| 数值 | dense/high-precision reference、softmax/LSE、forward/backward/JVP、长 rollout | padding 进入 softmax；重分组后误差异常放大 |
+| 系统 | lower/dispatch/pack/run/unpack、fallback 率、batch 混合、E2E | 只在专用 microbenchmark 快，端到端无收益 |
+
+建议至少扫描：sequence length、sparsity、row-degree distribution、block/tile size、head heterogeneity、denoising step、quant dtype、group axis/size、scale location、SRAM 容量和 NoC 拓扑。每组结果同时报告**逻辑稀疏率、物理执行稀疏率和 padding 后有效 MAC 比例**；否则容易把逻辑 `nnz` 当成硬件实际跳过的工作。
+
 ---
 
 ## 5. 可执行的验证计划
@@ -389,12 +577,21 @@ $$
 2. 多模态理解：TextVQA/MagnifierBench/grounding，并检查高分辨率细节是否被 selector 漏掉。
 3. 统一/世界模型：reasoner 是否被 noisy generator 反向污染、跨 chunk context 是否与缓存一致、action/video 时间是否对齐。
 
+### 第四阶段：非 SIMT DSA 与量化协同
+
+1. 固定 mask 和 QKV 数值，只改变 row-to-PE placement，记录 `max PE time`、load CV、barrier tail、NoC/KV/scale copy bytes，验证 planner 是否按时间而非 `nnz` 均衡。
+2. 对同一 sparse pattern 分别运行 aligned、padding、preserve-scale repack、regroup/requantize、fine-grained scale 和 fallback，分解 `compute/NoC/SRAM/quant/sync` 时间。
+3. 扫描 quant axis/group size 与 execution tile 的组合，记录 partial-group ratio、padded MAC ratio、scale bytes/fetch 和 dequant/requant cycles。
+4. 以高精度 dense reference 验证 mask boundary、online softmax/LSE、AV、输出 requant；特别检查 padding 值没有进入 max/exp/sum。
+5. 报告逻辑稀疏率、物理跳过率、专用路径覆盖率和 batch 级 fallback 率，不能只报告兼容 pattern 的单 kernel 峰值。
+
 ---
 
 ## 6. 证据边界与后续阅读
 
 - **源码已核验**：Causal-rCM、LVSA、VMoBA、FrameDiT；所有路径、commit、已知不一致和实现限制在各 `analysis.md`。
 - **论文图与 PDF 已核验**：FlexAttention VLM、HASTE、Sparse VideoGen、Token Sparse Attention、MInference；若无官方代码，本文不把具体 CSR/Triton/host-device 细节说成已证实事实。
+- **DSA 与量化部分是工程推演**：4.4--4.9 将 CUDA/FlashInfer/FlexAttention 中已观察到的 mask lowering、planner、pack 和 descriptor 问题映射到非 SIMT DSA；没有目标 DSA 的公开规格、实现与实测数据支撑时，不把 PE、NoC、SRAM 或量化路径的具体性能写成论文事实。
 - **最新性口径**：检索快照为 2026-07-10。2026 预印本的引用数不足以判定长期影响，因此以问题覆盖、原始证据、官方代码与系统贡献共同筛选。
 - **不可直接横比**：不同视频模型、GPU、horizon、质量指标、训练/推理模式不同；速度数字用于理解各自实验，不构成统一排行榜。
 
