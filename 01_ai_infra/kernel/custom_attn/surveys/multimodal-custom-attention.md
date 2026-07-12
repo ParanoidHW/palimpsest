@@ -401,38 +401,83 @@ attention visibility semantics
 
 只比较 `nnz_blocks` 会漏掉后三步。相同 `nnz` 的两个 mask，如果 row degree、head 分布、scale placement 或 K/V reuse 不同，实际时间可以完全不同。
 
-### 4.5 术语表：PPT 中的词分别指什么
+### 4.5 术语与符号解释
 
-| 术语 | 本文含义 | 为什么与 sparse attention 相关 |
-|---|---|---|
-| **SIMT** | Single Instruction, Multiple Threads；GPU warp 中多个线程执行同一指令流 | warp/CTA scheduler 可以在一定程度上用并发 CTA 隐藏不同 tile 的时长差异 |
-| **DSA** | Domain-Specific Accelerator，领域专用加速器 | 通常以固定/有限 tile、显式数据流和片上存储为主要优化边界 |
-| **PE** | Processing Element，执行 MAC、向量、归约或专用算子的处理单元 | sparse row 分配不均会形成 PE bubble、尾部和 barrier 等待 |
-| **execution tile** | 一次硬件指令或数据流模板处理的 $M\times N\times K$ 数据块 | mask 只激活 tile 的一部分时，会出现 partial/ragged tile 或 padding work |
-| **spatial mapping** | 把循环维、tile 和数据显式映射到 PE/PE group | 迁移 work 能均衡计算，却可能破坏数据驻留和相邻 PE 的复用 |
-| **dataflow** | 数据在 PE、SRAM、NoC 和归约单元之间的生产/消费顺序 | sparse graph 改变 producer-consumer 数量与时间，可能打破固定流水 |
-| **SRAM** | 片上静态存储，常按 bank 分布 | gather、repack 和跨 PE 迁移可能造成 bank conflict、容量溢出或 reuse 下降 |
-| **NoC** | Network-on-Chip，片上互连 | 重新均衡 PE、复制 K/V/scale 或跨簇归约都会增加 NoC bytes 和拥塞 |
-| **bubble** | PE 因没有就绪 work、数据或 scale 而空闲的周期 | row degree 不均、bank stall 或显式依赖会产生空洞 |
-| **barrier tail** | 多个 PE/cluster 同步时，其他单元等待最慢者结束的尾部 | 端到端时间接近最大 PE 完成时间，而不是平均时间 |
-| **mask predicate** | 用 `visible(q,k)`、block id、offset、stream id 等规则在线判定可见性 | 表达能力强，但 DSA 需要把分支 lower 为有限模板或显式 work list |
-| **CSR** | `indptr + indices` 表示每个 query row 连接的 key block | 存储随 `nnz_blocks` 增长，但 row degree 不均会直接转成负载偏斜 |
-| **selected segments** | selector 产生的 token/block index、segment length 和 `cu_seqlens` | 需要 gather/pack；DSA 还要决定 compact tensor 的物理布局与 scale 归属 |
-| **descriptor** | 描述 sparse work 的紧凑 metadata，而非 $L\times L$ dense mask | descriptor 越通用，decode、indirection、队列和控制面积通常越大 |
-| **mask IR** | 编译器/运行时可消费的中间表示，统一语义、动态性和物理约束 | 它是从模型 mask 到 DSA work graph 的契约，不等于某个固定 CSR ABI |
-| **lowering** | 将高层 mask 语义变成 rectangle、block graph、CSR、segment 或 fallback 的过程 | 决定哪些 tile 能真正跳过，以及后端是否能执行 |
-| **indirection** | 通过 index/descriptor 间接找到 K/V、scale 或输出位置 | 增加 metadata load、地址生成和不连续访存 |
-| **pattern specialization** | 为 window、causal、top-k 等模式准备专用模板/指令 | 性能高但模板会膨胀，长尾 pattern 可能重编译或 fallback |
-| **fallback** | 当前 mask、shape、dtype 或 quant layout 不被专用路径支持时退回通用/稠密路径 | fallback 率决定线上收益，不能只报告命中专用路径时的速度 |
-| **quant group** | 共享一组 scale/zero-point 的元素集合；可能沿 tensor、channel、head-dim/K 或 block 组织 | 是否与 sparse tile 冲突取决于 group axis 和硬件绑定关系 |
-| **scale / zero-point** | 将整数值映射回实数范围的量化参数；对称量化可不使用显式 zero-point | scale 粒度越细，参数和 fetch/dequant 控制越多，但通常量化误差更小 |
-| **scale fetch** | 从寄存器、SRAM 或 metadata buffer 读取当前 group 的 scale | irregular tile 若需要多组 scale，可能增加带宽和 stall |
-| **dequant / requant** | 计算前从整数恢复到计算域；输出或重分组后再次量化 | repack 后若 group membership 改变，可能需要重新计算 scale 或 requantize |
-| **ragged/partial tile** | tile 中只有部分 row、column 或 block 有效 | 要么 pad 做无效 MAC，要么拆 tile/repack 并承担控制和搬运成本 |
-| **padding** | 用无效元素补齐硬件 tile，保持规则执行 | 实现简单，但会增加无效 MAC、SRAM/NoC bytes，稀疏率可能只存在于逻辑上 |
-| **repack/regroup** | gather 选中元素到新布局，或重新组织量化/执行 group | 改善阵列利用率，但增加 gather/scatter、metadata、NoC 和 layout conversion |
-| **fine-grained scale** | 缩小 quant group，为更小 tile/通道保存独立 scale | 通常降低量化误差，但增加 scale 存储、读取、dequant lane 和控制复杂度 |
-| **load CV** | PE work/time 的变异系数 $\sigma/\mu$ | 用于刻画负载离散程度；必须与 p95/p50 和 barrier tail 一起看 |
+本节集中规范全文术语与分析符号。`paper-stated` 表示定义可直接追溯到论文/代码对象；`cross-paper-synthesis` 表示本文为了跨后端比较而归一化的工程定义，不代表所有论文或所有 DSA 都采用同一命名。
+
+#### 4.5.1 术语表
+
+| 术语 | 综述中的规范解释 | 定义性质 | 别名 | 各论文/本文的特定用法 | 规范解释来源 | 易混点 |
+|---|---|---|---|---|---|---|
+| **SIMT** | Single Instruction, Multiple Threads；一组硬件线程执行共同指令流，并允许 GPU runtime 在 CTA 间调度 | cross-paper-synthesis | SIMT execution | 本文只用它对比通用 warp/CTA 调度能力，不主张所有 GPU kernel 都能消除稀疏长尾 | §4.4 工程抽象 | 不等于 SIMD；也不等于“动态负载一定均衡” |
+| **DSA** | Domain-Specific Accelerator，面向特定算子/模型域设计的加速器 | cross-paper-synthesis | domain-specific accelerator | 本文特指以空间映射、显式数据流和片上存储为主要优化边界的非 SIMT 路径 | §4.4 工程抽象 | 不等于固定功能 ASIC；部分 DSA 仍有动态队列和可编程控制核 |
+| **PE** | 执行 MAC、向量、归约或专用算子的 processing element | cross-paper-synthesis | processing element, compute lane | 本文以 PE/PE cluster 作为负载和 barrier 时间的统计单位 | §4.4、§4.7 | 不必等同于 CUDA core、SM 或完整处理器核 |
+| **execution tile** | 一次指令或数据流模板覆盖的 $M\times N\times K$ 计算块 | cross-paper-synthesis | compute tile, hardware tile | 本文用它连接 sparse block、PE 映射和 quant/dequant 启动粒度 | §4.4、§4.8 | 不等于 mask block；两者尺寸和轴可能不同 |
+| **spatial mapping** | 将循环维、tile 和数据位置显式映射到 PE/PE group | cross-paper-synthesis | PE placement | 本文的 `pe_placement` 同时受 work、K/V/scale 驻留和 NoC 约束 | §4.4、§4.6 API | 不等于只把相同数量的 `nnz` 分给每个 PE |
+| **dataflow** | 数据在 PE、SRAM、NoC、softmax/归约单元之间的生产、消费和同步顺序 | cross-paper-synthesis | explicit dataflow | 本文将 mask lowering 后的 work graph 视为 dataflow 的输入 | §4.4 数据流链路 | 不等于神经网络计算图；这里强调硬件执行和数据移动 |
+| **SRAM / bank** | 片上静态存储及其可并行访问分区 | cross-paper-synthesis | scratchpad, local memory | 本文关注 K/V/scale 驻留、bank conflict、spill 和 reuse | §4.7、§4.9 | 不等于 GPU HBM；bank hit 也不必然等于 cache hit |
+| **NoC** | PE、SRAM bank 和功能单元之间的片上互连 | cross-paper-synthesis | Network-on-Chip | 本文统计 work stealing、K/V/scale copy 和跨 PE LSE merge 的 NoC bytes/hops | §4.7、§4.9 | 不等于 PCIe/NVLink 等芯片间互连 |
+| **bubble / barrier tail** | bubble 是 PE 因无就绪 work/data/scale 而空闲；barrier tail 是同步点等待最慢 PE 的尾部 | cross-paper-synthesis | idle slot, synchronization tail | 本文用 p95/p50、load CV 和最大 PE 时间联合刻画 | §4.7 时间模型 | 平均利用率高仍可能有明显 barrier tail |
+| **mask predicate** | 用 `visible(q,k)`、block id、offset 或 stream id 在线判定可见性 | paper-stated | mask function, rule mask | Causal-rCM 的 `BlockPattern`/`AttnMaskSpec` 生成 Flex `BlockMask` | [Causal-rCM 精读](../papers/causal-rcm.md)、§2.3 | predicate 能表达规则，不代表后端能跳过相同数量的物理 tile |
+| **BlockMask** | block 粒度的可见性与可跳过 block map；由 predicate 编译/构造，但运行时不需要 materialize token-pair dense mask | paper-stated | block mask | Causal-rCM 使用 PyTorch FlexAttention `create_block_mask()` 缓存结果 | [Causal-rCM 精读](../papers/causal-rcm.md)、§2.3 | 不等于任意二维 bool mask；block 内 padding 仍可能产生额外 work |
+| **CSR sparse graph** | 用 `indptr + indices` 列出每个 query row 可访问的 key block | paper-stated | compressed sparse row, block CSR | LVSA 的 CPU planner 生成 frame-block CSR，FlashInfer plan 消费它 | [LVSA 精读](../papers/lvsa.md)、§2.4 | CSR 是邻接表示，不是 dense bool mask，也不是执行 schedule 本身 |
+| **selected segments** | selector 输出 token/block index、segment length 和 compact batch 边界 | paper-stated | selected indices, packed segments | VMoBA/TSA 将选中 QKV gather/pack 后交给 varlen attention | [VMoBA 精读](../papers/vmoba.md)、§2.5、§2.8 | selected segment 不等于 block-sparse kernel 内部跳 tile |
+| **varlen / `cu_seqlens`** | 将不同长度样本或选中 segment 拼成连续 QKV，并用累计长度数组标记边界 | paper-stated | variable-length attention, packed attention | Cosmos 3 用于拆分双流；VMoBA 用于 selected Q/KV segment | §2.2、[VMoBA 精读](../papers/vmoba.md) | 它解决 batch/segment 边界，不自动表达任意 token-pair 稀疏图 |
+| **selector / router** | 根据 attention map、query-key proxy、top-k 或 threshold 选择 token/block/head path 的控制面 | paper-stated | gate, block router, sparse selector | FlexAttention VLM 选高分辨率区域；VMoBA 选 block；TSA 选 token | §2.1、§2.5、§2.8 | selector 的 score/top-k 本身可能是 dense 或成为主要开销 |
+| **online softmax / LSE merge** | 分块遍历 score 时在线维护 row max、指数和；多 segment 时用 log-sum-exp 状态合并 | cross-paper-synthesis | streaming softmax, log-sum-exp merge | FlashAttention 避免 materialize score；VMoBA 合并 selected segments | §2.5、§4.6 | 不等于近似 softmax；跨 PE 拆 row 时还要传递/归并状态 |
+| **JVP** | Jacobian-vector product，用方向向量与 Jacobian 的乘积传播导数信息 | paper-stated | Jacobian-vector product | Causal-rCM 的定制 Triton 路径让 primal 与 JVP 使用同一 mask contract | [Causal-rCM 精读](../papers/causal-rcm.md)、§2.3 | 不等于普通 backward/VJP；后端支持范围可能不同 |
+| **planner / plan** | 将 descriptor、shape、layout 和资源约束转成可执行 schedule/buffer 的控制面过程及结果 | paper-stated / cross-paper-synthesis | planning pass, attention plan | LVSA/FlashInfer 有 host planning；本文扩展为 DSA `AttentionPlan` | [LVSA 精读](../papers/lvsa.md)、§4.1、§4.6 | CPU 生成 plan 不代表 device kernel 直接读取 host memory |
+| **TMR / EBC** | TMR 跨 denoising step 复用 mask descriptor；EBC 按 head 的误差-稀疏曲线分配阈值预算 | paper-stated | Temporal Mask Reuse, Error-guided Budgeted Calibration | HASTE 用二者分别降低在线 refresh 成本和校准 head budget | [HASTE 精读](../papers/haste.md)、§2.6 | TMR 是 descriptor reuse，不是缓存完整 attention 输出；EBC 不等于底层 kernel |
+| **TTFT / TPOT** | 首 token 时间与后续每 token 时间，分别刻画 prefill/启动和 decode 稳态延迟 | cross-paper-synthesis | time to first token, time per output token | 本文把它们列为 serving 指标；视频 diffusion 还需另报 per-step/E2E | §4.3 | 不适合直接替代视频生成 wall time 或训练吞吐 |
+| **descriptor** | 描述 sparse work 的紧凑 metadata，避免 $L\times L$ mask | cross-paper-synthesis | sparse metadata, plan metadata | 可包含 CSR、range、index、length、page、scale id 和依赖信息 | §3、§4.1、§4.6 | descriptor 越紧凑不必然越易执行；还取决于 decode 和寻址成本 |
+| **mask IR** | 编译器/运行时消费的中间表示，保留 mask 语义、动态性及 lowering 所需约束 | cross-paper-synthesis | attention mask intermediate representation | 本文建议将 `MaskSpec`、`QuantLayout` 和物理 `AttentionPlan` 分层 | §4.6 API | 不等于单一 CSR ABI；IR 也不能丢失 quant axis/scale binding |
+| **lowering** | 把高层可见性变成 rectangle、predicate、CSR、selected segment 或 fallback plan | cross-paper-synthesis | legalization, plan building | Cosmos 3 拆流；LVSA 生成 CSR；VMoBA 选择并 pack | §2.2、§2.4、§2.5、§4.1 | 不等于 kernel 执行；lowering 后仍有调度、搬运和量化成本 |
+| **indirection** | 经 index/descriptor 间接找到 K/V、scale 或输出位置 | cross-paper-synthesis | indexed addressing | preserve-scale repack 需要同时携带 `scale_id` | §4.6、§4.8.2 | 不连续地址不一定都慢，但会增加地址生成和 metadata load |
+| **pattern specialization / fallback** | specialization 为特定 mask/shape/layout 准备高效模板；fallback 处理未覆盖组合 | cross-paper-synthesis | specialized path, generic path | MInference 按 pattern dispatch；FrameDiT 公共路径可能退回 dense bias | §2.9、§2.10、§4.6 | fallback 不是错误处理；它是必须统计覆盖率和代价的正式执行路径 |
+| **quant group** | 共享 scale/zero-point 的元素集合，可沿 tensor、channel、head-dim/K、token 或 block 组织 | cross-paper-synthesis | scale group, quantization group | 本文只在 group 与 exec tile、page 或 SRAM layout 绑定时讨论直接冲突 | §4.8.1 | sequence 维 mask 与 channel/K 维 group 可能正交，不能默认冲突 |
+| **scale / zero-point** | 整数域与实数域之间的缩放和偏移参数；对称量化可省略显式 zero-point | cross-paper-synthesis | quant params | `QuantLayout` 记录 axis、group size、位置和 binding | §4.6、§4.8 | attention mask 的“不可见”不能用普通量化零值代替 |
+| **scale fetch / dequant / requant** | 读取 scale；计算前恢复到计算域；输出或重新分组后再次量化 | cross-paper-synthesis | dequantize, requantize | 本文将其拆入 $T_{\text{quant},p}$ | §4.8.3 | dequant 与 dtype cast 不完全等价；repack 也不一定需要 requant |
+| **ragged / partial tile** | execution tile 中只有部分 row、column 或 sparse block 有效 | cross-paper-synthesis | underfilled tile, edge tile | 可能来自 row degree、序列边界、selector 或 mask/exec tile 不对齐 | §4.7、§4.8 | 普通 dense edge tile 也可 partial；这里关注动态稀疏导致的额外不规则性 |
+| **padding** | 用无效元素补齐 execution tile，并用有效位保证其不参与 attention 语义 | cross-paper-synthesis | pad-to-tile | 保留原 quant group，但增加无效 MAC 和数据移动 | §4.8.2 | 写入整数 `0` 不等于 masked；它仍可能进入 max/exp/sum |
+| **repack / regroup** | repack 改物理布局；regroup 改 execution/quant group membership | cross-paper-synthesis | gather-pack, compaction | preserve-scale repack 保留 `scale_id`；regroup/requantize 生成新 group/scale | §4.8.2 | 两者不是同一操作；repack 不必然改变数值语义 |
+| **fine-grained scale** | 缩小 quant group，为更小通道/tile 保存独立 scale | cross-paper-synthesis | per-channel/per-block scale | 用于降低跨组 partial tile，但增加 scale bytes/fetch 和 dequant 控制 | §4.8.2 | 通常改善而非损害量化精度；精度风险主要来自错误 regroup/校准 |
+| **逻辑/物理执行稀疏率** | 逻辑稀疏率按 mask `nnz` 统计；物理执行稀疏率按硬件真正跳过的 MAC/tile 统计 | cross-paper-synthesis | algorithmic/effective sparsity | padding、fallback、metadata 和不兼容 tile 会扩大两者差距 | §4.9 | FlashAttention 不 materialize score 也不自动等于 sparse execution |
+| **load CV** | PE work/time 的变异系数 $\sigma/\mu$ | cross-paper-synthesis | coefficient of variation | 与 p50/p95、最大 PE 时间和 barrier tail 联合报告 | §4.7、§4.9 | CV 低不代表绝对延迟低；所有 PE 同时很慢时 CV 也可很低 |
+
+#### 4.5.2 符号表
+
+| 符号 | 来源类型 | 论文/综述 | 含义 | 作用域/索引 | 单位/取值 | 证据或推导来源 | 易混点 |
+|---|---|---|---|---|---|---|---|
+| $L$ | survey-analysis | 本综述 | attention 序列长度 | request/sample | token 数，正整数 | 执行摘要 dense mask bytes 推导 | 不等于 layer 数 |
+| $q,k$ | paper-specific / survey-analysis | Causal-rCM 与本文抽象 | query/key token 或其位置索引 | token/block | index | §2.3 `visible(q,k)` | 小写位置索引不等于张量 $Q,K$ |
+| $Q,K,V$ | paper-specific | 各 attention 工作 | query、key、value 张量 | batch/head/token/channel | tensor | §2 各论文机制与公式 | $K$ 同时常被用作 GEMM reduction 维，需看上下文 |
+| $H_l$ | paper-specific | FlexAttention VLM | 第 $l$ 层参与 attention 的 hidden state | layer/token | tensor | §2.1 compact selection 公式 | 不等于 attention head 数 $H$ |
+| $H_{\text{low}},H_{\text{text}},H_{\text{high}}$ | paper-specific | FlexAttention VLM | 低分辨率图像、文本和高分辨率视觉特征 | token subset | tensor | §2.1 | 三者 token 数和选择策略不同 |
+| $S_l$ | paper-specific | FlexAttention VLM | 第 $l$ 层选择的高分辨率 token/区域集合 | per layer/sample | index set | §2.1 | 与 TSA 的 $S_h$ 作用域不同 |
+| $Q_R,K_R,V_R$ | paper-specific | Cosmos 3 | reasoner stream 的 Q/K/V | per sample/reasoner stream | tensor | §2.2 two-way attention 公式 | 下标 $R$ 表示 stream，不是矩阵秩 |
+| $Q_G,K_G,V_G$ | paper-specific | Cosmos 3 | generator stream 的 Q/K/V | per sample/generator stream | tensor | §2.2 | generator query 可读取本样本 reasoner 与 generator K/V |
+| $B,b,j$ | paper-specific | Causal-rCM | block 总数、query block id、key block id | block index | $B\in\mathbb N$，$0\le b,j<B$ | §2.3 mask 语义 | $B$ 在其他论文常表示 batch size；此处是 block count |
+| $\mathcal A(t)$ | paper-specific | LVSA | query frame $t$ 的可见 frame 集合 | per frame | set | §2.4 | 不是 attention matrix $A$ |
+| $\mathcal G$ | paper-specific | LVSA | rotating periodic global anchor frame 集合 | sequence/global anchors | set | §2.4 | 与 generator 下标 $G$ 无关 |
+| $\mathcal W(t)$ | paper-specific | LVSA | frame $t$ 的局部窗口集合 | per frame | set | §2.4 | 会因 anchor 重叠而扩展，不是固定矩形窗口 |
+| $C$ | paper-specific | LVSA | 近似固定的 attended-frame budget | per query frame | frame/block 数 | §2.4 | 不是 channel 维或类别数 |
+| $S_h$ | paper-specific | Token Sparse Attention | attention head $h$ 保留的 token 集合 | per head/layer | index set | §2.8 | 与 FlexAttention VLM 的 layer-wise $S_l$ 不同 |
+| $\hat Q_h,\hat K_h,\hat V_h,\hat O_h$ | paper-specific | Token Sparse Attention | 按 $S_h$ gather 后的紧凑 Q/K/V 与输出 | per head/selected token | tensor | §2.8 | hat 表示 compact tensor，不表示估计量 |
+| $M,N,K$ | survey-analysis | DSA 工程推演 | execution tile 的 row、column、reduction 尺寸 | 单个硬件 tile | 正整数 | §4.5 execution tile、§4.8 | 此处 $K$ 是 reduction size，不是 key tensor |
+| $nnz_{blocks}$ | survey-analysis | 本综述 | descriptor 中列出的非零/可见 block 数 | request/layer/head | block 数 | §3、§4.4、§4.9 | 不等于硬件实际执行 tile 数；padding/fallback 会改变后者 |
+| $p$ | survey-analysis | DSA 工程推演 | PE 或 PE cluster 索引 | $p\in[0,P)$ | index | §4.7 | 不表示概率 |
+| $T_{\text{E2E}}$ | survey-analysis | DSA 工程推演 | 从 lowering 到输出的端到端时间 | request/layer/operator | 时间 | §4.7 统一时间模型 | 不等于纯 attention MAC 时间 |
+| $T_{\text{lower}},T_{\text{dispatch}}$ | survey-analysis | DSA 工程推演 | mask lowering/plan 构建与 work 分发时间 | request/plan | 时间 | §4.7 | 静态 plan 可摊销，动态 per-step plan 通常不可完全摊销 |
+| $T_{\text{compute},p}$ | survey-analysis | DSA 工程推演 | PE $p$ 的有效与 padded 计算时间 | per PE/cluster | 时间 | §4.7 | 同 `nnz` 不保证相同 compute time |
+| $T_{\text{mask},p}$ | survey-analysis | DSA 工程推演 | descriptor decode、predicate 和地址生成时间 | per PE/cluster | 时间 | §4.7 | 不表示 mask 生成的全部 host 时间 |
+| $T_{\text{NoC},p}$ | survey-analysis | DSA 工程推演 | PE $p$ 相关片上通信和拥塞时间 | per PE/cluster | 时间 | §4.7 | 不等于芯片间 PCIe/NVLink 时间 |
+| $T_{\text{SRAM-stall},p}$ | survey-analysis | DSA 工程推演 | bank conflict、spill、容量或数据未就绪造成的停顿 | per PE/cluster | 时间 | §4.7 | 不等于全部 SRAM 访问时间 |
+| $T_{\text{quant},p}$ | survey-analysis | DSA 工程推演 | scale fetch、dequant、requant、indirection 和 quant stall | per PE/cluster | 时间 | §4.8.3 | padding 常主要增加 compute/bytes，不一定增加此项 |
+| $T_{\text{sync},p}$ | survey-analysis | DSA 工程推演 | barrier、归约和依赖等待 | per PE/cluster | 时间 | §4.7 | 与 bubble 有关但不完全等同 |
+| $T_{\text{total}}$ | survey-analysis | GPU/通用控制面模型 | selector、metadata、plan、pack、attention 和 unpack 的总时间 | operator/request | 时间 | §4.3 | 与后文 DSA 专用 $T_{\text{E2E}}$ 分解粒度不同 |
+| $T_{\text{select}},T_{\text{metadata}},T_{\text{H2D/plan}},T_{\text{pack}},T_{\text{attn}},T_{\text{unpack}}$ | survey-analysis | GPU/通用控制面模型 | 通用 sparse attention 各阶段时间 | operator/request | 时间 | §4.3 | 阶段可重叠时简单求和是保守分解，需说明计时边界 |
+| $s,z$ | survey-analysis | 量化抽象 | quant scale 与 zero-point | quant group | $s>0$；$z$ 为整数或省略 | §4.5、§4.8 | 对称量化通常令 $z=0$ 或不显式存储 |
+| $\sigma/\mu$ | survey-analysis | 本综述 | PE work/time 的变异系数 | 一组 PE 样本 | 无量纲 | §4.5 load CV | 需说明统计对象是 work 还是 time |
 
 ### 4.6 mask 通用性为什么比 GPU kernel 更难
 
