@@ -26,14 +26,14 @@
 
 ### 2. 常见 kernel 路线与趋势是什么？
 
-| 运行路径 | kernel 实际得到的输入 | 代表 | 适合什么 | 主要代价 |
-|---|---|---|---|---|
-| Dense/causal varlen FlashAttention | 连续 QKV + `cu_seqlens` / causal flag | Cosmos 3、VMoBA | mask 能切为少量矩形/流 | 多次调用、流切分 |
-| FlexAttention / BlockMask | predicate + 可跳过的 block map | Causal-rCM fallback | 规则复杂且模式可 block 化 | block padding、compile/cache |
-| 定制 Triton / FlashAttention 衍生 | block ranges / offsets + QKV/JVP | Causal-rCM | forward/backward/JVP 都需要特殊可见性 | 开发、autotune、寄存器压力 |
-| FlashInfer block sparse | CSR `indptr, indices` + plan | LVSA | 长视频/页化 KV、结构化邻接 | planner、gather、非连续访存 |
-| selector + gather + varlen | token/block index、compact QKV | VMoBA、TSA、VLM FlexAttention | 动态/学习式选择 | top-k、sort、gather/scatter |
-| dense score bias | `[B,1,Lk]` 或 broadcast bias | FrameDiT 公共代码路径 | correctness fallback | 仍可能遍历 dense QK tile |
+| 运行路径                               | kernel 实际得到的输入                      | 代表                          | 适合什么                          | 主要代价                        |
+| ---------------------------------- | ----------------------------------- | --------------------------- | ----------------------------- | --------------------------- |
+| Dense/causal varlen FlashAttention | 连续 QKV + `cu_seqlens` / causal flag | Cosmos 3、VMoBA              | mask 能切为少量矩形/流                | 多次调用、流切分                    |
+| FlexAttention / BlockMask          | predicate + 可跳过的 block map          | Causal-rCM fallback         | 规则复杂且模式可 block 化              | block padding、compile/cache |
+| 定制 Triton / FlashAttention 衍生      | block ranges / offsets + QKV/JVP    | Causal-rCM                  | forward/backward/JVP 都需要特殊可见性 | 开发、autotune、寄存器压力           |
+| FlashInfer block sparse            | CSR `indptr, indices` + plan        | LVSA                        | 长视频/页化 KV、结构化邻接               | planner、gather、非连续访存        |
+| selector + gather + varlen         | token/block index、compact QKV       | VMoBA、TSA、VLM FlexAttention | 动态/学习式选择                      | top-k、sort、gather/scatter   |
+| dense score bias                   | `[B,1,Lk]` 或 broadcast bias         | FrameDiT 公共代码路径             | correctness fallback          | 仍可能遍历 dense QK tile         |
 
 ### 3. 定制 mask 到底如何表达？
 
