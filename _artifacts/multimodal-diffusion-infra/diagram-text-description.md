@@ -17,10 +17,10 @@
 
 首层包含五个并列小框：
 
-1. 多轮编辑：VLM + Diffusion协同，多阶段分离部署，kvcache复用
+1. 多轮对话与编辑：VLM + Diffusion协同，多阶段分离部署，kvcache复用
 2. MoT架构：AR Reasoner + Diffusion Generator，独立权重但共同attention
-3. World-action-model：根据输入动作实时流式生成视频
-4. 音画同步：
+3. World-action-model：根据输入动作实时流式生成视频，用于具身智能场景生成数据
+4. 音画同步：同时生成音频和视频，两者是时间同步的
 
 模块底部总结为：“高质量单图与短视频已具备产品成熟度，但长视频叙事、稳定物理交互、低延迟双向音视频和实时世界模型仍处于快速迭代期。未来应用重心将从一次性 prompt-to-content 转向多轮编辑、可控代理创作、音画同步、交互仿真和具身数据生成”。
 
@@ -32,12 +32,13 @@
 2. AR KV 与 Diffusion Feature 并存，多轮编辑与复用
 3. VAE / Codec 成为独立负载
 4. Diffusion feature cache引入多级缓存
+5. 实时流式生成要求低时延
 
 ### 3. Serving / Runtime 要求
 
 第三层有六个小框：
 
-1. Phase-aware Scheduler
+1. Phase-aware Scheduler / Prefill-Decode-Diffusion
 2. AR 阶段与生成阶段切换
 3. Resolution / Frame / Step Bucketing
 4. Deadline-aware Stream Queue
@@ -48,14 +49,13 @@
 
 ### 4. 关键 Kernel
 
-第四层有六个小框：
+第四层有五个小框：
 
-1. Varlen / Full / Causal / Two-way Attention
+1. Varlen / Full / Causal / Two-way / Flex Attention
 2. Block Sparse / Window / Selected Global
-3. Custom Mask Lowering
-4. FP8 / 低比特 Attention
-5. JVP for Consistency / Distillation
-6. Fused VAE / Codec
+3. Custom Mask Lowering / General Mask Repr.
+4. Sparse Attention Workload Balance
+5. FP8 / MxFP8 / MxFP4 / HiF4 Attention
 
 ### 5. 内存与互连
 
@@ -66,18 +66,3 @@
 3. Feature Prefetch
 4. NVLink / RDMA
 5. One-sided Communication
-
-模块底部强调：“长视频与稀疏布局使数据搬运成为瓶颈”。
-
-### 6. 硬件能力重点
-
-末层使用两列表格，左列为能力类别，右列为对应需求：
-
-| 类别 | 重点能力 |
-| --- | --- |
-| Compute | BF16/FP16 大 GEMM，FP8 Attention |
-| Memory | 高带宽大容量 HBM |
-| Interconnect | 拓扑感知并行，低时延通信 |
-| Kernel Support | 可编程 Mask / Sparse / Layout |
-| Runtime System | 多阶段 DAG 调度 |
-
