@@ -1,0 +1,24 @@
+schema_version: "1.0"
+dispatch_id: "icml2026-omnifit-layer-compression-006"
+agent_task_name: "review_omnifit"
+paper_key: "title:omnifit-layer-adaptive-token-compression"
+title: "OmniFit: Bridging Modalities via Layer-Adaptive Token Compression for Omnimodal Large Language Models"
+venue_and_year: "ICML 2026 candidate list; venue status and paper identity unresolved"
+paper_url: null
+pdf_url: null
+source_url: null
+artifact_folder: "_artifacts/icml_2026/reviews/omnifit-layer-compression"
+formal_slug: "omnifit-layer-compression"
+formal_paper_path: "02_model_systems/ICML/2026/papers/omnifit-layer-compression.md"
+parent_contract: "_artifacts/icml_2026/agent_contract.md"
+expected_skill_tree_sha256: "93e435dbedfea453d129ba1f62cbc35f718472624053003f80461892f872be6e"
+expected_agent_contract_sha256: "33da33ba0fc320e994da7067084d7d0384e83bc3a5bb5c58d9633f5be54d0e21"
+input_title_source: "_artifacts/icml_2026/to_analyze_list.md"
+recovery_attempts_already_made:
+  - "Exact-title and distinctive-phrase arXiv API queries returned zero results on 2026-07-16."
+  - "OpenAlex exact title search returned zero results on 2026-07-16."
+  - "GitHub repository search returned zero results on 2026-07-16."
+  - "OpenReview API exact-title query returned ChallengeRequiredError 403 on 2026-07-16."
+notes:
+  - "Do not substitute arXiv:2604.21575 OmniFit: Multi-modal 3D Body Fitting; its title and scope differ."
+  - "Continue primary-source recovery; if no exact PDF is found, produce a blocked delivery with precise evidence gaps."

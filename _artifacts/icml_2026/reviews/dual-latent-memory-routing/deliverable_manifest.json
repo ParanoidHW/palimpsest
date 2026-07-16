@@ -1,0 +1,262 @@
+{
+  "schema_version": "1.3.0",
+  "deliverable_type": "paper-deep-review",
+  "invocation_mode": "delegated",
+  "paper": {
+    "paper_key": "title:dual-latent-memory-routing",
+    "title": "Dual-Latent Memory Routing for Vision-Language Reasoning",
+    "venue_and_year": "ICML 2026 (official poster 63955; Spotlight Posters listing)",
+    "paper_url": "https://icml.cc/virtual/2026/poster/63955"
+  },
+  "completion_status": "blocked",
+  "revision_info": {
+    "document_path": "analysis.md",
+    "section_heading": "修订信息",
+    "current_version": "1.0.0",
+    "current_revision_id": "rev-initial-20260716",
+    "history": [
+      {
+        "revision_id": "rev-initial-20260716",
+        "version": "1.0.0",
+        "revised_at": "2026-07-16T19:16:43+08:00",
+        "revised_by": "review_dual_latent",
+        "revision_type": "initial",
+        "supersedes": null,
+        "migration_resolution": null,
+        "summary": "建立官方摘要级 blocked 交付",
+        "reason": "精确 PDF 在受控恢复后仍不可得",
+        "affected_locations": [
+          "analysis.md",
+          "figure_inventory.md",
+          "openreview_reviews.md"
+        ],
+        "evidence": [
+          "ICML official poster 63955",
+          "recovery/recovery_log.md"
+        ],
+        "impact_on_conclusions": "material"
+      }
+    ]
+  },
+  "schema_validation": {
+    "status": "passed",
+    "validator": "python jsonschema Draft202012Validator against deliverable-schema.json",
+    "errors": []
+  },
+  "semantic_validation": {
+    "status": "passed",
+    "validator": "paper-deep-review 1.3.0 manual semantic checks plus hash/path script",
+    "checks": {
+      "artifact_paths_and_hashes": true,
+      "revision_section_matches_manifest": true,
+      "revision_history_consistency": true,
+      "current_revision_is_latest": true,
+      "unresolved_migrations_resolved": true,
+      "terminology_symbol_section_consistency": true,
+      "key_term_symbol_coverage": true,
+      "design_rationale_evidence_consistency": true,
+      "design_rationale_core_design_coverage": true,
+      "visual_count_sum": true,
+      "missing_visual_types": true,
+      "provenance_hash_equality": true,
+      "checklist_manifest_consistency": true
+    },
+    "errors": []
+  },
+  "artifacts": {
+    "paper_pdf": {
+      "status": "blocked",
+      "path": null,
+      "sha256": null,
+      "reason": "Exact PDF unavailable after documented primary-source recovery; similarly named works rejected."
+    },
+    "analysis": {
+      "status": "present",
+      "path": "analysis.md",
+      "sha256": "02aa3ed8f16be0f74c0dba6055738d5270c4d459af30310a594dc26f795e0df1",
+      "reason": null
+    },
+    "review_checklist": {
+      "status": "present",
+      "path": "review_checklist.md",
+      "sha256": "d87c511ccde6a9b0070b77ecad61f32c8f0227eb9ea8d47155648707ccd4a8e0",
+      "reason": null
+    },
+    "figure_inventory": {
+      "status": "present",
+      "path": "figure_inventory.md",
+      "sha256": "21e98f6ace43f3c3344d6d98cddfe4fcef9c0f72080f4963fe0612f659b85ff1",
+      "reason": null
+    },
+    "contact_sheet": {
+      "status": "not-applicable",
+      "path": null,
+      "sha256": null,
+      "reason": "Zero crops because the exact PDF/source is unavailable; no blank contact sheet created."
+    },
+    "source_archive": {
+      "status": "blocked",
+      "path": null,
+      "sha256": null,
+      "reason": "No exact source archive or source URL was exposed by ICML or found via exact-title recovery."
+    },
+    "code_snapshot": {
+      "status": "blocked",
+      "path": null,
+      "sha256": null,
+      "reason": "No official project/code link; exact GitHub searches returned zero repositories."
+    },
+    "openreview_reviews": {
+      "status": "present",
+      "path": "openreview_reviews.md",
+      "sha256": "b514b3bc33fa42b0c0ba8fd51e288be87b005d10e0d77cf8ada0751bb2999bf1",
+      "reason": null
+    },
+    "generated_diagram": {
+      "status": "skipped-with-reason",
+      "path": null,
+      "sha256": null,
+      "reason": "Installed OpenRouter ICU CLI lacks mandatory responses-doc --input-file analysis.md; prompt-only generation is forbidden by the contract."
+    },
+    "task_packet": {
+      "status": "present",
+      "path": "task_packet.yaml",
+      "sha256": "b04ac648321bf1209d43be2a7a5ef731686e4c1f997a888c250cbefe8ba4dc05",
+      "reason": null
+    },
+    "agent_handoff": {
+      "status": "present",
+      "path": "agent_handoff.md",
+      "sha256": "09d74967b606b4d57406cef1d45bd4a1ecd3bd718b05ab55ad9d002a66fc9f0e",
+      "reason": null
+    },
+    "artifact_manifest_path": "artifact_manifest.sha256"
+  },
+  "visual_evidence": {
+    "mechanism_count": 0,
+    "result_or_system_count": 0,
+    "counted_total": 0,
+    "missing_types": [
+      "mechanism",
+      "result-or-system"
+    ],
+    "inventory_fields_complete": true,
+    "contact_sheet_qa": "not-applicable",
+    "individual_crop_qa": "not-applicable"
+  },
+  "terminology_and_symbols": {
+    "document_path": "analysis.md",
+    "section_heading": "0.1 术语与符号解释",
+    "terms": [
+      {
+        "term": "DLMR",
+        "definition": "摘要给出的双潜在记忆与动态路由机制简称。",
+        "aliases": ["Dual-Latent Memory Routing"],
+        "sources": ["analysis.md#01-术语与符号解释; ICML official abstract"],
+        "ambiguity_notes": "Not the distinct ICML paper Dual Latent Memory for Visual Multi-agent System."
+      },
+      {
+        "term": "visual memory",
+        "definition": "摘要称其压缩图像证据。",
+        "aliases": ["视觉记忆"],
+        "sources": ["analysis.md#01-术语与符号解释; ICML official abstract"],
+        "ambiguity_notes": "Structure, capacity, update rule, and physical storage are unavailable."
+      },
+      {
+        "term": "reasoning memory",
+        "definition": "摘要称其跟踪中间结论与约束。",
+        "aliases": ["推理记忆"],
+        "sources": ["analysis.md#01-术语与符号解释; ICML official abstract"],
+        "ambiguity_notes": "Cannot determine whether it is a token cache, learned vectors, or external memory."
+      },
+      {
+        "term": "router",
+        "definition": "摘要称其在推理时动态决定复用哪类记忆以及复用量。",
+        "aliases": ["动态路由器"],
+        "sources": ["analysis.md#01-术语与符号解释; ICML official abstract"],
+        "ambiguity_notes": "Granularity, objective, and discrete/continuous behavior are unavailable."
+      },
+      {
+        "term": "three-stage training",
+        "definition": "摘要称训练从 latent memory construction 到 selective router learning 分三阶段进行。",
+        "aliases": ["三阶段训练"],
+        "sources": ["analysis.md#01-术语与符号解释; ICML official abstract"],
+        "ambiguity_notes": "Middle stage, losses, data, and budget are unavailable."
+      }
+    ],
+    "symbol_applicability": "not-applicable",
+    "symbols": [],
+    "coverage": {
+      "key_terms": "passed",
+      "key_symbols": "not-applicable",
+      "ambiguities": "passed"
+    }
+  },
+  "design_rationales": [
+    {
+      "design": "visual memory",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["ICML official abstract; analysis.md#32-设计动机矩阵"],
+      "concrete_problem": "Long generations lose earlier image evidence.",
+      "causal_mechanism": "Compress and selectively reuse image evidence to preserve visual grounding.",
+      "analysis_basis": ["Official abstract states the problem and intended memory role."],
+      "alternatives_tradeoffs": "Retain original visual tokens or use retrieval; capacity/accuracy trade-off is unavailable.",
+      "validation_evidence": {"type": "none", "sources": [], "judgment": "unverified"}
+    },
+    {
+      "design": "reasoning memory",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["ICML official abstract; analysis.md#32-设计动机矩阵"],
+      "concrete_problem": "Intermediate conclusions and constraints are lost in a growing monolithic context.",
+      "causal_mechanism": "Track intermediate conclusions and constraints in a separate latent memory.",
+      "analysis_basis": ["Official abstract states the problem and intended memory role."],
+      "alternatives_tradeoffs": "Explicit scratchpads or context summarization may be simpler but have different error propagation; unavailable in the paper evidence.",
+      "validation_evidence": {"type": "none", "sources": [], "judgment": "unverified"}
+    },
+    {
+      "design": "dynamic router",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["ICML official abstract; analysis.md#32-设计动机矩阵"],
+      "concrete_problem": "Visual and reasoning information needs vary across inference state.",
+      "causal_mechanism": "Select memory type and reuse amount dynamically during inference.",
+      "analysis_basis": ["Official abstract states dynamic memory selection and claimed state dependence."],
+      "alternatives_tradeoffs": "Fixed mixing or attention fusion avoids routing collapse but may waste compute; measured trade-offs unavailable.",
+      "validation_evidence": {"type": "none", "sources": [], "judgment": "unverified"}
+    },
+    {
+      "design": "frozen base MLLM with three-stage training",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["ICML official abstract; analysis.md#32-设计动机矩阵"],
+      "concrete_problem": "Improve long-horizon reasoning with few additional trainable parameters.",
+      "causal_mechanism": "Freeze the base model and train latent-memory construction and selective routing in stages.",
+      "analysis_basis": ["Official abstract states frozen base, three stages, and parameter-efficiency objective."],
+      "alternatives_tradeoffs": "End-to-end fine-tuning or adapters may offer capacity at greater cost; matched capacity evidence unavailable.",
+      "validation_evidence": {"type": "none", "sources": [], "judgment": "unverified"}
+    }
+  ],
+  "evidence_checks": {
+    "claim_matrix": "passed",
+    "design_rationale_analysis": "passed",
+    "symbol_table": "passed",
+    "evidence_loop": "blocked",
+    "code_cross_check": "blocked",
+    "openreview_cross_check": "blocked",
+    "infrastructure_analysis": "blocked",
+    "gain_attribution": "blocked"
+  },
+  "delegated_provenance": {
+    "dispatch_id": "icml2026-dual-latent-memory-routing-003",
+    "agent_task_name": "review_dual_latent",
+    "task_packet_sha256": "b04ac648321bf1209d43be2a7a5ef731686e4c1f997a888c250cbefe8ba4dc05",
+    "skill_tree_sha256": "93e435dbedfea453d129ba1f62cbc35f718472624053003f80461892f872be6e",
+    "agent_contract_sha256": "33da33ba0fc320e994da7067084d7d0384e83bc3a5bb5c58d9633f5be54d0e21"
+  },
+  "limitations": [
+    {"requirement": "Exact PDF and source", "status": "blocked", "reason": "Exact identity confirmed but no PDF/source URL was exposed or recovered.", "effect_on_conclusions": "Method, equations, experiments, and figures cannot be verified."},
+    {"requirement": "Visual evidence", "status": "blocked", "reason": "No numbered objects with captions are available without the PDF/source.", "effect_on_conclusions": "No mechanism or result visual can be counted or promoted."},
+    {"requirement": "Code/config/checkpoints", "status": "blocked", "reason": "No official repository or project link was found.", "effect_on_conclusions": "Implementation, capacity, algorithm, and runtime behavior cannot be separated."},
+    {"requirement": "OpenReview cross-check", "status": "blocked", "reason": "No official forum link; exact-title APIs returned challenge HTTP 403.", "effect_on_conclusions": "Reviews, decision, rebuttal, and unresolved concerns cannot be analyzed."},
+    {"requirement": "Infrastructure and gain attribution", "status": "blocked", "reason": "No dimensions, measurements, tables, or matched ablations are available.", "effect_on_conclusions": "No compute/memory/bandwidth estimate or component attribution is defensible."},
+    {"requirement": "Generated analysis diagram", "status": "skipped-with-reason", "reason": "Installed CLI lacks mandatory responses-doc document-input path.", "effect_on_conclusions": "No analytical conclusion is affected; only optional explanatory art is absent."}
+  ]
+}

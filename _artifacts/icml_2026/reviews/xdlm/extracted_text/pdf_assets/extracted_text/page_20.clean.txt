@@ -1,0 +1,66 @@
+===== PAGE 20 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+Steps (T)
+Generated Text Sample (Continued)
+T = 16
+[MASK] [MASK] [MASK] to clear [MASK] [MASK] [MASK] [CLS] [MASK] [MASK]
+of [MASK] is [MASK] congo [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] the
+[MASK] , which [MASK] resolved obscene .
+[CLS] 15 [MASK] ##anda [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] board had convinced ##ffi [MASK] life
+[MASK] [MASK] take the [MASK] [MASK] [CLS] [MASK] hawaii [MASK] [MASK]
+the city 86 to [MASK] a [MASK] of new [MASK] [MASK] areas [MASK] [CLS]
+mar [MASK] vice [MASK] [MASK] le [MASK] , [MASK] [MASK] [MASK] afghan
+[MASK] to steal [MASK] [MASK] [MASK] [MASK] out [MASK] - [MASK] [MASK] the
+taliban has often used to [MASK] from pakistani [MASK] [MASK] not pakistan
+’ s [MASK] [MASK] though [MASK] of its [MASK] in [MASK] [MASK] za ##rda
+##ri said [MASK] sees [MASK] [MASK]
+T = 24
+[MASK] [MASK] [MASK] to clear [MASK] [MASK] . [CLS] that [MASK] of
+neutrality is [MASK] congo force some post ##pone ##ments of the [MASK]
+, which [MASK] resolved [MASK] . [CLS] 15 [MASK] the telegraph that [MASK]
+[MASK] believed the board had convinced him [MASK] life infancy [MASK]
+take the train [MASK] [CLS] from pound [MASK] , the city plans to [MASK]
+a [MASK] of new [MASK] [MASK] areas [MASK] [CLS] mar [MASK] , according
+[MASK] le monde , " is the afghan ##s to steal or [MASK] and foot out " - -
+[MASK] the taliban has often used to [MASK] from pakistani taliban [MASK]
+not pakistan ’ s [MASK] [MASK] though [MASK] of its friends in the [MASK]
+za ##rda ##ri said he sees [MASK] [MASK]
+T = 32
+[CLS] me , to clear the flag .
+[CLS] that kind of neutrality is likely
+to force some post ##pone ##ments of the dispute , which was resolved
+wednesday .
+[CLS] 15 told the telegraph that he always believed the
+board had convinced him it was time to take the train .
+[CLS] from pound
+##land , the city plans to build a series of new retail residential areas
+.
+[CLS] mar ##for , according to le monde , " is the afghan ##s to steal
+or take and foot out " - - money the taliban has often used to buy from
+pakistani taliban , not pakistan ’ s .
+[CLS] though some of its friends
+in the west za ##rda ##ri said he sees k [CLS]
+E. ImageNet Sampling Case
+We conduct a qualitative comparison of XDLM against the baseline models MDLM, GIDD, and UDLM on ImageNet-1K.
+The results are analyzed across two settings: unguided generation (Fig. 5) and generation with slight classifier-free guidance
+(Fig. 6). The visual evidence underscores XDLM’s unique ability to combine the strengths of absorbing and uniform noise
+strategies while mitigating their individual weaknesses.
+The unguided setting serves as a stress test for structural priors. Here, the limitations of MDLM and GIDD are most apparent.
+These models struggle to form coherent geometries, resulting in chaotic texture blobs (e.g., the flamingo and ladybug
+columns) rather than distinct objects. Conversely, UDLM, which relies solely on uniform noise, successfully captures global
+shapes but fails to generate high-frequency details, resulting in blurry, out-of-focus images.
+XDLM distinguishes itself by balancing these two extremes. By integrating the structural rigidity of MDLM with the
+refinement flexibility of UDLM, XDLM achieves structural coherence without sacrificing sharpness. For instance, in the
+rocket launch example, XDLM is the only model that renders a clear vertical fuselage and distinct smoke plumes without
+guidance.
+As illustrated in Fig. 6, introducing a guidance scale of 2.0 improves general sample quality, yet the characteristic behaviors
+of the models persist. MDLM continues to suffer from lack of detail refinement, often producing over-saturated textures,
+with poor semantic structure. UDLM remains overly smooth; while the images are clean, they lack the crispness required
+for photorealism.
+XDLM leverages the guidance most effectively to enhance detail. This is evident in the flock of flamingos. XDLM renders
+distinct, individual birds with sharp feathers, whereas MDLM merges them into a mass and UDLM blurs the boundaries.
+Similarly, in the food categories (strawberries and pizza), XDLM generates realistic surface textures and lighting reflections
+that are absent in the UDLM samples and distorted in the MDLM samples. This confirms that XDLM’s hybrid noise
+20

@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.3.0",
+  "deliverable_type": "paper-deep-review",
+  "invocation_mode": "delegated",
+  "paper": {
+    "paper_key": "arxiv:2602.01362v1",
+    "title": "Balancing Understanding and Generation in Discrete Diffusion Models",
+    "venue_and_year": "ICML 2026 candidate list; acceptance unverified",
+    "paper_url": "https://arxiv.org/abs/2602.01362v1"
+  },
+  "completion_status": "complete",
+  "delegated_provenance": {
+    "dispatch_id": "icml2026-xdlm-002",
+    "agent_task_name": "review_xdlm",
+    "task_packet_sha256": "384e3460ef83446ce9da2c3aa0bb431e397050f4e103b9cd9851eeb6ab4759db",
+    "skill_tree_sha256": "93e435dbedfea453d129ba1f62cbc35f718472624053003f80461892f872be6e",
+    "agent_contract_sha256": "33da33ba0fc320e994da7067084d7d0384e83bc3a5bb5c58d9633f5be54d0e21"
+  },
+  "revision_info": {
+    "document_path": "analysis.md",
+    "section_heading": "修订信息",
+    "current_version": "1.0.0",
+    "current_revision_id": "rev-initial-xdlm",
+    "history": [
+      {
+        "revision_id": "rev-initial-xdlm",
+        "version": "1.0.0",
+        "revised_at": "2026-07-16T18:44:15+08:00",
+        "revised_by": "review_xdlm",
+        "revision_type": "initial",
+        "supersedes": null,
+        "migration_resolution": null,
+        "summary": "Initial deep review of arXiv:2602.01362v1 with PDF visuals and pinned code evidence.",
+        "reason": "Parent dispatch icml2026-xdlm-002 requested a first audited delivery.",
+        "affected_locations": ["analysis.md", "figure_inventory.md", "review_checklist.md", "agent_handoff.md"],
+        "evidence": ["paper.pdf", "code/XDLM", "figures/crops", "openreview_reviews.md"],
+        "impact_on_conclusions": "material"
+      }
+    ]
+  },
+  "schema_validation": {
+    "status": "passed",
+    "validator": "python jsonschema Draft202012Validator; final frozen-artifact pass",
+    "errors": []
+  },
+  "semantic_validation": {
+    "status": "passed",
+    "validator": "paper-deep-review semantic checks; final frozen-artifact pass",
+    "checks": {
+      "artifact_paths_and_hashes": true,
+      "revision_section_matches_manifest": true,
+      "revision_history_consistency": true,
+      "current_revision_is_latest": true,
+      "unresolved_migrations_resolved": true,
+      "terminology_symbol_section_consistency": true,
+      "key_term_symbol_coverage": true,
+      "design_rationale_evidence_consistency": true,
+      "design_rationale_core_design_coverage": true,
+      "visual_count_sum": true,
+      "missing_visual_types": true,
+      "provenance_hash_equality": true,
+      "checklist_manifest_consistency": true
+    },
+    "errors": []
+  },
+  "artifacts": {
+    "paper_pdf": {"status": "present", "path": "paper.pdf", "sha256": "2f2c23227f5d2202831a4a20dcb5364a708c044d591a463ad2d92c52fc1e0924", "reason": null},
+    "analysis": {"status": "present", "path": "analysis.md", "sha256": "4972b5c7f00094bfa1d5cd9e66fc953f4f08f72ff1fe30cbdbed0ddeb1196cdb", "reason": null},
+    "review_checklist": {"status": "present", "path": "review_checklist.md", "sha256": "ada6b687042286ea79ad66641c780d54839c53cdb04f9c3632d7734a1947405c", "reason": null},
+    "figure_inventory": {"status": "present", "path": "figure_inventory.md", "sha256": "76daed0402bc25d03b9c47603341e4d40bb3a43eecf283f73d2fd8fa999b34af", "reason": null},
+    "contact_sheet": {"status": "present", "path": "figures/contact-sheet.png", "sha256": "fad96b024f32a21605578ecb00b7326f675e7b431eee907a96158410856ac007", "reason": null},
+    "source_archive": {"status": "blocked", "path": null, "sha256": null, "reason": "Repeated arXiv source download ended with gzip/tar Unexpected EOF; corrupt partial source.tar is retained but not counted as evidence."},
+    "code_snapshot": {"status": "present", "path": "code/XDLM", "sha256": "2bb70eb7bcb921802237ec1966b4c3293184224864d8984067017a14398a5490", "reason": null},
+    "openreview_reviews": {"status": "present", "path": "openreview_reviews.md", "sha256": "dd89ac84b3b37653afa12130518527d794e48cdf26fa4489426e66b89c726348", "reason": null},
+    "generated_diagram": {"status": "skipped-with-reason", "path": null, "sha256": null, "reason": "Installed OpenRouter ICU CLI exposes only generate/edit and lacks mandatory responses-doc --input-file analysis.md."},
+    "task_packet": {"status": "present", "path": "task_packet.yaml", "sha256": "384e3460ef83446ce9da2c3aa0bb431e397050f4e103b9cd9851eeb6ab4759db", "reason": null},
+    "agent_handoff": {"status": "present", "path": "agent_handoff.md", "sha256": "3b0519ea92a678ed22227f11301273925efd4f4e2f574a610bfbe37a2f9bab8e", "reason": null},
+    "artifact_manifest_path": "artifact_manifest.sha256"
+  },
+  "visual_evidence": {
+    "mechanism_count": 1,
+    "result_or_system_count": 2,
+    "counted_total": 3,
+    "missing_types": [],
+    "inventory_fields_complete": true,
+    "contact_sheet_qa": "passed",
+    "individual_crop_qa": "passed"
+  },
+  "terminology_and_symbols": {
+    "document_path": "analysis.md",
+    "section_heading": "术语与符号（集中定义）",
+    "terms": [
+      {"term": "DDM/D3PM", "definition": "Discrete-state diffusion model with forward corruption and reverse denoising Markov processes.", "aliases": ["discrete diffusion"], "sources": ["analysis.md §术语与符号", "paper §2"], "ambiguity_notes": "Includes language and image tokens; not continuous diffusion."},
+      {"term": "MDLM", "definition": "Masked diffusion with absorbing mask noise; k=0 XDLM endpoint.", "aliases": ["masked diffusion"], "sources": ["analysis.md §术语与符号", "paper §3.3", "code/XDLM/algo.py"], "ambiguity_notes": "Mask noise is distinct from causal-attention masking."},
+      {"term": "UDLM", "definition": "Uniform-noise diffusion; k=1 XDLM endpoint.", "aliases": ["uniform diffusion"], "sources": ["analysis.md §术语与符号", "paper §3.3", "code/XDLM/algo.py"], "ambiguity_notes": "Uniform transition does not imply uniform model logits."},
+      {"term": "XDLM", "definition": "miXed Diffusion Language Modeling with stationary uniform-plus-mask noise kernel.", "aliases": ["mixed diffusion"], "sources": ["analysis.md §术语与符号", "paper §3"], "ambiguity_notes": "The mixture is in the noise kernel, not an ensemble."},
+      {"term": "stationary noise kernel", "definition": "Time-invariant kernel structure whose schedule weights vary with time.", "aliases": ["stationary K"], "sources": ["analysis.md §术语与符号", "paper Eq. (5)-(7)"], "ambiguity_notes": "Stationary refers to kernel structure, not constant marginals."},
+      {"term": "scalar formulation", "definition": "Token-level posterior and KL algebra using r(e) and f_t(x,e) without explicit NxN transition matrices.", "aliases": ["scalar posterior"], "sources": ["analysis.md §术语与符号", "paper §3.2", "code/XDLM/xdm_utils.py"], "ambiguity_notes": "Does not eliminate vocabulary-wide model logits."},
+      {"term": "generation PPL", "definition": "Perplexity-based generated-sample quality metric under a fixed sampling budget.", "aliases": ["Gen PPL"], "sources": ["analysis.md §术语与符号", "paper Fig. 1/2/4"], "ambiguity_notes": "Budget-dependent and not directly comparable across step counts."},
+      {"term": "LLaDA-XDLM", "definition": "LLaDA-8B adapted to XDLM by 600 continual-pretraining steps.", "aliases": [], "sources": ["analysis.md §术语与符号", "paper §4.2 and Appendix J"], "ambiguity_notes": "Not an from-scratch 8B XDLM and checkpoint metadata was not independently verified."}
+    ],
+    "symbol_applicability": "applicable",
+    "symbols": [
+      {"symbol": "x_0 / x", "meaning": "Clean token one-hot sample or distribution.", "provenance": "author-defined", "scope_or_indexing": "single token or batch-token", "units_or_values": "N-dimensional probability/index", "sources": ["analysis.md symbol table", "paper Eq. (1)-(2)"], "ambiguity_notes": "Code labels are indices while probs are distributions."},
+      {"symbol": "z_t,z_s", "meaning": "Noisy discrete states at t>s.", "provenance": "author-defined", "scope_or_indexing": "forward/reverse stages", "units_or_values": "t,s in [0,1]", "sources": ["analysis.md symbol table", "paper Eq. (1)-(2)"], "ambiguity_notes": "Code inputs correspond to z_t."},
+      {"symbol": "Q_{t|s}", "meaning": "Row-stochastic transition matrix.", "provenance": "author-defined", "scope_or_indexing": "forward process", "units_or_values": "N by N", "sources": ["analysis.md symbol table", "paper Eq. (1),(5)"], "ambiguity_notes": "Not explicitly materialized in XDLM code."},
+      {"symbol": "K", "meaning": "Stationary noise kernel.", "provenance": "author-defined", "scope_or_indexing": "forward process", "units_or_values": "N by N", "sources": ["analysis.md symbol table", "paper Eq. (6)-(7)"], "ambiguity_notes": "Not a GPU execution kernel."},
+      {"symbol": "I,J,M", "meaning": "Identity, all-ones, and mask absorbing matrices.", "provenance": "author-defined", "scope_or_indexing": "kernel algebra", "units_or_values": "N by N", "sources": ["analysis.md symbol table", "paper Eq. (6)-(7)"], "ambiguity_notes": "M is the single-mask special case."},
+      {"symbol": "k,mu", "meaning": "Uniform and absorbing mixture weights summing to one.", "provenance": "code-defined", "scope_or_indexing": "noise kernel", "units_or_values": "[0,1], default k=0.1", "sources": ["analysis.md symbol table", "paper Eq. (7),(9)", "code/XDLM/configs/algo/xdlm.yaml"], "ambiguity_notes": "Code names k as k1."},
+      {"symbol": "N,V", "meaning": "Vocabulary size and vocabulary set.", "provenance": "author-defined", "scope_or_indexing": "token dimension", "units_or_values": "N=|V|", "sources": ["analysis.md symbol table", "paper §2"], "ambiguity_notes": "Image vocabulary is a discrete codebook."},
+      {"symbol": "alpha_t,beta_t", "meaning": "Signal and noise rates with beta=1-alpha.", "provenance": "author-defined", "scope_or_indexing": "schedule", "units_or_values": "[0,1]", "sources": ["analysis.md symbol table", "paper Eq. (5),(10)"], "ambiguity_notes": "Code obtains these from noise(t)."},
+      {"symbol": "r(e)", "meaning": "Stationary noise rate for token e.", "provenance": "author-defined", "scope_or_indexing": "scalar posterior", "units_or_values": "probability", "sources": ["analysis.md symbol table", "paper Eq. (9)"], "ambiguity_notes": "Mask point mass requires a special branch."},
+      {"symbol": "f_t(x,e)", "meaning": "Scalar forward marginal mass at token e.", "provenance": "author-defined", "scope_or_indexing": "scalar posterior", "units_or_values": "probability", "sources": ["analysis.md symbol table", "paper Eq. (10)"], "ambiguity_notes": "Expanded as vfprob variables in code."},
+      {"symbol": "p_theta", "meaning": "Model-predicted clean distribution and induced reverse transition.", "provenance": "author-defined", "scope_or_indexing": "reverse process", "units_or_values": "probability", "sources": ["analysis.md symbol table", "paper Eq. (2),(11)"], "ambiguity_notes": "Output post-processing differs by MDLM/UDLM/XDLM."},
+      {"symbol": "T", "meaning": "Discrete sampling/training step budget.", "provenance": "author-defined", "scope_or_indexing": "evaluation", "units_or_values": "32,128,16 and other integer budgets", "sources": ["analysis.md symbol table", "paper Fig. 1/4"], "ambiguity_notes": "Distinct from optimizer training steps."}
+    ],
+    "coverage": {"key_terms": "passed", "key_symbols": "passed", "ambiguities": "passed"}
+  },
+  "design_rationales": [
+    {"design": "Stationary noise kernel", "rationale_status": "author-stated", "rationale_sources": ["paper §3.1 Eq. (5)-(7)", "analysis.md design-rationale matrix"], "concrete_problem": "Time-varying mixed kernels couple noise structure to schedule and require expensive recomputation.", "causal_mechanism": "Fix kernel structure and move temporal dependence to scalar alpha/beta schedules.", "analysis_basis": ["paper derivation", "Figure 1", "code scalar path"], "alternatives_tradeoffs": "Time-inhomogeneous kernels may be more expressive but cost more.", "validation_evidence": {"type": "theory", "sources": ["paper Lemma 3.1", "Appendix A"], "judgment": "partially-supported"}},
+    {"design": "Uniform plus mask mixture", "rationale_status": "author-stated", "rationale_sources": ["paper §3.1/§3.3", "Figure 1"], "concrete_problem": "MDLM and UDLM each fail to balance understanding and few-step generation.", "causal_mechanism": "k controls token refinement versus mask-based semantic construction.", "analysis_basis": ["k sweep", "endpoint proof"], "alternatives_tradeoffs": "Task-dependent k and non-uniform targets may outperform fixed k=0.1.", "validation_evidence": {"type": "sensitivity", "sources": ["Figure 1", "Tables 10/11/18/19"], "judgment": "supported"}},
+    {"design": "Scalar posterior and KL", "rationale_status": "author-stated", "rationale_sources": ["paper §3.2 Eq. (8)-(15)"], "concrete_problem": "Explicit NxN transitions are prohibitive for large vocabularies.", "causal_mechanism": "Use r(e), f_t(x,e), gather/scatter and scalar ratios instead of materializing transition matrices.", "analysis_basis": ["Appendix B", "code/XDLM/xdm_utils.py", "Table 17"], "alternatives_tradeoffs": "Direct matrices are more general; scalar algebra is implementation-complex and still reads vocabulary logits.", "validation_evidence": {"type": "replacement-baseline", "sources": ["Appendix K Table 17"], "judgment": "partially-supported"}},
+    {"design": "Continuous-time limiting loss", "rationale_status": "author-stated", "rationale_sources": ["paper Lemma 3.5 Eq. (14)-(15)"], "concrete_problem": "Small s-to-t gaps make the first log-ratio numerically unstable.", "causal_mechanism": "Replace it by its asymptotic limit.", "analysis_basis": ["theory", "code limit_case=True"], "alternatives_tradeoffs": "Exact finite-step KL may avoid approximation bias but be less stable.", "validation_evidence": {"type": "theory", "sources": ["paper Lemma 3.5", "code/XDLM/xdm_utils.py"], "judgment": "plausible"}},
+    {"design": "bf16 training and float64-enabled sampling", "rationale_status": "inferred", "rationale_sources": ["code/XDLM/configs/config.yaml"], "concrete_problem": "Balance training throughput with posterior numerical precision.", "causal_mechanism": "bf16 reduces training memory while float64 can stabilize sampling arithmetic.", "analysis_basis": ["config values", "dtype code paths"], "alternatives_tradeoffs": "Float64 raises bandwidth and compute cost; no matched ablation exists.", "validation_evidence": {"type": "code", "sources": ["code/XDLM/configs/config.yaml", "code/XDLM/algo.py"], "judgment": "unverified"}},
+    {"design": "LLaDA-8B continual pretraining", "rationale_status": "author-stated", "rationale_sources": ["paper §4.2 and Appendix J"], "concrete_problem": "Show scalability and adapt a strong masked diffusion LLM to XDLM.", "causal_mechanism": "Continue pretraining the existing 8B model for 600 steps under XDLM.", "analysis_basis": ["Figure 3", "Table 16"], "alternatives_tradeoffs": "The extra training budget confounds mechanism attribution.", "validation_evidence": {"type": "replacement-baseline", "sources": ["Figure 3", "Table 16"], "judgment": "partially-supported"}}
+  ],
+  "evidence_checks": {
+    "claim_matrix": "passed",
+    "design_rationale_analysis": "passed",
+    "symbol_table": "passed",
+    "evidence_loop": "passed",
+    "code_cross_check": "passed",
+    "openreview_cross_check": "skipped-with-reason",
+    "infrastructure_analysis": "passed",
+    "gain_attribution": "passed"
+  },
+  "limitations": [
+    {"requirement": "Complete arXiv source archive", "status": "blocked", "reason": "Repeated source transfer was truncated and tar verification failed.", "effect_on_conclusions": "Original LaTeX/vector assets and source macros were unavailable; PDF, ar5iv, and code were used instead."},
+    {"requirement": "Public OpenReview evidence", "status": "skipped-with-reason", "reason": "No matching public forum/decision/reviews were discoverable and API access returned 403.", "effect_on_conclusions": "Reviewer concerns and acceptance status cannot be assessed."},
+    {"requirement": "Generated analysis diagram", "status": "skipped-with-reason", "reason": "Installed CLI lacks responses-doc document input.", "effect_on_conclusions": "No effect; generated art is optional and paper figures remain available."},
+    {"requirement": "Checkpoint metadata", "status": "skipped-with-reason", "reason": "Hugging Face metadata request did not complete.", "effect_on_conclusions": "8B architecture/config remains paper-reported rather than independently verified."}
+  ]
+}

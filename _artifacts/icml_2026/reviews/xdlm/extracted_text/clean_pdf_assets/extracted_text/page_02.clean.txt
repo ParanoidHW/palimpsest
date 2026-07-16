@@ -1,0 +1,83 @@
+===== PAGE 2 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+UDLM
+MDLM
+GIDD
+XDLM (k=1e-3)
+XDLM (k=0.9)
+XDLM (k=0.5)
+XDLM (k=0.1)
+Figure 1. Left: XDLM combines the noise kernel of UDLM (u) and MDLM (m) to achieve a favorable trade-off between the two
+methods. [NORMAL] denotes normal tokens, while [MASK] represents the mask token. Right: The trade-off between understanding
+capability (zero-shot perplexity; lower is better) and generation capability (generation perplexity in 32 sampling steps; lower is better).
+The proposed XDLM with a mixing ratio of k = 0.1 achieves the optimal balance, labeled as the ‘Sweet Spot’.
+Experimental results demonstrate that XDLM consistently
+achieves superior performance across diverse modalities,
+validating the efficacy of our balanced discrete diffusion ap-
+proach. As illustrated in Fig. 1 (right), XDLM advances the
+Pareto frontier between understanding capability and gener-
+ative quality. Notably, as the interpolation parameters shift
+toward their extremes, XDLM matches the performance of
+UDLM and MDLM respectively, confirming the model’s
+theoretical foundation. Concretely, in zero-shot language
+benchmarks, XDLM surpasses UDLM by 5.4 points in av-
+eraged metrics and trails MDLM by only 0.45. In condi-
+tional image generation, XDLM excels in both efficiency
+and quality: it significantly outperforms MDLM in few-step
+generation (reducing FID from 80.8 to 54.1 at 4 steps) and
+ranks first at 16 steps, surpassing UDLM by 0.4 points. Fur-
+thermore, large-scale continual pretraining on 8B-parameter
+LLMs (Nie et al., 2025) yields an MBPP score of 15.0 in
+only 32 sampling steps, improving upon the vanilla LLaDA
+baseline by over 120% (15.0 vs. 6.8). Finally, analysis of
+training dynamics reveals a distinct performance crossover:
+while masked baselines converge quickly but plateau early,
+XDLM sustains steady improvement throughout training,
+demonstrating superior long-term scaling.
+2. Preliminary
+Discrete Diffusion Models (DDMs) are latent generative
+models defined by two Markov processes: a forward pro-
+cess and a reverse process. Considering a single categorical
+variable x0, represented as a one-hot vector in {0, 1}N,
+where N = |V| denotes the vocabulary size. Let zt rep-
+resent the latent state at time t ∈[0, 1], with z0 := x0.
+The forward process q progressively corrupts the data via
+transition kernels q(zt | zs) for s < t, and the backward
+process pθ(zs | zt) parameterized by θ iteratively denoises
+the latent states to recover the clean data x0.
+Forward Process
+The forward transition probabilities are
+governed by row-stochastic matrix Qt|s ∈RN×N:
+q(zt | zs) = Cat(zt; Q⊤
+t|szs),
+(1)
+where zt and zs are one-hot vectors due to the discreteness
+of the latent states, and Cat(x; p) is a categorical distribu-
+tion. Common structural choices for Qt|s include uniform
+transitions (UDLM (Schiff et al., 2024)) and absorbing-state
+transitions (MDLM (Sahoo et al., 2024)).
+Reverse Process
+Using Bayes’ rule and the Markov prop-
+erty, the posterior probability of zs given zt and x0 can be
+expressed as (Austin et al., 2021):
+q(zs | zt, x0) =
+(Qt|szt) ⊙(Q⊤
+s|0x0)
+z⊤
+t Q⊤
+t|0x0
+.
+(2)
+In literature, this reverse transition is approximated using
+the x0-parameterization (Austin et al., 2021; Sahoo et al.,
+2024; Schiff et al., 2024), where a neural network fθ is
+adopted to predict the distribution of clean data ˜x0 = fθ(zt).
+Thus, the parameterized reverse transition can be written as
+pθ(zs | zt) = q(zs | zt, ˜x0).
+Training Objective
+The variational lower bound (VLB,
+ELBO) is optimized during training, which can be decom-
+posed into three components: prior, diffusion, and recon-
+struction terms. Mathematically, define s = (i −1)/T and
+2

@@ -1,0 +1,149 @@
+===== PAGE 16 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+and kl divergance
+KL = −βt|sαs
+Nαt
+
+
+1
+ft(˜x0, zt) −
+1
+ft(x, zt) −
+X
+e̸=zt
+ft(x, e)
+ft(x, zt) log ft(˜x0, zt)ft(x, e)
+ft(˜x0, e)ft(x, zt)
+
+
+(89)
+Proof. since k = 1, µ = 0, we have
+∀e, r(e) = r = 1
+N
+(90)
+hence
+q(zs = e|zt, ˜x0) = fs(˜x0, e)ft|s(e, zt)
+ft(˜x0, zt)
+(91)
+= (αsp˜x0,e + βs/N)(αt|spe,zt + βt|s/N)
+αtp˜x0,zt + βt/N
+(92)
+= Nαtp˜x0,eδe,zt + αsβt|sp˜x0,e + αt|sβsδe,zt + βsβt|s/N
+Nαtp˜x0,zt + βt
+(93)
+= δe,zt(Nαtp˜x0,e + αt|sβs) + (αs −αt)p˜x0,e + βsβt|s/N
+Nαtp˜x0,zt + βt
+(94)
+given s →t, for kl, we have
+ht(x, zt)
+(95)
+= px,zt −p˜x0,zt
+ft(˜x0, zt)
+−1
+αt
+log ft(x, zt)
+ft(˜x0, zt) + log ft(x, x)
+ft(˜x0, x) + kβt
+Nαt
+X
+e
+log ft(x, e)
+ft(˜x0, e)
+(96)
+= ft(x, zt)
+px,zt −p˜x0,zt
+ft(x, zt)ft(˜x0, zt) −1
+αt
+log ft(x, zt)
+ft(˜x0, zt) + log ft(x, x)
+ft(˜x0, x)
+(97)
++
+βt
+Nαt
+X
+e
+log ft(˜x0, zt)ft(x, e)
+ft(˜x0, e)ft(x, zt) −
+βt
+Nαt
+X
+e
+log ft(˜x0, zt)
+ft(x, zt)
+(98)
+= ft(x, zt)
+αt
+
+1
+ft(˜x0, zt) −
+1
+ft(x, zt)
+
+−log ft(x, zt)
+ft(˜x0, zt) + log ft(x, x)
+ft(˜x0, x)
+(99)
++
+βt
+Nαt
+X
+e
+log ft(˜x0, zt)ft(x, e)
+ft(˜x0, e)ft(x, zt)
+(100)
+= ft(x, zt)
+αt
+
+1
+ft(˜x0, zt) −
+1
+ft(x, zt)
+
+−log ft(x, zt)
+ft(˜x0, zt) + log ft(x, x)
+ft(˜x0, x)
+(101)
++ 1
+αt
+X
+e
+ft(x, e) log ft(˜x0, zt)ft(x, e)
+ft(˜x0, e)ft(x, zt) −log ft(˜x0, zt)ft(x, x)
+ft(˜x0, x)ft(x, zt)
+(102)
+= ft(x, zt)
+αt
+
+1
+ft(˜x0, zt) −
+1
+ft(x, zt)
+
++ 1
+αt
+X
+e
+ft(x, e) log ft(˜x0, zt)ft(x, e)
+ft(˜x0, e)ft(x, zt)
+(103)
+so
+DKL = βt|sαsr(zt)
+ft(x, zt) ht(x, zt)
+(104)
+= −βt|sαs
+Nαt
+
+1
+ft(x, zt) −
+1
+ft(˜x0, zt) −
+X
+e
+ft(x, e)
+ft(x, zt) log ft(˜x0, zt)ft(x, e)
+ft(˜x0, e)ft(x, zt)
+!
+(105)
+16

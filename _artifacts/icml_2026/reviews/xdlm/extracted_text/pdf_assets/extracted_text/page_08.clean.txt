@@ -1,0 +1,106 @@
+===== PAGE 8 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+high sensitivity to initialization noise, this mechanism al-
+lows XDLM to actively reject low-probability tokens de-
+rived from uniform noise, effectively escaping local optima.
+For a detailed analysis, please refer to Appendices D and E.
+5. Related work
+Masked Diffusion Language Modeling. Building on the
+general and flexible discrete diffusion framework intro-
+duced by D3PM (Austin et al., 2021), absorbing-state–based
+corruptions (often using a special [MASK] token) have
+emerged as a popular paradigm for discrete diffusion in
+language, frequently referred to as Masked Diffusion Lan-
+guage Models (MDLMs). MDLM (Sahoo et al., 2024) and
+MD4 (Shi et al., 2024) extend this framework and derive
+a continuous-time variational objective for masked diffu-
+sion as a simple weighted integral of cross-entropy losses,
+yielding a streamlined and general training recipe for dis-
+crete language models. From a continuous-time perspective,
+CTMC (Campbell et al., 2022) formalizes the forward pro-
+cess via continuous-time Markov chains, while SEDD (Lou
+et al., 2023) learns density ratios directly, providing a dis-
+crete analogue of score matching. These advances have
+facilitated scaling masked diffusion LMs to larger model
+sizes and datasets, leading to large diffusion language mod-
+els such as LLaDA (Nie et al., 2025) and Dream (Ye et al.,
+2025), as well as extensions to multimodal settings (You
+et al., 2025; Yang et al., 2025; Yu et al., 2025).
+Uniform-noise Diffusion Language Modeling. The tran-
+sition kernel of uniform-noise diffusion is a mixture of the
+identity and a uniform distribution over the vocabulary. This
+idea was introduced for discrete spaces in Argmax/Multino-
+mial diffusion (Hoogeboom et al., 2021) and generalized by
+D3PM (Austin et al., 2021). Plaid (Gulrajani & Hashimoto,
+2023) takes a notable step toward narrowing the likelihood
+gap between autoregressive models and diffusion-based lan-
+guage models. UDLM (Schiff et al., 2024) shows that, with
+appropriate guidance mechanisms, uniform-noise diffusion
+can yield stronger controllability. Duo (Sahoo et al., 2025)
+highlights a duality between Gaussian diffusion language
+models (e.g., Plaid) and uniform-noise diffusion, and pro-
+poses distilling a uniform-noise model from an auxiliary
+latent Gaussian model.
+Mixed Language Modeling. D3PM (Austin et al., 2021)
+observes that BERT can be viewed as a one-step instance of
+mixed corruption with transition matrix. However, BERT
+is trained with a cross-entropy objective on the masked po-
+sitions only, whereas diffusion-based approaches optimize
+objectives integrated over a noise schedule (or time), leading
+to different training dynamics and inductive biases.
+Recent research has further bridged and generalized these
+paradigms.
+(Fathi et al., 2025) unify autoregressive and
+diffusion models by assigning distinct noise schedules to
+individual token positions. Similarly, ReMDM (Wang et al.,
+2025) relaxes the strict absorbing constraint of the forward
+process, allowing [MASK] tokens to revert to their original
+states, thereby enabling plug-and-play editing capabilities.
+Our most related work is GIDD (von Rütte et al., 2025),
+which also explores interpolating between masked and
+uniform-noise diffusion. However, GIDD generally relies
+on constructing transition matrices that blend these mech-
+anisms dynamically. In contrast, our XDLM framework
+enforces a stationary noise kernel. This design choice ex-
+plicitly decouples the noise characteristics from the tempo-
+ral dynamics, allowing us to derive a highly efficient scalar
+formulation that simplifies both sampling and training.
+6. Conclusion
+In this paper, we presented the XDLM, a unified approach
+that theoretically bridges the gap between Masked and
+Uniform-noise diffusion. By redefining the forward pro-
+cess as a weighted row-stochastic transition, we proved that
+XDLM recovers existing paradigms (MDLM and UDLM) as
+special cases. To ensure practicality, we derived a memory-
+efficient implementation that reduces computational com-
+plexity, enabling training on large vocabularies.
+Empirically, XDLM breaks the Pareto frontier between un-
+derstanding and generation. We identified a mixing ratio of
+k = 0.1 as the optimal “sweet spot”, where the model com-
+bines the robust zero-shot likelihoods of masking models
+with the superior sample diversity and few-step generation
+quality of uniform noise models. These advantages extend
+across domains, achieving state-of-the-art on ImageNet-1K
+and demonstrating significant scalability in the continual
+pretraining of 8B-parameter LLMs, where XDLM doubled
+performance on code generation benchmarks.
+Limitations
+Despite these contributions, several avenues
+for future research remain. First, we have not yet trained
+XDLM from scratch at a large scale; such pre-training would
+likely allow for a more comprehensive exploration of the
+model’s emergent properties. Second, we did not fully inves-
+tigate the “performance crossover” phenomenon, wherein
+UDLM and XDLM appear to outperform MDLM in gen-
+eration tasks involving large sampling steps (approaching
+autoregressive decoding). Third, domain-specific sampling
+strategies for XDLM in language modeling and image gen-
+eration have not yet been optimized. Furthermore, while we
+confirmed that XDLM balances understanding and genera-
+tion, the interaction and balance between textual and visual
+modalities within a single unified model remain uninvesti-
+gated. Finally, the development of post-training schemas
+and inference acceleration techniques for XDLM remains a
+subject for future work.
+8

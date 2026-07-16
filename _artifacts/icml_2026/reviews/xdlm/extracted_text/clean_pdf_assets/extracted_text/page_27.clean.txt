@@ -1,0 +1,157 @@
+===== PAGE 27 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+UDLM behavior as k increases; and second, the fact that the optimal performance often lies within the interpolated regime
+(0 < k < 1) rather than at the extremes (pure MDLM or UDLM).
+Tab. 12 and 13 detail the performance on ImageNet-1K, providing compelling evidence that the optimal k varies depending
+on the generation setting. In the standard conditioning regime (Tab. 12), a balanced mix is preferred: XDLM with k = 0.5
+achieves an FID of 23.417 at 16 steps, significantly outperforming both the low-mixing variant (k = 10−3) and the
+specialized UDLM baseline (26.242). However, when Classifier-Free Guidance (CFG) is applied (Tab. 13), the optimal
+operating point shifts. Here, k = 0.1 emerges as the “sweet spot,” achieving an FID of 8.625, which surpasses both the
+pure UDLM (8.980) and the k = 0.5 variant (8.790). These findings highlight the advantage of XDLM. By exploring the
+interpolation space between masking and uniform noise, we can identify configurations that outperform both individual
+baselines.
+Tab. 14 and 15 further illustrate the behavioral shift controlled by k on CIFAR-10. On this benchmark, where UDLM
+demonstrates a distinct advantage, we observe a clear monotonic improvement in generation quality as k rises. For instance,
+under standard conditioning, increasing k from 10−3 to 0.5 improves the 32-step FID from 164.040 to 56.299, dramatically
+closing the gap with UDLM (41.027). A similar trend holds with CFG, where k = 0.5 approaches the UDLM benchmark.
+Collectively, these results confirm that XDLM successfully bridges the gap between domains. Crucially, it demonstrates
+that there is no single fixed k that is optimal for all scenarios; instead, the flexibility to tune k within the interval (0, 1) is
+essential for maximizing performance across different datasets and guidance regimes.
+Table 12. Comparison of FID (↓) and IS (↑) on ImageNet-1K. For image generation, XDLM proves to be a very strong contender,
+achieving performance highly comparable to the specialized UDLM model. Notably, XDLM outperforms all baselines, including UDLM,
+at 16 generation steps, confirming its robust performance beyond the text domain.
+Model
+FID↓
+IS↑
+step 4
+step 8
+step 16
+step 32
+step 4
+step 8
+step 16
+step 32
+MDLM
+80.752
+47.732
+28.785
+18.928
+16.287
+29.178
+44.656
+57.803
+GIDD
+86.842
+54.933
+35.403
+24.588
+14.559
+24.297
+35.698
+46.376
+XDLM(k=1e-3)
+81.992
+52.590
+35.046
+25.637
+15.597
+24.813
+35.097
+44.032
+XDLM(k=0.1)
+54.085
+34.109
+25.774
+22.187
+24.829
+36.964
+43.903
+48.118
+XDLM(k=0.5)
+45.808
+29.362
+23.417
+21.486
+29.310
+40.482
+46.620
+48.911
+UDLM
+49.861
+30.144
+26.242
+25.661
+27.049
+38.832
+41.801
+41.850
+Table 13. Performance on ImageNet-1K with CFG (scale = 2.0). The application of guidance shifts the optimal operating point. Here,
+k = 0.1 emerges as the “sweet spot,” achieving an FID of 8.625 at 16 steps. This configuration surpasses both the pure UDLM baseline
+(8.980) and the higher-mixing variant (k = 0.5), demonstrating the importance of tuning k for specific guidance regimes.
+Model
+FID↓
+IS↑
+step 4
+step 8
+step 16
+step 32
+step 4
+step 8
+step 16
+step 32
+MDLM
+33.468
+11.144
+6.725
+7.485
+54.740
+119.150
+172.664
+203.722
+GIDD
+41.000
+15.151
+7.076
+6.314
+44.084
+95.789
+148.148
+181.017
+XDLM(k=1e-3)
+32.876
+12.872
+7.612
+7.588
+53.351
+102.601
+144.019
+167.660
+XDLM(k=0.1)
+13.550
+8.956
+8.625
+8.914
+107.403
+148.723
+165.916
+171.046
+XDLM(k=0.5)
+11.945
+9.038
+8.790
+8.939
+114.135
+145.718
+156.339
+159.829
+UDLM
+14.055
+9.718
+8.980
+8.650
+97.859
+123.582
+132.099
+132.108
+27

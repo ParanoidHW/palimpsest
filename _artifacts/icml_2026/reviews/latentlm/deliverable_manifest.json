@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.3.0",
+  "deliverable_type": "paper-deep-review",
+  "invocation_mode": "delegated",
+  "paper": {
+    "paper_key": "arxiv:2412.08635v1",
+    "title": "Multimodal Latent Language Modeling with Next-Token Diffusion",
+    "venue_and_year": "ICML 2026 candidate list; acceptance unverified; arXiv v1 (2024)",
+    "paper_url": "https://arxiv.org/abs/2412.08635v1"
+  },
+  "completion_status": "complete",
+  "revision_info": {
+    "document_path": "analysis.md",
+    "section_heading": "修订信息",
+    "current_version": "1.0.0",
+    "current_revision_id": "rev-latentlm-20260716-initial",
+    "history": [{
+      "revision_id": "rev-latentlm-20260716-initial",
+      "version": "1.0.0",
+      "revised_at": "2026-07-16T18:50:00+08:00",
+      "revised_by": "review_latentlm",
+      "revision_type": "initial",
+      "supersedes": null,
+      "migration_resolution": null,
+      "summary": "首次建立论文级证据分析、视觉 QA、代码/OpenReview/infra 边界",
+      "reason": "父任务 icml2026-latentlm-004",
+      "affected_locations": ["analysis.md", "figure_inventory.md", "figures/crops"],
+      "evidence": ["arXiv:2412.08635v1 PDF and LaTeX", "UniLM commit 833df7e7832e5064a281131ee64a481afa8e5b95", "Figure 2 and Figure 7 QA"],
+      "impact_on_conclusions": "material"
+    }]
+  },
+  "schema_validation": {"status": "passed", "validator": "python jsonschema Draft202012Validator", "errors": []},
+  "semantic_validation": {
+    "status": "passed",
+    "validator": "manual semantic validator per schema 1.3.0 and parent contract",
+    "checks": {
+      "artifact_paths_and_hashes": true,
+      "revision_section_matches_manifest": true,
+      "revision_history_consistency": true,
+      "current_revision_is_latest": true,
+      "unresolved_migrations_resolved": true,
+      "terminology_symbol_section_consistency": true,
+      "key_term_symbol_coverage": true,
+      "design_rationale_evidence_consistency": true,
+      "design_rationale_core_design_coverage": true,
+      "visual_count_sum": true,
+      "missing_visual_types": true,
+      "provenance_hash_equality": true,
+      "checklist_manifest_consistency": true
+    },
+    "errors": []
+  },
+  "artifacts": {
+    "paper_pdf": {"status": "present", "path": "paper.pdf", "sha256": "15f74eb68e4c8785d82139e160e84bb3b083b14a0256a7a9bb4735a374516ec0", "reason": null},
+    "analysis": {"status": "present", "path": "analysis.md", "sha256": "962544c8f305c9d4c34af659eca2c06aba5eb0c8c6e327b2ea8e9c30e65442ec", "reason": null},
+    "review_checklist": {"status": "present", "path": "review_checklist.md", "sha256": "60f6553f50d39598c285a2e145720544bea1e9091369b73b940c6004e1fd8f50", "reason": null},
+    "figure_inventory": {"status": "present", "path": "figure_inventory.md", "sha256": "6ddec50e02c6f36ad65b9ab7f969a7409315f05fa25e7d54db934dab90da513f", "reason": null},
+    "contact_sheet": {"status": "present", "path": "figures/contact-sheet.png", "sha256": "a7593c77f959143ad8384ebb5153d3041eb3ab0bc71ea65ffbaf8aba2591f86c", "reason": null},
+    "source_archive": {"status": "present", "path": "source/latex", "sha256": "644d28caa412eeaa0ef1624b900bc8aeba5c0f299f3d79e1cda6d262d1d04ffb", "reason": null},
+    "code_snapshot": {"status": "present", "path": "code/unilm/LatentLM", "sha256": "854dc8841b40357da5570f70f57062030f4f73a0d84d663301b0a3f5fd84a6c2", "reason": null},
+    "openreview_reviews": {"status": "present", "path": "openreview_reviews.md", "sha256": "610ab37be0927f4a7429bbbe33615f2d6c43856f8c9b4621382ed911fe96c56c", "reason": null},
+    "generated_diagram": {"status": "skipped-with-reason", "path": null, "sha256": null, "reason": "Installed OpenRouter ICU CLI lacks the contract-required responses-doc --input-file analysis.md path; prompt-only generation is prohibited."},
+    "task_packet": {"status": "present", "path": "task_packet.yaml", "sha256": "7becb24bd3e53660835329782e1e8e393a9c571b1d76c1c14ef314d20f192ac3", "reason": null},
+    "agent_handoff": {"status": "present", "path": "agent_handoff.md", "sha256": "c396d5849cda0390c8b4f9fbf8d75f6b7339a8ec0412d8d4932e49171191a358", "reason": null},
+    "artifact_manifest_path": "artifact_manifest.sha256"
+  },
+  "visual_evidence": {
+    "mechanism_count": 1,
+    "result_or_system_count": 1,
+    "counted_total": 2,
+    "missing_types": [],
+    "inventory_fields_complete": true,
+    "contact_sheet_qa": "passed",
+    "individual_crop_qa": "passed"
+  },
+  "terminology_and_symbols": {
+    "document_path": "analysis.md",
+    "section_heading": "0.1 术语与符号解释",
+    "terms": [
+      {"term": "LatentLM", "definition": "共享 causal Transformer、离散 softmax head 与连续 token diffusion head 的统一框架", "aliases": ["latent language modeling"], "sources": ["analysis.md#01-术语与符号解释", "paper Sec. 2 and Figure 2"], "ambiguity_notes": "不同于整图双向 diffusion 的 Transfusion"},
+      {"term": "next-token diffusion", "definition": "条件于当前 Transformer 状态、对单个连续 latent token 做多步采样", "aliases": ["token-level diffusion"], "sources": ["analysis.md#01-术语与符号解释", "paper Sec. 2.1"], "ambiguity_notes": "diffusion timestep 与 autoregressive position 是两个阶段索引"},
+      {"term": "σ-VAE", "definition": "使用样本级跨通道共享随机乘子构造 latent 扰动的 VAE", "aliases": ["fixed-variance VAE"], "sources": ["analysis.md#01-术语与符号解释", "paper Eq. 5", "code/unilm/LatentLM/tokenizer_models/modeling_sigma_vae.py:38-55"], "ambiguity_notes": "代码中的有符号 Gaussian multiplier 不是传统非负标准差参数"},
+      {"term": "frame rate", "definition": "每秒自回归生成的 speech latent 数", "aliases": ["Length/s"], "sources": ["analysis.md#01-术语与符号解释", "paper Table 4"], "ambiguity_notes": "不同于每个 latent 内 diffusion sampling steps"},
+      {"term": "throughput", "definition": "Figure 7 报告的推理吞吐趋势", "aliases": ["inference throughput"], "sources": ["analysis.md#01-术语与符号解释", "paper Figure 7"], "ambiguity_notes": "论文未给轴单位，不能确定解释为 images/s 或 tokens/s"}
+    ],
+    "symbol_applicability": "applicable",
+    "symbols": [
+      {"symbol": "x_i", "meaning": "第 i 个离散 token 或连续 latent vector", "provenance": "author-defined", "scope_or_indexing": "per sequence position", "units_or_values": "token id or d-dimensional vector", "sources": ["analysis.md#012-符号表", "paper Eq. 1"], "ambiguity_notes": "continuous case is also x_i^0 in diffusion equations"},
+      {"symbol": "h_i", "meaning": "位置 i 的 causal Transformer 输出状态", "provenance": "author-defined", "scope_or_indexing": "per sequence position", "units_or_values": "d-dimensional vector", "sources": ["analysis.md#012-符号表", "paper Eq. 1"], "ambiguity_notes": "condition state, not the denoised latent"},
+      {"symbol": "x_i^t", "meaning": "diffusion step t 的 noisy continuous token", "provenance": "author-defined", "scope_or_indexing": "per position and diffusion step", "units_or_values": "latent vector", "sources": ["analysis.md#012-符号表", "paper Eq. 2-3"], "ambiguity_notes": "t differs from autoregressive position i"},
+      {"symbol": "sigma", "meaning": "σ-VAE 样本级共享随机乘子", "provenance": "code-defined", "scope_or_indexing": "per example shared across channels", "units_or_values": "image code configured std defaults to 0.75", "sources": ["analysis.md#012-符号表", "code/unilm/LatentLM/tokenizer_models/modeling_sigma_vae.py:38-55"], "ambiguity_notes": "signed Gaussian product, not conventional nonnegative standard deviation"},
+      {"symbol": "U=B/(T P)", "meaning": "本文用于讨论有效带宽利用率的推导", "provenance": "analysis-derived", "scope_or_indexing": "per kernel or request", "units_or_values": "ratio", "sources": ["analysis.md#74-带宽互联与利用率"], "ambiguity_notes": "paper lacks bytes/runtime/peak values, so no numeric estimate"}
+    ],
+    "coverage": {"key_terms": "passed", "key_symbols": "passed", "ambiguities": "passed"}
+  },
+  "design_rationales": [
+    {"design": "shared causal backbone with softmax/diffusion heads", "rationale_status": "author-stated", "rationale_sources": ["paper Intro, Sec. 2, Figure 2"], "concrete_problem": "discrete and continuous modalities otherwise require incompatible objectives and attention", "causal_mechanism": "reuse causal context computation and route only the output distribution by token type", "analysis_basis": ["analysis.md#32-设计动机与具体问题映射"], "alternatives_tradeoffs": "VQ loses information; image-level diffusion changes attention and repeatedly executes the backbone", "validation_evidence": {"type": "replacement-baseline", "sources": ["paper Table 3"], "judgment": "partially-supported"}},
+    {"design": "next-token diffusion", "rationale_status": "author-stated", "rationale_sources": ["paper Sec. 2.1-2.2"], "concrete_problem": "continuous vectors cannot be represented by a finite softmax vocabulary without quantization", "causal_mechanism": "a lightweight conditional denoiser models each continuous token distribution", "analysis_basis": ["analysis.md#32-设计动机与具体问题映射", "code/unilm/LatentLM/models/Transformer.py:231-300"], "alternatives_tradeoffs": "direct regression is cheaper but may under-model multimodality; diffusion adds sampling steps", "validation_evidence": {"type": "replacement-baseline", "sources": ["paper Figure 7 and Table 3"], "judgment": "partially-supported"}},
+    {"design": "four diffusion timesteps per backbone forward", "rationale_status": "author-stated", "rationale_sources": ["paper Sec. 2.2", "code/unilm/LatentLM/train_hf.py:297-304"], "concrete_problem": "recomputing the large backbone for each sampled noise step is expensive", "causal_mechanism": "repeat latent/noise batches while reusing the causal condition", "analysis_basis": ["analysis.md#32-设计动机与具体问题映射"], "alternatives_tradeoffs": "more samples reduce gradient variance but increase head compute and memory", "validation_evidence": {"type": "code", "sources": ["code/unilm/LatentLM/train_hf.py:91,297-304"], "judgment": "plausible"}},
+    {"design": "sigma-VAE shared variance", "rationale_status": "author-stated", "rationale_sources": ["paper Sec. 2.3, Eq. 5-6, Figure 6"], "concrete_problem": "vanilla VAE channel variance collapse makes autoregressive exposure errors harmful", "causal_mechanism": "controlled latent perturbation trains the decoder/model to tolerate autoregressive deviations", "analysis_basis": ["analysis.md#32-设计动机与具体问题映射", "code/unilm/LatentLM/tokenizer_models/modeling_sigma_vae.py:38-55"], "alternatives_tradeoffs": "larger variance can hurt reconstruction; deterministic AE lacks robustness noise", "validation_evidence": {"type": "sensitivity", "sources": ["paper Figure 6"], "judgment": "supported"}},
+    {"design": "BOD/EOD head switching", "rationale_status": "author-stated", "rationale_sources": ["paper Sec. 2.2"], "concrete_problem": "mixed sequences need explicit modality/head boundaries", "causal_mechanism": "special tokens select when continuous generation begins and ends", "analysis_basis": ["analysis.md#32-设计动机与具体问题映射"], "alternatives_tradeoffs": "external modality routing avoids tokens but reduces sequence-native interface", "validation_evidence": {"type": "none", "sources": [], "judgment": "unverified"}},
+    {"design": "DPM-Solver inference", "rationale_status": "author-stated", "rationale_sources": ["paper Sec. 2.1"], "concrete_problem": "DDPM token-head inference needs many denoising steps", "causal_mechanism": "a higher-order solver reduces head sampling iterations", "analysis_basis": ["analysis.md#32-设计动机与具体问题映射", "code/unilm/LatentLM/inference_speed.py:132-137"], "alternatives_tradeoffs": "fewer steps can reduce sample quality; other solvers are possible", "validation_evidence": {"type": "sensitivity", "sources": ["paper Figure 10b"], "judgment": "partially-supported"}}
+  ],
+  "evidence_checks": {
+    "claim_matrix": "passed",
+    "design_rationale_analysis": "passed",
+    "symbol_table": "passed",
+    "evidence_loop": "passed",
+    "code_cross_check": "passed",
+    "openreview_cross_check": "skipped-with-reason",
+    "infrastructure_analysis": "passed",
+    "gain_attribution": "passed"
+  },
+  "delegated_provenance": {
+    "dispatch_id": "icml2026-latentlm-004",
+    "agent_task_name": "review_latentlm",
+    "task_packet_sha256": "7becb24bd3e53660835329782e1e8e393a9c571b1d76c1c14ef314d20f192ac3",
+    "skill_tree_sha256": "93e435dbedfea453d129ba1f62cbc35f718472624053003f80461892f872be6e",
+    "agent_contract_sha256": "33da33ba0fc320e994da7067084d7d0384e83bc3a5bb5c58d9633f5be54d0e21"
+  },
+  "limitations": [
+    {"requirement": "OpenReview cross-check", "status": "skipped-with-reason", "reason": "No public page was found; exact-title API returned HTTP 403 and search backend failed.", "effect_on_conclusions": "Review-stage concerns and ICML acceptance cannot be verified."},
+    {"requirement": "Generated analysis diagram", "status": "skipped-with-reason", "reason": "Required responses-doc document-input capability is absent.", "effect_on_conclusions": "No effect on paper-derived evidence; only the optional explanatory graphic is absent."},
+    {"requirement": "Complete code/config/checkpoints", "status": "skipped-with-reason", "reason": "Official repository exposes ImageNet code but README setup, checkpoints, MLLM and TTS implementations are absent.", "effect_on_conclusions": "Implementation claims are limited to pinned ImageNet files; MLLM/TTS behavior remains paper-only."},
+    {"requirement": "Clean source archive transport", "status": "skipped-with-reason", "reason": "The resumed gzip stream reports trailing garbage, though main.tex terminates normally and all listed assets extracted.", "effect_on_conclusions": "PDF remains primary; LaTeX is used only where successful extraction and PDF agree."}
+  ]
+}

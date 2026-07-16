@@ -1,0 +1,174 @@
+===== PAGE 6 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+Table 2. Zero-shot performance comparison across various benchmarks. XDLM maintains performance parity with MDLM and GIDD,
+significantly outperforming UDLM. Models were reimplemented under a unified setting using 8×H800 GPUs.
+Dataset
+AG News
+LAMBADA
+LM1B-GPT2
+PTB
+ArXiv
+PubMed
+WikiText
+Average
+MDLM
+61.374
+47.967
+65.629
+89.049
+37.457
+41.981
+32.093
+53.650
+GIDD
+60.607
+47.811
+65.898
+86.911
+39.019
+42.634
+30.809
+53.384
+XDLM
+62.768
+45.608
+68.229
+90.796
+37.232
+41.391
+32.748
+54.110
+UDLM
+69.402
+51.272
+75.572
+95.986
+42.671
+47.181
+34.933
+59.574
+Table 3.
+Performance comparison of image generation on
+ImageNet-1K with standard conditioning.
+Model
+FID ↓
+IS ↑
+step 4
+step 8
+step 16
+step 4
+step 8
+step 16
+MDLM 80.752 47.732 28.785
+16.287 29.178 44.656
+GIDD
+86.842 54.933 35.403
+14.559 24.297 35.698
+XDLM
+54.085 34.109 25.774
+24.829 36.964 43.903
+UDLM
+49.861 30.144 26.242
+27.049 38.832 41.801
+Table 4.
+Performance comparison of image generation on
+ImageNet-1K with CFG scale = 2.0.
+Model
+FID ↓
+IS ↑
+step 4
+step 8
+step 16
+step 4
+step 8
+step 16
+MDLM 33.468 11.144
+6.725
+54.740
+119.150 172.664
+GIDD
+41.000 15.151
+7.076
+44.084
+95.789
+148.148
+XDLM
+13.550
+8.956
+8.625
+107.403 148.723 165.916
+UDLM
+14.055
+9.718
+8.980
+97.859
+123.582 132.099
+evaluating with CFG (scale=2.0), as shown in Tab. 4, the
+pure mask-based MDLM achieves the lowest overall FID
+(6.73) at 16 steps, suggesting that masking excels given suffi-
+cient steps. However, by partially inheriting these absorbing
+noise properties, XDLM significantly outperforms UDLM
+in the few-step regime, achieving the best FID scores at
+4 steps (13.55) and 8 steps (8.96).
+Extended analysis is
+provided in Appendix I.
+Continual Pretraining of Large Language Models
+(LLMs). To validate XDLM as a scalable upgrade for state-
+of-the-art LLMs, we adapt LLaDA (Nie et al., 2025), a
+pretrained 8B-MDLM, into the XDLM formulation with a
+compute-efficient pretraining of 600 steps (termed LLaDA-
+XDLM). To rigorously isolate the source of improvement,
+we compare against two controls: LLaDA-MDLM (standard
+continual pretraining for the same duration) and LLaDA-
+XDLM-infer (LLaDA coupled with our sampling strategy).
+Evaluations on OpenCompass (32 steps) show that LLaDA-
+XDLM consistently outperforms the original LLaDA and
+both controls on GSM8k, MATH, and BBH (Fig. 3 (a)).
+The impact is most visible in MBPP code generation, where
+LLaDA-XDLM doubles the performance of LLaDA (15.0
+vs. 6.8) by minimizing non-compilable errors, thereby con-
+firming enhanced structural coherence.
+As for the control models, while LLaDA-MDLM suffers a
+performance drop compared to the original LLaDA, likely
+due to a distribution shift between the tuning and pretraining
+corpora, LLaDA-XDLM achieves significant improvements
+under identical conditions. This confirms that the gains
+stem from the efficacy of the XDLM formulation rather
+than the additional 600 training steps alone. Furthermore,
+LLaDA-XDLM remarkably outperforms LLaDA-XDLM-
+infer, demonstrating that the improvement is intrinsic to the
+learned model rather than an artifact of sampling strategies.
+4.3. Analysis
+Performance Crossover in Training Dynamics. Analysis
+of the training dynamics reveals a ‘performance crossover’
+phenomenon, where the relative efficacy of competing mod-
+els shifts significantly as training progresses. This trend
+is particularly evident in the LM1B text generation task,
+as shown by the Generation PPL curves in Figure 4 (a).
+While GIDD and MDLM demonstrate advantages in the
+initial phase (<200k steps, pink region), they suffer from
+rapid saturation and are eventually outperformed by UDLM
+(yellow region). Leveraging the uniform nature inherited
+from UDLM, XDLM demonstrates substantial late-stage
+improvement, eventually matching or surpassing MDLM
+after 700k steps (green region). This trajectory is in sharp
+contrast to GIDD, which exhibits early saturation and only
+marginal PPL gains throughout the training process.
+A different, yet similar in trends, dynamic emerges in image
+generation on ImageNet-1K, as shown in Fig. 4 (b). Here,
+XDLM demonstrates superior performance from the start,
+consistently achieving the lowest FID scores. While UDLM
+eventually converges with XDLM in the final training phase
+(> 500k steps), both models significantly outperform the
+MDLM and GIDD baselines throughout the process.
+Impact of Mixing Ratio. The mixing ratio k acts as a piv-
+otal control parameter, interpolating between two distinct
+paradigms: UDLM (k →1) and MDLM (k →0), char-
+acterized by their divergent capabilities in generation and
+understanding. As shown in Fig. 1 (right), these boundary
+cases establish a linear Reference Trade-off Line (dashed
+black line), representing a zero-sum scenario where gains
+in generation quality (lower Generation PPL) come at the
+cost of understanding capability (higher Zero-Shot PPL).
+6

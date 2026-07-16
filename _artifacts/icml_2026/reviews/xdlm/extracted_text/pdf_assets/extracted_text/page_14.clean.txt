@@ -1,0 +1,122 @@
+===== PAGE 14 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+differentiate by αt|s), we have
+lim
+s→t
+1
+βt|sαs
+log fs(x, zt)ft(˜x0, zt)
+ft(x, zt)fs(˜x0, zt)
+(55)
+= −1
+αs
+∂
+∂αt|s
+log fs(x, zt)ft(˜x0, zt)
+ft(x, zt)fs(˜x0, zt)
+(56)
+= −1
+αs
+∂log fs(x, zt)ft(˜x0, zt)
+∂αt|s
+−∂log ft(x, zt)fs(˜x0, zt)
+∂αt|s
+
+(57)
+= −1
+αs
+∂log ft(˜x0, zt)
+∂αt|s
+−∂log ft(x, zt)
+∂αt|s
+
+(58)
+= −1
+αs
+
+1
+ft(˜x0, zt)
+∂(αtp˜x0,zt + (1 −αt)r(zt))
+∂αt|s
+−
+1
+ft(x, zt)
+∂ft(x, zt)
+∂αt|s
+
+(59)
+= −1
+αs
+
+1
+ft(˜x0, zt) (αsp˜x0,zt −αsr(zt)) −
+1
+ft(x, zt)
+∂ft(x, zt)
+∂αt|s
+
+(60)
+= −p˜x0,zt −r(zt)
+ft(˜x0, zt)
++ px,zt −r(zt)
+ft(x, zt)
+(61)
+= (αtp˜x0,zt + βtr(zt))(px,zt −r(zt)) −(αtpx,zt + βtr(zt))(p˜x0,zt −r(zt))
+ft(x, zt)ft(˜x0, zt)
+(62)
+= −αtp˜x0,ztr(zt) + βtpx,ztr(zt) + αtpx,ztr(zt) −βtp˜x0,ztr(zt)
+ft(x, zt)ft(˜x0, zt)
+(63)
+= r(zt)(px,zt −p˜x0,zt)
+ft(x, zt)ft(˜x0, zt)
+(64)
+so
+lim
+s→t
+fs(x, zt)
+r(zt)
+αt|s
+βt|sαs
+log fs(x, zt)ft(˜x0, zt)
+ft(x, zt)fs(˜x0, zt)
+
+= px,zt −p˜x0,zt
+ft(˜x0, zt)
+(65)
+C. Relationship to MDLM and UDLM
+Lemma 5. XDLM can be reduced to MDLM by setting k = 0, with the posterior probability:
+pθ(zs = e|zt) = δzt,mδe,m
+βs
+βt
++ δzt,mδe̸=m
+βt|sαspθ,e
+βt
++ δzt̸=mδe,zt
+(66)
+=
+
+
+
+
+
+βs
+βt δm,zt,
+e = m
+(αs−αt)
+1−αt pθ,e,
+zt = m, e ̸= m
+δe,zt,
+zt ̸= m, e ̸= m
+(67)
+and kl divergence
+KL = −βt|sαs
+βt
+log pθ,x
+(68)
+Proof. since k = 0, µ = 1, we have
+r(e) = δe,m
+(69)
+p˜x0,e = δe̸=mp˜x0,e
+(70)
+14

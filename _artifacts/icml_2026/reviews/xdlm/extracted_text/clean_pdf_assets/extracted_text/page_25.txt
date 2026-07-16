@@ -1,0 +1,118 @@
+===== PAGE 25 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+Table 9. Detailed evolution of Zero-Shot PPL throughout training. Evaluated at 100k-step intervals, the data confirms that XDLM
+(k = 0.1) maintains a learning dynamic nearly identical to MDLM, highlighting the method’s stability and efficiency from early training
+to convergence.
+Train Steps
+100k
+200k
+300k
+400k
+500k
+600k
+700k
+800k
+900k
+1M
+MDLM
+64.209
+59.315
+57.411
+56.129
+55.434
+54.943
+54.466
+54.201
+53.839
+53.650
+GIDD
+61.097
+57.900
+56.326
+55.389
+54.848
+54.294
+53.960
+53.807
+53.258
+53.384
+XDLM(k=1e-3)
+63.748
+59.097
+57.319
+56.374
+55.576
+54.937
+54.577
+54.336
+53.977
+53.722
+XDLM(k=0.1)
+64.847
+60.187
+58.253
+57.201
+56.288
+55.797
+55.271
+54.872
+54.500
+54.110
+XDLM(k=0.5)
+68.074
+62.524
+60.489
+59.353
+58.396
+57.881
+57.437
+56.976
+56.530
+56.236
+XDLM(k=0.9)
+70.264
+65.384
+63.147
+61.758
+60.977
+60.263
+59.723
+59.438
+58.915
+58.829
+UDLM
+71.220
+65.789
+63.692
+62.320
+61.258
+60.937
+60.577
+60.192
+59.711
+59.574
+H. Detailed Language Generation Results
+In this section, we present the comprehensive numerical results for the language generation experiments initially discussed in
+Sec. 4.2. To systematically analyze the trade-off between the absorbing (MDLM-like) and uniform (UDLM-like) diffusion
+processes, we evaluate XDLM across varying mixing ratios k ∈{10−3, 0.1, 0.5, 0.9}. For generation, we adopt the ancestral
+sampling setting (Sahoo et al., 2024; Schiff et al., 2024; Sahoo et al., 2025), employing parallel token sampling from the
+estimated posterior via Gumbel noise. The resulting performance is evaluated based on sample quality, quantified by GPT-2
+Large perplexity (PPL ↓), and diversity, measured by Token Entropy (↑).
+Tab. 10 presents the comprehensive evaluation on the OWT dataset. The data quantitatively confirms that k governs the
+model’s performance across different numbers of sampling steps, effectively interpolating between the behaviors of UDLM
+and MDLM. In the few-step regime (e.g., 8 to 32 sampling steps), increasing k significantly improves performance, aligning
+XDLM with the efficiency of UDLM. For instance, with only 8 sampling steps, XDLM (k = 0.9) yields a low perplexity
+of 189.750, which is highly competitive with UDLM (183.991) and vastly superior to the mask-based baselines, MDLM
+(711.382) and GIDD (654.841). Conversely, in the multi-step regime (e.g., 512 to 1024 sampling steps), retaining mask-like
+properties (lower k) remains advantageous for achieving high-fidelity generation. XDLM (k = 0.1) demonstrates an optimal
+balance. It dramatically improves upon MDLM when sampling budget are limited, while retaining the capacity to reach very
+low perplexity scores (52.609 at 1024 steps) when more sampling steps are available, all without sacrificing the diversity
+indicated by entropy.
+These findings are corroborated by the results on the LM1B dataset, detailed in Tab. 11. We observe a consistent trend
+where a higher k dominates when the number of sampling steps is small. At 4 sampling steps, XDLM (k = 0.5) achieves
+a perplexity of 232.702, effectively matching UDLM (232.403) and significantly outperforming MDLM (377.177). As
+the number of sampling steps increases, the performance gaps narrow, yet XDLM remains robust across the spectrum.
+Collectively, these results demonstrate that by tuning k, XDLM bridges the gap between the two paradigms: it captures the
+efficiency of uniform noise at few sampling steps while preserving the high-quality potential of masking at larger steps.
+25

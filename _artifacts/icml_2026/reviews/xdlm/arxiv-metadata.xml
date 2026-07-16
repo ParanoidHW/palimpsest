@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/MT0R4ReUQvcobgP55hSXDirGbek</id>
+  <title>arXiv Query: search_query=&amp;id_list=2602.01362&amp;start=0&amp;max_results=10</title>
+  <updated>2026-07-16T10:20:11Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=&amp;start=0&amp;max_results=10&amp;id_list=2602.01362" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>10</opensearch:itemsPerPage>
+  <opensearch:totalResults>1</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2602.01362v1</id>
+    <title>Balancing Understanding and Generation in Discrete Diffusion Models</title>
+    <updated>2026-02-01T18:00:35Z</updated>
+    <link href="https://arxiv.org/abs/2602.01362v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2602.01362v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>In discrete generative modeling, two dominant paradigms demonstrate divergent capabilities: Masked Diffusion Language Models (MDLM) excel at semantic understanding and zero-shot generalization, whereas Uniform-noise Diffusion Language Models (UDLM) achieve strong few-step generation quality, yet neither attains balanced performance across both dimensions. To address this, we propose XDLM, which bridges the two paradigms via a stationary noise kernel. XDLM offers two key contributions: (1) it provides a principled theoretical unification of MDLM and UDLM, recovering each paradigm as a special case; and (2) an alleviated memory bottleneck enabled by an algebraic simplification of the posterior probabilities. Experiments demonstrate that XDLM advances the Pareto frontier between understanding capability and generation quality. Quantitatively, XDLM surpasses UDLM by 5.4 points on zero-shot text benchmarks and outperforms MDLM in few-step image generation (FID 54.1 vs. 80.8). When scaled to tune an 8B-parameter large language model, XDLM achieves 15.0 MBPP in just 32 steps, effectively doubling the baseline performance. Finally, analysis of training dynamics reveals XDLM's superior potential for long-term scaling. Code is available at https://github.com/MzeroMiko/XDLM</summary>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-02-01T18:00:35Z</published>
+    <arxiv:comment>32 pages, Code is available at https://github.com/MzeroMiko/XDLM</arxiv:comment>
+    <arxiv:primary_category term="cs.CL"/>
+    <author>
+      <name>Yue Liu</name>
+    </author>
+    <author>
+      <name>Yuzhong Zhao</name>
+    </author>
+    <author>
+      <name>Zheyong Xie</name>
+    </author>
+    <author>
+      <name>Qixiang Ye</name>
+    </author>
+    <author>
+      <name>Jianbin Jiao</name>
+    </author>
+    <author>
+      <name>Yao Hu</name>
+    </author>
+    <author>
+      <name>Shaosheng Cao</name>
+    </author>
+    <author>
+      <name>Yunfan Liu</name>
+    </author>
+  </entry>
+</feed>

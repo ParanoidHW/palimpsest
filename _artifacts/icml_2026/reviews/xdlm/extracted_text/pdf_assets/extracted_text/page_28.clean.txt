@@ -1,0 +1,137 @@
+===== PAGE 28 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+Table 14. Class-conditional generation on CIFAR-10. On this benchmark, where UDLM holds a distinct advantage, we observe a clear
+monotonic improvement in XDLM quality as k increases. Increasing k from 10−3 to 0.5 dramatically closes the performance gap with
+UDLM (e.g., improving 32-step FID from 164.040 to 56.299), confirming that higher k effectively aligns XDLM with uniform noise
+dynamics.
+Model
+FID↓
+IS↑
+step 32
+step 128
+step 512
+step 32
+step 128
+step 512
+MDLM
+211.983
+69.151
+33.961
+2.685
+5.615
+6.801
+GIDD
+193.487
+72.579
+41.809
+2.737
+5.176
+6.209
+XDLM(k=1e-3)
+164.040
+50.638
+29.079
+3.427
+6.223
+7.079
+XDLM(k=0.1)
+77.985
+48.702
+43.210
+5.316
+6.284
+6.513
+XDLM(k=0.5)
+56.299
+37.307
+33.030
+6.077
+6.801
+6.956
+UDLM
+41.027
+27.822
+25.144
+6.892
+7.345
+7.372
+Table 15. Performance of XDLM and baselines on image generation with CFG scale = 2.0 on CIFAR-10. All mask-based methods
+(MDLM, GIDD, XDLM) show significant improvement when CFG is applied. The basic trend follows the results with no cfg.
+Model
+FID↓
+IS↑
+step 32
+step 128
+step 512
+step 32
+step 128
+step 512
+MDLM
+181.453
+51.113
+22.762
+3.329
+6.969
+8.078
+GIDD
+179.916
+60.443
+30.812
+3.054
+6.124
+7.216
+XDLM(k=1e-3)
+130.106
+35.980
+19.877
+4.559
+7.575
+8.186
+XDLM(k=0.1)
+59.600
+36.889
+32.444
+6.699
+7.596
+7.670
+XDLM(k=0.5)
+40.850
+27.445
+24.445
+7.560
+7.881
+7.893
+UDLM
+30.328
+20.720
+18.592
+8.098
+8.392
+8.433
+J. Detailed LLaDA Continual Pretraining Results
+To empirically validate the efficacy of the XDLM objective within the LLaDA framework, we conducted a continual
+pre-training experiment utilizing the LLaDA 8B Base checkpoints. We integrated the XDLM modeling definitions into
+the transformers codebase and trained on a 10 billion token sample of the FineWeb-Edu dataset (Penedo et al., 2024). The
+training process spanned 600 steps with a global batch size of 512 and a sequence length of 4,096. The learning rate was
+warmed up to 2 × 10−5 over the first 100 steps and held constant for the subsequent 500 steps, with the XDLM mixing
+ratio set to 0.1. All experiments were conducted on a compute node equipped with 8× Nvidia H800 GPUs. To rigorously
+attribute performance gains to the architectural paradigm rather than confounding variables, we established two robust
+baselines: LLaDA-MDLM, a control condition where the model is continual pre-trained for the same duration using the
+standard Masked Diffusion Language Model objective; and LLaDA-XDLM-infer, an ablation where the XDLM sampling
+strategy is applied to the base model without further training.
+To deploy XDLM sampling within this architecture, we extended the standard low-confidence remasking strategy used in
+LLaDA. Algorithm 1 details the generation logic, highlighting the novel contributions in the conditional block controlled by
+the mixing ratio k. While standard LLaDA sampling operates via a monotonic reduction of uncertainty, prioritizing only
+the filling of existing [MASK] tokens, our implementation introduces a refinement branch. When k > 0.0, the algorithm
+calculates a ‘refine_priority‘ by identifying tokens that are currently unmasked (‘ is_masked‘) but for which the model
+predicts a conflicting token ID (‘pred_tokens != token_ids‘) with a confidence score exceeding the current token’s confidence.
+These tokens are flagged in ‘update_mask‘ alongside the standard empty masks. This mechanism fundamentally transforms
+the generation from a purely additive process into a dynamic error-correction loop, allowing the model to stochastically
+“change its mind” and revise previous outputs during the denoising trajectory.
+The empirical results, summarized in Tab. 16, demonstrate the superiority of this formulation across reasoning (GSM8K,
+MATH, BBH) and code generation (HumanEval, MBPP) benchmarks, particularly in low-compute regimes. At 32 sampling
+steps, LLaDA-XDLM significantly outperforms all baselines. The most distinct advantage is observed in the MBPP code
+generation task, where LLaDA-XDLM achieves a score of 15.00, effectively doubling the performance of the base LLaDA
+(6.80) and the continued MDLM control (4.40). A granular analysis of the MBPP failure modes reveals that this improvement
+28

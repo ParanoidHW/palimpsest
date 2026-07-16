@@ -1,0 +1,27 @@
+===== PAGE 21 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+mechanism provides a superior foundation for high-fidelity generation.
+MDLM
+GIDD
+XDLM
+UDLM
+Figure 5. Qualitative comparison of class-conditional generation on ImageNet-1K without CFG. In the absence of guidance,
+baseline models struggle significantly: MDLM and GIDD produce chaotic artifacts with poor structural coherence, while UDLM yields
+recognizable but over-smoothed images. XDLM, by effectively balancing the characteristics of MDLM and UDLM, generates the most
+coherent and semantically correct samples (e.g., the distinct rocket structure and pizza toppings) even without guidance.
+MDLM
+GIDD
+XDLM
+UDLM
+Figure 6. Qualitative comparison of class-conditional generation on ImageNet-1K with a CFG scale of 2.0. With the addition of
+guidance, all models improve, but quality disparities remain. MDLM and GIDD still exhibit texture distortion and "burn" artifacts. UDLM
+produces clean but blurry outputs, lacking fine-grained texture. XDLM demonstrates superior fidelity, combining sharp high-frequency
+details (seen in the strawberry and volcanoes) with accurate global structure.
+We further analyze the sampling dynamics of XDLM (k = 0.1) over an 8-step generation process on ImageNet-1K with a
+CFG of 2.0, comparing it against MDLM, GIDD, and UDLM. The visual progression highlights distinct behaviors in how
+each model handles noise and feature refinement.
+A critical advantage of XDLM is its strong refinement capability, facilitated by the integration of uniform noise throughout
+the sampling process. As observed in rows 3 and 4, both XDLM and UDLM begin generating key semantic features,
+specifically the dog’s nose and eyes, at the very beginning of the generation cycle. In contrast, MDLM and GIDD adopt a
+21

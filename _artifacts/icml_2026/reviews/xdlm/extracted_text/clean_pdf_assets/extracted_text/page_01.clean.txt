@@ -1,0 +1,98 @@
+===== PAGE 1 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+Yue Liu 1 Yuzhong Zhao 1 Zheyong Xie 2 Qixiang Ye 1 Jianbin Jiao 1 Yao Hu 2 Shaosheng Cao 2 Yunfan Liu 1
+Abstract
+In discrete generative modeling, two dominant
+paradigms demonstrate divergent capabilities:
+Masked Diffusion Language Models (MDLM)
+excel at semantic understanding and zero-shot
+generalization, whereas Uniform-noise Diffusion
+Language Models (UDLM) achieve strong few-
+step generation quality, yet neither attains bal-
+anced performance across both dimensions. To
+address this, we propose XDLM, which bridges
+the two paradigms via a stationary noise ker-
+nel. XDLM offers two key contributions: (1)
+it provides a principled theoretical unification of
+MDLM and UDLM, recovering each paradigm as
+a special case; and (2) an alleviated memory bot-
+tleneck enabled by an algebraic simplification of
+the posterior probabilities. Experiments demon-
+strate that XDLM advances the Pareto frontier
+between understanding capability and generation
+quality. Quantitatively, XDLM surpasses UDLM
+by 5.4 points on zero-shot text benchmarks and
+outperforms MDLM in few-step image genera-
+tion (FID 54.1 vs. 80.8). When scaled to tune
+an 8B-parameter large language model, XDLM
+achieves 15.0 MBPP in just 32 steps, effectively
+doubling the baseline performance. Finally, analy-
+sis of training dynamics reveals XDLM’s superior
+potential for long-term scaling. Code is available
+at this http URL.
+1. Introduction
+Diffusion models have achieved remarkable success in con-
+tinuous domains, particularly in image and audio genera-
+tion (Ho et al., 2020; Dhariwal & Nichol, 2021; Rombach
+et al., 2022; Kong et al., 2020). Inspired by this potential,
+Discrete Denoising Diffusion Probabilistic Model (D3PM)
+has emerged as a promising paradigm shift to the discrete
+state space (Austin et al., 2021). Notably, these Discrete
+1UCAS
+2Xiaohongshu
+Inc..
+Correspondence
+to:
+Yunfan
+Liu
+<liuyunfan@ucas.ac.cn>,
+Shaosheng
+Cao
+<caoshaosheng@xiaohongshu.com>.
+Preprint. February 3, 2026.
+Diffusion Models (DDMs) are now demonstrating strong
+performance in language modeling, a field long dominated
+by auto-regressive (AR) architectures.
+Within this landscape, DDM studies have diverged into
+two distinct branches: Masked Diffusion Language Models
+(MDLMs) (Sahoo et al., 2024) and Uniform-noise Diffusion
+Language Models (UDLMs) (Schiff et al., 2024). While
+MDLMs achieve superior performance in likelihood mod-
+eling and zero-shot generalization, they often struggle to
+generate coherent, contextually consistent outputs with lim-
+ited inference steps. Conversely, UDLMs excel at low-step
+generation but frequently lag behind MDLMs when the
+number of inference steps increases. Despite their individ-
+ual merits, neither achieves balanced performance across
+these dimensions.
+This imbalance carries significant practical implications. In
+domains like image synthesis, the required inference steps
+are typically far fewer than the total number of patches. In
+these few-step regimes, UDLM (and its hidden Gaussian
+counterparts (Schiff et al., 2024; Sahoo et al., 2025)) consis-
+tently outperforms the masked paradigm. Concretely, our
+experiments demonstrate that UDLM outperforms MDLM
+by 17.6% when generating ImageNet-1K images in an 8-
+step regime. Consequently, balancing the robust few-step
+generation of UDLMs with the superior semantic under-
+standing of MDLMs remains a critical open challenge.
+To this end, we propose miXed Diffusion Language Model-
+ing (XDLM), a balanced theoretical formulation that estab-
+lishes a rigorous bridge between uniform and masked noise
+distributions. Unlike GIDD (von Rütte et al., 2025), which
+relies on a computationally expensive time-inhomogeneous
+process where noise characteristics shift at every timestep,
+XDLM enforces a stationary noise kernel where incremental
+noise structurally matches the marginal noise, as shown in
+Fig. 1 (left). This consistency allows our training objective
+to be efficiently factorized into static constants and dynamic
+schedules, avoiding the complex re-computation of noise
+distributions required by GIDD. In addition, we prove that
+MDLM and UDLM are limiting cases of our formulation.
+Furthermore, XDLM enables a memory-efficient implemen-
+tation by algebraically simplifying posterior calculations,
+allowing XDLM to scale to large vocabulary sizes without
+prohibitive computational costs.
+1
+arXiv:2602.01362v1  [cs.CL]  1 Feb 2026

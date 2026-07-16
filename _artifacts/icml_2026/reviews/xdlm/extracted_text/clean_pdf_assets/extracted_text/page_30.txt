@@ -1,0 +1,183 @@
+===== PAGE 30 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+Table 16. Evaluation of LLaDA-XDLM on reasoning and code generation benchmarks. We compare the proposed method with the
+base LLaDA, an inference-only ablation (LLaDA-XDLM-infer), and an MDLM control (LLaDA-MDLM) across varying sampling steps.
+MBPP scores are decomposed into failure modes to illustrate structural correctness.
+Dataset
+BBH
+GSM8K
+MATH
+HumanEval
+MBPP
+Score
+Failed
+Wrong
+Pass
+32 steps / 256 tokens
+LLaDA
+42.68
+24.49
+4.80
+5.49
+6.80
+429
+37
+34
+LLaDA-XDLM-infer
+41.74
+24.26
+4.86
+1.22
+5.40
+438
+35
+27
+LLaDA-MDLM
+43.21
+24.41
+2.70
+6.71
+4.40
+447
+31
+22
+LLaDA-XDLM
+42.76
+29.26
+4.72
+10.98
+15.00
+304
+121
+75
+64 steps / 256 tokens
+LLaDA
+47.16
+57.16
+16.10
+12.80
+17.80
+328
+83
+89
+LLaDA-XDLM-infer
+46.76
+53.75
+16.12
+4.88
+17.60
+328
+84
+88
+LLaDA-MDLM
+48.32
+54.97
+13.42
+14.63
+13.40
+348
+84
+67
+LLaDA-XDLM
+45.61
+57.85
+16.48
+15.85
+23.60
+197
+182
+118
+128 steps / 256 tokens
+LLaDA
+47.49
+67.93
+26.12
+24.39
+27.60
+161
+199
+138
+LLaDA-XDLM-infer
+47.89
+66.41
+26.70
+8.54
+27.40
+187
+174
+137
+LLaDA-MDLM
+48.95
+68.61
+24.34
+25.00
+30.00
+169
+178
+150
+LLaDA-XDLM
+46.41
+68.01
+25.06
+25.00
+30.80
+130
+215
+154
+256 steps / 256 tokens
+LLaDA
+47.77
+72.25
+29.98
+33.54
+40.40
+48
+248
+202
+LLaDA-XDLM-infer
+47.93
+71.34
+29.34
+6.71
+37.00
+74
+238
+185
+LLaDA-MDLM
+49.84
+72.93
+29.70
+32.32
+37.60
+51
+260
+188
+LLaDA-XDLM
+46.07
+73.16
+29.22
+31.71
+34.60
+90
+236
+173
+K. Detailed Computational Efficiency Analysis
+We evaluate the computational efficiency of the proposed XDLM against baseline models by measuring speed and memory
+consumption across three distinct scenarios: the forward-only case (representing NELBO calculation for perplexity
+estimation), the forward-backward case (used in training), and the sampling case (used for generation). For the forward and
+forward-backward evaluations, we utilize randomly generated sequences with a batch size of 32 and a sequence length of
+1024 to simulate real data processing. To ensure robust measurements, models are warmed up for 10 iterations, and we
+report the mean value calculated over the subsequent 100 runs. For the sampling scenario, we employ standard ancestral
+sampling to generate sequences of length 1024 over 32 steps. The evaluation batch size is set to 32. Models are warmed up
+for 1 iteration, and we report the mean value calculated over the subsequent 10 runs.
+As detailed in Tab. 17, MDLM exhibits the highest throughput and lowest memory cost across all settings, a result expected
+due to the simplicity of its absorbing noise kernel. However, among models incorporating uniform noise distributions,
+XDLM achieves the highest throughput across the forward, forward-backward, and sampling regimes. This performance is
+directly attributed to our scalar reformulated efficient sampling and training strategy, which circumvents expensive matrix
+operations. In contrast, while UDLM maintains the third-highest throughput in forward and training modes, its sampling
+throughput is the lowest among the comparison group. Conversely, GIDD achieves the third-highest sampling throughput
+but performs poorly in NELBO calculation, reaching only half the forward throughput of XDLM. This trend is mirrored in
+memory consumption. While MDLM is the most lightweight overall, XDLM ranks first among methods whose noise kernel
+includes a uniform noise component, effectively avoiding the high memory overhead observed in GIDD and UDLM.
+30

@@ -1,0 +1,51 @@
+===== PAGE 23 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+128. The dropout rate is set to 0.1, and input/output word embeddings are untied. To ensure fair comparison, we retain the
+AdaLN branch but fix the input to zero instead of using log-linear scheduled time embedding.
+We train using AdamW (β1 = 0.9, β2 = 0.999, weight decay 0) with a global batch size of 512. The learning rate is warmed
+up to 3 × 10−4 over the first 2,500 steps and held constant thereafter. We apply an Exponential Moving Average (EMA) rate
+of 0.9999 (Sahoo et al., 2024; 2025).
+Image Generation
+We evaluate on discretized CIFAR-10 (Krizhevsky et al., 2009) and ImageNet-1K (Deng et al., 2009).
+On ImageNet-1K dataset, We use the VQ-VAE tokenizer from LlamaGen (Sun et al., 2024), , which compresses images into
+sequences of length 256. The backbone architecture mirrors our language modeling transformer, augmented with class-
+conditional embeddings to enable class-conditional generation. Training hyperparameters follow the language modeling
+configuration, with the training duration set to 0.5M steps.
+For CIFAR-10, we treat raw RGB pixel values as discrete tokens (vocabulary size 256) and flatten the images into sequences
+of length 32 × 32 × 3, following (Schiff et al., 2024). We employ a U-Net backbone (Ronneberger et al., 2015; Ho et al.,
+2020) with a discretized truncated logistic output distribution (Austin et al., 2021; Sahoo et al., 2024). Class conditioning is
+implemented by adding label embeddings to the timestep embeddings (Dhariwal & Nichol, 2021). The model is trained for
+300k steps using AdamW (β1 = 0.9, β2 = 0.999, weight decay 0) with a batch size of 512. We use a learning rate warmup
+of 5,000 steps peaking at 2 × 10−4 and maintain an Exponential Moving Average (EMA) rate of 0.9999.
+Large Language Model Tuning
+We scale XDLM to large language modeling by performing continual pretraining on
+LLaDA LLaDA (Nie et al., 2025), a model originally trained via MDLM. We utilize a 10-billion-token subset of the
+FineWeb-Edu dataset (Penedo et al., 2024). The training configuration employs a sequence length of 4,096 and a global
+batch size of 512. The learning rate is warmed up to 2 × 10−5 over 100 steps and held constant for the remaining 500 steps.
+Unless otherwise specified, we set the mixing ratio to k = 0.1. All experiments were conducted on a node equipped with
+8× Nvidia H800 GPUs.
+G. Details of Zeroshot Capability of XDLM Trained on OWT
+To comprehensively assess the generalization capabilities of XDLM, we evaluate zero-shot perplexity on seven external
+datasets following training on OWT. In this section, we provide the detailed experimental setup, an analysis of the
+hyperparameter sensitivity regarding the mixing ratio k, and a breakdown of the training dynamics.
+Aligning with prior work (Sahoo et al., 2024; 2025), our evaluation suite includes the validation splits of AG News (Zhang
+et al., 2015), LAMBADA (Paperno et al., 2016), LM1B (Chelba et al., 2013), Penn Treebank (Marcus et al., 1993), Scientific
+Papers from ArXiv and PubMed (Cohan et al., 2018), and WikiText (Merity et al., 2016). The validation PPL is estimated
+via the negative Evidence Lower Bound (ELBO) with Monte Carlo sampling. We employ an evaluation batch size of 128 on
+a single GPU, and all text is pre-packed into a sequence length of 1024. To ensure a fair comparison, we adopt the identical
+sampling configuration used in(Sahoo et al., 2024; 2025).
+We investigate the impact of the mixing ratio k on model performance. Tab. 7 and Tab. 8 present the validation PPL on
+OWT and the zero-shot PPL on external benchmarks, respectively.
+As shown in Tab. 7, XDLM exhibits performance highly correlated with k. With smaller values (e.g., k = 1e-3 and k = 0.1),
+XDLM achieves a PPL of 23.495 and 24.097, respectively, which is comparable to MDLM (23.321) and GIDD (23.136).
+Conversely, as k increases towards 0.9, the performance degrades to 25.731, approaching the UDLM baseline (25.937).
+This trend is further supported by the zero-shot benchmark results in Tab. 8. XDLM (k = 0.1) achieves an average PPL of
+54.110, performing similarly to MDLM (53.650) and significantly outperforming UDLM (59.574). This demonstrates that
+XDLM successfully retains the strong modeling capabilities of the masked diffusion paradigm.
+Notably, the superior performance of XDLM is not merely an endpoint phenomenon but a consistent property observed
+throughout the training process. As illustrated in Fig. 8, the PPL trajectory of XDLM closely aligns with that of MDLM,
+steadily decreasing from 64.85 to 54.11. In contrast, the UDLM curve remains notably higher across all training steps.
+Tab. 9 details the average zero-shot PPL at 100k step intervals. The data confirms that XDLM (k = 0.1) maintains a learning
+dynamic nearly identical to MDLM from the early stages (100k steps) to convergence (1M steps), highlighting the inherent
+23

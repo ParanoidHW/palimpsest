@@ -1,0 +1,42 @@
+===== PAGE 10 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+Sahoo, S. S., Deschenaux, J., Gokaslan, A., Wang, G., Chiu,
+J., and Kuleshov, V. The diffusion duality. arXiv preprint
+arXiv:2506.10892, 2025.
+Schiff, Y., Sahoo, S. S., Phung, H., Wang, G., Boshar, S.,
+Dalla-torre, H., de Almeida, B. P., Rush, A. M., PIER-
+ROT, T., and Kuleshov, V. Simple guidance mechanisms
+for discrete diffusion models. In ICLR, 2024.
+Shi, J., Han, K., Wang, Z., Doucet, A., and Titsias, M.
+Simplified and generalized masked diffusion for discrete
+data. NeurIPS, 37:103131–103167, 2024.
+Sun, P., Jiang, Y., Chen, S., Zhang, S., Peng, B., Luo,
+P., and Yuan, Z. Autoregressive model beats diffusion:
+Llama for scalable image generation.
+arXiv preprint
+arXiv:2406.06525, 2024.
+von Rütte, D., Fluri, J., Ding, Y., Orvieto, A., Schölkopf,
+B., and Hofmann, T. Generalized interpolating discrete
+diffusion. arXiv preprint arXiv:2503.04482, 2025.
+Wang, G., Schiff, Y., Sahoo, S. S., and Kuleshov, V. Re-
+masking discrete diffusion models with inference-time
+scaling. arXiv preprint arXiv:2503.00307, 2025.
+Yang, L., Tian, Y., Li, B., Zhang, X., Shen, K., Tong, Y., and
+Wang, M. Mmada: Multimodal large diffusion language
+models. arXiv preprint arXiv:2505.15809, 2025.
+Ye, J., Xie, Z., Zheng, L., Gao, J., Wu, Z., Jiang, X., Li,
+Z., and Kong, L. Dream 7b: Diffusion large language
+models. arXiv preprint arXiv:2508.15487, 2025.
+You, Z., Nie, S., Zhang, X., Hu, J., Zhou, J., Lu, Z., Wen,
+J.-R., and Li, C.
+Llada-v: Large language diffusion
+models with visual instruction tuning. arXiv preprint
+arXiv:2505.16933, 2025.
+Yu, R., Ma, X., and Wang, X. Dimple: Discrete diffusion
+multimodal large language model with parallel decoding.
+arXiv preprint arXiv:2505.16990, 2025.
+Zhang, X., Zhao, J., and LeCun, Y. Character-level con-
+volutional networks for text classification. NeurIPS, 28,
+2015.
+10

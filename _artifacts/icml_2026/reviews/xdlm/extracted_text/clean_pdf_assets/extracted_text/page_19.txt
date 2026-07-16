@@ -1,0 +1,57 @@
+===== PAGE 19 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+fail to align with the evolving global context.
+By the final phase (t = 24 →t = 32), the dynamics shift characteristically. The Red re-masking transitions disappear
+entirely, indicating structural convergence. The process focuses exclusively on filling remaining gaps (Green) and performing
+fine-grained lexical substitutions (Blue). Notable refinements occur here, such as the token “life infancy” at step 24 being
+refined to “was time” at step 32, and “from pound” refining to “from pound-land.” This trajectory confirms that XDLM
+successfully anneals from a high-temperature exploration state—characterized by active deletion and re-generation—to a
+low-temperature refinement state, ensuring the final output is both globally coherent and locally precise.
+Table 6. Step-wise evolution of a generated sequence (T = 32). Text colors indicate the transition dynamics inherent to the hybrid
+noise process: Green represents new tokens generated from masks; Blue represents lexical refinement; and Red highlights the re-masking
+operation where previously generated tokens are rejected and reverted to [MASK].
+Steps (T)
+Generated Text Sample
+T = 0
+[MASK] [MASK] faltered [MASK] [MASK] coffin [MASK] [MASK] [MASK] [MASK]
+och [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] , [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] ##agawa [MASK] [MASK] [MASK] [MASK]
+slippery [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] harrington [MASK] [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] trumpets surpassing [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] refuse [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] ##was veteran jan [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] begs [MASK] [MASK]
+T = 1
+[MASK] [MASK] faltered [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK]
+[MASK] ##fo [MASK] is [MASK] [MASK] shillings [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] 1879 [MASK] [MASK] [MASK] [MASK]
+[MASK] ##anda [MASK] blocked [MASK] ##agawa [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] engined [MASK] [MASK] [MASK] a
+[MASK] [MASK] ##itive [MASK] [MASK] [MASK] [MASK] [MASK] mar [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] distributing [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] tertiary [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] strode [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] whatever [MASK] ##rda [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK]
+T = 8
+[MASK] [MASK] [MASK] to clear [MASK] [MASK] [MASK] [CLS] [MASK] [MASK] of
+[MASK] is [MASK] congo [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] ##rians
+santa , [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] 15 [MASK] ##anda [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] board had [MASK] ##ffi [MASK] [MASK]
+[MASK] ##illo [MASK] the [MASK] [MASK] [CLS] [MASK] hawaii [MASK] [MASK]
+the [MASK] 86 to [MASK] a [MASK] of process [MASK] [MASK] [MASK] [MASK]
+[CLS] mar [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] , [MASK] [MASK] [MASK]
+[MASK] [MASK] [MASK] [MASK] [MASK] [MASK] [MASK] brazil [MASK] [MASK]
+[MASK] [MASK] [MASK] the [MASK] [MASK] [MASK] used [MASK] [MASK] [MASK]
+pakistani [MASK] [MASK] [MASK] [MASK] ’ s [MASK] [MASK] ##west [MASK]
+[MASK] [MASK] [MASK] in [MASK] [MASK] za ##rda [MASK] [MASK] [MASK] sees
+[MASK] [MASK]
+19

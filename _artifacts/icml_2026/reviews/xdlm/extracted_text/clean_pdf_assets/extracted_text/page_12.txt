@@ -1,0 +1,47 @@
+===== PAGE 12 =====
+
+Balancing Understanding and Generation in Discrete Diffusion Models
+Proof.
+q(zs = e|zt, x)
+(32)
+= e⊤(Qt|szt) ⊙(Q⊤
+s x)
+zt⊤Q⊤
+t x
+(33)
+= e⊤(αt|szt + βt|sKzt) ⊙(αsx + βsK⊤x)
+zt⊤(αtx + βtK⊤x)
+(34)
+= e⊤αtzt ⊙x + αt|sβszt ⊙K⊤x + βt|sαsKzt ⊙x + βt|sβsKzt ⊙K⊤x
+αtzt⊤x + βtzt⊤K⊤x
+(35)
+= e⊤g(s, t, x, zt)
+ft(x, zt)
+(36)
+= fs(x, e)ft|s(e, zt)
+ft(x, zt)
+(37)
+Lemma 3 (Scalar KL Divergence). The term DKL(q(zs | zt, x) ∥pθ(zs | zt)) can be written as:
+DKL = βt|sαsr(zt)
+ft(x, zt) ht(x, zt, ˜x0),
+(38)
+where ht is an auxiliary function collecting the logarithmic difference terms:
+ht(x, zt, ˜x0) = fs(x, zt)
+r(zt)
+αt|s
+βt|sαs
+log fs(x, zt)ft(˜x0, zt)
+ft(x, zt)fs(˜x0, zt)
+−1
+αs
+log ft(x, zt)
+ft(˜x0, zt) + log fs(x, x)
+fs(˜x0, x)
++ kβs
+Nαs
+X
+e∈V
+log fs(x, e)
+fs(˜x0, e).
+(39)
+12
