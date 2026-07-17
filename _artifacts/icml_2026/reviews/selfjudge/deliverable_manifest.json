@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.3.0",
+  "deliverable_type": "paper-deep-review",
+  "invocation_mode": "delegated",
+  "paper": {
+    "paper_key": "arxiv:2510.02329v2",
+    "title": "SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification",
+    "venue_and_year": "ICML 2026",
+    "paper_url": "https://arxiv.org/abs/2510.02329v2"
+  },
+  "completion_status": "complete",
+  "revision_info": {
+    "document_path": "analysis.md",
+    "section_heading": "修订信息",
+    "current_version": "1.0.0",
+    "current_revision_id": "rev-selfjudge-initial",
+    "history": [
+      {
+        "revision_id": "rev-selfjudge-initial",
+        "version": "1.0.0",
+        "revised_at": "2026-07-17T12:00:00+08:00",
+        "revised_by": "review_selfjudge",
+        "revision_type": "initial",
+        "supersedes": null,
+        "migration_resolution": null,
+        "summary": "首次精读、图表 QA、证据与 infra 分析",
+        "reason": "用户委派",
+        "affected_locations": ["analysis.md", "figure_inventory.md"],
+        "evidence": ["task_packet.yaml", "paper.pdf", "source/main.tex"],
+        "impact_on_conclusions": "none"
+      }
+    ]
+  },
+  "schema_validation": {
+    "status": "passed",
+    "validator": "jsonschema.Draft202012Validator",
+    "errors": []
+  },
+  "semantic_validation": {
+    "status": "passed",
+    "validator": "paper-deep-review semantic freeze checks",
+    "checks": {
+      "artifact_paths_and_hashes": true,
+      "revision_section_matches_manifest": true,
+      "revision_history_consistency": true,
+      "current_revision_is_latest": true,
+      "unresolved_migrations_resolved": true,
+      "terminology_symbol_section_consistency": true,
+      "key_term_symbol_coverage": true,
+      "design_rationale_evidence_consistency": true,
+      "design_rationale_core_design_coverage": true,
+      "visual_count_sum": true,
+      "missing_visual_types": true,
+      "provenance_hash_equality": true,
+      "checklist_manifest_consistency": true
+    },
+    "errors": []
+  },
+  "artifacts": {
+    "paper_pdf": {"status": "present", "path": "paper.pdf", "sha256": "d3d2d6a3cf8c76d2fe10692547c9761b9da9cb4f8e3f20e8b2c6597095255633", "reason": null},
+    "analysis": {"status": "present", "path": "analysis.md", "sha256": "9d8e14b84e4e294741b6dc3fdd680002fec73cd9f06d189bba9e7c669abd1e13", "reason": null},
+    "review_checklist": {"status": "present", "path": "review_checklist.md", "sha256": "92fdfc59d1040dcb7dc506d139734bf2b5da21e340899c0ae9018e78107d1e12", "reason": null},
+    "figure_inventory": {"status": "present", "path": "figure_inventory.md", "sha256": "0c09d34b468182df7e6a17bacea957df8abb9ad083b48b9fd0163ea7154aeae0", "reason": null},
+    "contact_sheet": {"status": "present", "path": "figures/contact-sheet.png", "sha256": "b7a0a59ab399d17833d507b870eb6024c23938ff5b63d0033c294fa9d7f1184d", "reason": null},
+    "source_archive": {"status": "present", "path": "source", "sha256": "c41549d936d285611d32b07226817c8525e1eafa1ae4e1e963ee66f71b07402a", "reason": null},
+    "code_snapshot": {"status": "skipped-with-reason", "path": null, "sha256": null, "reason": "No official SelfJudge implementation URL appears in the PDF, arXiv page, or source archive."},
+    "openreview_reviews": {"status": "present", "path": "openreview_reviews.md", "sha256": "775b9686048345c3236a16f18f83fc385d427e4cf73bb5af0cdcf511ec7cb6c9", "reason": null},
+    "generated_diagram": {"status": "skipped-with-reason", "path": null, "sha256": null, "reason": "Installed ICU CLI lacks mandatory responses-doc --input-file analysis.md capability; prompt-only generation is prohibited."},
+    "task_packet": {"status": "present", "path": "task_packet.yaml", "sha256": "6a68355f02b360d73ff4fc3a70a86f68d788767d831b3be21dd5dbb883c6ba18", "reason": null},
+    "agent_handoff": {"status": "present", "path": "agent_handoff.md", "sha256": "53befabddf6ab0aedf8142cdbafd61e7821e1de4b2660ddd19999af2db01bf7f", "reason": null},
+    "artifact_manifest_path": "artifact_manifest.sha256"
+  },
+  "visual_evidence": {
+    "mechanism_count": 1,
+    "result_or_system_count": 3,
+    "counted_total": 4,
+    "missing_types": [],
+    "inventory_fields_complete": true,
+    "contact_sheet_qa": "passed",
+    "individual_crop_qa": "passed"
+  },
+  "terminology_and_symbols": {
+    "document_path": "analysis.md",
+    "section_heading": "0.1 术语与符号解释",
+    "terms": [
+      {"term": "speculative decoding", "definition": "Draft proposes gamma tokens and target verifies them in parallel.", "aliases": ["SD"], "sources": ["analysis.md §0.1", "paper §3.1"], "ambiguity_notes": "Not standalone target greedy decoding."},
+      {"term": "target model", "definition": "Large model whose response quality is the reference and which supplies likelihoods and hidden states.", "aliases": ["M_target"], "sources": ["analysis.md §0.1", "paper §3.1"], "ambiguity_notes": "Also labels data but is not the verifier."},
+      {"term": "draft model", "definition": "Smaller model proposing candidate tokens and probabilities.", "aliases": ["M_draft"], "sources": ["analysis.md §0.1", "paper §3.1"], "ambiguity_notes": "Distinct from judge verifier."},
+      {"term": "alignment verification", "definition": "Rejection-sampling path based on target/draft probability ratio.", "aliases": ["standard SD"], "sources": ["analysis.md §0.1", "paper Eq.(3)"], "ambiguity_notes": "Distributional path, not semantic judge."},
+      {"term": "judge verification", "definition": "Online classifier over target hidden state.", "aliases": ["judge decoding"], "sources": ["analysis.md §0.1", "paper §3.2"], "ambiguity_notes": "Does not observe suffix tokens online."},
+      {"term": "semantic preservation score", "definition": "Offline target log-likelihood difference between substituted and original response.", "aliases": ["s(y,z_i)"], "sources": ["analysis.md §0.1", "paper Eq.(6-8)"], "ambiguity_notes": "A target-model proxy, not external semantic truth."},
+      {"term": "SelfJudge-R / SelfJudge-F", "definition": "Recall-optimal and F1-optimal online threshold operating points.", "aliases": ["R", "F"], "sources": ["analysis.md §0.1", "paper §4.2"], "ambiguity_notes": "Not different verifier capacities."},
+      {"term": "two-stage verification", "definition": "Judge and alignment paths run together with OR acceptance.", "aliases": ["SelfJudge inference"], "sources": ["analysis.md §0.1", "paper §3.2"], "ambiguity_notes": "Strict target distribution equivalence only belongs to alignment path."},
+      {"term": "suffix window", "definition": "Number of future response tokens included in offline score.", "aliases": ["N"], "sources": ["analysis.md §0.1", "paper Figure 4"], "ambiguity_notes": "Unavailable to online verifier."}
+    ],
+    "symbol_applicability": "applicable",
+    "symbols": [
+      {"symbol": "gamma", "meaning": "Draft tokens per verification cycle.", "provenance": "author-defined", "scope_or_indexing": "per request/cycle", "units_or_values": "tokens; 20 GSM8K and 15 MMLU in wall-clock tests", "sources": ["analysis.md §0.1", "paper §4.5"], "ambiguity_notes": "Not average accepted length m."},
+      {"symbol": "d_i, q_i, p_i", "meaning": "Draft token, draft probability, and target probability.", "provenance": "author-defined", "scope_or_indexing": "token position i", "units_or_values": "token and probabilities [0,1]", "sources": ["analysis.md §0.1", "paper Eq.(1-3)"], "ambiguity_notes": "q_i and p_i come from different models."},
+      {"symbol": "h_i", "meaning": "Target hidden representation used by online verifier.", "provenance": "author-defined", "scope_or_indexing": "token position i", "units_or_values": "vector", "sources": ["analysis.md §0.1", "paper Eq.(4-5)"], "ambiguity_notes": "Not the offline suffix score."},
+      {"symbol": "theta, tau", "meaning": "Online verifier threshold and offline label threshold.", "provenance": "author-defined", "scope_or_indexing": "configuration/data-generation", "units_or_values": "real thresholds", "sources": ["analysis.md §0.1", "paper §4.1"], "ambiguity_notes": "Two distinct thresholds."},
+      {"symbol": "y, y_<i, y_>i, z_i", "meaning": "Target response, prefix, suffix, and draft replacement token.", "provenance": "author-defined", "scope_or_indexing": "sample and mismatch position", "units_or_values": "token sequences/token", "sources": ["analysis.md §0.1", "paper Eq.(6-8)"], "ambiguity_notes": "Suffix is only used offline."},
+      {"symbol": "s(y,z_i)", "meaning": "Semantic preservation log-likelihood difference.", "provenance": "author-defined", "scope_or_indexing": "mismatch token", "units_or_values": "log-likelihood difference", "sources": ["analysis.md §0.1", "paper Eq.(6-8)"], "ambiguity_notes": "Proxy for semantic preservation."},
+      {"symbol": "N", "meaning": "Offline suffix length.", "provenance": "author-defined", "scope_or_indexing": "score calculation", "units_or_values": "0, 5, 10, 20 tokens", "sources": ["analysis.md §0.1", "paper Figure 4"], "ambiguity_notes": "N=0 is prefix-only."},
+      {"symbol": "m, Acc, FC, Pass@1", "meaning": "Accepted length and task-specific quality metrics.", "provenance": "author-defined", "scope_or_indexing": "dataset/method", "units_or_values": "tokens per cycle and percent/score", "sources": ["analysis.md §0.1", "paper Tables 1,6,7"], "ambiguity_notes": "Metrics are not interchangeable across tasks."},
+      {"symbol": "EffectiveBandwidth, Utilization", "meaning": "Reviewer-derived bandwidth and peak-utilization formulas.", "provenance": "analysis-derived", "scope_or_indexing": "serving execution path", "units_or_values": "bytes/s and fraction", "sources": ["analysis.md §7.4"], "ambiguity_notes": "Cannot be numerically evaluated because telemetry is absent."}
+    ],
+    "coverage": {"key_terms": "passed", "key_symbols": "passed", "ambiguities": "passed"}
+  },
+  "design_rationales": [
+    {"design": "Label only draft-target mismatches", "rationale_status": "author-stated", "rationale_sources": ["paper §3.3.1 Step 1"], "concrete_problem": "Matched tokens are already handled by alignment verification.", "causal_mechanism": "Concentrates labeling compute on tokens the judge can recover.", "analysis_basis": ["analysis.md §3.2"], "alternatives_tradeoffs": "All-token labeling is broader but more expensive.", "validation_evidence": {"type": "indirect", "sources": ["paper Figure 2"], "judgment": "partially-supported"}},
+    {"design": "Suffix-aware semantic score", "rationale_status": "author-stated", "rationale_sources": ["paper Eq.(6-8)"], "concrete_problem": "Prefix-only probabilities and answer-specific labels miss contextual equivalence.", "causal_mechanism": "Future-token likelihood supplies evidence for replacement consistency.", "analysis_basis": ["analysis.md §3.2", "analysis.md §3.4"], "alternatives_tradeoffs": "NLI or LLM judges add cost and external bias.", "validation_evidence": {"type": "sensitivity", "sources": ["paper Figure 4"], "judgment": "partially-supported"}},
+    {"design": "Suffix length N=20", "rationale_status": "author-stated", "rationale_sources": ["paper §4.1", "paper Figure 4"], "concrete_problem": "N=0 lacks future context.", "causal_mechanism": "Longer suffix improves evidence for semantic consistency.", "analysis_basis": ["analysis.md §3.2"], "alternatives_tradeoffs": "Longer N costs more partial-prefill compute.", "validation_evidence": {"type": "sensitivity", "sources": ["paper Figure 4"], "judgment": "supported"}},
+    {"design": "Logistic regression verifier", "rationale_status": "author-stated", "rationale_sources": ["paper §3.4"], "concrete_problem": "Online verification must have negligible overhead.", "causal_mechanism": "Linear classification over existing target hidden state avoids another deep model.", "analysis_basis": ["analysis.md §3.2", "analysis.md §7.1"], "alternatives_tradeoffs": "MLP or transformer may improve capacity but increase latency.", "validation_evidence": {"type": "indirect", "sources": ["paper §4.5 elapsed-time analysis"], "judgment": "plausible"}},
+    {"design": "Tau from 0.1 quantile of AutoJudge unacceptable scores", "rationale_status": "author-stated", "rationale_sources": ["paper §4.1"], "concrete_problem": "Answer-critical replacements must be rejected.", "causal_mechanism": "Conservative calibration raises recall for unacceptable tokens.", "analysis_basis": ["analysis.md §3.2"], "alternatives_tradeoffs": "Independent per-domain calibration reduces GSM8K bias.", "validation_evidence": {"type": "indirect", "sources": ["paper Table 1"], "judgment": "partially-supported"}},
+    {"design": "Judge and alignment OR acceptance", "rationale_status": "author-stated", "rationale_sources": ["paper §3.2", "paper Appendix D.2"], "concrete_problem": "Alignment over-rejects while judge may falsely reject.", "causal_mechanism": "Union preserves alignment approvals and recovers semantic mismatches.", "analysis_basis": ["analysis.md §3.2", "analysis.md §4.3"], "alternatives_tradeoffs": "Judge-only loses accepted length; OR relaxes strict distribution equivalence.", "validation_evidence": {"type": "direct-ablation", "sources": ["paper Appendix Table 9"], "judgment": "supported"}},
+    {"design": "One verifier across tasks", "rationale_status": "author-stated", "rationale_sources": ["paper §3.4"], "concrete_problem": "Per-task verifier training and deployment are expensive.", "causal_mechanism": "Shared target hidden-state semantics may transfer across domains.", "analysis_basis": ["analysis.md §3.2"], "alternatives_tradeoffs": "Task-specific verifiers may be more accurate but less scalable.", "validation_evidence": {"type": "indirect", "sources": ["paper Tables 1,6,7"], "judgment": "partially-supported"}}
+  ],
+  "evidence_checks": {
+    "claim_matrix": "passed",
+    "design_rationale_analysis": "passed",
+    "symbol_table": "passed",
+    "evidence_loop": "passed",
+    "code_cross_check": "skipped-with-reason",
+    "openreview_cross_check": "skipped-with-reason",
+    "infrastructure_analysis": "passed",
+    "gain_attribution": "passed"
+  },
+  "delegated_provenance": {
+    "dispatch_id": "icml2026-selfjudge-008",
+    "agent_task_name": "review_selfjudge",
+    "task_packet_sha256": "6a68355f02b360d73ff4fc3a70a86f68d788767d831b3be21dd5dbb883c6ba18",
+    "skill_tree_sha256": "93e435dbedfea453d129ba1f62cbc35f718472624053003f80461892f872be6e",
+    "agent_contract_sha256": "33da33ba0fc320e994da7067084d7d0384e83bc3a5bb5c58d9633f5be54d0e21"
+  },
+  "limitations": [
+    {"requirement": "Official implementation and checkpoint metadata", "status": "skipped-with-reason", "reason": "No SelfJudge repository or checkpoint revision is linked.", "effect_on_conclusions": "Algorithm and runtime implementation details cannot be independently reproduced."},
+    {"requirement": "Public OpenReview cross-check", "status": "skipped-with-reason", "reason": "No SelfJudge forum was discoverable and exact-title API access returned HTTP 403.", "effect_on_conclusions": "Reviewer-stage concerns and rebuttal resolution cannot be assessed."},
+    {"requirement": "Generated analysis diagram", "status": "skipped-with-reason", "reason": "Mandatory responses-doc document-input capability is unavailable.", "effect_on_conclusions": "No effect on paper-derived evidence; only optional visualization is absent."}
+  ]
+}

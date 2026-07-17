@@ -1,0 +1,63 @@
+===== PAGE 3 =====
+
+Preprint. Under review.
+Language model distillation.
+Teacher capabilities can be transferred to a student via
+knowledge distillation (Kim & Rush, 2016).
+Agarwal et al. (2024) perform on-policy
+distillation—using teacher feedback on student-generated sequences—to avoid distribu-
+tional mismatch with static training data. Zhou et al. (2023) apply distillation to align draft
+models with target models, improving speculative decoding acceptance rates.
+Online RL and entropy minimization.
+Wang et al. (2021) first showed generalization
+benefits of direct entropy minimization for image classifiers; modern studies demonstrate
+similar effects in LMs trained with reinforcement learning from verifiable rewards Agarwal
+et al. (2025); Shao et al. (2024). Kang et al. (2025) exploit the correlation between model
+confidence and correctness for best-of-n sampling at test time, and Fu et al. (2025) leverage
+it to re-weight rollouts during online and offline RL, observing consistent improvements.
+We build on these results by designing our MTP objective and inference strategies around
+the correspondence between low-entropy predictive distributions and generation quality in
+reasoning-intensive domains.
+3
+Methodology
+In Section 3.1 through Section 3.3 we motivate and define our novel MTP LM training
+objective in an abstract manner and in Section 3.4 we discuss how to perform inference
+using this kind of model. We also provide a formalization of how to perform a training
+step using our method in Algorithm 1. Then in Section 4 we discuss specific aspects of our
+method in more concrete, implementation focused terms with accompanying visualizations.
+3.1
+Next Token Prediction (NTP)
+Let V be the set of V tokens in the vocabulary of our LM, and consider an input sequence X =
+(x1, x2, ...xN) ∈V N. A transformer LM fθ(·) parametrized by neural network parameters θ
+maps an input X into a sequence of logit vectors {ℓi ∈RV}:
+fθ(X) = (ℓ1, ℓ2, ..ℓN) ∈RN×V.
+To produce tokens from these logits, we consider a readout function g : R1×V →V which
+could be:
+g(ℓi) = argmaxj(ℓij)
+or
+g(ℓi) = sample(softmax(ℓi)).
+For brevity, in subsequent sections we refer to the sample(softmax(·)) composition as just
+“softmax” when contrasting it with “argmax”.
+Let Y be the ground truth next tokens at each position in X such that yi = xi+1, and let the
+predicted next token distribution parametrized by the model be
+Pθ(xi+1|x1:i) := g(ℓi) = sample(softmax(ℓi)).
+If the ground truth next tokens are represented as one-hot vectors denoted yi = {0, 1}|V|,
+then the cross-entropy training objective for a next token prediction language model is given
+as:
+LNTP = −1
+N
+N
+∑
+i=1
+log Pθ(yi|x1:i).
+(1)
+3.2
+Multi-Token Prediction (MTP)
+In our MTP model, the input x contains prefix tokens, followed by a block of k −1 MTP
+“mask” tokens. On a forward pass, the model predicts k tokens, one at the final prefix
+position and k −1 tokens at each masked position. We can define readouts that operate over
+multiple logit vectors instead of one:
+g(li:i+k) = argmaxj(ℓi:i+k,j)
+or
+g(li:i+k) = sample(softmax(ℓi:i+k)).
+3

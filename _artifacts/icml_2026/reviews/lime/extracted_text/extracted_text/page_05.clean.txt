@@ -1,0 +1,142 @@
+===== PAGE 5 =====
+
+Submission and Formatting Instructions for ICML 2026
+relative threshold:
+Sθ(x) =
+
+i : wi(x) ≥θ · max
+j
+wj(x)
+
+,
+(4)
+where θ ∈(0, 1] controls selection aggressiveness. For
+example, with θ = 0.5, we keep all experts scoring at least
+half as high as the best. Selected experts are renormalized
+as ˜wi(x) = wi(x)/ P
+j∈Sθ(x) wj(x). See Appendix D for
+comparisons with other strategies.
+Layer Formulation. LiME applies to any layer equipped
+with PEFT (§H). For a frozen linear layer W0, the for-
+ward pass is: (1) compute the base output z = W0x; (2)
+compute the PEFT update ˆz ∈Rdo; (3) compute routing
+weights w(x) from z and ˆz, then select experts Sθ(x) and
+renormalize weights to ˜w(x); (4) form the expert modulator
+P(x) = P
+i∈Sθ(x) ˜wi(x) · pi; and (5) produce the final out-
+put: h = z + ˆz ⊙P(x) + γ · (ˆz ⊙ps). Routing granularity
+(token or window) is chosen based on the task (§F.2).
+Initialization. Expert modulators are initialized near unity:
+pi ∼U(1 −σ, 1 + σ) with σ = 0.1, so LiME starts close to
+standard PEFT and specialization emerges during training,
+following Kowsher et al. (2025c) (§F.9).
+Parameter Count. For a model with L LiME layers and E
+experts, let |ϕ| denote the PEFT parameters per layer. The
+total number of trainable parameters is:
+|ϕLiME| = L·
+
+|ϕ|
+|{z}
+shared PEFT
++
+E · do
+| {z }
+expert modulators
++
+do + 1
+| {z }
+shared modulator +γ
+
+.
+In contrast, traditional MoE-PEFT requires L · E · |ϕ|
+parameters, which scales linearly with the number of experts.
+LiME adds only E · do parameters per layer for expert
+modulators, independent of the PEFT method.
+Load Balancing. MoE models can suffer from expert col-
+lapse, where routing concentrates on a few experts while
+others are underutilized. We add auxiliary losses to encour-
+age balanced utilization. Let ¯pi =
+1
+BT
+P
+b,t wi(xb,t) be the
+mean routing probability of expert i over a batch of B se-
+quences with T tokens (so P
+i ¯pi = 1). We use two comple-
+mentary losses: (i) Importance Loss Limp = E PE
+i=1 ¯p2
+i −1,
+and (ii) KL-Uniform Loss LKL = DKL(¯p ∥U), where U is
+uniform. The total objective is:
+L = Ltask + α Limp + β LKL,
+(5)
+where α and β control the balancing strength (§4.1, §F.8).
+4. Experiments
+We evaluate LiME on multimodal multi-task dataset to test
+whether it works well across different modalities and tasks.
+LiME can be combined with any trainable PEFT method. To
+validate this, We instantiate LiME with adapter-based PEFT
+(LoRA (Hu et al., 2022), DoRA (Liu et al., 2024), LoRA-
+FA (Zhang et al., 2023)) and non-adapter PEFT (Slice-
+Fine (Kowsher et al., 2025b), Prompt Tuning (Lester et al.,
+2021)), denoted as LiMELoRA, LiMEDoRA, LiMELoRA-
+FA, LiMESliceFine, and LiMEPromptTuning.
+We compare against (1) standard PEFT baselines (LoRA,
+DoRA, LoRA-FA, SliceFine, Prompt Tuning) and (2)
+MoE-PEFT
+baselines
+(MoCLE
+(Lee
+et
+al.,
+2025),
+MoELoRA (Luo et al., 2024), MixLoRA (Li et al., 2024b),
+HydraLoRA (Tian et al., 2024), MoLA (Gao et al., 2025),
+MoRe (Zhang et al., 2025)), and we also implement MoE-
+DoRA and MoELoRA-FA following standard MoE-PEFT
+procedures. We use LLaVA-OneVision-Qwen2-7B (Li et al.,
+2024a) as the base model (and LLaVA-OneVision-Qwen2-
+0.5B for ablations). Experiments are conducted on MMT-47,
+which we compile from existing benchmarks into a unified
+training mixture (158K samples) with 47 test sets spanning
+text, commonsense, video, and image tasks (Appendix L).
+We additionally evaluate on Molmo2-8B (Clark et al., 2026)
+to validate generalization across vision-language architec-
+tures (Appendix G.8).
+We train for 3 epochs with 5 seeds, using differential learn-
+ing rates (2×10−4 for PEFT parameters and 1×10−3 for
+expert modulators), a cosine schedule, and 3% warmup. Un-
+less stated otherwise, LiME uses 4 experts with Auto Top-K
+θ=0.7 and n-gram window size 3. Full hyperparameters are
+in Appendix J.
+Main Results. Table 2 presents performance across seven
+benchmark categories spanning vision, language, and rea-
+soning tasks.
+LiME variants consistently achieve com-
+petitive performance compared to both standard PEFT
+and MoE-PEFT methods. On Vision Benchmark, LiME-
+DoRA achieves the best result (78.12%), outperform-
+ing HydraLoRA (78.11%).
+On Commonsense Reason-
+ing, LiMELoRA achieves 84.98%, the highest among all
+methods. On Object Motion & Spatial reasoning, LiME-
+DoRA (65.41%) outperforms the strongest baseline MoE-
+DoRA (65.16%). On GLUE, LiMELoRAFA (91.14%) and
+LiMESliceFine (91.19%) closely match the best baseline
+MoELoRA (91.21%). Notably, all LiME variants consis-
+tently outperform their corresponding base PEFT methods
+across all categories, demonstrating that lightweight expert
+modulation effectively captures input-specific specialization.
+Detailed per-task results are provided in Appendix G.
+Efficiency Analysis. We compare LiME against MoE-
+PEFT baselines on a single H100 GPU with batch size
+2, gradient accumulation 2, and bfloat16 precision for 1
+epoch on GLUE. LiME variants achieve higher through-
+put (3.39–4.52 samples/s) with shorter training time (25–36
+min). Comparing corresponding methods: LiMEDoRA
+(35.5 min) is 29% faster than MoEDoRA (50.2 min), and
+LiMELoRA (31.5 min) is 23% faster than MoELoRA (41.0
+min). The parameter comparison reveals the key advan-
+tage: LiMELoRA requires 0.52M trainable parameters—4×
+fewer than MoELoRA (1.97M)—and LiMEDoRA requires
+5

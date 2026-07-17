@@ -1,0 +1,49 @@
+===== PAGE 10 =====
+
+Published as a workshop paper in Lifelong Agent @ ICLR 2026
+ACKNOWLEDGEMENTS
+The authors would like to thank Prof. Yu-Xiang Wang for insightful and helpful discussions, and
+Yuan-Ze Xuan for early participation in the project.
+REFERENCES
+Zachary Ankner, Rishab Parthasarathy, Aniruddha Nrusimha, Christopher Rinard, Jonathan Ragan-
+Kelley, and William Brandon. Hydra: Sequentially-dependent draft heads for medusa decoding. In
+Proceedings of the 1st Conference on Language Modeling (COLM), 2024.
+Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan,
+Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, and Charles Sutton. Program synthesis with large
+language models. ArXiv preprint, arXiv:2108.07732, 2021.
+Omar Besbes, Yonatan Gur, and Assaf Zeevi. Non-stationary stochastic optimization. Operations
+Research, 63(5):1227–1244, 2015.
+Shrenik Bhansali and Larry Heck. Draft, verify, and improve: Toward training-aware speculative
+decoding. ArXiv preprint, arXiv:2510.05421, 2025.
+Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal,
+Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel
+Herbert-Voss, Gretchen Krueger, Tom Henighan, et al. Language models are few-shot learners. In
+Advances in Neural Information Processing Systems 33 (NeurIPS), pp. 1877–1901, 2020.
+Tianle Cai, Yuhong Li, Zhengyang Geng, Hongwu Peng, Jason D. Lee, Deming Chen, and Tri
+Dao. Medusa: Simple LLM inference acceleration framework with multiple decoding heads. In
+Proceedings of the 41st International Conference on Machine Learning (ICML), pp. 5209–5235,
+2024.
+Nicolo Cesa-Bianchi and Gábor Lugosi. Prediction, Learning, and Games. Cambridge University
+Press, 2006.
+Chi-Chih Chang, Siqi Zhu, Zhichen Zeng, Haibin Lin, Jiaxuan You, Mohamed S. Abdelfattah, Ziheng
+Jiang, and Xuehai Qian. Srt: Accelerating reinforcement learning via speculative rollout with
+tree-structured cache. ArXiv preprint, arXiv:2601.09083, 2026.
+Charlie Chen, Sebastian Borgeaud, Geoffrey Irving, Jean-Baptiste Lespiau, Laurent Sifre, and John
+Jumper. Accelerating large language model decoding with speculative sampling. ArXiv preprint,
+arXiv:2302.01318, 2023.
+Lingjiao Chen, Matei Zaharia, and James Zou. Frugalgpt: How to use large language models while
+reducing cost and improving performance. Transactions on Machine Learning Research, 2024.
+Qiaoling Chen, Zijun Liu, Peng Sun, Shenggui Li, Guoteng Wang, Ziming Liu, Yonggang Wen,
+Siyuan Feng, and Tianwei Zhang. Respec: Towards optimizing speculative decoding in reinforce-
+ment learning systems. ArXiv preprint, arXiv:2510.26475, 2025.
+Wei-Lin Chiang, Zhuohan Li, Ziqing Lin, Ying Sheng, Zhanghao Wu, Hao Zhang, Lianmin Zheng,
+Siyuan Zhuang, Yonghao Zhuang, Joseph E Gonzalez, et al. Vicuna: An open-source chatbot
+impressing gpt-4 with 90%* chatgpt quality, 2023.
+Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser,
+Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, et al. Training verifiers to solve
+math word problems. ArXiv preprint, arXiv:2110.14168, 2021.
+Ashok Cutkosky. Parameter-free, dynamic, and strongly-adaptive online learning. In Proceedings of
+the 37th International Conference on Machine Learning (ICML), pp. 2250–2259, 2020.
+Yoav Freund and Robert E. Schapire. A decision-theoretic generalization of on-line learning and an
+application to boosting. Journal of Computer and System Sciences, 55(1):119–139, 1997.
+10

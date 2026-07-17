@@ -1,0 +1,95 @@
+===== PAGE 9 =====
+
+Preprint. Under review.
+5.4
+Ablations on the MTP Objective
+In addition to the two main models that we showcase above, in the Appendix we include
+results for ablations where we change the training dataset and where we modify the various
+parameters of our MTP training objective. These ablations are presented in Section C.5
+via Tables 4 and 5 but we can summarize those results as supportive of our choice of
+hyperparameters and objective configuration for the main models. To highlight just a few
+of the ablated settings, we observe the best overall performance when we utilize the hard
+teacher distribution under the argmax readout as targets, when we randomize the k values
+during training, when we use causal masking across the MTP regions, and when there is no
+auxiliary loss term for NTP on prefix tokens.
+5.5
+Throughput vs. Latency
+100
+150
+200
+250
+300
+Latency−1 (tok/sec/sequence)
+0
+500
+1000
+1500
+2000
+2500
+3000
+Throughput (tok/sec)
+1
+2
+3
+Static k
+Methods
+EAGLE-3
+Concurrency
+c=16
+c=8
+c=4
+c=2
+c=1
+Figure 5: Throughput vs. latency tradeoff for
+L3.1-8B-Magpie. Throughput is the total to-
+kens per second emitted by the server, latency
+is the tokens per second per request, and con-
+currency is the number of parallel requests
+made to the server. MTP decoding smoothly
+trades latency for throughput and is com-
+petitive with EAGLE-3 under our static k=3
+strategy.
+Finally, while the “Acceleration Factor” met-
+ric reported above is an interpretable mea-
+sure of speedup for a MTP approach, real
+world gains may be different. Therefore, we
+also analyze our approach using an integra-
+tion with the inference framework SGLang
+(Zheng et al., 2024); their engine supports
+caching, batching, and model parallelism
+features and enables a comparison to base-
+lines like EAGLE-3 speculative decoding
+(Li et al., 2025). Visualized as a pareto fron-
+tier between throughput and latency, in Fig-
+ure 5 we observe that our approach is com-
+petitive with EAGLE-3 under our static k=3
+strategy. However, in a companion chart,
+Appendix Figure 12, we also see that the
+ConfAdapt scheme’s overhead limits the
+throughput advantage concurrency can pro-
+vide in that setting. Note that the irregular-
+ity for EAGLE-3 between c = 1 and c = 2
+is likely caused by a change in engine be-
+havior behind the scenes when switching
+between single prompt and batching. See
+Section C.3 for more in depth discussion
+of these implementation details and results
+across more strategies and a larger 32B pa-
+rameter model.
+5.6
+Limitations
+While we present a series of ablations to demonstrate the efficacy of our proposed objective,
+early experiments and the outcomes of certain ablations suggest that there are many avenues
+for improvement. For example, while we observe non-trivial lift when using randomized
+k-values rather than static ones during training, there are other ways we could have per-
+formed that ablation that might be more compelling. We also explored utilizing a non-static
+curriculum over k values but those experiments were inconclusive. We considered directly
+penalizing the entropy of the student model to collapse its distribution faster, but we ex-
+pect that other approaches such as a second stage of traditional online RL with complete
+multi-step roll outs might prove more effective than the penalty term approach. Finally, the
+pair of datasets and limited training budgets we utilize yield surprisingly strong results but
+we expect that scaling up the recipe (dataset, model size, training compute) could all help
+produce more performant versions of our models. We will release our training code and
+model checkpoints upon publication so that others can explore some of these directions in
+future research; Appendix A discusses a few of these avenues in more detail.
+9

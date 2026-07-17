@@ -1,0 +1,29 @@
+===== PAGE 17 =====
+
+Preprint. Under review.
+Evaluation metrics and benchmarks.
+During early experimentation, we used our held out
+validation subset of MetaMathQA to track metrics like confidence and quality of the student
+roll outs under the teacher (as in Figure 6). Then, for a comprehensive evaluation of our main
+models we selected a series of mathematical and general instruction following benchmark
+datasets from the Eleuther LM Evaluation Harness (Gao et al., 2024). We specifically chose
+the following set of generative benchmarks to test the technical and long form generation
+capabilities of our MTP LMs: GSM8K, AIME25, GPQA, BBH, IFEVAL, and CNN DailyMail.
+We refer the reader to the harness repo and each respective dataset’s documentation for a
+detailed descriptions of each but we list the specific used settings in the evaluation harness
+below.
+GSM8K CoT Fewshot is evaluated with an additional “Lets think step by step” suffix to the
+prompt, with output truncation after emission of ``Q:'' or any of the model’s stop tokens.
+We report the “flexible-extract” accuracy metric and its Std. Error.
+AIME25 is evaluated with output truncation after emission of any of the model’s stop
+tokens. We report the “exact-match” accuracy metric and its Std. Error.
+GPQA Main CoT Fewshot is evaluated with output truncation after emission of any of the
+model’s stop tokens. We report the “flexible-extract” accuracy metric and its Std. Error.
+Big Bench Hard CoT Fewshot is evaluated with output truncation after emission of
+``\\n\\n'', ``Q:'', or any of the model’s stop tokens. We report the exact-match accuracy
+metric and its Std. Error under the “get-answer” extraction method.
+IFEval is evaluated with output truncation after emission of ``Q:'' or any of the model’s
+stop tokens. We report the “Prompt-level” exact-match accuracy metric and its Std. Error.
+CNN DailyMail Summarization is evaluated with output truncation after emission of any
+of the model’s stop tokens. We report the ROUGE-L performance metric and its Std. Error.
+17

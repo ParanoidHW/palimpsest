@@ -1,0 +1,99 @@
+===== PAGE 1 =====
+
+Preprint. Under review.
+Multi-Token Prediction via Self-Distillation
+John Kirchenbauer1∗, Abhimanyu Hans1
+Brian Bartoldson2,Micah Goldblum3, Ashwinee Panda1,4, Tom Goldstein1
+1University of Maryland
+2Lawrence Livermore National Laboratory 3Columbia University 4TogetherAI
+Abstract
+Existing techniques for accelerating language model inference, such as
+speculative decoding, require training auxiliary speculator models and
+building and deploying complex inference pipelines. We consider a new
+approach for converting a pretrained autoregressive language model from
+a slow single next token prediction model into a fast standalone multi-
+token prediction model using a simple online distillation objective. The
+final model retains the exact same implementation as the pretrained initial
+checkpoint and is deployable without the addition of any auxiliary verifier
+or other specialized inference code. Our method produces models that
+decode more than 3× faster at < 5% drop in accuracy on GSM8K relative
+to the single token decoding performance of the same checkpoint.
+1
+Introduction
+Standard language models generate text by predicting tokens one-at-a-time, resulting in very
+slow throughput when generating many tokens. This problem is exacerbated in reasoning
+models, as they often use thousands of tokens during a chain of thought even when they will
+ultimately produce a short final response, resulting in a sluggish user experience. To address
+this issue, we consider an approach for training a language model (LM) to produce multiple
+tokens in a single forward pass, enabling it to generate spans of text with significantly
+reduced latency and inference cost.
+Q: Claire makes a 3 egg omelet every morning for breakfast.  How many
+dozens of eggs will she eat in 4 weeks? A: Let's think step by step.
+Claire makes 3 eggs
+every
+morning.
+There
+are 7 days in a week
+, so in 4 weeks
+,
+there
+are 4
+x 7 = 28
+days.
+So
+she
+uses
+3 x 28
+= 84 eggs
+.
+There
+are 12 in a dozen
+, so
+84
+/ 12
+= 7
+dozens
+.
+The answer is 7.
+5
+1
+2
+1
+7
+6
+1
+1
+3
+7
+2
+1
+1
+1
+6
+5
+1
+1
+7
+2
+3
+4
+3
+1
+1
+6
+Avg: 3.04
+1
+3
+5
+7
+MTP Chunk Size
+Figure 1: Example response to a GSM8K test question from our Qwen3-4B-Instruct-2507
+based multi-token prediction model. Decoding is performed using a confidence-adaptive
+strategy with a threshold of 90% with no secondary verification step. Each colored block
+corresponds to a chunk of tokens produced during a single forward pass and is annotated
+with its size in tokens which ranges from 1 to 7 in this example. The average chunk size
+over the entire generation is 3.04.
+∗Correspondence to <jkirchen@umd.edu>. Code available at: github.com/jwkirchenbauer/mtp-lm.
+Checkpoints available at: hf.co/collections/tomg-group-umd/mtp-lm.
+1
+arXiv:2602.06019v2  [cs.CL]  23 Apr 2026

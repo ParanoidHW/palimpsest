@@ -1,0 +1,99 @@
+===== PAGE 9 =====
+
+Submission and Formatting Instructions for ICML 2026
+Impact Statement
+This paper presents LiME, a method for efficient multi-task
+adaptation of large pre-trained models. Our work aims to
+advance the field of Machine Learning by reducing the com-
+putational and memory costs associated with fine-tuning,
+making model adaptation more accessible to researchers
+and practitioners with limited resources. The efficiency
+gains may also contribute to reduced energy consumption
+in training workflows.
+As with any method that facilitates model adaptation, LiME
+could potentially be used to fine-tune models for harm-
+ful applications. However, this concern is not specific to
+our approach and applies broadly to the field of parameter-
+efficient fine-tuning. We do not foresee any unique ethical
+risks arising from our contributions beyond those inherent
+to advancing general-purpose machine learning techniques.
+References
+Agarwal, A., Panda, S., Charles, A., Patel, H. L., Kumar,
+B., Pattnayak, P., Rafi, T. H., Kumar, T., Meghwani, H.,
+Gupta, K., et al. Mvtamperbench: Evaluating robustness
+of vision-language models. In Findings of the Association
+for Computational Linguistics: ACL 2025, pp. 18804–
+18828, 2025.
+Aharoni, R. and Goldberg, Y. Unsupervised domain clus-
+ters in pretrained language models.
+arXiv preprint
+arXiv:2004.02105, 2020.
+Beltagy, I., Peters, M. E., and Cohan, A.
+Long-
+former: The long-document transformer. arXiv preprint
+arXiv:2004.05150, 2020.
+Bisk, Y., Zellers, R., Gao, J., Choi, Y., et al. Piqa: Reasoning
+about physical commonsense in natural language. In Pro-
+ceedings of the AAAI conference on artificial intelligence,
+volume 34, pp. 7432–7439, 2020.
+Cai, W., Jiang, J., Wang, F., Tang, J., Kim, S., and Huang, J.
+A survey on mixture of experts in large language models.
+IEEE Transactions on Knowledge and Data Engineering,
+2025.
+Clark, C., Lee, K., Chang, M.-W., Kwiatkowski, T., Collins,
+M., and Toutanova, K. Boolq: Exploring the surprising
+difficulty of natural yes/no questions. arXiv preprint
+arXiv:1905.10044, 2019.
+Clark, C., Zhang, J., Ma, Z., Park, J. S., Salehi, M., Tri-
+pathi, R., Lee, S., Ren, Z., Kim, C. D., Yang, Y., et al.
+Molmo2: Open weights and data for vision-language
+models with video understanding and grounding. arXiv
+preprint arXiv:2601.10611, 2026.
+Clark, P., Cowhey, I., Etzioni, O., Khot, T., Sabharwal, A.,
+Schoenick, C., and Tafjord, O. Think you have solved
+question answering? try arc, the ai2 reasoning challenge.
+arXiv preprint arXiv:1803.05457, 2018.
+Cover, T. M. Elements of information theory. John Wiley &
+Sons, 1999.
+Dou, S., Zhou, E., Liu, Y., Gao, S., Shen, W., Xiong, L.,
+Zhou, Y., Wang, X., Xi, Z., Fan, X., et al. Loramoe:
+Alleviating world knowledge forgetting in large language
+models via moe-style plugin. In Proceedings of the 62nd
+Annual Meeting of the Association for Computational
+Linguistics (Volume 1: Long Papers), pp. 1932–1945,
+2024.
+Fang, C., Li, J., Li, L., Ma, C., and Hu, D. Separate and
+locate: Rethink the text in text-based visual question
+answering. In Proceedings of the 31st ACM International
+Conference on Multimedia, pp. 4378–4388, 2023.
+Fedus, W., Zoph, B., and Shazeer, N. Switch transformers:
+Scaling to trillion parameter models with simple and ef-
+ficient sparsity. Journal of Machine Learning Research,
+23(120):1–39, 2022.
+Gao, C., Chen, K., Rao, J., Sun, B., Liu, R., Peng, D., Zhang,
+Y., Guo, X., Yang, J., and Subrahmanian, V. Higher layers
+need more lora experts. arXiv preprint arXiv:2402.08562,
+2024.
+Gao, C., Chen, K., Rao, J., Liu, R., Sun, B., Zhang, Y.,
+Peng, D., Guo, X., and Subrahmanian, V. Mola: Moe
+lora with layer-wise expert allocation. In Findings of the
+Association for Computational Linguistics: NAACL 2025,
+pp. 5097–5112, 2025.
+Geiger, M., Jacot, A., Spigler, S., Gabriel, F., Sagun, L.,
+d’Ascoli, S., Biroli, G., Hongler, C., and Wyart, M. Scal-
+ing description of generalization with number of param-
+eters in deep learning. Journal of Statistical Mechanics:
+Theory and Experiment, 2020(2):023401, 2020.
+Gou, Y., Liu, Z., Chen, K., Hong, L., Xu, H., Li, A., Yeung,
+D.-Y., Kwok, J. T., and Zhang, Y. Mixture of cluster-
+conditional lora experts for vision-language instruction
+tuning. arXiv preprint arXiv:2312.12379, 2023.
+Gurari, D., Li, Q., Stangl, A. J., Guo, A., Lin, C., Grauman,
+K., Luo, J., and Bigham, J. P. Vizwiz grand challenge:
+Answering visual questions from blind people. In Pro-
+ceedings of the IEEE conference on computer vision and
+pattern recognition, pp. 3608–3617, 2018.
+Hu, E. J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang,
+S., Wang, L., Chen, W., et al. Lora: Low-rank adaptation
+of large language models. ICLR, 1(2):3, 2022.
+9

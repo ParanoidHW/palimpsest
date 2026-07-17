@@ -1,0 +1,35 @@
+===== PAGE 18 =====
+
+Preprint. Under review.
+C
+Extended Results
+C.1
+Quality vs. Confidence Correlation
+Figure 6: The correlation between student confidence and generation quality for a prelim-
+inary experiment where we train a Llama-3.1-8B Base model on generic webtext under
+our MTP objective. We evaluate the quality of its completions to prefixes in a validation
+set (loss under the teacher model, lower is better) and correlate this against the student’s
+confidence in its own generations (avg. probability assigned to top token in all k positions).
+The correlation between confidence and quality allows us to design a simple adaptive de-
+coding strategy that limits the number of tokens sampled if the model is not sufficiently
+confident at any point during the generation process.
+C.2
+Performance over the course of training.
+In Figures 7 and 8 we present the evaluation performance and acceleration on the GSM8K
+benchmark over the course of ∼100, 000 training iterations for our L3.1-8B-Magpie based
+and Q3-4B-Inst-2507 based MTP models respectively to accompany the performance vs.
+acceleration pareto plots in Figure 4. We show the same dynamics and performance vs.
+acceleration pareto plots for both models but for the BBH evaluation task in Figures 9
+to 11 We find that when evaluating the models under the Static scheme at various values
+of k, performance is inversely proportional to the value of k. We also observe that both
+performance and acceleration stabilize by the halfway point. Note that we report an initial
+acceleration factor < k for Static schemes in some cases because when untrained, the model
+often emits a stop token within the first k token window, truncating the sequence.
+The ConfAdapt scheme is visualized on the same axes as the Static scheme by computing
+the average k value that was chosen by the heuristic across all decoding steps over all the
+generations in the evaluation. We present the results across a sweep of confidence thresholds
+for each model and benchmark. We observe that the ConfAdapt schemes are pareto optimal,
+achieving significant acceleration factors of > 3× without degrading accuracy very much.
+At more aggressive settings using more permissive confidence thresholds, the acceleration
+factors are as high as 5× but cause a more significant reduction in accuracy.
+18

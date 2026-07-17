@@ -1,0 +1,50 @@
+===== PAGE 20 =====
+
+Published as a workshop paper in Lifelong Agent @ ICLR 2026
+Table 5: Prompt template used for semantic alignment verification in reasoning. We use Qwen2.5-7B-Instruct
+as judge (temperature=0.0).
+System Prompt:
+You are Qwen, created by Alibaba Cloud. You are a helpful assistant.
+User Prompt:
+Evaluate whether the following two reasoning steps (s1 and s2) convey exactly the same meaning.
+Focus on semantic similarity rather than exact wording.
+Compare the main ideas, key points, overall message, logical structure, and numerical calcula-
+tions/results of both reasoning steps.
+If the reasoning steps convey essentially the same meaning and generate same calculation
+results, respond with [aligned]. If the reasoning steps express different meanings, respond with
+[unaligned]. If it is too hard to determine, respond with [unaligned]
+Please directly provide the final result in [aligned] or [unaligned].
+Reasoning step 1 (s1):
+<start_s1>
+{draft_output}
+<end_s1>
+Reasoning step 2 (s2):
+<start_s2>
+{target_output}
+<end_s2>
+For the problem-solving prompt in reasoning, we use the prompt template shown in Table 6 to instruct
+the reasoning model.
+Table 6: Problem-solving prompt template for math reasoning tasks.
+User Prompt:
+{question}
+Please reason step by step, and put your final answer within \boxed{}. Once a full round of
+reasoning is completed, do not check again, immediately cease reasoning, and output the answer.
+To prevent excessive reasoning behavior, we inject a transition instruction into the context when the
+token count reaches the predefined limit of 1024 tokens, as shown in Table 7:
+Table 7: Thinking-to-Output mode transition instruction.
+Context: {preceding prompt and reasoning trace}
+Instruction: Considering the limited time by the user, I have to give the solution based on the
+thinking directly now.
+</think>
+B.6
+MORE IMPLEMENTATION DETAILS
+Throughout experiments, we utilize three foundation models as the target model in the generation-
+refinement framework, including Vicuna-7B Chiang et al. (2023), Llama-2-7b (Touvron et al., 2023),
+and Qwen3-8B (Yang et al., 2025). The online evaluation is conducted in a streaming fashion: we
+partition the evaluation dataset into chunks of size T = 40 for the EAGLE framework, T = 80
+for Hydra, and T = 25 for reasoning tasks, with total iterations ranging from 16 to 120 depending
+on the dataset size. The maximum sequence length is set to 2048 tokens. We use Flash Attention
+to accelerate attention computation. The offline training phase uses approximately 1000 samples
+per domain for warm-up, and the online phase processes approximately 4000 additional samples
+in a streaming manner. We employ mixed-precision training with bfloat16 (bf16) to accelerate
+20

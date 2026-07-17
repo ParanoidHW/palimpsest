@@ -1,0 +1,147 @@
+===== PAGE 6 =====
+
+Preprint. Under review.
+PosID:
+0
+Text:
+the
+InpID:
+1820
+TgtID:
+2860
+Pred:
+0
+1
+ total
+2860
+1396
+0
+2
+ number
+1396
+315
+0
+3
+ of
+315
+4520
+1
+4
+<MTP>
+128259
+374
+1
+5
+<MTP>
+128259
+220
+1
+4
+ minutes
+4520
+374
+0
+5
+ is
+374
+220
+0
+6
+
+220
+1399
+0
+7
+60
+1399
+353
+1
+8
+<MTP>
+128259
+220
+1
+9
+<MTP>
+128259
+23
+1
+8
+ *
+353
+220
+0
+9
+
+220
+23
+0
+10
+8
+23
+284
+0
+11
+ =
+284
+220
+1
+12
+<MTP>
+128259
+11738
+1
+13
+<MTP>
+128259
+4520
+1
+Figure 2: Visual depiction of how a piece of training text is tokenized and masked. In this
+example, the sequence length is 18, the k value is 3, and the number of MTP regions R is also
+3. We show post-masking replication of the k ground truth tokens corresponding to each
+MTP region and the corresponding position embedding adjustments required. Note that
+while the targets row (TgtID) is filled with ground truth tokens from the dataset for clarity,
+under our proposed online training objective, the targets (Pred) are based on the teacher
+model’s feedback, not ground truth data. The masking style and and input replication
+shown materializes many different MTP problems within a single sequence in parallel,
+increasing training efficiency.
+as input for our online objective. To train efficiently, we need an attention masking scheme
+that allows us to supervise multiple prediction spans within a single sequence in parallel.
+In Figure 2, we present a visual depiction of how input text is tokenized into a sequence,
+masked, and aligned for our model so that multiple supervised spans can be computed
+in parallel. To compute the k token prediction y′ of the student at a given position in the
+tokenized input sequence, k −1 “MTP masks” are inserted directly following the last token
+of the prefix that will be provided as input to the model for MTP problem beginning at
+position i.
+Another important detail shown in Figure 2 is the appearance of ground truth tokens
+following the first MTP region. Suppose we make MTP predictions at position i, followed
+by another prediction at position i′ > i. This later prediction must have access to all ground
+truth tokens in the span x0:i′, which includes the tokens xi:i′ between i and i′. We place
+the ground truth tokens xi:i′ immediately after the first MTP region. Then we also modify
+the position embeddings (e.g. RoPE features) so these tokens have their original position
+features (ignoring the presence of the MTP mask tokens) applied to them, though they now
+appear later in the context window.
+4.2
+Blocked Attention
+We visualize examples of our attention masks in Figure 3. We design the mask such that for
+all positions corresponding to ground truth tokens outside of the MTP regions, the mask has
+the standard causal structure; each ground truth token attends to all upstream prefix tokens,
+skipping over MTP spans. Each MTP token attends to upstream ground truth tokens, in
+addition to upstream tokens within its own MTP span (but not other spans).
+In the masked regions where MTP is performed, the use of causal attention, rather than
+bidirectional or full self-attention, is not strictly necessary—whereas it is for standard NTP
+training using offline cross-entropy (see Section C.5 for a discussion). However, since using
+a bidirectional mask in the MTP regions would represent an additional distribution shift
+for the pretrained student model, would also preclude the use of standard causal attention
+at inference time, and only provides marginal lift in our ablations (Appendix Table 4) we
+choose to train our models with blocked but otherwise standard causal attention.
+We also randomize the location of the MTP spans so that the model can learn to make
+predictions starting from any position. Figures 2 and 3 illustrate how we achieve this using
+an offset during input preparation and mask materialization. We also experiment with
+randomizing the MTP span length k. As shown in Figure 3, we parametrize our attention
+mask generator to allow dynamic adjustment of position, length, and number of MTP spans.
+4.3
+Static vs. Adaptive Decoding Strategies
+Our informal analysis of the proposed objective Equation (3) in the preliminaries section
+suggests that there may be a correlation between the confidence of the student model on
+6

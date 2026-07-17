@@ -1,0 +1,227 @@
+===== PAGE 19 =====
+
+Submission and Formatting Instructions for ICML 2026
+Table 3. CKA (Centered Kernel Alignment) similarity scores between LiMELoRA and MoELoRA across layers and GLUE datasets.
+Higher values indicate stronger representational similarity.
+Layer
+SST-2
+QNLI
+QQP
+CoLA
+MRPC
+STS-B
+Mean
+Layer 0
+0.994
+0.995
+0.995
+0.993
+0.995
+0.994
+0.994
+Layer 1
+0.981
+0.986
+0.986
+0.984
+0.985
+0.984
+0.984
+Layer 2
+0.965
+0.968
+0.956
+0.977
+0.977
+0.977
+0.970
+Layer 3
+0.942
+0.947
+0.945
+0.950
+0.956
+0.954
+0.949
+Layer 4
+0.955
+0.944
+0.954
+0.960
+0.949
+0.949
+0.952
+Layer 5
+0.954
+0.939
+0.938
+0.959
+0.940
+0.937
+0.945
+Layer 6
+0.947
+0.940
+0.942
+0.945
+0.940
+0.940
+0.942
+Layer 7
+0.926
+0.944
+0.933
+0.926
+0.932
+0.939
+0.933
+Layer 8
+0.929
+0.935
+0.950
+0.899
+0.953
+0.946
+0.935
+Layer 9
+0.866
+0.886
+0.892
+0.860
+0.899
+0.876
+0.880
+Layer 10
+0.951
+0.954
+0.947
+0.951
+0.931
+0.930
+0.941
+Layer 11
+0.920
+0.925
+0.927
+0.932
+0.923
+0.933
+0.927
+Layer 12
+0.945
+0.932
+0.922
+0.943
+0.920
+0.920
+0.930
+Layer 13
+0.950
+0.946
+0.938
+0.940
+0.904
+0.940
+0.936
+Layer 14
+0.955
+0.932
+0.927
+0.950
+0.922
+0.941
+0.938
+Layer 15
+0.951
+0.934
+0.928
+0.941
+0.926
+0.941
+0.937
+Layer 16
+0.942
+0.954
+0.913
+0.924
+0.930
+0.928
+0.932
+Layer 17
+0.915
+0.908
+0.867
+0.899
+0.872
+0.872
+0.889
+Layer 18
+0.925
+0.916
+0.903
+0.920
+0.912
+0.896
+0.912
+Layer 19
+0.900
+0.918
+0.890
+0.919
+0.887
+0.867
+0.897
+Layer 20
+0.949
+0.947
+0.919
+0.936
+0.922
+0.914
+0.931
+Layer 21
+0.931
+0.896
+0.903
+0.929
+0.903
+0.878
+0.907
+Layer 22
+0.930
+0.923
+0.907
+0.939
+0.909
+0.901
+0.918
+Layer 23
+0.970
+0.971
+0.964
+0.954
+0.954
+0.945
+0.960
+Mean
+0.942
+0.939
+0.931
+0.939
+0.931
+0.929
+0.935
+B.1. CKA Analysis
+To provide empirical validation of Theorem 2, we analyze CKA (Centered Kernel Alignment) similarity between LiMELoRA
+and MoELoRA representations at each layer. CKA measures representational similarity independent of orthogonal
+transformations and isotropic scaling, making it suitable for comparing learned representations across architectures. Table 3
+shows CKA scores for layers 0–23 across all GLUE tasks.
+Several observations emerge. First, CKA remains consistently high (> 0.88) across all layers, indicating that LiME
+approximates full MoE-PEFT throughout the network, not just at specific layers. Second, early layers (0–3) show the highest
+CKA (0.949–0.994), suggesting that expert modulation most closely matches separate adapters when processing lower-level
+features. Third, certain middle layers (9, 17, 19) show relatively lower CKA (0.880–0.897), which may reflect increased
+task-specific specialization where the modulation approximation is less tight. Fourth, the final layer (23) recovers high CKA
+(0.960), indicating that output representations converge despite intermediate differences—consistent with our theoretical
+bound that approximation error remains controlled. The overall mean CKA of 0.935 across all layers and tasks confirms that
+LiME effectively approximates expert-specific PEFT, empirically supporting Theorem 2.
+19

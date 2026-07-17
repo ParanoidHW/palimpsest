@@ -1,0 +1,50 @@
+===== PAGE 31 =====
+
+Preprint. Under review.
+truth forcing and the online self-distillation approach. In this ablation, the prompts (ques-
+tions) in the same set of MetaMathQA training examples used in the main results are passed
+to the original L3.1-8B-Magpie checkpoint to allow it to generate a CoT and answer. Then,
+after this offline step is complete, theses new generations are used as the targets under a
+similar configuration of the training code as the “GT Suprv.” setting; no teacher pass is
+performed and the students predictions are simply directly compared to the k tokens that
+appeared in this “offline teacher”’s roll out.
+As shown in Figure 14 and Table 6, we observe that this approach is performs slightly better
+than the “GT Suprv.” setting, but worse than the online setting. While it is competitive
+with the true online setting at small values of k, the performance at larger values of k is
+consistently worse. We conclude that this middle ranking between true online and true
+offline is intuitive given the pseudo-on-policy nature of NTP rollouts from the same set of
+weights we are about to tune for MTP.
+101
+102
+103
+104
+105
+Step
+100
+101
+Loss
+(a)
+101
+102
+103
+104
+105
+Step
+100
+101
+Loss
+L3.1-8B-Magpie GT Suprv.
+L3.1-8B-Magpie Oﬄine Teacher
+L3.1-8B-Magpie
+(b)
+Figure 13: Training loss as a function of optimizer step, across ∼100, 000 steps of training
+for our L3.1-8B-Magpie based MTP LM trained using the main online objective of Figure 4
+and Algorithm 1, compared to the “Offline Teacher” and offline“GT Suprv.” variants of the
+objective. We present both (a) the raw loss on semilog axes, and (b) a smoothed version
+via a 50 step windowed rolling average. The high per step variance is due to the k value
+randomization in all three runs. We see that while the lowest per step losses achieved by
+all three methods are similar, the highest loss values for the offline methods are much
+larger than those in the online setting. This translates both to a large gap in the rolling
+average and corroborates the large gap in evaluation performance at higher values of k
+shown in Figure 14.
+31

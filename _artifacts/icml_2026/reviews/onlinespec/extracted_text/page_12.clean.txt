@@ -1,0 +1,52 @@
+===== PAGE 12 =====
+
+Published as a workshop paper in Lifelong Agent @ ICLR 2026
+Aixin Liu, Bei Feng, Bing Xue, Bingxuan Wang, Bochao Wu, Chengda Lu, Chenggang Zhao,
+Chengqi Deng, Chenyu Zhang, Chong Ruan, et al. Deepseek-v3 technical report. ArXiv preprint,
+arXiv:2412.19437, 2024a.
+Bingshuai Liu, Ante Wang, Zijun Min, Liang Yao, Haibo Zhang, Yang Liu, Anxiang Zeng, and
+Jinsong Su. Spec-rl: Accelerating on-policy reinforcement learning via speculative rollouts. ArXiv
+preprint, arXiv:2509.23232, 2025a.
+Hongyi Liu, Jiaji Huang, Zhen Jia, Youngsuk Park, and Yu-Xiang Wang. Not-a-bandit: Provably
+no-regret drafter selection in speculative decoding for LLMs. ArXiv preprint, arXiv:2510.20064,
+2025b.
+Xiaoxuan Liu, Lanxiang Hu, Peter Bailis, Alvin Cheung, Zhijie Deng, Ion Stoica, and Hao Zhang.
+Online speculative decoding. In Proceedings of the 41st International Conference on Machine
+Learning (ICML), pp. 31131–31146, 2024b.
+Harikrishna Narasimhan, Wittawat Jitkrittum, Ankit Singh Rawat, Seungyeon Kim, Neha Gupta,
+Aditya Krishna Menon, and Sanjiv Kumar. Faster cascades via speculative decoding. In Proceed-
+ings of the 13th International Conference on Learning Representations (ICLR), pp. 44949–44987,
+2025.
+Francesco Orabona. A Modern Introduction to Online Learning. ArXiv preprint, arXiv:1912.13213,
+2019.
+Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll L. Wainwright, Pamela Mishkin, Chong
+Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, John Schulman, Jacob Hilton, Fraser Kelton,
+Luke Miller, Maddie Simens, Amanda Askell, Peter Welinder, Paul F. Christiano, Jan Leike, and
+Ryan Lowe. Training language models to follow instructions with human feedback. In Advances
+in Neural Information Processing Systems 35 (NeurIPS), pp. 27730–27744, 2022.
+Qwen, An Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chengyuan Li,
+Dayiheng Liu, Fei Huang, Haoran Wei, Huan Lin, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin
+Yang, et al. Qwen2.5 technical report. ArXiv preprint, arXiv:2412.15115, 2025.
+Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal,
+Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, and Ilya Sutskever.
+Learning transferable visual models from natural language supervision. In Proceedings of the 38th
+International Conference on Machine Learning (ICML), pp. 8748–8763, 2021.
+Rafael Rafailov, Archit Sharma, Eric Mitchell, Christopher D. Manning, Stefano Ermon, and Chelsea
+Finn. Direct preference optimization: Your language model is secretly a reward model. In Advances
+in Neural Information Processing Systems 36 (NeurIPS), pp. 53728–53741, 2023.
+Desh Raj, Gil Keren, Junteng Jia, Jay Mahadeokar, and Ozlem Kalinli. Faster speech-llama inference
+with multi-token prediction.
+In Proceedings of the 50th IEEE International Conference on
+Acoustics, Speech and Signal Processing (ICASSP), pp. 1–5, 2025.
+Alexander Rakhlin and Karthik Sridharan. Online learning with predictable sequences. In Proceedings
+of the 26th Annual Conference on Computational Learning Theory (COLT), volume 30, pp. 993–
+1019, 2013.
+Yang Song, Chenlin Meng, Renjie Liao, and Stefano Ermon. Accelerating feedforward computation
+via parallel nonlinear equation solving. In Proceedings of the 38th International Conference on
+Machine Learning (ICML), pp. 9791–9800, 2021.
+Ziteng Sun, Ananda Theertha Suresh, Jae Hun Ro, Ahmad Beirami, Himanshu Jain, and Felix X.
+Yu. SpecTr: fast speculative decoding via optimal transport. In Advances in Neural Information
+Processing Systems 36 (NeurIPS), pp. 30222–30242, 2023.
+Rohan Taori, Ishaan Gulrajani, Tianyi Zhang, Yann Dubois, Xuechen Li, Carlos Guestrin, Percy
+Liang, and Tatsunori B Hashimoto. Stanford alpaca: An instruction-following llama model, 2023.
+12

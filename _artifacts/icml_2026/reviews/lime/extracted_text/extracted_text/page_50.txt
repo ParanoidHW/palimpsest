@@ -1,0 +1,172 @@
+===== PAGE 50 =====
+
+Submission and Formatting Instructions for ICML 2026
+Table 21. MMT-47 benchmark statistics. Training and test samples across five categories: Text (NLU) , Text (Reasoning) , Video ,
+Image (VQA) , and Image (VTAB) .
+Dataset
+Train
+Test
+Dataset
+Train
+Test
+Dataset
+Train
+Test
+Text (NLU) — GLUE
+Train: 28,668 — Test: 49,716
+SST-2
+5,000
+872
+QQP
+5,000
+40,430
+MRPC
+3,668
+408
+QNLI
+5,000
+5,463
+CoLA
+5,000
+1,043
+STS-B
+5,000
+1,500
+Text (Reasoning) — Commonsense
+Train: 70,302 — Test: 6,500
+ARC-Challenge
+1,791
+500
+HellaSwag
+10,000
+1,000
+Social IQA
+10,000
+1,000
+ARC-Easy
+4,127
+500
+OpenBookQA
+4,957
+500
+WinoGrande
+20,000
+1,000
+BoolQ
+9,427
+1,000
+PIQA
+10,000
+1,000
+Video — MVBench
+Train: 17,093 — Test: 5,700
+Action Sequence
+900
+300
+Object Shuffle
+900
+300
+Moving Attribute
+900
+300
+Action Prediction
+900
+300
+Moving Direction
+900
+300
+State Change
+900
+300
+Action Antonym
+893
+300
+Action Localization
+900
+300
+Character Order
+900
+300
+Fine-grained Action
+900
+300
+Scene Transition
+900
+300
+Ego. Navigation
+900
+300
+Unexpected Action
+900
+300
+Action Count
+900
+300
+Episodic Reasoning
+900
+300
+Object Existence
+900
+300
+Moving Count
+900
+300
+Counterfactual
+900
+300
+Object Interaction
+900
+300
+Image (VQA) — Visual Question Answering
+Train: 33,550 — Test: 5,476
+ChartQA
+5,000
+1,000
+TextVQA
+5,000
+1,000
+VQA-RAD
+1,060
+200
+OK-VQA
+4,204
+841
+VizWiz-VQA
+2,086
+417
+SEED-Bench
+5,500
+500
+ScienceQA
+5,700
+518
+Text Recognition
+5,000
+1,000
+Image (VTAB) — Visual Task Adaptation
+Train: 9,000 — Test: 3,000
+Caltech-101
+1,500
+500
+Flowers-102
+1,500
+500
+SVHN
+1,500
+500
+EuroSAT
+1,500
+500
+Pets
+1,500
+500
+Camelyon
+1,500
+500
+Total — Train: 158,613 — Test Sets: 47 — Test Samples: 70,392
+The Use of Large Language Models
+We used a large language model (LLM) solely for minor language-related assistance, including grammar correction, language
+polishing, and readability improvement. The LLM was not used for content generation, scientific ideation, experimental
+design, data analysis, or interpretation. All research contributions, technical content, and results presented in this paper are
+entirely the work of the authors.
+50

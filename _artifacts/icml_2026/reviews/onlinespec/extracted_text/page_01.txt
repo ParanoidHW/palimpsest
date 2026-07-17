@@ -1,0 +1,60 @@
+===== PAGE 1 =====
+
+Published as a workshop paper in Lifelong Agent @ ICLR 2026
+WHEN DRAFTS EVOLVE: SPECULATIVE DECODING
+MEETS ONLINE LEARNING
+Yu-Yang Qian1,2
+Hao-Cong Wu1,2
+Yichao Fu3
+Hao Zhang3
+Peng Zhao1,2
+1National Key Laboratory for Novel Software Technology, Nanjing University
+2School of Artificial Intelligence, Nanjing University
+3University of California, San Diego
+{qianyy,zhaop}@lamda.nju.edu.cn
+hcwu@smail.nju.edu.cn
+{yif034,haozhang}@ucsd.edu
+ABSTRACT
+Speculative decoding has emerged as a widely adopted paradigm for accelerating
+large language model inference, where a lightweight draft model rapidly gener-
+ates candidate tokens that are then verified in parallel by a larger target model.
+However, due to limited model capacity, drafts often struggle to approximate
+the target distribution, resulting in shorter acceptance lengths and diminished
+speedup. A key yet under-explored observation is that speculative decoding in-
+herently provides verification feedback that quantifies the deviation between the
+draft and target models at no additional cost. This process naturally forms an
+iterative “draft commits–feedback provides–draft adapts” evolving loop, which
+precisely matches the online learning paradigm. Motivated by this connection, we
+propose OnlineSPEC, a unified framework that systematically leverages interac-
+tive feedback to continuously evolve draft models. Grounded in dynamic regret
+minimization, we establish a formal link between online learning performance and
+speculative system’s acceleration rate, and develop novel algorithms via modern
+online learning techniques, including optimistic online learning that adaptively
+reuses historical gradients as predictive update hints, and online ensemble learning
+that dynamically maintains multiple draft models. Our algorithms are equipped
+with theoretical justifications and improved acceleration rates, achieving up to 24%
+speedup over seven benchmarks and three foundation models.
+1
+INTRODUCTION
+Large language models (LLMs) have achieved remarkable success across a wide range of tasks (Brown
+et al., 2020; Radford et al., 2021; Ouyang et al., 2022). Recent advances in test-time scaling
+further extend the inference length for enhanced capabilities, enabling techniques such as chain-of-
+thought (Wei et al., 2022), LLM reasoning (Guo et al., 2025), and agent systems (Xi et al., 2025).
+However, this trend also increases the inference burden due to sequential dependency inherent in
+autoregressive models: each token can only be generated after its predecessor has been produced.
+To reduce the inference latency of LLMs, speculative decoding (Leviathan et al., 2023; Chen et al.,
+2023) has emerged as a widely adopted paradigm. It can be viewed as a representative instance of
+the broader generation-refinement framework (Hu et al., 2025), in which a lightweight draft model
+generates a draft sequence that is then verified by a larger target model. Related approaches in this
+framework include cascade decoding (Varshney & Baral, 2022) and multi-token prediction (Cai et al.,
+2024). Most existing methods typically focus on offline training to obtain a strong draft model and
+keep it fixed during deployment. However, due to the capacity gap between the draft and target
+models, a fixed draft model cannot fully capture all knowledge domains of the target. As a result, it
+may fail to approximate the target distribution for diverse user inputs, leading to shorter acceptance
+lengths and degraded speedup.
+To address this limitation, a critical observation is that the verification process inherently provides
+interactive feedback: each time the target model verifies a draft, it reveals precisely where the draft
+diverges from the target distribution. By further leveraging this feedback to refine the draft model, it
+naturally forms a “draft commits–feedback provides–draft adapts” evolving loop, enabling the draft
+1
+arXiv:2603.12617v1  [cs.LG]  13 Mar 2026

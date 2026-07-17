@@ -1,0 +1,125 @@
+===== PAGE 4 =====
+
+DODO: Discrete OCR Diffusion Models
+Eiffel
+Great
+Tower
+Wall
+the
+[M]
+[M]
+50%
+50%
+50%
+100%
+100%
+50%
+Visit
+the
+Great
+[M]
+[M]
+Wall
+Visit
+Figure 3. Conditional independence assumption. (Top) In open-
+ended tasks, ambiguity between valid options risks sampling in-
+coherent mixtures. (Bottom) In OCR, the strong visual signal
+resolves this ambiguity, enabling conflict-free parallel decoding.
+Conditional Independence Assumption.
+At each sam-
+pling step, the decoded tokens are sampled independently
+from one another. This may lead to incorrect results if the
+decoded tokens in fact are conditionally dependent given
+the context, as illustrated in Figure 3. On the other hand,
+when this assumption holds, there is a large parallelization
+potential to leverage.
+Carry-Over Unmasking.
+We follow the common prac-
+tice (Wu et al., 2025b;a; You et al., 2025; Li et al., 2025a;
+Yu et al., 2025) and only allow the sampling of masked
+tokens at each step. While this formulation is shown by
+(Sahoo et al., 2024a) to be the key for the derivation of the
+discrete ELBO equivalent loss in Equation (1), this means
+one cannot revise previously decoded tokens. While this has
+a lesser effect on generative tasks where multiple responses
+are acceptable, it might be detrimental for tasks where only
+one response is correct, as illustrated in Figure 2.
+4. Method
+We analyze OCR through the lens of MDM training and
+sampling (Section 3.2), focusing on the two sampling as-
+sumptions made explicit there: conditional independence
+of tokens sampled within a step, and carry-over unmasking,
+where revealed tokens are not revised.
+We first argue that OCR is especially compatible with the
+conditional-independence assumption. We then show why
+this potential is difficult to realize with vanilla MDM in-
+ference, as early mistakes persist and this requires caution
+when decoding many tokens in parallel. Finally, we argue
+that block discrete diffusion mitigates these failure modes,
+while retaining high parallelism and enjoying KV-Caching.
+4.1. Parallel Decoding Potential
+OCR typically yields long sequences, making standard au-
+toregressive decoding a significant latency bottleneck, as it
+requires L sequential forward passes to decode L tokens.
+Masked diffusion models offer a compelling alternative by
+enabling parallel token generation; however, their effective-
+ness hinges on the validity of the conditional independence
+assumption.
+We argue that OCR is uniquely suited for this parallel
+paradigm. Unlike semantically flexible vision-language
+tasks, the posterior distribution p(x1:L|I, c) for document
+transcription is highly peaked, often approaching a Dirac
+delta function around a single ground-truth sequence. In this
+low-entropy regime, the strong conditioning on the visual
+input effectively decouples token predictions, allowing the
+joint probability of masked tokens to be factorized:
+p(x1:L
+tk
+| x1:L
+tk+1, I, c) ≈
+L
+Y
+ℓ=1
+p(xℓ
+tk | x1:L
+tk+1, I, c).
+(4)
+This independence allows the decoding of large spans of
+tokens simultaneously, as shown in Figure 1.
+4.2. Brittleness of Parallel Decoding in OCR
+Standard masked diffusion models operate on a fixed-length
+canvas and rely on carry-over unmasking (Section 3.2),
+treating tokens revealed in early steps as immutable context.
+While this constraint is manageable for semantically flexible
+tasks like captioning, where the model can paraphrase con-
+tent or alter semantics to fit the available space, it presents a
+fundamental challenge for OCR. Document transcription is
+a rigid, zero-tolerance task: the ground-truth text consists of
+a specific set of characters in an immutable order. This lack
+of flexibility exposes two critical failure modes for parallel
+decoding:
+Length Mismatch.
+Because the true sequence length is
+unknown at inference time, the decoding canvas size is
+effectively an estimate. In generative tasks like captioning,
+this is rarely fatal; the model can simply generate a valid
+shorter or longer description to match the canvas. In OCR,
+however, this mismatch creates a structural vulnerability. If
+the initial L is incorrect, or the model predicts an end-of-
+sequence [EOS] token prematurely, the model is forced to
+either truncate valid text (if the effective length is too short)
+or hallucinate (if too long) to satisfy the imposed constraint.
+Positional Anchoring.
+Even with a valid length estimate,
+parallel decoding binds content to absolute positional in-
+dices in a non-causal manner. This introduces a critical
+synchronization risk: the model may predict a segment at an
+incorrect offset, such as placing a table header 50 tokens too
+early or too late. Because carry-over unmasking prevents
+the revision of revealed tokens, this error is locked in place.
+Unlike autoregressive decoding, which inherently align con-
+tent to its history without looking ahead, diffusion parallel
+decoding is bound to errors made ahead. Consequently, the
+subsequent text cannot shift to accommodate the offset. Due
+to the unimodal nature of OCR, the model cannot simply
+4

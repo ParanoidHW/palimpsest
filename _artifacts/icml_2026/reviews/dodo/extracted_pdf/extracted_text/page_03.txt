@@ -1,0 +1,199 @@
+===== PAGE 3 =====
+
+DODO: Discrete OCR Diffusion Models
+Captioning
+t=0
+An
+orange
+cat
+climbs
+a
+tree
+t=½
+[M]
+[M]
+cat
+[M]
+[M]
+tree
+t=1
+[M]
+[M]
+[M]
+[M]
+[M]
+[M]
+t=0
+A
+cat
+sitting
+on
+a
+tree
+t=½
+[M]
+cat
+[M]
+[M]
+[M]
+tree
+t=1
+[M]
+[M]
+[M]
+[M]
+[M]
+[M]
+􀁣
+􀁣
+t=0
+the
+the
+little
+made
+a
+bob
+t=½
+[M]
+[M]
+little
+[M]
+[M]
+bob
+t=1
+[M]
+[M]
+[M]
+[M]
+[M]
+[M]
+t=0
+the
+little
+person
+made
+a
+bob
+t=½
+[M]
+little
+[M]
+[M]
+[M]
+bob
+t=1
+[M]
+[M]
+[M]
+[M]
+[M]
+[M]
+OCR
+􀀳
+􀁣
+Figure 2. Semantically flexible vs. semantically rigid vision–language tasks. Left: Image captioning admits multiple, semantically
+equivalent descriptions of the same image. Different decoding trajectories can converge to distinct but equally valid captions, and lexical
+or structural variations are naturally absorbed. Right: OCR requires a single, exact transcription determined by the image. Even minimal
+local deviations, such as an incorrect token choice or boundary, render the output incorrect. As a result, conditioned on the image, OCR
+exhibits extremely low output variability, which makes it a natural candidate for parallel decoding, but also a demanding setting in which
+errors cannot be compensated by alternative phrasings or later corrections.
+performance gap with autoregressive models on language
+modeling. (Wu et al., 2025a) further aligns the attention
+masks to be block causal during training. We implement
+this approach for VLMs.
+Multimodal Diffusion Models.
+Dimple (Yu et al., 2025)
+extends discrete diffusion to vision-language tasks, training
+on the LLaVA recipe. However, it shows limited gains
+over autoregressive baselines and does not evaluate on OCR
+benchmarks. LaViDa (Li et al., 2025a) and LLaDA-V (You
+et al., 2025) explore diffusion for VQA but struggle with
+OCR tasks requiring precise text reproduction. This work is
+the first to successfully apply discrete diffusion for OCR.
+3. Preliminaries
+Notation.
+Let V be a vocabulary of size V , and let [M] /∈V
+denote a dedicated MASK token. We write ˜V = V ∪{[M]},
+and represent tokens either as categorical indices v ∈˜V or
+as one-hot vectors ev ∈{0, 1}|˜V|. We use Cat(·; π) for a
+categorical distribution with probabilities π.
+3.1. OCR as Conditional Sequence Modeling
+We formulate OCR as a conditional generation task where
+the goal is to map a document image I to a target se-
+quence of discrete tokens x1:L. This target is defined as
+x1:L = τ(s(I)), where s(·) represents a fixed serialization
+scheme (e.g., plain text, LATEX, HTML) and τ(·) is a tok-
+enizer that maps the resulting string to vocabulary indices.
+A vision–language model (VLM) estimates the conditional
+distribution pθ(x1:L | I, c) given the image I and optional
+text context c. Autoregressive (AR) VLM decoding admits
+standard left-to-right factorization
+log pθ(x1:L | I, c) =
+L
+X
+ℓ=1
+log pθ(xℓ| x<ℓ, I, c),
+(1)
+with x<l the prefix tokens at step l out of L sequential steps.
+3.2. Masked Diffusion Models (MDMs)
+Forward (Masking) Process.
+MDMs define a coordinate-
+independent corruption process that replaces tokens with [M]
+according to a noise level t ∈[0, 1]. Writing x0 for clean
+data and xt for its noisy version, a common conditional
+probability distribution for the token masking is
+qt|0(xt | x0) =
+L
+Y
+i=1
+Cat
+
+xi
+t; αt exi
+0 + (1 −αt) e[M]
+
+, (2)
+where αt is strictly decreasing with α0 =1 and α1 =0.
+Training.
+MDMs train a denoiser to predict the original
+input tokens from partially masked ones. In continuous
+time, an ELBO-derived objective can be written (Sahoo
+et al., 2024a; Shi et al., 2024) as a weighted masked cross-
+entropy
+L = Et,x0,xt|x0
+
+
+α′
+t
+1 −αt
+X
+i:xi
+t=[M]
+−log pθ(xi
+0|xt, t)
+
+,
+(3)
+where α′
+t =
+dαt
+dt , and pθ(· | xt, t) is frequently imple-
+mented without an explicit time embedding since xt reveals
+t through its mask rate.
+Sampling.
+MDM sampling starts from the fully masked
+sequence x1 = ([M], . . . , [M]) and iterates noise levels
+1 = tK > · · · > t0 = 0. Given an estimate of the marginal
+distribution of each token from the denoiser, a common
+and convenient decomposition (Sahoo et al., 2024a) of a
+single reverse step tk+1 →tk proceeds by first choosing
+which masked positions to reveal via a selection rule (e.g.,
+randomly (Sahoo et al., 2024a), top-k (Zheng et al., 2023),
+confidence-thresholding (Yu et al., 2025), or determinis-
+tically (Luxembourg et al., 2025)), and second, sampling
+token values for those positions from the denoiser’s pre-
+dicted distribution xi
+tk ∼pθ(xi
+tk | xtk+1).
+This decomposition has two consequences described next.
+3

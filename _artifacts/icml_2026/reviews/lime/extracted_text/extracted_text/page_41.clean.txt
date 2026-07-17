@@ -1,0 +1,68 @@
+===== PAGE 41 =====
+
+Submission and Formatting Instructions for ICML 2026
+Algorithm 1: LIME FORWARD PASS
+Input: x ∈RB×T ×di
+// batch of token sequences
+Parameters:
+Frozen: W0 ∈Rdo×di
+// pretrained linear layer
+PEFT: ϕ
+// any PEFT parameters (LoRA, Adapter, etc.)
+Experts: {pi}E
+i=1, pi ∈Rdo
+// expert modulators
+Shared: ps ∈Rdo, γ ∈R
+// shared modulator (optional)
+Hyperparameters: τ (temperature), γr (routing balance), θ (threshold), α, β (loss weights)
+1. Base Forward
+z ←W0x
+// z ∈RB×T ×do, frozen computation
+2. PEFT Adaptation
+ˆz ←ˆz(x)
+// ˆz ∈RB×T ×do, any PEFT method
+3. Zero-Param Routing
+// no learned router!
+˜z1:E ←z[:,:,1:E] / ∥z[:,:,1:E]∥∞
+// normalize first E dims
+˜ˆz1:E ←ˆz[:,:,1:E] / ∥ˆz[:,:,1:E]∥∞
+w ←softmax
+
+(1−γr)·˜z1:E+γr·˜ˆz1:E
+τ
+
+// routing weights
+4. Auto Top-K Selection
+Sθ ←{i : wi ≥θ · maxj wj}
+// adaptive selection
+˜wi ←wi / P
+j∈Sθ wj
+// renormalize
+5. Expert Modulation
+P ←P
+i∈Sθ ˜wi · pi
+// weighted expert combination
+6. Output
+h ←z + ˆz ⊙P + γ · (ˆz ⊙ps)
+// base + routed + shared
+7. Load Balance
+// training only
+¯pi ←
+1
+BT
+P
+b,twi(xb,t)
+// mean routing prob per expert
+Limp ←E · PE
+i=1¯p2
+i −1
+// importance loss
+LKL ←PE
+i=1¯pi log(E · ¯pi)
+// KL-uniform loss
+L ←Ltask + α · Limp + β · LKL
+// total loss
+Return: h, L (loss only during training)
+LiME forward pass and training. Colors indicate: frozen , trainable , routing (0 params) , training only . Load balancing (Step
+7) prevents expert collapse.
+41

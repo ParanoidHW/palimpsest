@@ -1,0 +1,250 @@
+===== PAGE 15 =====
+
+DODO: Discrete OCR Diffusion Models
+additional hydrorefining step, such as dewaxing or isodaxing, is required to adjust the properties of the final product to the market
+specifications.
+Catalysts employed for hydrocracking of F–T waxes are similar to those conventionally used for hydrocracking of petroleum-derived
+feeds, that is, they are of bifunctional nature, comprising a metal component dispersed on an acidic porous support [4]. Since the F–
+T products products are almost free of sulfur, the preferred metal phase is a noble metal, such as Pt and Pd, while amorphous
+oxides such as SiO_2–Al22O3 [5–8], and zeolites (Y, beta, mordenite) [9]–14] are commonly used as acidic carriers. When
+hydroisomerization instead of hydrocracking is the main target of the long-chain n-alkane hydroconversion step, as it occurs in
+isodaxing processes, catalysts based on unidirectional 10-member ring zeolites (ZSM-22, ZSM-23, ZSM-35, ZSM-48) [15–18] or
+silicoaluminophosphate molecular sieves (SAPO-11, SAPO-31, SAPO-41) [19–21] as acidic supports have been proposed. A review
+dealing with suitable catalysts for the hydroisomerization of long-chain n-paraffins has been recently published by Deldari [22].
+On a well-balanced catalyst, the hydrocracking activity and selectivity mainly depends on the acid properties of the support. Thus,
+catalysts based on amorphous silica–alina having moderate Brönsted acidity are more selective towards middle distillates but are
+less active than those based on zeolites [4,23]–25]. In the case of zeolitic catalysts, improved selectivity towards middle distillates
+can be attained by reducing the density of Brönststed sites, that is, by increasing the Si/Al ratio [26,27], or by decreasing their acid
+strength through partial or total isomorphous substitution of framework Al^3+ by other trivalent cations such as B^3+ [28].
+However, the gain in selectivity obtained after reducing the zeolite acidity is always accompanied by a decrease in the catalyst
+activity, thus requiring higher reaction temperatures to achieve a given degree of conversion.
+Therefore, there is still great interest in developing new catalysts for the hydrocracking–hydroisisomerization of high-boiling point
+n-paraffins (waxes), such as those produced in the F–T process, which may exhibit high activity at reaction temperatures as low as
+possible while keeping a good selectivity towards the desired hydrocracked fraction, i.e. middle distillates. In this sense, it has been
+recently reported that a Pt/WO_2–ZrO_2 catalyst (0.5 wt.% Pt,6.5 wt.% W) prepared by impregnation and calcined at 700 °C
+displays high activity and good selectivity towards branched isomers in the diesel and lube-base oil range during the hydrocracking
+of Fischer–Tropsch waxes [29]. Unfortunately, while the behaviour of Pt/WO_2–ZrO_2 catalysts for the hydroisomerization of short-
+chain n-alkaneses (C_4–C_7) is well documented in the literature [30–41], the amount of work dealing with heavier n-alkaneses that
+would be more representative of the waxy Fischer–Tropsch products is very scarce [29,42–45].
+The catalytic properties of Pt/WO_2–ZrO_2 materials are largely influenced by the method of preparation, chemical composition,
+and activation conditions. Then, it is not surprising that different optimum compositions (W loading) are found in the literature
+depending on the method of preparation and calcination temperature [31,46–49]. These discrepancies can be partly reconciled by
+considering the tungsten surface density (W atoms/ nm^2), which can be modified by varying the W loading and/or calcination
+temperature, instead of the W loading. When this parameter is considered, a maximum in the isomerization activity is generally
+found at W surface densities close or slightly exceeding the monolayer coverage of zirconia by tungstate, provided the material has
+been previously calcined at a sufficiently high temperature, typically in the range of 700–900 °C [32,50–52]. Nevertheless,
+Santiesteban et al. [48] reported that a sample prepared by simultaneous coprecipitation of tungsten and hydrous zirconia displayed
+twice the number of strong Brönsted acid sites and catalytic activity for n-pentane isomerization than a catalyst prepared by
+impregnation of W over a previously refluxed hydrous zirconia, despite both materials presented similar surface area and W
+loading, and thus similar W surface density.
+Taking into account the above discussion, in this work we address the influence of the tungsten coverage on the catalytic behaviour
+of Pt/WO_2–ZrO_2 catalysts for the hydroconversion of n-hexecane, taken as representative molecule of the long-chain n-alkanes
+produced in F–T processes. The WO_2–ZrO_2 samples used here have been prepared by coprecipitation in the presence of polyvinyl
+alcohol (PVA) leading to samples with enhanced specific surface areas as compared to conventional coprecipitation and
+impregnation methods [53]. Interestingly, we have found that the tungsten coverage in Pt/WO_2–ZrO_2 catalysts has a strong
+influence on the product selectivity when compared at constant conversion. To our best knowledge, this aspect has never been
+discussed in previous works. Finally, the catalytic performance of Pt/W_2–ZrO_2 has been compared with that of bifunctional
+catalysts based on a commercial amorphous silica–alumina (ASA) and a low unit cell size USY zeolite (a_0 = 2.4333 nm).
+2. Experimental
+2.1. Preparation of catalysts
+A series of tungsten-doped zirconia samples (abbreviated as WZ) with tungsten loading in the range of 6–22 wt.% W have been
+prepared by coprecipitation in the presence of polyvinyl alcohol (PVA) following the procedure described in Ref. [53] with some
+modifications. Chiefly, 300 cm^3 of a 0.53 M zirconyl chloride (Aldrich, 98% ZrCl_2·8H_2O) and ammonium metatungstate
+((NH_4)6H_2W{12}O_{40}, Fluka, ≥85% WO_3) aqueous solutions were heated at 100 °C in an oil bath and kept at this
+temperature for 1 h. Besides, 300 cm^3 of a polyvinyl alcohol (PVA, MW: 7 × 10^4–9 × 10^4, Sigma) aqueous solution (10 g/ l)
+were heated at 100 °C in an oil bath for 1 h. Then, the two solutions were mixed and kept at 100 °C for an additional hour. After,,
+the mixed solution was cooled until 70 °C, slowly added to a NH_4OH (2 M)/NH_4Cl (2 M) buffer solution to keep the pH constant at
+10, and kept for one additional hour in static. The formed transparent gel filaments were extensively washed with distilled water
+until the absence of chlorides and dried at 100 °C overnight and at 200 °C for an additional 12 h period.
+additional hydrorefining step, such as dewaxing or isodewing, is required to adjust the properties of the final product
+ to the market specifications.[\n][\n]Catalysts employed for hydrocracking steps of F T waxes are similar to those
+ conventionally used for hydrocracking of petroleum-derived feeds, that is, they are of bifunctional nature, comprising
+ a metal component dispersed on an acidic porous support [4]. Since the F T products are almost free of sulfur, the
+ preferred metal phase is a noble metal, such as Pt and Pd, while amorphous oxides such as SiO2 Al2O3 [5 8], and zeol
+ites (Y, beta, mordenite) [9 14] are commonly used as acidic carriers. When hydrodisomerization instead of hydrocr
+acking is the main target of the long-chain n-alkane hydroconversion step, as it occurs in isodewaxing, catalysts based
+ on unidirectional 10-member ring zeolites (ZSM-22, ZSM-23, ZSM-35, ZSM-48) [15 18] or silicoaluminophosphate molecular
+ sieves (SAPO-11, SAPO-31, SAPO-41) [19 21] as an acidic supports have been proposed. A review dealing with suitable
+ catalysts for the hydrodisomerization of long-chain n-paraffins has been recently published by Deldari [22].[\n][\n]On
+ a well-balanced catalyst, the hydrocracking activity and selectivity mainly depends on the acid properties of the
+ support. Thus, catalysts based on amorphous silica alum having moderate Brönsted acidity are more selective towards
+ middle distillates but are less active than those based on zeolites [4,23 25]. In the case of zeolitic catalysts,
+ improved selectivity towards middle distillates can be attained by reducing the density of Brönsted acid sites, that
+ is, by increasing the Si/Al ratio [26,27], or by decreasing their acid strength through partial or total isomorphous
+ substitution of framework Al^{3+ by other trivalent cations such as B3+ [28]. However, the gain in selectivity
+ obtained after reducing the zeolite acidity is always accompanied by a decrease in the catalyst activity, thus
+ requiring higher reaction temperatures to achieve a given degree of conversion.[\n][\n]Therefore, there is still great
+ interest in developing new catalysts for the hydrocracking hydrodisomerization of high-boiling point n-paraffins (w
+axes), such as those produced in the F T process, which exhibit high activity at reaction temperatures as low as
+ possible while keeping a good selectivity towards the desired hydrocracked fraction, i.e. middle distillates. In this
+ sense, it has been recently reported that a Pt/WOx ZrO2 catalyst (0.5 wt.% Pt, 6.5 wt.% W) prepared by impregnation
+ and calcined at 700 °C displays high activity and good selectivity towards branched isomers in the diesel and lube
+-base oil range during the hydrocracking of Fischer Tropsch waxes [29]. Unfortunately, while the behaviour of Pt/WOx Zr
+O2 catalysts for the hydrodisomerization of short-chain n-alkanes (C4 C7) is well documented in the literature [30 41],
+ the amount of work dealing with heavier n-alkanes that would be more representative of the waxy Fischer Tropsch
+ products is very scarce [29,42 45].[\n][\n]The catalytic properties of Pt/WOx ZrO2 materials are largely influenced by
+ the method of preparation, chemical composition, and activation conditions. Then, it is not surprising that different
+ optimum compositions (W loading) are found in the literature depending on the method of preparation and calcination
+ temperature [31,46 49]. These discrepancies can be partly reconcilediled by considering tungsten, surface density (W
+ atoms/nm2), which can be modified by varying the W loading and/or calcination temperature, instead of the W loading.
+ When this parameter is considered, a maximum in the isomerization activity is generally found at W surface densities
+ close or slightly exceeding the monolayer coverage of zirconia by tungstate, provided the material has been previously
+ calcined at a sufficiently high temperature, typically in the range of 700 900 °C [32,50 52]. Nevertheless, Santiesteb
+an et al. [48] reported that a sample prepared by simultaneous coprecipitation of tungsten and hydrous zirconia
+ displayed twice the number of strong Brönsted acid sites and catalytic activity for n-pentane isomerization than a
+ catalyst prepared by impregnation of over a previously refluxed hydrous zirconia, despite both materials presented
+ similar surface area and W loading, and thus similar W surface density.[\n][\n]Taking into account the above
+ discussion, in this work we address the influence of the tungsten coverage on the catalytic behaviour of Pt/WOx ZrO2
+ catalysts for the hydroconversion of n-hadecane, taken as representative molecule of the long-chain n-alkanes produced
+ in F T processes. The WOx ZrO2 samples used here have been prepared by coprecipitation in the presence of polyvinyl
+ alcohol (PVA) leading to samples with enhanced specific surface areas as compared to conventional coprecipitation and
+ impregnation methods [53]. Interestingly, we have found that the tungsten coverage in Pt/WOx ZrO2 catalysts has a
+ strong influence on the product selectivity when compared at constant conversion. To our best knowledge, this aspect
+ has never been discussed in previous works. Finally, the catalytic performance of Pt/WOx ZrO2 has been compared with
+ that of bifunctional catalysts based on a commercial amorphous silica alumina (ASA) and a low unit cell size USY zeol
+ite (a0 = 2.433 nm).[\n][\n]2. Experimental[\n][\n]2.1. Preparation of catalysts[\n][\n]A series of tungsten-doped z
+irconia samples (abbreviated as WZ) with tungsten loading in the range of 6 22 wt.% W have been prepared by coprecip
+itation in the presence of polyvinyl alcohol (PVA) following the procedure described in Ref. [53] with some
+ modifications. Chiefly, 300 cm3 of a 0.53 M zirconyl chloride (Aldrich, 98% ZrOCl2·8H2O) and ammonium metatungstate (
+NH4)6H2W12O40, Fluka, 85% WO3) aqueous solutions were heated at 100 °C in an oil bath, and kept at this temperature
+ for 1 h. Besides, 300 cm3 of a polyvinyl alcohol (PVA, MW: 7 × 10^4 9 × 10^4, Sigma) aqueous solution (100 g/l) were
+ heated at 100 °C in an oil bath for 1 h. Then, the two solutions were mixed and kept at 100 °C for an additional hour.
+ After that, the mixed solution was cooled until 70 °C, slowly added to a NH44 (2 M)/NH4Cl2 M) buffer solution to keep
+ the pH constant at 10, and kept for one additional hour in static. The formed transparent gel filaments were
+ extensively washed with distilled water until the absence of chlorides and dried at 100 °C overnight and at 200 °C for
+ an additional 12 h period.[EOS]
+Generation order (tokens=1679, steps=120, font=6.5)
+volume of crime) would be necessary in an effort to examine the contours of any possible relationship between the quality of crimes
+reported and lunar cycles. Only then could this question of the lunar lore and crime be more fully answered.
+Notes
+1. See Rotton and Cohn (2000) and Cohn (1990b), among others, for a discussion of theoretical and empirical relationships
+between weather, temporal variables, social contact variables, and crime.
+2. Block (1984) wrote that although some general seasonal trends could be noted, they tended to be offense-specific and were
+not evident in all jurisdictions. Her comprehensive review of data she analyzed, as well as various published and unpublished
+research done by others, found ample variation in seasonal trends. Some of this might have been attributed to variable data,
+operational definitions, and analytical plans.
+3. Researchers have employed myriad methods of structuring the timing and intensity of full moons relative to other periods of
+the lunar cycle. For example: contrasting the day of the full moon with all other days in the cycle (Frey et al., 1979); creating
+seemingly-capricious “windows” of time (i.e., three days) around the full moon and for contrast with the rest of the cycle
+(sometimes separating out windows of time around the new moon) (Walt et al., 1975); breaking cycles into equal (Frey et al.,
+1979; Quinsey & Varney, 1977; Taylor & Diespecker, 1972) and unequal (Frey et al., 1979; Lester et al., 1969) periods of
+times; and allowing lunar phase to vary from day to day throughout the lunar cycle (Simon, 1998). The lunar lore is
+ambiguous regarding whether the influence of the moon is truly restricted to full-moon periods and whether a heightened
+full moon influence might be offset by a converse effect during the new moon.
+4. This consideration was another complexity created by the vague nature of the lunar lore. Was the effect of the full moon
+mediated by its visibility due to daylight and/or weather patterns? If the effect was thought to result from the actual moon
+intensity of the moon’s illumination, the answer may have been “yes.” If the effect was thought to result from the moons
+‘pull’ on water in the human body, the answer might have been “no.”
+5. An anonymous reviewer pointed out the U.S.N.O also reports moon rise and setting times within archival data. It was noted
+using a sliding window of analysis based on whether the moon was above the horizon might have been an alternative
+approach within the analysis. Additional analyses not reported here, but available from the lead author upon request,
+suggest the results were not substantively different with the use of such a variable window of analysis. The original models
+(fixed 8:00 pm – 3:00 am window of analysis) were retained for the analysis reported in this article, though the alternative
+scheme was included in later portions of the discussion.
+6. The analysis was also conducted using a measure of the moon’s actual visibility above the horizon net of atmospheric
+conditions that might preclude such visibility. These models yielded no significant differences in parameter magnitudes or
+significance levels. Since the same pattern of significant and non-significant results was obtained, the initial results were
+retained and presented in this article. Those seeking further information pertaining to these alternative modeling efforts can
+direct inquires to the second author.
+References
+Atlas, R. (1984). Violence in prison: Environmental influences. Environment and Behavior, 16, 275–306. Bauer, S. F., & Hornick, E. J.
+(1968). Lunar effect on mental illness: The relationship of moon phase to psychiatric emergencies. American Journal of Psychiatry,
+125, 696–697. Bick, M., Kelly, I. W., & Bynes, G. F. (1995). Crisis calls and temporal and lunar variables: A comprehensive
+examination. Journal of Psychology, 129, 701–771. Berni, T., Estel, D., Spearling, W., Bleich, S., Kornhuber, J., & Reulbach, U. (2005).
+Influence of lunar phase on suicide: The end of a myth? A population-based study. Chronobiology International, 22, 1137–1143.
+Blackmon, & Catal, D. (1973). The moon and the emergency room. Perceptual and Motor Skills, 37, 624–626. Block C. R. (1983).
+How to handle seasonality: Introduction to the detection and analysis of seasonal fluct fluct fluctuation in criminal justice time
+series. Chicago: Illinois Criminal Justice Information Authority. Block, C. R. (1984). Is crime seasonal? Chicago: Illinois Criminal
+Justice Information Authority. Box, G. E. P., & Jenkins, G. M. (1976). Time series analysis: Forecasting and control (Rev. ed.). San
+Francisco: Holden-Day. Brantingham, P., & Brantingham,, P. (1995). Criminality of place: Crime generators and crime attractors.
+European Journal on Criminal Policy and Research, 3(3), 5–26. Bushway, S. D., & McDowall, D. (2006). Here we go again- Can we
+learn anything from aggregate-level studies of policy interventions? Criminology & Public Policy,, 461–470. Campbell, D. E., &
+Beets, J. L. (1978). Lunacy and the moon. Psychological Bulletin, 85, 1123–1129. Chapman, S., & Morrell, S. (2000). Barking mad?
+Another lunatic hypothesis bites the dust. British Journal, 321, 1561–1563. Cheatwood, D. (1988). Is there a season for homicide?
+Criminology, 26, 287–306—. Cheatwood, D. (1995). The effects of weather on homicide. Journal of Quantitative Criminology, 11, 51–
+70. Cohen, L. E., & Felson, M. (1979). Social change and crime rate trends: A routine activity approach. American Sociological
+Review, 44, 588–608. Cohn, E. G. (1990a). Weather and crime. British Journal of Criminology, 30, 51–64. Cohn, E. G. (1990b).
+Weather, and violent crime: A reply to Perry and Simpson, 1987. Environment and Behavior, 22, 280–294. Cohn, E. G. (1993). The
+prediction of police calls for service: The influence of weather and temporal variables on rape and domestic violence. Journal of
+Environmental Psychology, 13, 71–83. Cohn, E. G. (1996). The effect of weather and temporal variations on calls for police service.
+American Journal of Police, 15(1), 23–43. Cohn, E. G., & Rotton, J. (2000). Weather, seasonal trends and property crimes in
+Minneapolis, 1987-1988: A moderator-variable time-series analysis of routine activities. Journal of Environmental Psychology, 20,
+257–272. Culver, R., Rotton, J., & Kelly, I. W. (1988). Geophysical variables and behavior: XLIX. Moon mechanisms and myths: A
+critical appraisal of explanations of purported lunar effects on human behavior. Psychological Reports, 62, 683–710. Cyr, J. J., &
+Kaplan, R. A. (1987). Geophysical variables and behavior: XLVI. The lunar-lunacy relationship: A poorly evaluated hypothesis.
+Psychological Reports, 61, 391–400. Cyr, J. J., & Kaplan, R. A. (1988). Investigating the lunar-lunacy relationship: A reply to Rotton
+and Kelly. Psychological Reports, 62, 319–322. Durm, M. W., Terry, C. L., & Hammonds, C. R. (1986). Lunar phase and acting-out
+behavior. Psychological Reports, 59, 987–990. Frey, J., Rotton, J., & Barry, T. (1979). The effects of the full moon on human behavior:
+volume of crime) would be necessary in an effort to examine the contours of any possible relationship between the quality of crimes reported and lunar cycles. Only then
+ could this question of the lunar lore and crime be more fully answered.[\n][\n]Notes[\n][\n]1. See Rotton and Cohn (2000) and Cohn (1990b), among others, for a
+ discussion of theoretical and empirical relationships between weather, temporal variables, social contact variables, and crime.[\n][\n]2. Block (1984) wrote that
+ although some general seasonal trends could be noted, they tended to be offense-specific and were not evident in all jurisdictions. Her comprehensive review of data she
+ analyzed, as well as various published and unpublished research done by others, found ample variation in seasonal trends. Some of this might have been attributed to
+ variable data, operational definitions, and analytical plans.[\n][\n]3. Researchers have employed myriad methods of structuring the timing and intensity of full moons
+ relative to other periods of the lunar cycle. For example: contrasting the day of the full moon with all other days in the cycle (Frey et al., 1979); creating seemingly
+-capricious windows  of time (i.e., three days) around the full moon for contrast with the rest of the cycle (sometimes separating out windows of time around the new
+ moon) (Waters et al., 1975); breaking cycles into equal (Frey et al., 1979; Quinsey & Varney, 1977; Taylor & Diespecker, 1972) and unequal (Frey et al., 1979; Lester et
+ al., 1969) periods of times; and allowing lunar phase to vary from day to day throughout the lunar cycle (Simon, 1998). The lunar lore is ambiguous regarding whether the
+ influence of the moon is truly restricted to full-moon periods and whether a heightened full moon influence might be offset by a converse effect effect the new moon
+.[\n][\n]4. This consideration was another complexity created by the vague nature of the lunar lore. Was the effect of the full moon mediated by its visibility due to
+ daylight, and/or weather patterns? If the effect was thought to result from the actual intensity of the moon s illumination, the answer may have been yes.  If the
+ effect was thought to result from the moons pull  on water in the human body, the answer might have been no. [\n][\n]5. An anonymous reviewer pointed out the U.S.N.O.
+ also reports moon rise and setting times within archival data. It was using a sliding window of analysis based on whether the moon was above the horizon might have been
+ an alternative approach within the analysis. Additional analyses not reported here, but available from the lead author upon request, suggest the results were not
+ substantively different with the use of such a variable window of analysis. The original models (fixed 8:00 pm  3:00 am window of analysis) were retained for the
+ analysis reported in this article, though the alternative scheme was included in later portions of the discussion.[\n][\n]6. The analysis was also conducted using a
+ measure of the moon s actual visibility above the horizon net of atmospheric conditions that might preclude such visibility. These models yielded no significant
+ differences in parameter magnitudes or significance levels. Since the same pattern of significant and non-significant results was obtained the initial results were
+ retained and presented in this article. Those seeking further information pertaining to these alternative modeling efforts can direct inquires to the second author
+.[\n][\n]References[\n][\n]Atlas, R.. (1984). Violence in prison: Environmental influences. Environment and Behavior, 16, 275 306.[\n]Bauer, S. F., & Hornick, E. J. (1968
+). Lunar effect on mental illness: The relationship of moon phase to psychiatric emergencies. American Journal of Psychiatry, 125, 696 697.[\n]Bickis, M., Kelly, I. W., &
+ Byrones, G. F. (1995). Crisis calls and temporal and lunar variables: A comprehensive examination. Journal of Psychology, 129, 701 711.[\n]Biermann, T., Estel, D., Sper
+ling, W., Bleich, S., Kornhuber, J., & Reubach, U. (2005). Influence of lunar phase on suicide: The end of a myth? A population-based study. Chronobiology International,
+22, 1137 1143.[\n]Blackmon, S., & Catalina, D. (1973). The moon and the emergency room. Perceptual and Motor Skills, 37, 624 626.[\n]Block, C. R. (1983). How to handle
+ seasonality: Introduction to the detection and analysis of seasonal fluctuation in criminal justice time series. Chicago: Illinois Criminal Justice Information Authority
+.[\n]Block, C. R. (1984). Is crime seasonal? Chicago: Illinois Criminal Justice Information Authority.[\n]Box, G. E. P., & Jenkins, G. M. (1976). Time series analysis:
+ Forecasting and control (Rev. ed.). San Francisco: Holden-Day.[\n]Brantingham, P., & Brantingham, P. (1995). Criminality of place: Crime generators and crime attractors.
+ European Journal on Criminal Policy and Research, 3(3), 5 26.[\n]Bushway, S. D., & McDowell, D. (20006 Here Here we go again- Can we learn anything from aggregate-level
+ studies of policy interventions? Criminology & Public Policy, 5, 461 470.[\n]Campbell, D. E., & Beets, J. L. (1978). Lunacy and the moon. Psychological Bulletin, 85, 112
+3 1129.[\n] Chapmanman, S., & Morrell, S. (2000). Barking mad? Another lunatic hypothesis bites the dust. British Journal, 321, 1561 1563.[\n]Cheatwood, D. (1988). Is
+ there a season for homicide? Criminology, 26, 287 306.[\n]Cheatwood, D. (1995). The effects of weather on homicide. Journal of Quantitative Criminology, 11, 51 70.[\n]C
+ohen, L. E., & Felson, M. (1979). Social change and crime rate trends: A routine activity approach. American Sociological Review, 44, 588 608.[\n]Cohn, E. G. (1990a).
+ Weather and crime. British Journal of Criminology, 30, 51
+64.[\n]Cohn, E. G. (1990b). Weather and violent crime: A reply to Perry and Simpson, 1987. Environment and
+ Behavior, 22, 280 294.[\n]Cohn, E. G. (1993). The prediction of police calls for service: The influence of weather and temporal variables on rape and domestic violence.
+ Journal of Environmental Psychology, 13, 71 83.[\n]Cohn, E. G. (1996). The effect of weather and temporal variations on calls for police service. American Journal of
+ Police, 15(1), 23 43.[\n]Cohn, E. G., & Rotton, J. (2000). Weather, seasonal trends and property crimes in Minneapolis, 1987 1988: A moderator-variable, time-series
+ analysis of routine activities. Journal of Environmental Psychology, 20, 257 272.[\n]Culver, R., Rotton, J., & Kelly, I. W. (1988). Geophysical variables and behavior:
+ XLIX. Moon mechanisms and myths: A critical appraisal of explanations of purported lunar effects on human behavior. Psychological Reports, 62, 683 710.[\n]Cyr, J. J., &
+ Kaplan, R. A. (1987). Geophysical variables and behavior: XLVI. The lunar-lunacy relationship: A poorly evaluated hypothesis. Psychological Reports, 61, 391 400.[\n]Cyr,
+ J. J., & Kaplan, R. A. (1988). Investigating the lunar-lunacy relationship: A reply to Rotton and Kelly. Psychological Reports, 62, 319 322.[\n]Durm, M. W., Terry, C. L
+., & Hammonds, C. R. (1986). Lunar phase and acting-out behavior. Psychological Reports, 59, 987 990.[\n]Frey, J., Rotton, D.., & Barry, T. (1979). The effects of the
+ full moon on human behavior: Yet another failure to replicate. The Journal of Psychology, 103, 159 162.[\n]Heller, N. B., & Markland, R. E. (1970). A climatological
+ model for forecasting the demand for police service. Journal of Research in Crime & Delinquency, 7, 167 176.[\n]Hipp, J. R., Bauer, D. J., Curran, P. J., & Bollen, K. A.
+ (2004). Crimesimes of opportunity or crimes of emotion? Testing two explanations of seasonal change in crime. Social Forces, 82, 1333 1372.[\n]Kelly, I. W., & Rotton, J.
+ (1983). Geophysical variables and behavior: XIII. Comment on lunar phase and accident injuries : The dark side of the moon and lunar research. Perceptual and Motor
+ Skills, 57, 919 921.[\n]Laverty, W. H., & Kelly, I. W. (1988). Cyclical calendar and lunar patterns in automobile property accidents and injury accidents. Perceptual and
+ Motor Skills, 86, 299 302.[\n]LeBeau, J. L., & Corcoran, W. T. (1990). Changes in calls for police service with changes in routine activities and the arrival and passage
+ of weather fronts. Journal of Quantitative Criminology, 6, 2899221.[\n]LeBeau, J. L., & Langworthy, R. H. (1986). The linkages between routine activities, weather, and
+ calls for police services. Journal of Police Science and Administration, 14, 137
+145.[\n]Lester, D., Brockopp, G. W., & Priebe, K. (1969). Association between a full
+ moon and completed suicide. Psychological Reports, 25, 598.[\n]Lieber, A. L. (1978a). Human aggression and the lunar synodic cycle. Journal of Clinical Psychiatry, 39, 3
+85 393.[\n]Lieber, A. L. (1978b). The lunar effect: Biological tides and human emotions. Garden City, NY: Anchor Press.[\n]Lieber, A. L. (1996). How the moon affects you.
+ Mamarone, NY: Hastings House.[\n]Lieber, A. L., & Sherin, C. R. (1972). Homicides and lunar cycle: Toward a theory of lunar influence on human emotional disturbance.
+ American Journal of Psychiatry, 129, 69 74.[\n]McDowell, E., McCleary, R., Meidinger, E. E., & Hay, R. A., Jr. (1980). Interrupted time series analysis: Vol.21 Quant
+itative applications in the social sciences. Newbury Park, CA: Sage.[\n]Merriam-Webster online dictionary. (2008). Retrieved from http://www.m-w.com[\n]Pettigrew, C. G. (
+1985). Seasonality and lunacy of inmate behavior. The Southern Psychologist, 2(3), 41 46.[\n]Pokorn, A. D., & Jachimczyk, J. (1974). The questionable relationship between
+ homicides and the lunar cycle. American Journal of Psychiatry, 131, 827 829.[\n]Purpara, P. P. (1979). Police activity and the full moon. Journal of Police Science and
+ Administration, 7, 350 353.[\n]Quetlet, L. A. (1969). A treatise on man and the development of his faculties. Gainesville, FL: Scholar s Facsimililes and Reprints. (
+ work published 1842).[\n]Quinsey, V. L., & Varney, G. W. (1977). Characteristics of assaults andaulters in a maximum security psychiatric unit. Crime and Justice, 5, 212
+220.[\n]Robinson, J. B., & Rengert, G. F. (2006). Illegal drug markets: The geographic perspective and crime propensity. Western Criminology Review, 7(1), 20 32.[\n]Rot
+ton, J., & Cohn, E. G. (2000). Weather, disorderly conduct, and assault: From social contact to social avoidance. Environment and Behavior, 32, 651 673.[\n]Rotton, J., &
+ Cohn, E. G. (2003). Global warming and U.S. crime rates: An application of routine activity theory. Environment and Behavior, 35, 802 825.[\n]Rotton, J., & Kelly, I. W.
+ (1985). A scale for assessing belief in lunar effects: Reliability and concurrent validity. Psychological Reports, 57, 239 245.[\n]Rotton, J., Kelly, I. W., & Elortegui,
+ P. (1986). Assessing belief in lunar effects: Known-group validation. Psychological Reports, 59, 171 174.[\n]Rotton, J., Kelly, I. W., & Frey, J. F. (1983). Geophysical
+ variables and behavior: X: Detecting lunar periodicities: Something old, new, borrowed, and true. Psychological Reports, 52, 111 116.[\n]Rusell, G. W., & de Graaf, J. P.
+ (1985). Lunar cycles and human aggression: A replication. Social Behavior and Personality, 13, 143 146.[\n]Rusell, G. W., & Dua, M. (1983). Lunar influences on human
+ aggression. Social Behavior and Personality, 11, 41 44[EOS]
+Generation order (tokens=3257, steps=273, font=4.5)
+Figure D4. Additional Qualitative Results.
+15

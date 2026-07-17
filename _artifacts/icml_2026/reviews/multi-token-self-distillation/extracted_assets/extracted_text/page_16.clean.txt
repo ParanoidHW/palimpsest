@@ -1,0 +1,59 @@
+===== PAGE 16 =====
+
+Preprint. Under review.
+“\n\n” string and prepending a BOS token to every full input. In all tables, the setting for
+the model is noted under its name.
+Hyperparameters.
+In addition to the initialization and training datasets, we adopt a
+standard set of hyperparameters for elements of the training pipeline not specific to our
+MTP implementation and objective. We train our models using the AdamW optimizer using
+PyTorch default settings and a learning rate schedule of 2000 steps of warm-up followed
+by a constant peak learning rate of 1e −5; our goal is to keep the model in a “finetuning”
+regime where the student’s initial capabilities and behaviors are maintained whilst the MTP
+abilities are acquired. All parameters in the student model are made trainable, while the
+teacher model remains frozen.
+As our primary training dataset, MetaMathQA, contains relatively short samples (avg.
+∼220 tokens under the Llama 3 tokenizer), we cap the overall sequence length (training
+context window, N) at 160 tokens for all MetaMathQA runs. For ablations using the Magpie
+datasets whose average lengths are longer, we use a sequence length of 1024 tokens. For
+experiments with MetaMathQA, we use a global batch size of 128 sequences across all
+devices training in data parallel, and for the Magpie dataset experiments we use a global
+batch size of 16. While not perfectly equivalent, the number of tokens per optimization step
+is therefore within the same order of magnitude for both experiments. Based on a desire to
+balance the supervision density of our objective with the length of prefixes that the model is
+exposed to, we set the number of MTP regions M in a given sequence during training to
+be M = N/(2k) as illustrated in Figure 2 (we use the largest k value 16 as the value when
+choosing M, eg. M = N/(2kmax)).
+For implementation simplicity, while the offset and k value are randomized during training,
+M is left fixed meaning that all sampled values of offset and k produce a lower number
+of supervised positions (eg. the sum of the “Pred:” row in Figure 2) than the maximum
+possible which is achieved when the offset is 0 and the sampled k is the maximum. We use
+a batch size of 128 sequences for the models trained on MetaMathQA, and a batch size of 16
+for the models trained on the Magpie datasets. While not scaled exactly, due to the > 5×
+larger sequence length for the latter, the reduced batch size still achieves in the same order of
+magnitude number of tokens per optimization step. Over the course of approximately 100k
+training iterations, for the MetaMathQA models based on the setting of M = N/(2kmax),
+this equates to an upper bound of 1B supervised tokens if assuming a fixed value k = kmax
+and an offset of 0. Since 160/(2 ∗16) = 5 regions, we have 100e3 ∗128 ∗(5 ∗16) = 1.024B
+tokens. For the actual runs under randomization, in expectation the k value is closer to half
+of the max, so our models only see a total of 500M supervised tokens.
+As illustrated in Figure 2, more tokens of raw input are required as input at each step than
+are actually supervised if k is randomized following the static M setting described above.
+As there are about 50M tokens available in the MetaMathQA dataset assuming the Llama
+3 tokenizer and a truncation length of 160, this results in ∼35 epochs of training for the
+L3.1-8B-Magpie based model. While early experiments indicate that overfitting is possible at
+more extreme durations, due to the offset and k value randomization strategies, the number
+of unique batches of prefix and MTP prediction problems in a dataset with D rows is actually
+> D. These additional views of the same sample—approximately proportional to the unique
+combinations of block offset and k possible under a given set of hyperparameters—likely
+make the effective number of epochs on the same exact batch of prepared and masked
+inputs much lower than (steps * microbatch size)/D, if not close to even just 1. We believe
+that the result of transfer learning from MetaMathQA to benchmarks beyond GSM8K also
+suggest that overfitting isn’t necessarily an issue in our specific experimental settings.
+The main models containing 8B and 4B parameters are both trainable at the settings de-
+scribed using one node of 4×GH200 GPUs using FSDP based model and data parallelism.
+The training runs to 100k steps take approximately 24-36 hours of continuous runtime
+depending on the model. Each benchmark evaluation can be performed on a single GH200
+GPU and runtime varies depending on the specific settings of k, the size and average
+response length for the benchmark itself.
+16

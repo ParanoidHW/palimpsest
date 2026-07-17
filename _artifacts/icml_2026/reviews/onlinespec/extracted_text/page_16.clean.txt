@@ -1,0 +1,179 @@
+===== PAGE 16 =====
+
+Published as a workshop paper in Lifelong Agent @ ICLR 2026
+applied to various challenging settings, including adversarial bandits (Wei & Luo, 2018) and dynamic
+regret minimization (Zhao et al., 2024).
+Non-stationary Online Learning.
+Non-stationary online learning has received considerable
+attention due to its theoretical and practical significance (Besbes et al., 2015; Zhao et al., 2025). The
+goal is to design algorithms capable of adapting to distribution shifts in dynamic environments. A
+theoretically grounded approach is dynamic regret minimization (Zhang et al., 2018), which evaluates
+performance relative to a sequence of time-varying comparators as in Eq. (2). However, optimizing
+the dynamic regret is challenging, since the level of environmental non-stationarity is unknown a
+prior, and the comparator sequence in Eq. (2) can be arbitrary.
+To tackle this challenge, a principled approach is the online ensemble framework (Zhao et al.,
+2024), which employs a meta-base two-layer structure: a pool of diverse base learners with different
+learning rates is maintained, and a meta-algorithm adaptively combines their outputs to track the best-
+performing one on the fly. Alternatively, Cutkosky (2020) and Zhang et al. (2022) employ sequential
+ensemble methods, in which a series of base learners are sequentially initialized and their outputs
+are aggregated to produce the final prediction. The online ensemble framework achieves optimal
+dynamic regret without prior knowledge of environmental non-stationarity. Several algorithms have
+emerged from this framework to handle various types of distribution shift.
+Remark 2 (Why Dynamic Regret?). We adopt dynamic regret rather than the standard static
+regret (Cesa-Bianchi & Lugosi, 2006) due to the inherent capacity gap between the draft and target
+models. Specifically, the draft model has significantly lower capacity and thus cannot globally match
+the target distribution pv(· | x) across all possible contexts x. However, for any specific context
+sampled from step t, it is more reasonable to assume the existence of a local optimum w⋆
+t such
+that the draft distribution aligns with the target on this particular context. This motivates the use of
+dynamic regret, which compares against a time-varying sequence {w⋆
+t }T
+t=1 of locally optimal draft
+models, rather than requiring a single fixed comparator across all steps.
+B
+ADDITIONAL EXPERIMENTAL RESULTS
+In this section, we provide additional experimental results.
+B.1
+DETAILED RESULTS
+In this section, we provide detailed experimental results by presenting temporal evolution plots for all
+methods across different benchmark datasets. Each figure group compares the baseline method with
+its OSD-enhanced variant and our proposed OnlineSPEC approach, demonstrating the performance
+improvements in terms of both average accepted length and wall-clock speedup ratio as inference
+progresses.
+0
+10
+20
+30
+40
+50
+t
+2.0
+2.2
+2.4
+2.6
+Mean Accept Length
+GSM8K
+Hydra
+OSD-Hydra
+Opt-Hydra
+0
+10
+20
+30
+40
+50
+t
+2.0
+2.5
+3.0
+3.5
+Mean Accept Length
+Spider
+Hydra
+OSD-Hydra
+Opt-Hydra
+0
+10
+20
+30
+40
+50
+t
+2.0
+2.5
+3.0
+3.5
+Mean Accept Length
+Code-Search-Python
+Hydra
+OSD-Hydra
+Opt-Hydra
+0
+10
+20
+30
+40
+50
+t
+1.8
+2.0
+2.2
+2.4
+2.6
+Mean Accept Length
+Alpaca-Finance
+Hydra
+OSD-Hydra
+Opt-Hydra
+0
+10
+20
+30
+40
+50
+t
+80
+90
+100
+110
+Tokens per Second
+GSM8K
+Hydra
+OSD-Hydra
+Opt-Hydra
+(a)
+0
+10
+20
+30
+40
+50
+t
+80
+90
+100
+110
+Tokens per Second
+Spider
+Hydra
+OSD-Hydra
+Opt-Hydra
+(b)
+0
+10
+20
+30
+40
+50
+t
+80
+100
+120
+140
+Tokens per Second
+Code-Search-Python
+Hydra
+OSD-Hydra
+Opt-Hydra
+(c)
+0
+10
+20
+30
+40
+50
+t
+80
+90
+100
+110
+Tokens per Second
+Alpaca-Finance
+Hydra
+OSD-Hydra
+Opt-Hydra
+(d)
+Figure 4: Performance comparison of Hydra, OSD-Hydra, and Opt-Hydra on (a) GSM8K, (b) Spider, (c)
+Code-Search, and (d) Alpaca-Finance using lmsys/Vicuna-7B-v1.3 as the foundation model. We report the
+average accepted length (AVGLEN, top row) and tokens per second (TPS, bottom row) over time.
+16

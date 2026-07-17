@@ -1,0 +1,312 @@
+===== PAGE 29 =====
+
+Preprint. Under review.
+C.5
+Ablations
+C.6
+Alternate finetuning dataset.
+We also evaluate a version of the L3.1-8B-Magpie model further finetuned on the Magpie
+dataset instead of the MetaMathQA data used in all other experiments to analyze the impact
+of minimizing the distribution shift between the online MTP objective and the most recent
+stage of training for the initial checkpoint we use. In Table 3 we can see that while, the
+k = 1 performance of the models is quite similar, and there are a few instances of decoding
+strategy and task pairings where the model trained on Magpie performs better, in general,
+the version trained on MetaMathQA achieves better accuracy and acceleration in most cases.
+We suspect that this is due to the fact that the Magpie datasets are much larger and therefore
+at the same iteration count
+GSM8K
+BBH
+IFEval
+Acc. (%)
+Eff. k
+Acc. (%)
+Eff. k
+Acc. (%)
+Eff. k
+L3.1-8B-Magpie
+Baseline Step 0, k=1
+69.5 ± 1.3
+1
+67.1 ± 0.5
+1
+55.1 ± 2.1
+1
+Chat Template: On
+Static k=1
+66.0 ± 1.3
+1
+57.6 ± 0.5
+1
+42.5 ± 2.1
+1
+Static k=2
+60.7 ± 1.3
+2
+51.4 ± 0.5
+2
+29.8 ± 2.0
+2
+Static k=3
+53.0 ± 1.4
+3
+45.1 ± 0.5
+3
+23.5 ± 1.8
+3
+Static k=4
+49.8 ± 1.4
+4
+28.0 ± 0.5
+4
+22.0 ± 1.8
+4
+Static k=5
+41.5 ± 1.4
+5
+16.6 ± 0.4
+5
+19.8 ± 1.7
+5
+ConfAdapt (τ = 0.995)
+65.7 ± 1.3
+1.9 ± 0.5
+57.3 ± 0.5
+2.4 ± 0.9
+42.0 ± 2.1
+1.5 ± 0.7
+ConfAdapt (τ = 0.99)
+66.0 ± 1.3
+2.1 ± 0.6
+56.8 ± 0.5
+2.6 ± 1.0
+41.8 ± 2.1
+1.6 ± 0.8
+ConfAdapt (τ = 0.98)
+65.5 ± 1.3
+2.3 ± 0.7
+56.4 ± 0.5
+3.0 ± 1.2
+42.1 ± 2.1
+1.8 ± 1.0
+ConfAdapt (τ = 0.97)
+65.3 ± 1.3
+2.5 ± 0.8
+56.2 ± 0.5
+3.2 ± 1.3
+42.5 ± 2.1
+1.8 ± 1.1
+ConfAdapt (τ = 0.96)
+64.9 ± 1.3
+2.6 ± 0.8
+56.0 ± 0.5
+3.3 ± 1.4
+40.9 ± 2.1
+1.9 ± 1.1
+ConfAdapt (τ = 0.95)
+64.7 ± 1.3
+2.8 ± 0.9
+55.6 ± 0.5
+3.4 ± 1.4
+41.4 ± 2.1
+2.0 ± 1.2
+ConfAdapt (τ = 0.9)
+64.1 ± 1.3
+3.3 ± 1.1
+53.8 ± 0.5
+3.9 ± 1.6
+40.3 ± 2.1
+2.2 ± 1.3
+ConfAdapt (τ = 0.87)
+62.3 ± 1.3
+3.6 ± 1.2
+51.9 ± 0.5
+4.1 ± 1.7
+40.5 ± 2.1
+2.3 ± 1.4
+ConfAdapt (τ = 0.85)
+61.2 ± 1.3
+3.7 ± 1.3
+50.4 ± 0.5
+4.2 ± 1.7
+39.7 ± 2.1
+2.3 ± 1.5
+ConfAdapt (τ = 0.8)
+59.2 ± 1.4
+4.2 ± 1.5
+45.5 ± 0.5
+4.4 ± 1.8
+38.6 ± 2.1
+2.4 ± 1.5
+ConfAdapt (τ = 0.75)
+56.9 ± 1.4
+4.6 ± 1.6
+39.4 ± 0.5
+4.6 ± 1.9
+33.8 ± 2.0
+2.6 ± 1.6
+ConfAdapt (τ = 0.7)
+55.0 ± 1.4
+5.1 ± 1.8
+33.6 ± 0.5
+4.8 ± 2.0
+35.5 ± 2.1
+2.9 ± 1.9
+ConfAdapt (τ = 0.65)
+51.5 ± 1.4
+5.6 ± 1.9
+27.6 ± 0.5
+5.1 ± 2.1
+34.0 ± 2.0
+3.1 ± 2.0
+ConfAdapt (τ = 0.6)
+46.6 ± 1.4
+6.1 ± 2.1
+21.2 ± 0.5
+5.3 ± 2.2
+32.2 ± 2.0
+3.2 ± 2.0
+L3.1-8B-Magpie FT Magpie
+Baseline Step 0, k=1
+69.5 ± 1.3
+1
+67.1 ± 0.5
+1
+55.1 ± 2.1
+1
+Chat Template: On
+Static k=1
+64.5 ± 1.3
+1
+57.7 ± 0.5
+1
+41.8 ± 2.1
+1
+Static k=2
+53.8 ± 1.4
+2
+54.2 ± 0.5
+2
+30.3 ± 2.0
+2
+Static k=3
+45.3 ± 1.4
+3
+49.9 ± 0.5
+3
+27.9 ± 1.9
+3
+Static k=4
+34.0 ± 1.3
+4
+34.2 ± 0.5
+4
+24.6 ± 1.9
+4
+Static k=5
+26.2 ± 1.2
+5
+24.9 ± 0.5
+5
+20.0 ± 1.7
+5
+ConfAdapt (τ = 0.995)
+64.5 ± 1.3
+1.5 ± 0.3
+57.3 ± 0.5
+2.8 ± 1.1
+41.6 ± 2.1
+1.5 ± 0.9
+ConfAdapt (τ = 0.99)
+64.6 ± 1.3
+1.7 ± 0.3
+54.9 ± 0.5
+3.2 ± 1.4
+41.8 ± 2.1
+1.6 ± 1.1
+ConfAdapt (τ = 0.98)
+64.4 ± 1.3
+1.8 ± 0.4
+46.7 ± 0.5
+3.7 ± 1.7
+41.0 ± 2.1
+1.7 ± 1.3
+ConfAdapt (τ = 0.97)
+64.0 ± 1.3
+2.0 ± 0.5
+38.6 ± 0.5
+4.0 ± 1.9
+41.0 ± 2.1
+1.7 ± 1.4
+ConfAdapt (τ = 0.96)
+64.1 ± 1.3
+2.1 ± 0.5
+34.6 ± 0.5
+4.3 ± 2.0
+40.7 ± 2.1
+1.8 ± 1.5
+ConfAdapt (τ = 0.95)
+63.5 ± 1.3
+2.1 ± 0.6
+31.0 ± 0.5
+4.5 ± 2.1
+40.5 ± 2.1
+1.8 ± 1.5
+ConfAdapt (τ = 0.9)
+61.5 ± 1.3
+2.5 ± 0.7
+18.8 ± 0.4
+5.1 ± 2.4
+39.7 ± 2.1
+2.0 ± 1.6
+ConfAdapt (τ = 0.87)
+60.7 ± 1.3
+2.7 ± 0.8
+16.8 ± 0.4
+5.4 ± 2.5
+39.6 ± 2.1
+2.1 ± 1.8
+ConfAdapt (τ = 0.85)
+59.4 ± 1.4
+2.8 ± 0.8
+15.8 ± 0.4
+5.6 ± 2.5
+39.4 ± 2.1
+2.1 ± 1.8
+ConfAdapt (τ = 0.8)
+54.9 ± 1.4
+3.1 ± 0.9
+14.7 ± 0.4
+6.0 ± 2.7
+38.8 ± 2.1
+2.3 ± 1.9
+ConfAdapt (τ = 0.75)
+50.9 ± 1.4
+3.4 ± 1.0
+13.2 ± 0.4
+6.3 ± 2.7
+37.7 ± 2.1
+2.4 ± 2.0
+ConfAdapt (τ = 0.7)
+47.9 ± 1.4
+3.7 ± 1.1
+12.3 ± 0.4
+6.7 ± 2.8
+36.4 ± 2.1
+2.6 ± 2.1
+ConfAdapt (τ = 0.65)
+42.6 ± 1.4
+4.0 ± 1.2
+10.2 ± 0.3
+7.1 ± 2.9
+35.7 ± 2.1
+2.9 ± 2.3
+ConfAdapt (τ = 0.6)
+37.4 ± 1.3
+4.3 ± 1.3
+8.8 ± 0.3
+7.4 ± 3.0
+33.5 ± 2.0
+3.2 ± 2.5
+Table 3: Complete evaluation results for the main L3.1-8B-Magpie model trained on Meta-
+MathQA versus the version trained on Magpie on a subset of the evaluation benchmarks.
+29

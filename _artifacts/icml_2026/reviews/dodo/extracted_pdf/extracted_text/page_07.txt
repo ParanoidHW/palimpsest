@@ -1,0 +1,177 @@
+===== PAGE 7 =====
+
+DODO: Discrete OCR Diffusion Models
+Table 2. Impact of block structure. Vanilla MDM fails even with
+Oracle length; block-wise training is essential.
+Train
+Config
+Max
+Len
+Inf.
+Block
+Edit
+Dist.
+TPS
+Vanilla
+Oracle
+-
+0.100
+8.77
+Vanilla
+8192
+-
+0.834
+3.19
+Vanilla
+8192
+32
+0.951
+7.47
+Block
+8192
+32
+0.067
+29.5
+Blk Causal
+8192
+32
+0.069
+103.7
+readers to Figure 1 and Section D. Two key trends emerge
+from this comparison.
+First, DODO achieves ≈105 tokens per second, a 5×
+speedup over the autoregressive Qwen 2.5 VL baseline. For
+analysis purposes alone, we isolate the contribution of paral-
+lel decoding to the speedup, by running both the AR baseline
+and DODO+Bidir without KV-caching. The speedup of par-
+allel decoding alone is evaluated as 20× (42.8 vs. 2.2 TPS),
+demonstrating that a significant part of the throughput gain
+stems from generating multiple tokens per step. By enabling
+the use of an exact KV-cache for completed blocks, DODO
+eliminates the redundant re-computation of prefix repre-
+sentations, maximizing deployment efficiency. While AR
+generation requires L sequential steps, DODO decouples
+latency from sequence length, allowing parallel predictions
+of multiple tokens to amortize the cost of heavier forward
+passes.
+Second, DODO achieves significantly higher throughput
+than competing diffusion VLMs. Prior methods rely on full-
+sequence attention from the outset, incurring the maximal
+computational cost proportional to the total length L at every
+denoising step. In contrast, DODO combines parallel decod-
+ing within blocks with constant cost per block by caching
+the prefix, allowing it to process generation much faster
+than standard diffusion baselines, which are immediately
+burdened by the full sequence complexity.
+6. Ablation and Empirical Analysis
+We validate the structural design of DODO by isolating the
+impact of block-based training and analyzing the interaction
+between block size and caching strategies. For an ablation
+of sampling schedules, we refer readers to Section B.1.
+6.1. Vanilla vs. Block Training
+Table 2 serves as the empirical validation of the theoretical
+challenges outlined in Section 4. We compare our block-
+based approach against a “Vanilla” baseline: a standard
+masked diffusion model trained on global sequences (up to
+8192 tokens) without block decomposition.
+The baseline model exhibits high error rates compared to
+Table 3. Block size and caching. Approx. KV-Cache collapses;
+block-causal training enables exact caching with 5× speedup.
+KV-Cache
+Train
+Test
+Block
+Edit Dist.
+TPS
+No KV-Cache
+Bidir
+Bidir
+32
+0.067
+29.5
+Bidir
+Bidir
+128
+0.068
+43.1
+Bidir
+Bidir
+256
+0.057
+42.8
+Bidir
+Bidir
+512
+0.111
+35.4
+Bidir
+Bidir
+1024
+0.192
+26.5
+Approx. KV-Cache
+Bidir
+Blk-Causal
+32
+0.805
+134.0
+Bidir
+Blk-Causal
+128
+0.731
+167.4
+Bidir
+Blk-Causal
+256
+0.978
+142.3
+Exact KV-Cache
+Blk-Causal
+Blk-Causal
+32
+0.069
+103.7
+Blk-Causal
+Blk-Causal
+128
+0.089
+123.1
+Blk-Causal
+Blk-Causal
+256
+0.177
+153.4
+DODO. Crucially, this performance gap persists even when
+the model is provided with the oracle sequence length. This
+suggests that the limitation is not solely due to length estima-
+tion, but also stems from the positional anchoring inherent
+to parallel decoding. Attempting to resolve thousands of
+tokens simultaneously on a fixed canvas creates synchroniza-
+tion risks; because the model cannot adjust the global offset
+of disjoint text segments, the output becomes fractured.
+We further investigate if this issue can be mitigated solely
+at inference time by applying block decoding to the base-
+line model. The results show that restricting the decoding
+window without a corresponding training objective leads
+to poor performance. This contrasts with findings in fast-
+dLLM (Wu et al., 2025b), where inference-time blocking
+remained effective for math and coding benchmarks like
+GSM8K (Cobbe et al., 2021) and HumanEval (Chen et al.,
+2021). We hypothesize that this divergence stems from the
+nature of the tasks, as unlike OCR, they allow some seman-
+tic or syntactic flexibility. This indicates that block diffusion
+serves as a necessary structural prior for OCR, conditioning
+the model to treat the prefix x(<b) as a stable anchor.
+Finally, the baseline exhibits significantly lower throughput.
+This is due to the computational cost of the global canvas:
+the model must compute attention over the full sequence
+length (up to 8192 tokens) at every denoising step. In con-
+trast, DODO decomposes the workload, ensuring a more
+efficient distribution of computational cost.
+6.2. Block Size and Caching Strategies
+Table 3 investigates the impact of block size and KV-caching
+strategies on performance. For the standard bidirectional
+model (No KV-Cache), we observe a non-monotonic trend
+as the block size increases. Initially, enlarging the block
+size improves both throughput and accuracy, peaking at an
+7

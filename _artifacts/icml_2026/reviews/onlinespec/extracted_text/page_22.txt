@@ -1,0 +1,68 @@
+===== PAGE 22 =====
+
+Published as a workshop paper in Lifelong Agent @ ICLR 2026
+By solving the equation ∂kγt = 0, we have
+k =
+C
+α(1 −Acct)
+where C ≜−1 + Acct +
+q
+1 −2Acct + Acc2
+t + 3α −4Acctα + Acc2
+tα ∈[0, 1] is a scale factor.
+Therefore, the optimal candidate length is k = Θ
+
+1
+α(1−Acct)
+
+.
+This corollary provides a principled approach to determining the optimal candidate length following
+theoretical guidance. It demonstrates that the candidate length should be adjusted based on both
+the draft model’s accuracy (reflected in Acct) and the computational efficiency ratio between the
+draft and target models (reflected in α). When the draft model is highly accurate (small Acct) or
+computationally efficient relative to the target model (small α), a larger candidate length can be used
+to maximize acceleration rate.
+C.2
+BANDIT ONLINE LEARNING
+In the main text, we focus on the full-information online learning setting, where the player can
+observe the complete loss function, including its gradients. However, in certain scenarios, the learner
+may only have access to partial feedback, such as the player can only observe loss value at a certain
+queried draft model. This motivates the study of bandit online learning.
+Bandit Techniques in Speculative Decoding.
+Recent work has explored bandit techniques to
+improve speculative decoding. BanditSpec (Hou et al., 2025) formulates the hyperparameter selection
+problem (e.g., candidate length, draft model choice) as a multi-armed bandit problem. Specifically,
+it treats each hyperparameter configuration as an arm and uses the acceptance rate as the reward
+signal. Two bandit-based algorithms, UCBSpec and EXP3Spec, are proposed to adaptively select
+hyperparameters during text generation, achieving near-optimal stopping time regret under both
+stochastic and adversarial reward settings. MetaSD (Kim et al., 2025) tackles the limitation of single-
+drafter approaches by incorporating multiple draft models into the speculative decoding process. It
+employs multi-armed bandit sampling to allocate computational resources across different drafters
+based on their observed acceptance rates, thereby improving overall generation performance.
+Incorporating Bandit Techniques into the OnlineSPEC Framework.
+We remark that our
+OnlineSPEC framework can naturally incorporate bandit online learning techniques to continuously
+improve the draft sequence quality during deployment. In the deployment scenario, the verification
+outcome (accept/reject) from the target model serves as a natural reward signal that can be exploited
+by bandit algorithms, i.e., modify the update step in Algorithm 1 to use bandit feedback. Specifically,
+one can maintain a pool of candidate draft models (or hyperparameter configurations) and use bandit
+algorithms such as UCB or EXP3 to adaptively select the best-performing option at each step based
+on the observed acceptance rates. As more queries are processed, the bandit algorithm accumulates
+feedback and progressively identifies the optimal draft model, leading to continuous performance
+improvement over time. We leave this extension as future work.
+C.3
+COMBINING OPTIMISTIC ONLINE LEARNING AND ENSEMBLE LEARNING
+In Section 3.2 and Section 3.3, we have demonstrated that our OnlineSPEC framework can be instan-
+tiated with optimistic online learning and ensemble learning, respectively. Specifically, optimistic
+learning exploits predictive hints (e.g., historical gradients) to achieve improved regret when hints
+are accurate (Corollary 2), while ensemble learning hedges against non-stationarity by maintaining
+multiple base learners with different adaptation rates (Corollary 3). For simplicity and clarity, we
+consider each technique in isolation in the main paper.
+It is worth noting that these two approaches can be combined together to leverage the benefits of
+both. Recent advances in online learning, Sword++ (Zhao et al., 2024), demonstrate that integrating
+optimistic updates into the ensemble framework where both the meta-algorithm and base learners
+employ optimistic mirror descent. Such a combination would enable the draft model to both exploit
+temporal locality via optimism and hedge against abrupt distribution shifts via ensemble, potentially
+leading to further performance improvements. Nevertheless, incorporating both techniques into the
+OnlineSPEC framework may bring additional algorithm complexity, we leave this as future work.
+22

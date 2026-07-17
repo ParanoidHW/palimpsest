@@ -1,0 +1,94 @@
+===== PAGE 11 =====
+
+DODO: Discrete OCR Diffusion Models
+Poznanski, J., Rangapur, A., Borchardt, J., Dunkelberger,
+J., Huff, R., Lin, D., Wilhelm, C., Lo, K., and Soldaini,
+L. olmocr: Unlocking trillions of tokens in pdfs with vi-
+sion language models. arXiv preprint arXiv:2502.18443,
+2025.
+Ronen, R., Tsiper, S., Anschel, O., Lavi, I., Markovitz, A.,
+and Manmatha, R. Glass: Global to local attention for
+scene-text spotting. In European Conference on Com-
+puter Vision, pp. 249–266. Springer, 2022.
+Sahoo, S., Arriola, M., Schiff, Y., Gokaslan, A., Marroquin,
+E., Chiu, J., Rush, A., and Kuleshov, V. Simple and
+effective masked diffusion language models. Advances
+in Neural Information Processing Systems, 37:130136–
+130184, 2024a.
+Sahoo, S. S., Arriola, M., Schiff, Y., Gokaslan, A., Marro-
+quin, E., Chiu, J. T., Rush, A., and Kuleshov, V. Simple
+and effective masked diffusion language models, 2024b.
+URL https://arxiv.org/abs/2406.07524.
+Shi, J., Han, K., Wang, Z., Doucet, A., and Titsias, M.
+Simplified and Generalized Masked Diffusion for Dis-
+crete Data. Advances in Neural Information Processing
+Systems, 37:103131–103167, December 2024.
+Sidorov, O., Hu, R., Rohrbach, M., and Singh, A. Textcaps:
+a dataset for image captioning with reading comprehen-
+sion, 2020. URL https://arxiv.org/abs/2003.
+12462.
+Singh, A., Natarajan, V., Shah, M., Jiang, Y., Chen, X.,
+Batra, D., Parikh, D., and Rohrbach, M. Towards vqa
+models that can read, 2019. URL https://arxiv.
+org/abs/1904.08920.
+Wang, B., Xu, C., Zhao, X., Ouyang, L., Wu, F., Zhao, Z.,
+Xu, R., Liu, K., Qu, Y., Shang, F., et al. Mineru: An open-
+source solution for precise document content extraction.
+arXiv preprint arXiv:2409.18839, 2024.
+Wang, H., Pan, C., Guo, X., Ji, C., and Deng, K. From
+object detection to text detection and recognition: A brief
+evolution history of optical character recognition. Wiley
+Interdisciplinary Reviews: Computational Statistics, 13
+(5):e1547, 2021.
+Wei, H., Liu, C., Chen, J., Wang, J., Kong, L., Xu, Y., Ge,
+Z., Zhao, L., Sun, J., Peng, Y., Han, C., and Zhang, X.
+General ocr theory: Towards ocr-2.0 via a unified end-to-
+end model, 2024. URL https://arxiv.org/abs/
+2409.01704.
+Wei, H., Sun, Y., and Li, Y. Deepseek-ocr: Contexts optical
+compression. arXiv preprint arXiv:2510.18234, 2025a.
+Wei, H., Sun, Y., and Li, Y. Deepseek-ocr: Contexts optical
+compression, 2025b. URL https://arxiv.org/
+abs/2510.18234.
+Wu, C., Zhang, H., Xue, S., Diao, S., Fu, Y., Liu, Z.,
+Molchanov, P., Luo, P., Han, S., and Xie, E.
+Fast-
+dllm v2: Efficient block-diffusion llm. arXiv preprint
+arXiv:2509.26328, 2025a.
+Wu, C., Zhang, H., Xue, S., Liu, Z., Diao, S., Zhu, L.,
+Luo, P., Han, S., and Xie, E. Fast-dllm: Training-free
+acceleration of diffusion language models. arXiv preprint
+arXiv:2505.22618, 2025b.
+Wu, Z., Chen, X., Pan, Z., Liu, X., Liu, W., Dai, D., Gao,
+H., Ma, Y., Wu, C., Wang, B., Xie, Z., Wu, Y., Hu, K.,
+Wang, J., Sun, Y., Li, Y., Piao, Y., Guan, K., Liu, A.,
+Xie, X., You, Y., Dong, K., Yu, X., Zhang, H., Zhao,
+L., Wang, Y., and Ruan, C. Deepseek-vl2: Mixture-of-
+experts vision-language models for advanced multimodal
+understanding, 2024. URL https://arxiv.org/
+abs/2412.10302.
+You, Z., Nie, S., Zhang, X., Hu, J., Zhou, J., Lu, Z., Wen,
+J.-R., and Li, C.
+Llada-v: Large language diffusion
+models with visual instruction tuning. arXiv preprint
+arXiv:2505.16933, 2025.
+Yu, R., Ma, X., and Wang, X. Dimple: Discrete diffu-
+sion multimodal large language model. arXiv preprint
+arXiv:2505.16990, 2025.
+Yue, X., Ni, Y., Zhang, K., Zheng, T., Liu, R., Zhang, G.,
+Stevens, S., Jiang, D., Ren, W., Sun, Y., Wei, C., Yu, B.,
+Yuan, R., Sun, R., Yin, M., Zheng, B., Yang, Z., Liu,
+Y., Huang, W., Sun, H., Su, Y., and Chen, W. Mmmu:
+A massive multi-discipline multimodal understanding
+and reasoning benchmark for expert agi, 2024. URL
+https://arxiv.org/abs/2311.16502.
+Zheng, L., Yuan, J., Yu, L., and Kong, L. A reparameter-
+ized discrete diffusion model for text generation. arXiv
+preprint arXiv:2302.05737, 2023.
+Zhou, J., Ding, T., Chen, T., Jiang, J., Zharkov, I., Zhu,
+Z., and Liang, L. Dream: Diffusion rectification and
+estimation-adaptive models.
+In Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pp. 8342–8351, 2024.
+11

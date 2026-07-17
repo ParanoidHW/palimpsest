@@ -1,0 +1,59 @@
+===== PAGE 12 =====
+
+Submission and Formatting Instructions for ICML 2026
+Wu, X., Huang, S., and Wei, F. Mixture of lora experts.
+arXiv preprint arXiv:2404.13628, 2024b.
+Wu, Z., Arora, A., Wang, Z., Geiger, A., Jurafsky, D., Man-
+ning, C. D., and Potts, C. Reft: Representation finetuning
+for language models. Advances in Neural Information
+Processing Systems, 37:63908–63962, 2024c.
+Yang, S., Ali, M. A., Wang, C.-L., Hu, L., and Wang, D.
+Moral: Moe augmented lora for llms’ lifelong learning.
+arXiv preprint arXiv:2402.11260, 2024.
+Ye, Z., Li, D., Hu, Z., Lan, T., Sha, J., Zhang, S., Duan,
+L., Zuo, J., Lu, H., Zhou, Y., et al. mlora: Fine-tuning
+lora adapters via highly-efficient pipeline parallelism in
+multiple gpus. arXiv preprint arXiv:2312.02515, 2023.
+Zaheer, M., Guruganesh, G., Dubey, K. A., Ainslie, J., Al-
+berti, C., Ontanon, S., Pham, P., Ravula, A., Wang, Q.,
+Yang, L., et al. Big bird: Transformers for longer se-
+quences.
+Advances in neural information processing
+systems, 33:17283–17297, 2020.
+Zaken, E. B., Goldberg, Y., and Ravfogel, S. Bitfit: Sim-
+ple parameter-efficient fine-tuning for transformer-based
+masked language-models. In Proceedings of the 60th
+Annual Meeting of the Association for Computational
+Linguistics (Volume 2: Short Papers), pp. 1–9, 2022.
+Zellers, R., Holtzman, A., Bisk, Y., Farhadi, A., and Choi,
+Y. Hellaswag: Can a machine really finish your sentence?
+arXiv preprint arXiv:1905.07830, 2019.
+Zhai, X., Puigcerver, J., Kolesnikov, A., Ruyssen, P.,
+Riquelme, C., Lucic, M., Djolonga, J., Pinto, A. S., Neu-
+mann, M., Dosovitskiy, A., et al. A large-scale study of
+representation learning with the visual task adaptation
+benchmark. arXiv preprint arXiv:1910.04867, 2019.
+Zhang, D., Zhang, K., Chu, S., Wu, L., Li, X., and Wei,
+S. More: A mixture of low-rank experts for adaptive
+multi-task learning. arXiv preprint arXiv:2505.22694,
+2025.
+Zhang, L., Zhang, L., Shi, S., Chu, X., and Li, B. Lora-fa:
+Memory-efficient low-rank adaptation for large language
+models fine-tuning. arXiv preprint arXiv:2308.03303,
+2023.
+Zhao, B., Tu, H., Wei, C., Mei, J., and Xie, C. Tuning
+layernorm in attention: Towards efficient multi-modal
+llm finetuning. arXiv preprint arXiv:2312.11420, 2023.
+Zhao, L., Zeng, W., Xiaofeng, S., and Zhou, H. Mosld:
+An extremely parameter-efficient mixture-of-shared loras
+for multi-task learning. In Proceedings of the 31st Inter-
+national Conference on Computational Linguistics, pp.
+1647–1659, 2025.
+Zhuang, Y., Shen, Y., Bian, Y., Su, Q., Ji, S., Shi, Y., and
+Miao, F. Ld-mole: Learnable dynamic routing for mixture
+of lora experts. arXiv preprint arXiv:2509.25684, 2025.
+Zoph, B. Designing effective sparse expert models. In 2022
+IEEE International Parallel and Distributed Processing
+Symposium Workshops (IPDPSW), pp. 1044–1044. IEEE,
+2022.
+12

@@ -1,0 +1,11 @@
+{
+  "page_dir": "page_png",
+  "crop_dir": "crops",
+  "crops": [
+    {"name": "fig1-gsm8k-chunks-caption.png", "page": 1, "box": [250, 1240, 1280, 1770]},
+    {"name": "fig2-tokenization-masking-caption.png", "page": 6, "box": [250, 165, 1280, 635]},
+    {"name": "fig3-attention-masks-caption.png", "page": 7, "box": [250, 175, 1280, 610]},
+    {"name": "fig4-accuracy-acceleration-caption.png", "page": 8, "box": [250, 175, 1290, 850]},
+    {"name": "fig12-throughput-latency-caption.png", "page": 23, "box": [250, 385, 1280, 1060]}
+  ]
+}

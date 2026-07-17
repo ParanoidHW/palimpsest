@@ -1,0 +1,81 @@
+===== PAGE 22 =====
+
+Submission and Formatting Instructions for ICML 2026
+The selected set is then:
+SH(x) =
+
+i : wi(x) ≥w[k(x)](x)
+
+Properties: Theoretically motivated and scale-invariant. However, requires tuning two hyperparameters (kmin, kmax), and
+the linear mapping may not be optimal.
+D.4. Gini-Based Selection
+The Gini coefficient measures inequality in the distribution. High Gini indicates dominance by few experts; low Gini
+indicates uniform spread.
+The Gini coefficient for routing probabilities (noting P
+i wi(x) = 1):
+G(x) = 1
+2E
+E
+X
+i=1
+E
+X
+j=1
+|wi(x) −wj(x)| ∈
+
+0, 1 −1
+E
+
+An equivalent formulation using sorted probabilities:
+G(x) = 2 PE
+i=1 i · w[E−i+1](x)
+E
+−E + 1
+E
+The number of experts (inverse relationship—high Gini means fewer experts):
+k(x) = kmax −
+
+(kmax −kmin) ·
+G(x)
+1 −1/E
+
+The selected set is then:
+SG(x) =
+
+i : wi(x) ≥w[k(x)](x)
+
+Properties: More sensitive to distribution tails than entropy. However, O(E2) computation for the double sum (or
+O(E log E) with sorting), and requires two hyperparameters.
+D.5. Cumulative Probability Selection
+This strategy selects the minimum number of experts whose cumulative probability reaches a target threshold ρ ∈(0, 1].
+k(x) = min
+(
+k :
+k
+X
+i=1
+w[i](x) ≥ρ
+)
+The selected set contains the top-k(x) experts:
+Sρ(x) =
+
+i : wi(x) ≥w[k(x)](x)
+
+Properties: Intuitive interpretation—with ρ = 0.9, selected experts capture 90% of the routing signal. Scale-invariant and
+single hyperparameter. However, requires sorting (O(E log E)) and may over-select on flat distributions (e.g., uniform
+distribution with E = 4 requires all 4 experts to reach ρ = 0.9).
+D.6. Top-K with Minimum Gap
+This strategy extends fixed top-k by including additional experts that are within a margin ∆of the k-th expert.
+Sk,∆(x) =
+
+i : wi(x) ≥w[k](x) −∆
+
+Equivalently:
+Sk,∆(x) = Sk(x) ∪
+
+i
+ w[k](x) −∆≤wi(x) < w[k](x)
+
+Properties: Addresses arbitrary cutoffs when experts have similar scores. However, requires tuning two hyperparameters
+(k, ∆), and ∆is not scale-invariant.
+22

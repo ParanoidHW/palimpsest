@@ -1,0 +1,37 @@
+===== PAGE 28 =====
+
+Submission and Formatting Instructions for ICML 2026
+Figure 8. Scaling and temperature ablations. (a) LiME vs MoELoRA with increasing experts: LiME (green) maintains stable
+performance while MoELoRA (red) degrades significantly beyond E = 3–4, with drops of 8–10% on CoLA, MRPC, and STS-B due to
+overfitting. Green shading indicates where LiME outperforms. (b) MoE layer count: performance improves with more LiME layers, with
+optimal range at 20–24 layers (green region). (c) Routing temperature: τ = 0.5 (green) achieves the best performance across tasks.
+parameters) while the shared PEFT backbone trains on all data, preventing fragmentation.
+Finding: MoELoRA suffers 8–10% accuracy drops beyond E = 4 due to overfitting from parameter explosion. LiME’s lightweight
+design maintains stable performance up to E = 10, demonstrating robustness to expert scaling.
+F.6. MoE Layer Count (Figure 8b).
+We vary the number of layers equipped with LiME from 1 to 24 (full model). Performance generally improves with
+more MoE layers, as each additional layer gains input-specific adaptation capability. The optimal range is ∼20-24 layers,
+suggesting that applying LiME broadly across the model yields the best results. Notably, even with just 5 MoE layers,
+we observe meaningful improvements over the baseline, indicating that selective application can balance efficiency and
+performance when computational budget is constrained.
+F.7. Routing Temperature τ (Figure 8c).
+We analyze the effect of temperature τ in the routing softmax. Lower temperatures (τ = 0.1) produce sharper routing
+distributions approaching hard selection, while higher temperatures (τ = 2.0) yield softer, more uniform distributions.
+Results show that τ = 0.5 achieves the best performance across most tasks, providing a balance between decisive routing
+(low τ) and smooth gradient flow (high τ). Very low temperature risks gradient sparsity during training, while very high
+temperature dilutes expert specialization by distributing weight too uniformly.
+F.8. Expert Utilization vs Balance Coefficient (Figure 9).
+We visualize expert usage across layers for varying balance coefficients (α = β) on SST-2. Each heatmap shows the
+proportion of tokens routed to each expert (E1-E4) at different layers (L1, L5, L15, L20, L24), with entropy H measuring
+utilization uniformity.
+Without balancing (α = β = 0): Routing collapses to dominant experts. Layer L1 routes 60% of tokens to E1, L5 routes 57%
+to E2, and deeper layers show similar collapse patterns. The low entropy (H = 1.127) confirms severe imbalance—most
+expert capacity is wasted.
+Small coefficients (α = β ∈[10−4, 10−2]): Expert utilization gradually balances. At 10−4, entropy rises to 1.339 with more
+distributed routing. By 10−2, entropy reaches 1.373 and usage approaches uniformity (∼0.21-0.33 per expert).
+Moderate to high coefficients (α = β ∈[0.05, 1.0]): Utilization becomes nearly uniform across all layers and experts
+(∼0.24-0.27 each). Entropy saturates around H ≈1.38, close to maximum entropy Hmax = log(4) ≈1.386 for 4 experts.
+Insight: Balance coefficients α = β ≥10−2 effectively prevent expert collapse. However, as shown in Figure 5(b), optimal accuracy
+occurs at moderate coefficients (∼5e-2), not maximum entropy—some degree of non-uniform specialization is beneficial for task
+performance.
+28

@@ -1,0 +1,36 @@
+===== PAGE 49 =====
+
+Submission and Formatting Instructions for ICML 2026
+L.4. Image (VQA) — Visual Question Answering
+We use eight visual question answering tasks:
+• ChartQA (Masry et al., 2022): Questions about charts and graphs. Train: 5,000 / Test: 1,000.
+• OK-VQA (Marino et al., 2019): Open-domain VQA requiring external knowledge. Train: 4,204 / Test: 841.
+• ScienceQA (Lu et al., 2022): Multimodal science questions with explanations. Train: 5,700 / Test: 518.
+• SEED-Bench (Li et al., 2023): Comprehensive multimodal understanding benchmark. Train: 5,500 / Test: 500.
+• TextVQA (Fang et al., 2023): Questions requiring reading text in images. Train: 5,000 / Test: 1,000.
+• Text Recognition: OCR-style text reading from images. Train: 5,000 / Test: 1,000.
+• VizWiz-VQA (Gurari et al., 2018): VQA from blind users’ photographs. Train: 2,086 / Test: 417.
+• VQA-RAD (Lau et al., 2018): Medical imaging visual question answering. Train: 1,060 / Test: 200.
+Total: Train 33,550 / Test 5,476. This subset evaluates visual understanding and reasoning.
+L.5. Image (VTAB) — Visual Task Adaptation
+We use six image classification tasks from VTAB (Zhai et al., 2019):
+• Caltech-101: Object recognition across 101 categories. Train: 1,500 / Test: 500.
+• EuroSAT: Satellite image land use classification. Train: 1,500 / Test: 500.
+• Flowers-102: Fine-grained flower species classification. Train: 1,500 / Test: 500.
+• Oxford Pets: Cat and dog breed classification. Train: 1,500 / Test: 500.
+• SVHN: Street view house number recognition. Train: 1,500 / Test: 500.
+• Camelyon: Medical histopathology tumor detection. Train: 1,500 / Test: 500.
+Total: Train 9,000 / Test 3,000. This subset evaluates visual classification across general and specialized domains.
+L.6. Benchmark Design Rationale
+MMT-47 is designed to test several key aspects of LiME:
+1. Multimodal Generalization: By training on text, video, and image data jointly, we test whether experts specialize by
+modality without explicit supervision.
+2. Multi-task Transfer: Within each modality, we include diverse tasks (e.g., sentiment vs. inference for text, VQA vs.
+classification for images) to test task-level routing.
+3. No Task Identifiers: Unlike prior multi-task learning setups, we do not provide explicit task or modality labels during
+training or inference. The model must learn to route based on input characteristics alone.
+4. Scale and Diversity: With 47 test sets across 5 categories, MMT-47 ensures comprehensive evaluation that goes
+beyond single-domain benchmarks.
+All datasets are formatted as text generation tasks with consistent prompt templates. For classification tasks, we format the
+output as the class label in text form. For regression tasks (STS-B), we discretize scores into bins.
+49

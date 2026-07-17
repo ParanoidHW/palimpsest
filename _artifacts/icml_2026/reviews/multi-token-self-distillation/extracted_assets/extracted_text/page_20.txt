@@ -1,0 +1,187 @@
+===== PAGE 20 =====
+
+Preprint. Under review.
+0
+20000
+40000
+60000
+80000
+100000
+Training Step
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+Acc. (%)
+0
+20000
+40000
+60000
+80000
+100000
+Training Step
+0
+1
+2
+3
+4
+5
+6
+Acceleration Factor
+0
+1
+2
+3
+4
+5
+6
+Acceleration Factor
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+Acc. (%)
+1
+2
+3
+4
+5
+Static Strategy k
+0
+20000
+40000
+60000
+80000
+100000
+Training Step
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+Acc. (%)
+0
+20000
+40000
+60000
+80000
+100000
+Training Step
+0
+1
+2
+3
+4
+5
+Acceleration Factor
+0
+1
+2
+3
+4
+5
+Acceleration Factor
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+Acc. (%)
+0.99
+0.99
+0.98
+0.97
+0.96
+0.95
+0.90
+0.87
+0.85
+0.80
+0.75
+0.70
+0.65
+0.60
+ConfAdapt Threshold τ
+Figure 8: (Left) Accuracy and (middle) acceleration dynamics for Q3-4B-Inst-2507 evaluated
+on GSM8K over the course of training. (Right) The pareto frontier of accuracy versus
+acceleration based on the final model checkpoint evaluated across all decoding strategies.
+We find that performance and acceleration stabilize around 50k training steps, and the
+adaptive decoding strategies achieve pareto-optimal tradeoffs between generation speed
+and response quality.
+1
+2
+3
+4
+5
+Acceleration Factor
+20
+30
+40
+50
+Acc. (%)
+1
+2
+3
+4
+5
+Acceleration Factor
+10.0
+12.5
+15.0
+17.5
+20.0
+22.5
+25.0
+27.5
+Acc. (%)
+0.6
+0.65
+0.7
+0.75
+0.8
+0.85
+0.87
+0.9
+0.95
+0.96
+0.97
+0.98
+0.99
+0.995
+ConfAdapt τ
+5
+4
+3
+2
+1
+Static k
+Figure 9: The performance of our (Left) L3.1-8B-Magpie based MTP LM and (Right) Q3-
+4B-Inst-2507 MTP LM evaluated on the BBH benchmark after ∼100k steps of training.
+Performance tradeoff is visualized by plotting the effective k value or “Acceleration Factor”
+versus the Accuracy on the benchmark. More detailed plots showing accuracy and accelera-
+tion as a function of training for both models are provided in Figures 10 and 11. We observe
+that the adaptive decoding strategies achieve pareto-optimal tradeoffs between generation
+speed and response quality for both models.
+20

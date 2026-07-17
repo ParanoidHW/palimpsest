@@ -1,0 +1,1178 @@
+                                          SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+
+                                                 Kanghoon Yoon† 1 Minsub Kim 2 Sungjae Lee 2 Joonhyung Lee 2 Sunghyeon Woo 2 Yeonjun In 1
+                                                                    Se Jung Kwon§ 2 Chanyoung Park 1 Dongsoo Lee§ 2
+
+
+                                                                  Abstract                                     reasoning (Wei et al., 2022), tool integration (Patil et al.,
+                                              Speculative decoding accelerates LLM inference                   2024), and reasoning capability (Yang et al., 2025; Deep-
+                                              by verifying candidate tokens from a draft model                 Mind, 2025), produce longer output sequences, amplifying
+arXiv:2510.02329v2 [cs.CL] 27 May 2026
+
+
+
+
+                                              against a larger target model. Recent “judge” de-                the computational burden of inference.
+                                              coding boosts this process by relaxing verifica-                 One prominent approach to address inference latency is
+                                              tion criteria by accepting draft tokens that may                 Speculative Decoding (SD), which achieves partial paral-
+                                              exhibit minor discrepancies from target model                    lelization of the generation process (Leviathan et al., 2023;
+                                              output, but existing methods are restricted by                   Chen et al., 2023). Standard SD operates by deploying a
+                                              their reliance on human annotations or tasks                     computationally efficient draft model to propose candidate
+                                              with verifiable ground truths, limiting general-                 token sequences, which are subsequently validated in paral-
+                                              izability across diverse NLP tasks. We pro-                      lel by the target model (the model of interest). The accep-
+                                              pose SelfJudge, which trains judge verifiers                     tance criterion for draft tokens relies on a probability-based
+                                              via self-supervision of the target model. Our                    alignment verification: draft tokens are accepted when their
+                                              method measures semantic preservation by assess-                 likelihood under the target model meets or exceeds their
+                                              ing whether token-substituted responses preserve                 likelihood under the draft model. This probabilistic accep-
+                                              the meaning of original responses, enabling auto-                tance mechanism guarantees distributional equivalence with
+                                              matic verifier training across diverse NLP tasks.                standalone target model generation, preserving output qual-
+                                              Our experiments show SelfJudge achieves su-                      ity while achieving computational speedup (Li et al., 2024a;
+                                              perior inference-accuracy trade-offs than judge                  Sun et al., 2023; 2024; Hu et al., 2025; Zhou et al., 2024).
+                                              decoding baselines, offering a broadly applicable
+                                              solution for faster LLM inference.                               Recently, Bachmann et al. (2025) and Garipov et al. (2025)
+                                                                                                               revealed that alignment-based verification approaches are
+                                                                                                               overly conservative and lack contextual awareness. Specif-
+                                         1. Introduction                                                       ically, when minor lexical variations occur between draft
+                                                                                                               and target models without altering the contextual meaning,
+                                         Modern large language models (LLMs) have made signifi-                conventional SD rejects these draft tokens. The conserva-
+                                         cant strides in natural language processing, demonstrating            tive behavior limits the speedup potential of SD even when
+                                         competitive performance across a wide range of tasks (Rad-            output quality remains uncompromised. To address the limi-
+                                         ford et al., 2019; OpenAI et al., 2024). Empirical scaling            tation, Bachmann et al. (2025) proposed the judge decoding
+                                         laws establish a relationship between the number of param-            that relaxes strict token alignment by evaluating semantic
+                                         eters and model capability, as evidenced by models with               compatibility through a learnable judge verifier, enabling
+                                         hundreds of billions of parameters achieving state-of-the-art         greater inference acceleration.
+                                         results on benchmarks (Kaplan et al., 2020; Grattafiori et al.,
+                                         2024). However, the autoregressive generation process re-             However, judge verification approaches face substantial
+                                         quires accessing all model parameters for each forward pass,          practical limitations in obtaining judge verifier. Effective
+                                         creating a memory bandwidth bottleneck that impacts to-               judge verifiers require token-level supervision data indi-
+                                         ken generation latency. Furthermore, current trends toward            cating acceptance decisions for individual tokens, a chal-
+                                         more sophisticated LLM applications, such as multi-hop                lenging annotation requirement. Recent approaches have
+                                                                                                               attempted to address this through human annotation (Bach-
+                                           †Work Done during an internship at NAVER Cloud. § Currently         mann et al., 2025) or automated labeling based on task cor-
+                                         work at a2sys. 1 KAIST, Daejeon, South Korea 2 NAVER Cloud,
+                                                                                                               rectness (Garipov et al., 2025), but both strategies exhibit
+                                         Seongnam, South Korea.
+                                                                                                               fundamental constraints. Human-annotated approaches in-
+                                         Proceedings of the 43 rd International Conference on Machine          troduce bias due to annotation subjectivity and divergence
+                                         Learning, Seoul, South Korea. PMLR 306, 2026. Copyright 2026          from target model decisions. In contrast, automated methods
+                                         by the author(s).
+
+                                                                                                           1
+                            SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+                 Llama-3.1-8B/Llama-3.2-1B on GSM8K                                  Llama-3.1-8B/Llama-3.2-1B on MMLU
+
+
+
+
+                      (a)                             (b)                                 (c)                            (d)
+
+Figure 1. Inference efficiency and task performance comparison of SD methods on GSM8K (a,b) and MMLU (c,d). AutoJudge shows
+domain-specific limitations, performing well on mathematical reasoning but poorly on general knowledge tasks, while SelfJudge main-
+tains consistent performance across both domains. γ represents the number of tokens generated by draft model per step.
+
+
+are constrained to tasks with verifiable ground truth, restrict-       task quality while enabling efficient speculative decoding
+ing applicability to specific domains such as mathematical             across diverse domains.
+reasoning and code generation. This domain constraint is
+                                                                       In summary, we make the following contributions:
+demonstrated empirically in Figure 1, where automated ap-
+proaches such as AutoJudge achieve substantial speedup on
+                                                                        • We propose SelfJudge, a novel judge verification
+mathematical reasoning tasks (GSM8K) but exhibit signifi-
+                                                                          approach that enables generalization across diverse NLP
+cant decrease on general knowledge evaluation (MMLU).
+                                                                          tasks by accepting semantically coherent output tokens
+In this paper, we propose SelfJudge, a speculative decod-                 for faster LLM inference.
+ing framework that enables judge verification across general
+NLP tasks without requiring human supervision or verifi-                • We introduce an automatic training data generation
+able ground truth. Our approach exploits self-supervision                 method for the judge verifier that labels tokens using
+from the target model to generate verifier training data. We              a semantic preservation score, measured by the target
+introduce a criterion for token acceptability based on se-                model’s likelihood differences.
+mantic preservation, quantified as the likelihood difference            • We conduct comprehensive experiments across NLP
+between the original target response and token-substituted                tasks using the Llama-3 and Qwen-2.5 families, demon-
+variants under the target model’s distribution. Tokens whose              strating that SelfJudge generally outperforms exist-
+replacement minimally affects the target model’s response                 ing verification methods in terms of token generation
+likelihood are labeled as acceptable for training; tokens that            speed and task performance.
+substantially alter likelihood are rejected. This semantic
+preservation criterion enables automatic supervision gen-
+eration across diverse task domains, including open-ended              2. Related Works
+question answering and text summarization. The generated               2.1. Speculative Decoding
+data is used to train a lightweight verifier that performs
+context-aware token evaluation during inference, accepting             SD is a partial parallelization approach that addresses the
+draft proposals based on semantic compatibility rather than            latency of autoregressive generation. The core idea is to use
+distribution alignment.                                                an efficient module to generate drafts, which are then veri-
+                                                                       fied in parallel by the target model. Existing SD methods
+We evaluate SelfJudge on diverse NLP tasks and                         can be categorized into parameterized and parameter-free
+datasets, including GSM8K, MATH-500, MMLU,                             approaches. First, several SD methods have used small
+CNN/DailyMail and LiveCodeBench. We demonstrate                        language models from the same family to suggest drafts
+that SelfJudge outperforms existing verification meth-                 (Leviathan et al., 2023; Miao et al., 2024). To enhance
+ods by achieving superior accuracy-efficiency trade-offs               the alignment between draft and target models, advanced
+across domains. While prior judge verification methods like            approaches propose specialized drafting architectures that
+AutoJudge achieve +1.96 accepted tokens per verification               utilize parts in the target model (e.g., hidden representation,
+cycle with significant task performance degradation (-2.7%             LM head) (Stern et al., 2018; Cai et al., 2024; Li et al.,
+accuracy), our approach delivers enhanced +2.06 accepted               2024a; 2025). Moreover, recent approaches tried to improve
+tokens per verification cycle with only -1.0% accuracy.                the distribution alignment through knowledge distillation,
+The improvement demonstrates SelfJudge’s superior                      which improves the draft acceptance rate (Zhou et al., 2024;
+applicability to general-purpose NLP scenarios, maintaining            Liu et al., 2024). In contrast, parameter-free SD methods
+
+                                                                   2
+                         SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+produce a draft using tokens from user prompts or generated             semantic change of the original response with a token
+history (Fu et al., 2024; Luo et al., 2025; Oliaro et al., 2025).       substituted. Specifically, we define and measure seman-
+While previous approaches have focused on improving the                 tic preservation by comparing the likelihood in the target
+drafting phase to generate draft tokens that the target model           model’s original response versus token-substituted vari-
+is likely to accept, our work focuses on developing an im-              ants. Tokens whose replacement does not significantly af-
+proved verification method that allows the acceptance of                fect the model’s overall response confidence are labeled as
+these tokens without altering their semantic meaning. In this           acceptable, enabling automatic generation of high-quality
+paper, our goal is to achieve speedup while maintaining task            training data across diverse NLP domains. This semantic
+performance through our proposed verification approach.                 preservation-based approach fundamentally shifts the verifi-
+                                                                        cation paradigm from exact token matching or task-specific
+2.2. Judge Speculative Decoding                                         correctness to general semantic preservation. By obtaining
+                                                                        the semantic preservation in the perspective of the target
+Standard SD methods perform draft verification based on                 model, our approach makes it applicable to any NLP tasks,
+modified rejection sampling (Chen et al., 2023), which ac-              including open-ended tasks (e.g., creative writing) where
+cepts tokens when the token probabilities from the target               ground truth is unavailable.
+model meet or exceed those of the draft model. The ad-
+vantage of using rejection sampling is that it preserves the
+                                                                        3.1. Conventional Speculative Decoding
+distribution of the target model without degrading output
+quality. However, this alignment-based verification is overly           We begin by introducing conventional SD. The core idea
+conservative, which limits the speedup of SD when there                 of SD is to efficiently generate drafts and verify them in
+are minor token discrepancies between draft and target mod-             parallel. Specifically, we generate γ candidate tokens using
+els. To address this limitation, JudgeDecoding (Bachmann                a small language model (Leviathan et al., 2023) or a special-
+et al., 2025) have been proposed. JudgeDecoding utilizes a              ized autoregressive model (Li et al., 2024a) to create drafts.
+lightweight classifier as verifier, which examines the hidden           When these generated candidate tokens are fed into the tar-
+representations of tokens. However, training such verifiers             get model, we can verify whether the tokens are sufficiently
+remains challenging as it requires labels indicating whether            aligned with the target model’s output using the probability
+each token should be accepted or not. Hence, AutoJudge                  value of next token.
+(Garipov et al., 2025) automates the data generation process
+                                                                        Draft Generation. Formally, let Mtarget be the large lan-
+by using verifiable ground truth in math and coding tasks.
+                                                                        guage model of interest, and Mdraft be the efficient model
+Specifically, AutoJudge adopts the answer-preservation ap-
+                                                                        with a smaller number of parameters compared to Mtarget .
+proach, where it systematically tests token alternatives while
+                                                                        In the drafting phase, given prefix x≤i , we first generate γ
+maintaining correctness of math and coding problems. The
+                                                                        tokens using the efficient model autoregressively:
+method replaces individual tokens in a correct response and
+completes the modified response. If the final answer re-                 di+1 , qi+1 = Mdraft (x≤i ), where i = t, . . . , t + γ − 1 (1)
+mains correct, it considers the replaced token as acceptable.
+Despite these advances, current judge verification meth-                where di+1 represents the generated draft token and qi+1
+ods lack generalization ability across diverse NLP tasks,               denotes its corresponding probability.
+showing performance improvements primarily on math and                  Alignment-based Verification. Subsequently, we feed the
+coding tasks. In this paper, we propose a judge verification            draft tokens into the target model to verify whether each
+approach that trains the verifier using semantic coherence              token is valid from the target model’s perspective:
+from the original response, aiming to improve generalization
+across diverse NLP domains.                                               (pt+1 , . . . , pt+γ+1 ) = Mtarget ([x≤t ; dt+1 , ..., dt+γ ]) (2)
+                                                                        where pt represents the target model’s probability value for
+3. Method                                                               each draft token dt . The last probability pt+γ+1 corresponds
+                                                                        to additionally sampled token using the target model.
+In this section, we propose SelfJudge: a novel specu-
+lative decoding approach that enables judge verification                Conventional SD typically employs rejection sampling to
+across general NLP tasks without requiring human an-                    verify draft tokens by comparing probability distributions
+notations or ground truth answers. The key innovation                   from both the draft and target models for each token, accept-
+of SelfJudge lies in leveraging the semantic informa-                   ing tokens only when the target model probabilities are high
+tion inherent in the target model to automatically generate             or similar to the draft probabilities as follows:
+verifier training data.
+                                                                         Accept dt if ut < rt , otherwise reject dt
+As shown in Figure 2, SelfJudge introduces a self-data-                                           
+                                                                                                      pt
+                                                                                                         
+                                                                                                                             (3)
+generation paradigm where the target model assesses the                         where rt = min 1,          , ut ∼ Unif(0, 1)
+                                                                                                      qt
+
+                                                                    3
+                             SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+                                                                                          Target Model Response
+       Prompt
+                                                                                              After researching, I found the following information:
+        Identify which instrument is string                      Target                       - The Gudok is a traditional Russian instrument. It is a string instrument,
+        or percussion: Cantaro, Gudok                            Model                        similar to a lute or a mandolin, with a long neck and a round body. It
+                                                                                              has a distinctive sound and is often used in folk music. <|eot_id|>
+
+                                                                                 Identify                                  Replace token with
+                                                                Draft            Mismatched Tokens                         an alternative
+                                                                Model
+       Token-substituted responses                                                                                                               Prefix                Suffix
+                                                                                                                                                      Token Labeling
+           Original       After     researching           ,            I      found           the
+                                                                                                                                                           analyzing
+           Replaced       After      analyzing            ,            I      found           the                                         Semantic
+                                                                                                                                         Coherence
+            Original       ⋅⋅⋅      traditional          Russian           Instrument         .       It   is
+                                                                                                                                                          Japanese
+           Replaced        ⋅⋅⋅     traditional          Japanese           Instrument         .       It   is
+                                                                                                                     Target
+            Original       ⋅⋅⋅     It      is       a         string       Instrument     ,
+                                                                                                                     Model
+                                                                                                                                                          ‘s
+           Replaced        ⋅⋅⋅     It      ‘s       a         string       Instrument     ,
+
+            Original       ⋅⋅⋅     music        .       <|eot_id|>
+                                                                                                                                                          .\n
+           Replaced        ⋅⋅⋅     music        .\n       <|eot_id|>
+
+
+Figure 2. The training data generation process of SelfJudge. Our approach compares the likelihood of the replaced response with the
+original response to measure the semantic preservation score. If semantic preservation score is higher than τ , the replaced token is labeled
+as acceptable. After the token labeling process, we train the verifier that will be used during the inference phase for draft verification.
+
+
+From the draft sequence, we accept tokens sequentially until                                           where Verifier is a learned binary classifier (we use logis-
+the first rejection occurs according to Eqn.(3). It ensures that                                       tic regression for simplicity), and θ is a hyperparameter
+the accepted draft tokens maintain the target distribution.                                            determined via holdout validation. In practice, judge verifi-
+Beyond rejection sampling, other alignment-based methods                                               cation operates in parallel with alignment-based verification
+exist, such as strict speculative sampling (He et al., 2024),                                          (e.g., rejection sampling). A token is accepted if either the
+which accepts draft tokens only when they match the target                                             judge or the alignment-based verifier approves it, ensuring
+model’s greedy predictions exactly.                                                                    that semantically coherent tokens are not unnecessarily dis-
+                                                                                                       carded while maintaining the distributional guarantees of
+3.2. Judge Verification                                                                                alignment-based verification.
+As alignment-based verification methods have strict criteria,
+                                                                                                       3.3. Generate Data for Judge Verifier
+they lack context-awareness. This strict criterion can be
+overly conservative, for instance, rejecting “It’s a strong                                            For efficient and accurate judge decoding, obtaining a high-
+instrument” when the target model produces “It is a strong                                             quality judge verifier is paramount. Our core insight is to
+instrument”, even though both expressions preserve the                                                 leverage the target model’s own semantic understanding to
+same semantic meaning in context. Such unnecessary rejec-                                              train the verifier. By doing so, we increase the accepted
+tions limit the potential speedup of SD.                                                               tokens by allowing semantically valid tokens that may have
+                                                                                                       a lower probability in the target model while maintaining
+To address this issue, (Bachmann et al., 2025) introduces
+                                                                                                       response quality. Consequently, the judge verifier must iden-
+judge verification to complement alignment-based methods
+                                                                                                       tify which tokens preserve the original semantic meaning
+by recovering semantically acceptable tokens that would
+                                                                                                       within the given context.
+otherwise be conservatively rejected. Given draft tokens
+dt+1 , . . . , dt+γ , we first obtain the hidden representations
+                                                                                                       3.3.1. S EMANTICS P RESERVATION T OKEN L ABELING
+of the target model:
+                                                                                                       To maintain response quality in judge verification, previ-
+  (ht+1 , . . . , ht+γ ) = Mtarget ([x≤t ; dt+1 , . . . , dt+γ ]) (4)
+                                                                                                       ous methods have relied on human annotators (Bachmann
+The judge verifier then evaluates each token based on its                                              et al., 2025) or on whether the final answers are preserved
+hidden representation:                                                                                 when tokens are replaced (Garipov et al., 2025). However,
+                                                                                                       human annotations suffer from subjectivity, and the answer-
+               Verifier(ht ) > θ =⇒ Accept dt                                           (5)
+
+                                                                                                  4
+                         SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+preservation-based method is limited to tasks with verifiable           the bidirectional context in Eqn.(6) is not possible. There-
+ground truths.                                                          fore, we propose a method of transforming the bidirectional
+                                                                        semantic difference into computationally tractable autore-
+Rather than relying on external supervision, we utilize the
+                                                                        gressive operations as follows:
+target model’s self-evaluation. Since the goal of SD is to pre-
+serve the target model’s generation quality while improving               log P (zi |y<i , y>i ) − log P (yi |y<i , y>i )
+latency, the target model itself is the best judge of semantic            = log P (zi , y<i , yi>i ) − log P (yi , y<i , yi>i )
+preservation. In our approach, the target model directly
+                                                                                    <i )P (zi |y<i )P (y>i |y<i , zi )
+                                                                                       
+assesses the semantic impact of token replacements within                 =logP(y
+                                                                                          −           <i )P (yi |y<i )P (yi> |y≤i )
+                                                                                                        
+its own responses. This enables automatic generation of                                       logP (y                                (7)
+high-quality training data across diverse NLP tasks without               = log P (zi |y<i ) − log P (yi |y<i )
+domain constraints.                                                         |                 {z
+                                                                                             sprefix
+                                                                                                               }
+
+Step 1. Identifying Mismatched Tokens. To improve the                                      + log P (y>i |y<i , zi ) − log P (y>i |y≤i )
+efficiency of SD with a verifier, we first choose which tokens                               |                   {z                  }
+                                                                                                             suffix likelihood
+to label, focusing on mismatched tokens where the target
+and draft models disagree. These tokens are candidates for              sprefix represents the relative probability given the prefix,
+relaxed verification, whereas matched tokens are already                computing the difference between the original and replaced
+handled by the alignment-based verification phase of SD.                token probabilities given the same prefix. The second
+Formally, we generate response y using the target model                 term represents future context consistency, which com-
+given an instruction. We then feed response y to the draft              putes the likelihood difference of future tokens in the target
+model and obtain the draft model’s predictions at each po-              model’s response. Note that we obtain the probabilities
+sition. We identify mismatched positions i where the tar-               conditioned on the replaced token by directly feeding the
+get token yi differs from the draft model’s top prediction              token-substituted response, i.e., [y<i , zi , y>i ], into the target
+arg max Pdraft (·|y<i ).                                                model.
+Step 2: Computing Semantic Preservation Score. When                     Step 3: Token Labeling. Based on the semantic preserva-
+the draft model’s token does not match the token output by              tion score computed on the mismatched tokens, we finally
+the target model, we need to determine if the alternative               obtain the label for each token. Specifically, a replaced to-
+token from the draft model, i.e., arg max Pdraft (·|y<i ), is a         ken is labeled as acceptable if s(y, zi ) > τ . Otherwise, the
+semantically acceptable substitute to the target model. To              replaced token is labeled unacceptable, which implies that
+this end, we introduce a semantic preservation score. Our               this replaced token should be rejected if it appears during
+core insight is to consider the alternative token as acceptable         the inference phase. For data construction, we save the pairs
+if it preserves the semantic meaning of the target model’s              of hidden representations and labels (hz , label).
+response. Therefore, our semantic preservation score quanti-            Our token label incorporates information about how closely
+fies how much of the semantic meaning of the target model’s             the replaced token preserves the semantic information in
+response is preserved when the target model’s original token            the original response. We argue that SelfJudge is a more
+is replaced by the draft’s alternative.                                 robust verification approach than the answer preservation-
+Formally, given the target response y and the mismatched                based approach, as our approach focuses on keeping the lo-
+index i, we define the following semantic preservation score            cal semantics of the responses generated by the target model.
+for token replacement zi as:                                            Moreover, SelfJudge eliminates human bias when as-
+                                                                        sessing the acceptable tokens.
+  s(y, zi ) = log P (zi |y<i , y>i ) − log P (yi |y<i , y>i ) (6)
+                                                                        Discussion on the Semantic Preservation Score. A
+where zi is the alternative token from the draft model and              straightforward approach to accepting the token from the
+y>i represents the future token sequence. In practice, our se-          draft model (accepting the replaced token z) is to compare
+mantic preservation score uses N future tokens as opposed               the confidence of y and z. Some prior works (Kim et al.,
+to using all future tokens. This score measures how seman-              2023; Narasimhan et al., 2025) have compared the probabil-
+tically similar the replacement token is to the target model’s          ities solely on the prefix context, i.e., sprefix in Eqn.(7), to
+established context. This bidirectional scoring is used solely          accept high-confidence draft tokens.
+for generating verifier training labels; during inference, the
+                                                                        Our bidirectional context approach enhances the criterion by
+trained verifier operates on forward-pass without access to
+                                                                        incorporating the suffix from the original response, which re-
+future tokens.
+                                                                        duces the uncertainty of replacement decisions. We formally
+As many modern LLMs have adopted autoregressive infer-                  define our semantic preservation score, s(y, zi ), which can
+ence, directly computing the probabilities conditioned on               be decomposed to reveal its direct relationship with the
+
+                                                                    5
+                         SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+prefix-only baseline. Through a Bayesian interpretation, our            ply chain-of-thought prompting (Wang et al., 2025) while
+score can be expressed as:                                              the original MMLU benchmark employs a multiple-choice
+                                                                      prompt that encourages language models to directly answer
+                                        P (y>i | zi , y<i )             among four choices. This modification allows us to simul-
+   s(y, zi ) = sprefix (y, zi ) + log                         (8)
+                                        P (y>i | yi , y<i )             taneously assess both QA task performance and inference
+                                  |          {z             }
+                                      Log Bayes Factor                  efficiency, taking into account the trade-off between accu-
+                                                                        racy and the average accepted lengths. For more details of
+This formulation demonstrates that our score begins with                the experimental setup, refer to Appendix C.
+the baseline prefix score and refines it with an additional             Baseline. For baseline comparisons, we include standard
+term, where the Log Bayes Factor quantifies the strength of             SD (Leviathan et al., 2023) with rejection sampling, which
+evidence provided by the suffix. If the Log Bayes Factor is             preserves the target model’s task performance. We also in-
+large, it indicates that the suffix is more probable given the          clude top-k verification, which accepts draft tokens if they
+replacement token, thus increasing the score. Conversely,               are among the target model’s top-k tokens, as a naive relaxed
+if it is small, the suffix provides evidence for the original           verification approach. Both methods represent alignment-
+token, penalizing the replacement score. This transforms                based verification approach, as they determine acceptance
+the decision-making process from a simple probability com-              based on token-level matching with the target model’s dis-
+parison into a principled, evidence-based update. Since                 tribution. We also compare against judge verification ap-
+obtaining the future token probabilities during the inference           proaches, specifically AutoJudge, which extends JudgeDe-
+phase is not possible, we use the learned verifier to predict           coding. We use AutoJudge instead of JudgeDecoding di-
+the semantic preservation score online.                                 rectly because the training data and implementation details
+                                                                        of JudgeDecoding are not publicly available.
+3.4. Verifier Training
+                                                                        We train two versions of the AutoJudge verifier: AutoJudge
+After collecting a dataset with semantically-preserved to-              and AutoJudge+ . Specifically, AutoJudge generates token
+kens, we can train a verifier that identifies acceptable tokens         labels based on the importance of each token to the final
+during the inference phase. It is important to note that                answer, using the training split of the GSM8K and Live-
+we train a single verifier, and apply it across various NLP             CodeBench datasets. While AutoJudge can assess token
+tasks. We generate 69,432 token labels using 1,220 prompts              importance by checking whether a token replacement pre-
+in GSM8K train, LiveCodeBench and Dolly15k datasets.                    serves the correctness on math and coding problems, this
+While the judge verifier could be any type of model, we pri-            approach has limited applicability to open-ended NLP tasks.
+marily select simple linear models that utilize existing LLM            To address this limitation, we implement AutoJudge+ by
+hidden states as input features, following (Bachmann et al.,            combining an LLMs-as-Judges framework (Li et al., 2024b)
+2025). Specifically, we employ basic logistic regression for            with AutoJudge. Specifically, we incorporate the instruction
+recognizing semantic-preserved tokens in our approach. To               tuning dataset, Dolly15K, which encompasses diverse cate-
+prevent overfitting, we conduct a straightforward grid search           gories such as summarization, creative writing, and question
+across L2 regularization parameters.                                    answering. We train the verifier to act as a judge, asking it to
+                                                                        determine if the original response and the token-substituted
+4. Experiment                                                           response are semantically equivalent.
+
+4.1. Experimental Settings                                              Implementation Details. To set the threshold τ for se-
+                                                                        mantic preservation labeling of SelfJudge, we use 100
+Evaluation Protocol. We comprehensively evaluate our                    sampled queries from GSM8K. In this math task, Auto-
+proposed method by following the SD literature (Bachmann                Judge has identified ground-truth important tokens (i.e., to-
+et al., 2025). We select Llama-3.1-8B/Llama-3.2-1B and                  kens whose replacement changes the final answer). Specif-
+Qwen-2.5-8B/Qwen-2.5-0.5B as the target and draft mod-                  ically, we set τ = quantile(semantic preservation scores
+els, respectively. To measure inference efficiency, we re-              of unacceptable tokens determined by AutoJudge, 0.1) to
+port the average accepted length (m). However, relaxed                  ensure that all tokens rejected by AutoJudge are also re-
+verification methods can introduce the possibility of ac-               jected by SelfJudge. This conservative threshold guar-
+cepting incorrect tokens, which may lead to task perfor-                antees high recall for answer-critical tokens of our method.
+mance degradation. Hence, we report task-specific perfor-               Based on the established threshold τ , SelfJudge gener-
+mance metrics with the average accepted lengths. We con-                ates token labels for full training data. The suffix length
+duct the experiments on five evaluation scenarios, including            for computing semantic preservation score is set to 20. For
+GSM8K (Cobbe et al., 2021), MATH-500 (Lightman et al.,                  reproducibility, we set the temperature of the target model
+2023), LiveCodeBench (Jain et al., 2025), CNN/DailyMail,                to 0 in all experiments.
+and MMLU (Hendrycks et al., 2021). Note that we ap-
+
+                                                                    6
+                            SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+Table 1. Performance comparison with SD baseline using Llama-3.1-8B/Llama-3.2-1B. Green = best performance gain compared to SD,
+Yellow = second place, Red = worst two. ∆m : Average change in accepted length from SD, ∆task : Average change in task performance
+from SD.
+
+                                    GSM8K                MATH-500                  MMLU                 CNN/DM            Avg. Change
+              Method
+                                    m / Acc.              m / Acc.                 m / Acc.              m / FC            ∆m /∆task
+              SD                   9.14 / 80.7           9.98 / 45.4               4.36 / 65.0          4.35 / 64.6           -/-
+              Top-k            14.59 / 71.2 (-9.5)   15.08 / 29.8 (-15.6)      6.69 / 49.5 (-15.5)   7.49 / 62.5 (-2.1)   +4.01 / -10.7
+              AutoJudge-R       9.71 / 80.1 (-0.6)    11.23 / 41.0 (-4.4)       4.47 / 64.6 (-0.4)   4.36 / 64.5 (-0.1)   +0.49 / -1.4
+              AutoJudge-F      11.63 / 78.4 (-2.3)    13.12 / 40.6 (-4.8)       5.15 / 63.1 (-1.9)   4.74 / 64.5 (-0.1)   +1.70 / -2.3
+              SelfJudge-R      10.09 / 80.7 (+0.0)   10.91 / 43.0 (-2.4)       5.14 / 64.4 (-0.6)    4.92 / 65.5 (+0.8)   +0.81 / -0.5
+              SelfJudge-F      11.29 / 80.5 (-0.2)   12.78 / 42.2 (-3.2)       6.38 / 62.7 (-2.3)    6.05 / 63.9 (-0.7)   +2.17 / -1.6
+
+
+
+
+Figure 3. Speed/Performance comparison across different methods. We report the accuracy, with the corresponding average accepted
+length, by searching the threshold values of each method.
+
+
+4.2. Performance Comparison Across NLP Tasks                                   mance drop compared to SD on GSM8K and MATH-500,
+                                                                               but shows almost no speed-up on MMLU and CNN/DM.
+We compare SelfJudge with baseline verification meth-
+                                                                               Furthermore, we observed that the judge verification of
+ods in a practical setting where we apply judge verification
+                                                                               AutoJudge severely decreases Pass@1 on LiveCodeBench
+in diverse NLP scenarios. As judge verification methods
+                                                                               in Table 6 in Appendix. In contrast, both SelfJudge-R
+have a trade-off between task performance and inference
+                                                                               and SelfJudge-F consistently achieve speed-ups across all
+efficiency depending on the threshold value θ, we set a fixed
+                                                                               datasets with minimal performance degradation among all
+threshold for the judge verifier using a holdout set in ad-
+                                                                               compared methods.
+vance. {Method}-R and {Method}-F denote applying θ
+that achieved the best recall and best F1 score, respectively.                 We argue that these results stem from the superiority of
+In Table 1, we make the following observations:                                our semantic coherence-based token acceptance strategy.
+                                                                               Specifically, SelfJudge is trained to accept tokens if they
+Observartion1. SelfJudge achieved significant speed-
+                                                                               are semantically coherent in context, regardless of the task.
+up over standard SD across various NLP tasks while demon-
+                                                                               In contrast, AutoJudge trains the verifier to accept tokens
+strating the smallest task performance degradation com-
+                                                                               even when semantically different tokens appear in context,
+pared to SD. Particularly when we compare SelfJudge-F
+                                                                               as long as the final answer remains identical to the origi-
+with AutoJudge-R, it achieves higher average accepted
+                                                                               nal. This fundamental difference significantly impacts the
+length while showing similar performance degradation
+                                                                               robustness when the verifier encounters out-of-distribution
+across the GSM8K, MATH-500, MMLU, and CNN/DM
+                                                                               tokens during actual inference scenarios.
+datasets, resulting in greater inference speed improvements.
+Observation2. SelfJudge has the advantage of consis-                           4.3. Trade-off Analysis: Accepted Length vs. Task
+tently generalizing across all tasks. Specifically, existing                        Performance
+baselines show significant performance loss on certain tasks.
+Top-k (k = 2) verification achieves large speed-ups but sub-                   Since judge verification exhibits a trade-off between task
+stantially degrades task performance. AutoJudge-R partially                    performance and inference speed depending on the thresh-
+achieves meaningful speed-up without significant perfor-                       old setting, we performed additional analyzes using the
+
+
+                                                                           7
+                         SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+Table 2. Performance comparison on Llama-3.1-70B/8B. m de-            Table 3. Wall-clock throughput comparison on Llama-3.1-
+notes the average accepted length.                                    8B/Llama-3.2-1B using A100 GPU with 1-way tensor parallelism.
+
+     Method                     GSM8K          MMLU                         Dataset    Method         Tokens/sec    Acc (%)
+                                m / Acc        m / Acc
+                                                                                       SD               111.21        80.7
+     SD                        9.532 / 93.0   5.668 / 80.6                  GSM8K      AutoJudge-R      118.14        80.1
+                                                                                       SelfJudge-F      137.37        80.5
+     SelfJudge-R (θ = 0.28)   10.622 / 93.8   6.262 / 81.4
+     SelfJudge-F (θ = 0.38)   11.663 / 94.0   6.955 / 79.8                             SD                61.13        64.6
+     SelfJudge (θ = 0.5)      12.528 / 93.8   7.576 / 77.2                  MMLU       AutoJudge-R       62.67        64.5
+                                                                                       SelfJudge-F       89.45        63.9
+
+
+Llama-3.1-8B / Llama-3.2-1B and Qwen-2.5-7B / Qwen-                   Table 4. Wall-clock throughput comparison on Llama-3.1-70B/8B
+                                                                      using 4 A100 GPUs with 4-way tensor parallelism.
+2.5-0.5B models. Specifically, we varied the threshold θ
+of each judge verifier. From Figure 3, we make two key                       Dataset   Method         Tokens/sec   Acc (%)
+observations. First, SelfJudge shows competitive perfor-
+                                                                                       SD               53.45        93.0
+mance to AutoJudge on MMLU with CoT prompting, indi-
+                                                                             GSM8K     SelfJudge-R      59.57        93.8
+cating that the token generation criteria of SelfJudge cor-                            SelfJudge-F      65.40        94.0
+rectly labels the token compared to answer-preservation-
+based methods AutoJudge and AutoJudge+ . These sug-                                    SD               39.19        80.6
+                                                                             MMLU      SelfJudge-R      43.30        81.4
+gest that SelfJudge is consistently generalizing well in
+                                                                                       SelfJudge-F      48.09        79.8
+general reasoning tasks such as QA. Second, we observed
+that SelfJudge generally performs comparably to or bet-
+ter than AutoJudge methods on GSM8K. Although Auto-
+Judge can determine the token label with the ground-truth             NVIDIA A100 GPUs, which represents the most widely
+answer for math/coding problems, our semantic-preserving              adopted hardware configuration in both research and in-
+approach remains competitive. This implies that determin-             dustrial deployments. We set the draft length γ to 20 for
+ing token acceptance based on the semantic coherence in               GSM8K and 15 for MMLU across all methods. For the ex-
+the local context is consistently better than judging token ac-       periment with Llama-3.1-8B/Llama-3.2-1B, we employed
+ceptance based on answer correctness, not only for general            single-way tensor parallelism on a single A100 GPU. We
+reasoning tasks but also for math and coding problems.                use the 4-way tensor parallelism on 4 A100 GPUs for the
+                                                                      experiment with Llama-3.1-70B/8B.
+4.4. Performance on Larger Model                                      Results on Llama-3.1-8B/Llama-3.2-1B. Table 3 demon-
+To examine the scalability of SelfJudge to larger mod-                strates that SelfJudge-F achieves substantially higher
+els, we conducted additional experiments with Llama-3.1-              throughput than both standard speculative decoding (SD)
+70B/8B as target and draft models, respectively. Following            and AutoJudge-R across both benchmark tasks. On GSM8K,
+the same protocol as our main experiments, we sampled                 SelfJudge-F delivers 23.5% improvement over SD and a
+500 instances from GSM8K (train), 220 from Live Code                  16.3% improvement over AutoJudge-R, while maintain-
+Bench (train), and 500 from Dolly15k. SelfJudge gener-                ing comparable accuracy. More remarkably, on MMLU,
+ated a total of 53,318 token labels for verifier training. We         SelfJudge-F achieves a 46.3% speedup over SD and a 42.7%
+exclude the result of AutoJudge since it could not complete           improvement over AutoJudge-R, with only a marginal accu-
+the data generation within timeframes. Table 2 presents               racy difference.
+that SelfJudge maintains accuracy while improving the
+average of accepted length compared to SD, even on the 70B            Results on Llama-3.1-70B/8B. Table 4 presents the re-
+target model. This demonstrates that our approach scales              sults for this larger model configuration. We skip report-
+effectively to larger models.                                         ing AutoJudge due to the expensive data generation cost.
+                                                                      SelfJudge-R achieves 11.5% and 10.5% improvements over
+                                                                      SD on GSM8K and MMLU, respectively. SelfJudge-F fur-
+4.5. Wall Clock Time Evaluation
+                                                                      ther pushes the throughput, achieving 22.4% and 22.7%
+To demonstrate that SelfJudge achieves genuine wall-                  speedups over SD. Importantly, these speedups are achieved
+clock speedup beyond theoretical improvements, we con-                while maintaining or even improving accuracy, confirming
+ducted comprehensive throughput experiments by imple-                 that SelfJudge scales effectively to larger models with-
+menting our method in vLLM, the de facto standard frame-              out sacrificing generation quality. These results confirm
+work for production-grade LLM serving. We measured                    that the accepted length improvements we observed in prior
+end-to-end inference throughput (tokens per second) on                experiments directly translate to real wall-clock speedup in
+
+                                                                  8
+                         SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+                  Llama-3.1-8B/Llama-3.2-1B on GSM8K                               Llama-3.1-8B/Llama-3.2-1B on MMLU
+
+
+
+
+Figure 4. Performance of SelfJudge over a range of suffix length N . We compute the semantic score by including the likelihood
+computed on N future tokens.
+
+
+production-grade serving systems.                                     ations (“:\n → :\n\n”) reflecting different programming
+                                                                      styles with identical functionality. These patterns confirm
+Elapsed Time Analysis of Each Phase. Since our veri-                  that SelfJudge achieved great inference efficiency by ac-
+fication paradigm introduces an additional stage with the             cepting tokens with minor token discrepancy. Please refer
+judge verifier, we measure the time elapsed for each stage on         to Appendix D.3 for more examples.
+Llama-3.1-8B/Llama-3.2-1B with a single V100 GPU. Out
+of a total verification time of 7.515 sec, 5 draft token gener-
+                                                                      5. Conclusion
+ation accounts for 4.51 sec, the target model forward pass
+for 2.81 sec, and rejection sampling for 0.175 sec, while             In this paper, we introduce a paradigm shift for judge ver-
+the judge verifier inference takes only 0.02 sec (0.26% of            ification in SD, moving beyond the conventional reliance
+the total). This confirms that our lightweight judge verifier         on human annotations and task-specific ground truths. We
+incurs negligible verification cost, so any improvement in            present SelfJudge, a novel framework that pioneers a
+the accepted length of draft sequences directly translates            self-supervised approach, leveraging the target model it-
+into wall-clock-time gains for SD methods.                            self to assess semantic preservation. Our method automati-
+                                                                      cally constructs a verifier training data by quantifying the
+4.6. Semantic Preservation Score Analysis                             contextual impact of token substitutions through a princi-
+                                                                      pled “semantic preservation score” derived from the model’s
+When computing the semantic preservation score s(y, zi ),
+                                                                      own likelihoods. Empirical validation across a diverse suite
+we can adjust the length of the suffix y>i . In Figure 4, we
+                                                                      of NLP benchmarks confirms that SelfJudge achieves
+analyze the impact of the suffix length N on performance.
+                                                                      substantial inference acceleration while maintaining high
+We observe that the highest accuracy is achieved when the
+                                                                      fidelity to the target model, establishing our method as a
+suffix length N = 20, while N = 0 yields the worst perfor-
+                                                                      practical and scalable foundation for efficient large language
+mance. This implies that considering bidirectional context is
+                                                                      model inference. Our current work adopts a simple linear
+beneficial for measuring token semantic preservation, result-
+                                                                      verifier, and a broader exploration of more complex architec-
+ing in improved judge decoding performance. Moreover, it
+                                                                      tures remains an important next step. Consequently, we have
+indicates that suffix tokens provide stronger evidence for se-
+                                                                      not yet investigated the scaling laws that relate the volume
+mantic preservation than prefix-only approaches, validating
+                                                                      of training data to verifier performance, an understanding
+our approach.
+                                                                      of which will be crucial for improving the performance
+                                                                      of SelfJudge.
+4.7. Qualitative Analysis
+We analyze the most frequently accepted token transforma-
+tions by SelfJudge across three distinct domains: math-
+ematical reasoning, coding, and general reasoning. First,
+across all task domains, we observed that SelfJudge con-
+sistently relaxes draft verification by accepting tokens,
+which change the format (“, → .”, “\n → \n\n”) and
+equivalent sentence starters (“Let → To”, “Next → Now”).
+Second, we observed the domain-specific transformations.
+For example, we find mathematical term substitutions
+like “solve → find” and “x → *”, and coding style vari-
+
+                                                                  9
+                         SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+Impact Statement                                                          with thinking., 2025. URL https://blog.google/
+                                                                          technology/google-deepmind.
+This research contributes to making large language model
+inference more efficient and accessible, which benefits soci-           Devlin, J., Chang, M.-W., Lee, K., and Toutanova, K. BERT:
+ety by reducing computational costs of AI deployment. By                  Pre-training of deep bidirectional transformers for lan-
+enabling faster inference while maintaining output quality,               guage understanding. In Burstein, J., Doran, C., and
+our approach helps democratize access to advanced lan-                    Solorio, T. (eds.), Proceedings of the 2019 Conference of
+guage models across different socio-economic regions. We                  the North American Chapter of the Association for Com-
+acknowledge that improved AI efficiency may have broader                  putational Linguistics: Human Language Technologies,
+societal implications and commit to transparent reporting                 Volume 1 (Long and Short Papers), pp. 4171–4186, Min-
+of our methods to enable responsible adoption. In compli-                 neapolis, Minnesota, June 2019. Association for Compu-
+ance with ICML’s code of ethics, we have carefully con-                   tational Linguistics. doi: 10.18653/v1/N19-1423. URL
+sidered potential negative consequences and the limitations               https://aclanthology.org/N19-1423/.
+of our approach. While we introduce some relaxation in
+                                                                        Fu, Y., Bailis, P., Stoica, I., and Zhang, H. Break the se-
+draft verification that could lead to semantic drift, our exten-
+                                                                          quential dependency of llm inference using lookahead
+sive evaluation across diverse tasks demonstrates minimal
+                                                                          decoding, 2024. URL https://arxiv.org/abs/
+performance degradation compared to standard speculative
+                                                                          2402.02057.
+decoding.
+                                                                        Garipov, R., Velikonivtsev, F., Svirschevski, R., Egiazarian,
+Acknowledgement                                                           V., and Ryabinin, M. Autojudge: Judge decoding without
+                                                                          manual annotation. In Proceedings of the 39th Inter-
+This work was supported by NAVER Cloud and con-                           national Conference on Neural Information Processing
+ducted at KAIST. This research was also supported by the                  Systems, 2025.
+Institute of Information & Communications Technology
+Planning & Evaluation(IITP) grant funded by the Korea                   Grattafiori, A., Dubey, A., Jauhri, A., Pandey, A., Kadian,
+government(MSIT) (RS-2025-02304967, AI Star Fellow-                       A., Al-Dahle, A., Letman, A., Mathur, A., Schelten, A.,
+ship(KAIST))                                                              Vaughan, A., Yang, A., Fan, A., Goyal, A., Hartshorn,
+                                                                          A., Yang, A., Mitra, A., Sravankumar, A., Korenev,
+                                                                          A., Hinsvark, A., Rao, A., Zhang, A., Rodriguez, A.,
+References                                                                Gregerson, A., Spataru, A., Roziere, B., Biron, B., Tang,
+Bachmann, G., Anagnostidis, S., Pumarola, A., Georgopou-                  B., Chern, B., Caucheteux, C., Nayak, C., Bi, C., Marra,
+  los, M., Sanakoyeu, A., Du, Y., Schönfeld, E., Thabet,                 C., McConnell, C., Keller, C., Touret, C., Wu, C., Wong,
+  A., and Kohler, J. K. Judge decoding: Faster specula-                   C., Ferrer, C. C., Nikolaidis, C., Allonsius, D., Song, D.,
+  tive sampling requires going beyond model alignment.                    Pintz, D., Livshits, D., Wyatt, D., Esiobu, D., Choudhary,
+  In The Thirteenth International Conference on Learning                  D., Mahajan, D., Garcia-Olano, D., Perino, D., Hupkes,
+  Representations, 2025.                                                  D., Lakomkin, E., AlBadawy, E., Lobanova, E., Dinan,
+                                                                          E., Smith, E. M., Radenovic, F., Guzmán, F., Zhang, F.,
+Cai, T., Li, Y., Geng, Z., Peng, H., Lee, J. D., Chen, D.,                Synnaeve, G., Lee, G., Anderson, G. L., Thattai, G., Nail,
+  and Dao, T. Medusa: Simple LLM inference accelera-                      G., Mialon, G., Pang, G., Cucurell, G., Nguyen, H., Ko-
+  tion framework with multiple decoding heads. In Forty-                  revaar, H., Xu, H., Touvron, H., Zarov, I., Ibarra, I. A.,
+  first International Conference on Machine Learning,                     Kloumann, I., Misra, I., Evtimov, I., Zhang, J., Copet, J.,
+  2024. URL https://openreview.net/forum?                                 Lee, J., Geffert, J., Vranes, J., Park, J., Mahadeokar, J.,
+  id=PEpbUobfJv.                                                          Shah, J., van der Linde, J., Billock, J., Hong, J., Lee, J.,
+                                                                          Fu, J., Chi, J., Huang, J., Liu, J., Wang, J., Yu, J., Bitton,
+Chen, C., Borgeaud, S., Irving, G., Lespiau, J.-B., Sifre,
+                                                                          J., Spisak, J., Park, J., Rocca, J., Johnstun, J., Saxe, J., Jia,
+  L., and Jumper, J. Accelerating large language model
+                                                                          J., Alwala, K. V., Prasad, K., Upasani, K., Plawiak, K., Li,
+  decoding with speculative sampling, 2023. URL https:
+                                                                          K., Heafield, K., Stone, K., El-Arini, K., Iyer, K., Malik,
+  //arxiv.org/abs/2302.01318.
+                                                                          K., Chiu, K., Bhalla, K., Lakhotia, K., Rantala-Yeary,
+Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H.,                 L., van der Maaten, L., Chen, L., Tan, L., Jenkins, L.,
+  Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano,               Martin, L., Madaan, L., Malo, L., Blecher, L., Landzaat,
+  R., Hesse, C., , and Schulman., J. Measuring massive                    L., de Oliveira, L., Muzzi, M., Pasupuleti, M., Singh,
+  multitask language understanding, 2021. URL arXiv:                      M., Paluri, M., Kardas, M., Tsimpoukelli, M., Oldham,
+  2110.14168,2021.                                                        M., Rita, M., Pavlova, M., Kambadur, M., Lewis, M.,
+                                                                          Si, M., Singh, M. K., Hassan, M., Goyal, N., Torabi, N.,
+DeepMind, G. Gemini2.5: Our newest gemini model                           Bashlykov, N., Bogoychev, N., Chatterji, N., Zhang, N.,
+
+                                                                   10
+                      SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+Duchenne, O., Çelebi, O., Alrassy, P., Zhang, P., Li, P.,             Moshkovich, L., Wehrstedt, L., Khabsa, M., Avalani, M.,
+Vasic, P., Weng, P., Bhargava, P., Dubal, P., Krishnan,                Bhatt, M., Mankus, M., Hasson, M., Lennie, M., Reso,
+P., Koura, P. S., Xu, P., He, Q., Dong, Q., Srinivasan,                M., Groshev, M., Naumov, M., Lathi, M., Keneally, M.,
+R., Ganapathy, R., Calderer, R., Cabral, R. S., Stojnic,               Liu, M., Seltzer, M. L., Valko, M., Restrepo, M., Patel,
+R., Raileanu, R., Maheswari, R., Girdhar, R., Patel, R.,               M., Vyatskov, M., Samvelyan, M., Clark, M., Macey,
+Sauvestre, R., Polidoro, R., Sumbaly, R., Taylor, R., Silva,           M., Wang, M., Hermoso, M. J., Metanat, M., Rastegari,
+R., Hou, R., Wang, R., Hosseini, S., Chennabasappa, S.,                M., Bansal, M., Santhanam, N., Parks, N., White, N.,
+Singh, S., Bell, S., Kim, S. S., Edunov, S., Nie, S., Narang,          Bawa, N., Singhal, N., Egebo, N., Usunier, N., Mehta,
+S., Raparthy, S., Shen, S., Wan, S., Bhosale, S., Zhang,               N., Laptev, N. P., Dong, N., Cheng, N., Chernoguz, O.,
+S., Vandenhende, S., Batra, S., Whitman, S., Sootla, S.,               Hart, O., Salpekar, O., Kalinli, O., Kent, P., Parekh, P.,
+Collot, S., Gururangan, S., Borodinsky, S., Herman, T.,                Saab, P., Balaji, P., Rittner, P., Bontrager, P., Roux, P.,
+Fowler, T., Sheasha, T., Georgiou, T., Scialom, T., Speck-             Dollar, P., Zvyagina, P., Ratanchandani, P., Yuvraj, P.,
+bacher, T., Mihaylov, T., Xiao, T., Karn, U., Goswami, V.,             Liang, Q., Alao, R., Rodriguez, R., Ayub, R., Murthy, R.,
+Gupta, V., Ramanathan, V., Kerkez, V., Gonguet, V., Do,                Nayani, R., Mitra, R., Parthasarathy, R., Li, R., Hogan,
+V., Vogeti, V., Albiero, V., Petrovic, V., Chu, W., Xiong,             R., Battey, R., Wang, R., Howes, R., Rinott, R., Mehta,
+W., Fu, W., Meers, W., Martinet, X., Wang, X., Wang,                   S., Siby, S., Bondu, S. J., Datta, S., Chugh, S., Hunt, S.,
+X., Tan, X. E., Xia, X., Xie, X., Jia, X., Wang, X., Gold-             Dhillon, S., Sidorov, S., Pan, S., Mahajan, S., Verma,
+schlag, Y., Gaur, Y., Babaei, Y., Wen, Y., Song, Y., Zhang,            S., Yamamoto, S., Ramaswamy, S., Lindsay, S., Lindsay,
+Y., Li, Y., Mao, Y., Coudert, Z. D., Yan, Z., Chen, Z.,                S., Feng, S., Lin, S., Zha, S. C., Patil, S., Shankar, S.,
+Papakipos, Z., Singh, A., Srivastava, A., Jain, A., Kelsey,            Zhang, S., Zhang, S., Wang, S., Agarwal, S., Sajuyigbe,
+A., Shajnfeld, A., Gangidi, A., Victoria, A., Goldstand,               S., Chintala, S., Max, S., Chen, S., Kehoe, S., Satter-
+A., Menon, A., Sharma, A., Boesenberg, A., Baevski, A.,                field, S., Govindaprasad, S., Gupta, S., Deng, S., Cho,
+Feinstein, A., Kallet, A., Sangani, A., Teo, A., Yunus, A.,            S., Virk, S., Subramanian, S., Choudhury, S., Goldman,
+Lupu, A., Alvarado, A., Caples, A., Gu, A., Ho, A., Poul-              S., Remez, T., Glaser, T., Best, T., Koehler, T., Robinson,
+ton, A., Ryan, A., Ramchandani, A., Dong, A., Franco,                  T., Li, T., Zhang, T., Matthews, T., Chou, T., Shaked,
+A., Goyal, A., Saraf, A., Chowdhury, A., Gabriel, A.,                  T., Vontimitta, V., Ajayi, V., Montanez, V., Mohan, V.,
+Bharambe, A., Eisenman, A., Yazdan, A., James, B.,                     Kumar, V. S., Mangla, V., Ionescu, V., Poenaru, V., Mi-
+Maurer, B., Leonhardi, B., Huang, B., Loyd, B., Paola,                 hailescu, V. T., Ivanov, V., Li, W., Wang, W., Jiang, W.,
+B. D., Paranjape, B., Liu, B., Wu, B., Ni, B., Hancock,                Bouaziz, W., Constable, W., Tang, X., Wu, X., Wang, X.,
+B., Wasti, B., Spence, B., Stojkovic, B., Gamido, B.,                  Wu, X., Gao, X., Kleinman, Y., Chen, Y., Hu, Y., Jia, Y.,
+Montalvo, B., Parker, C., Burton, C., Mejia, C., Liu, C.,              Qi, Y., Li, Y., Zhang, Y., Zhang, Y., Adi, Y., Nam, Y., Yu,
+Wang, C., Kim, C., Zhou, C., Hu, C., Chu, C.-H., Cai, C.,              Wang, Zhao, Y., Hao, Y., Qian, Y., Li, Y., He, Y., Rait,
+Tindal, C., Feichtenhofer, C., Gao, C., Civin, D., Beaty,              Z., DeVito, Z., Rosnbrick, Z., Wen, Z., Yang, Z., Zhao,
+D., Kreymer, D., Li, D., Adkins, D., Xu, D., Testuggine,               Z., and Ma, Z. The llama 3 herd of models, 2024. URL
+D., David, D., Parikh, D., Liskovich, D., Foss, D., Wang,              https://arxiv.org/abs/2407.21783.
+D., Le, D., Holland, D., Dowling, E., Jamil, E., Mont-
+gomery, E., Presani, E., Hahn, E., Wood, E., Le, E.-T.,              He, Z., Zhong, Z., Cai, T., Lee, J., and He, D. REST:
+Brinkman, E., Arcaute, E., Dunbar, E., Smothers, E., Sun,              Retrieval-based speculative decoding. In Duh, K., Gomez,
+F., Kreuk, F., Tian, F., Kokkinos, F., Ozgenel, F., Cag-               H., and Bethard, S. (eds.), Proceedings of the 2024 Con-
+gioni, F., Kanayet, F., Seide, F., Florez, G. M., Schwarz,             ference of the North American Chapter of the Associa-
+G., Badeer, G., Swee, G., Halpern, G., Herman, G., Sizov,              tion for Computational Linguistics: Human Language
+G., Guangyi, Zhang, Lakshminarayanan, G., Inan, H.,                   Technologies (Volume 1: Long Papers), pp. 1582–1595,
+Shojanazeri, H., Zou, H., Wang, H., Zha, H., Habeeb, H.,               Mexico City, Mexico, June 2024. Association for Compu-
+Rudolph, H., Suk, H., Aspegren, H., Goldman, H., Zhan,                 tational Linguistics. doi: 10.18653/v1/2024.naacl-long.
+H., Damlaj, I., Molybog, I., Tufanov, I., Leontiadis, I.,              88. URL https://aclanthology.org/2024.
+Veliche, I.-E., Gat, I., Weissman, J., Geboski, J., Kohli,             naacl-long.88/.
+J., Lam, J., Asher, J., Gaya, J.-B., Marcus, J., Tang, J.,           Hendrycks, D., Burns, C., Basart, S., Zou, A., Mazeika, M.,
+Chan, J., Zhen, J., Reizenstein, J., Teboul, J., Zhong, J.,            Song, D., and Steinhardt, J. Measuring massive multitask
+Jin, J., Yang, J., Cummings, J., Carvill, J., Shepard, J.,             language understanding, 2021.
+McPhie, J., Torres, J., Ginsburg, J., Wang, J., Wu, K., U,
+K. H., Saxena, K., Khandelwal, K., Zand, K., Matosich,               Hu, Z., Zheng, T., Viswanathan, V., Chen, Z., Rossi, R. A.,
+K., Veeraraghavan, K., Michelena, K., Li, K., Jagadeesh,              Wu, Y., Manocha, D., and Huang, H. Towards optimal
+K., Huang, K., Chawla, K., Huang, K., Chen, L., Garg,                  multi-draft speculative decoding. In ICLR, 2025.
+L., A, L., Silva, L., Bell, L., Zhang, L., Guo, L., Yu, L.,          Jain, N., Han, K., Gu, A., Li, W.-D., Yan, F., Zhang, T.,
+
+                                                                11
+                        SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+  Wang, S., Solar-Lezama, A., Sen, K., and Stoica, I. Live-           Luo, X., Wang, Y., Zhu, Q., Zhang, Z., Zhang, X., Yang, Q.,
+  codebench: Holistic and contamination free evaluation                 and Xu, D. Turning trash into treasure: Accelerating infer-
+  of large language models for code. In The Thirteenth                  ence of large language models with token recycling, 2025.
+  International Conference on Learning Representations,                 URL https://arxiv.org/abs/2408.08696.
+  2025.
+                                                                      Miao, X., Oliaro, G., Zhang, Z., Cheng, X., Wang, Z.,
+Kaplan, J., McCandlish, S., Henighan, T., Brown, T. B.,                Zhang, Z., Wong, R. Y. Y., Zhu, A., Yang, L., Shi,
+  Chess, B., Child, R., Gray, S., Radford, A., Wu, J.,                 X., Shi, C., Chen, Z., Arfeen, D., Abhyankar, R., and
+  and Amodei, D. Scaling laws for neural language mod-                 Jia, Z. Specinfer: Accelerating large language model
+  els, 2020. URL https://arxiv.org/abs/2001.                           serving with tree-based speculative inference and ver-
+  08361.                                                               ification. In Proceedings of the 29th ACM Interna-
+                                                                       tional Conference on Architectural Support for Pro-
+Kim, S., Mangalam, K., Moon, S., Malik, J., Mahoney,                   gramming Languages and Operating Systems, Volume
+  M. W., Gholami, A., and Keutzer, K. Speculative decod-               3, ASPLOS ’24, pp. 932–949. ACM, April 2024. doi:
+  ing with big little decoder. In Proceedings of the 37th              10.1145/3620666.3651335. URL http://dx.doi.
+  International Conference on Neural Information Process-              org/10.1145/3620666.3651335.
+  ing Systems, NIPS ’23, Red Hook, NY, USA, 2023. Cur-
+                                                                      Nallapati, R., Zhou, B., dos Santos, C., Gu˙lçehre, Ç., and
+  ran Associates Inc.
+                                                                        Xiang, B. Abstractive text summarization using sequence-
+                                                                        to-sequence RNNs and beyond. In Proceedings of the
+Laban, P., Schnabel, T., Bennett, P. N., and Hearst, M. A.
+                                                                        20th SIGNLL Conference on Computational Natural Lan-
+  SummaC: Re-visiting NLI-based models for inconsis-
+                                                                        guage Learning. Association for Computational Linguis-
+  tency detection in summarization. Transactions of the
+                                                                        tics, 2016. doi: 10.18653/v1/K16-1028.
+  Association for Computational Linguistics, 10:163–177,
+  2022. doi: 10.1162/tacl a 00453. URL https://                       Narasimhan, H., Jitkrittum, W., Rawat, A. S., Kim, S.,
+  aclanthology.org/2022.tacl-1.10/.                                     Gupta, N., Menon, A. K., and Kumar, S. Faster cas-
+                                                                        cades via speculative decoding. In The Thirteenth In-
+Leviathan, Y., Kalman, M., and Matias, Y. Fast inference                ternational Conference on Learning Representations,
+  from transformers via speculative decoding. In Proceed-               2025. URL https://openreview.net/forum?
+  ings of the 40th International Conference on Machine                  id=vo9t20wsmd.
+  Learning, ICML’23. JMLR.org, 2023.
+                                                                      Oliaro, G., Jia, Z., Campos, D., and Qiao, A. Suffixdecod-
+Li, Yuhui, Wei, Fangyun, Zhang, Chao, Zhang, and                        ing: Extreme speculative decoding for emerging ai ap-
+  Hongyang. Eagle: speculative sampling requires rethink-               plications, 2025. URL https://arxiv.org/abs/
+  ing feature uncertainty. In International Conference on               2411.04975.
+  Macihne Learning, ICML’24. JMLR.org, 2024a.
+                                                                      OpenAI, Achiam, J., Adler, S., Agarwal, S., Ahmad, L.,
+Li, H., Dong, Q., Chen, J., Su, H., Zhou, Y., Ai, Q., Ye,              Akkaya, I., Aleman, F. L., Almeida, D., Altenschmidt, J.,
+  Z., and Liu, Y. Llms-as-judges: A comprehensive survey               Altman, S., Anadkat, S., Avila, R., Babuschkin, I., Bal-
+  on llm-based evaluation methods, 2024b. URL https:                    aji, S., Balcom, V., Baltescu, P., Bao, H., Bavarian, M.,
+  //arxiv.org/abs/2412.05579.                                           Belgum, J., Bello, I., Berdine, J., Bernadett-Shapiro, G.,
+                                                                        Berner, C., Bogdonoff, L., Boiko, O., Boyd, M., Brakman,
+Li, Y., Wei, F., Zhang, C., and Zhang, H. Eagle-3: Scaling             A.-L., Brockman, G., Brooks, T., Brundage, M., Button,
+  up inference acceleration of large language models via                K., Cai, T., Campbell, R., Cann, A., Carey, B., Carlson,
+  training-time test, 2025. URL https://arxiv.org/                      C., Carmichael, R., Chan, B., Chang, C., Chantzis, F.,
+  abs/2503.01840.                                                       Chen, D., Chen, S., Chen, R., Chen, J., Chen, M., Chess,
+                                                                        B., Cho, C., Chu, C., Chung, H. W., Cummings, D., Cur-
+Lightman, H., Kosaraju, V., Burda, Y., Edwards, H., Baker,              rier, J., Dai, Y., Decareaux, C., Degry, T., Deutsch, N.,
+  B., Lee, T., Leike, J., Schulman, J., Sutskever, I., and              Deville, D., Dhar, A., Dohan, D., Dowling, S., Dunning,
+  Cobbe, K. Let’s verify step by step, 2023. URL https:                 S., Ecoffet, A., Eleti, A., Eloundou, T., Farhi, D., Fedus,
+  //arxiv.org/abs/2305.20050.                                           L., Felix, N., Fishman, S. P., Forte, J., Fulford, I., Gao, L.,
+                                                                        Georges, E., Gibson, C., Goel, V., Gogineni, T., Goh, G.,
+Liu, X., Hu, L., Bailis, P., Cheung, A., Deng, Z., Stoica, I.,          Gontijo-Lopes, R., Gordon, J., Grafstein, M., Gray, S.,
+  and Zhang, H. Online speculative decoding. In Proceed-                Greene, R., Gross, J., Gu, S. S., Guo, Y., Hallacy, C., Han,
+  ings of the 41st International Conference on Machine                 J., Harris, J., He, Y., Heaton, M., Heidecke, J., Hesse,
+  Learning, ICML’24. JMLR.org, 2024.                                    C., Hickey, A., Hickey, W., Hoeschele, P., Houghton, B.,
+
+                                                                 12
+                        SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+  Hsu, K., Hu, S., Hu, X., Huizinga, J., Jain, S., Jain, S.,             Grauman, K., Cesa-Bianchi, N., and Garnett, R.
+  Jang, J., Jiang, A., Jiang, R., Jin, H., Jin, D., Jomoto, S.,          (eds.), Advances in Neural Information Process-
+  Jonn, B., Jun, H., Kaftan, T., Łukasz Kaiser, Kamali, A.,              ing Systems, volume 31. Curran Associates, Inc.,
+  Kanitscheider, I., Keskar, N. S., Khan, T., Kilpatrick, L.,            2018. URL https://proceedings.neurips.
+  Kim, J. W., Kim, C., Kim, Y., Kirchner, J. H., Kiros, J.,              cc/paper_files/paper/2018/file/
+  Knight, M., Kokotajlo, D., Łukasz Kondraciuk, Kondrich,                c4127b9194fe8562c64dc0f5bf2c93bc-Paper.
+  A., Konstantinidis, A., Kosic, K., Krueger, G., Kuo, V.,               pdf.
+  Lampe, M., Lan, I., Lee, T., Leike, J., Leung, J., Levy, D.,
+  Li, C. M., Lim, R., Lin, M., Lin, S., Litwin, M., Lopez, T.,         Sun, H., Chen, Z., Yang, X., Tian, Y., and Chen, B. Tri-
+  Lowe, R., Lue, P., Makanju, A., Malfacini, K., Manning,                force: Lossless acceleration of long sequence generation
+  S., Markov, T., Markovski, Y., Martin, B., Mayer, K.,                  with hierarchical speculative decoding. In First Con-
+  Mayne, A., McGrew, B., McKinney, S. M., McLeavey, C.,                  ference on Language Modeling, 2024. URL https:
+  McMillan, P., McNeil, J., Medina, D., Mehta, A., Menick,               //openreview.net/forum?id=HVK6nl3i97.
+  J., Metz, L., Mishchenko, A., Mishkin, P., Monaco, V.,               Sun, Z., Suresh, A. T., Ro, J. H., Beirami, A., Jain, H., and
+  Morikawa, E., Mossing, D., Mu, T., Murati, M., Murk, O.,               Yu, F. Spectr: fast speculative decoding via optimal trans-
+  Mély, D., Nair, A., Nakano, R., Nayak, R., Neelakantan,               port. In Proceedings of the 37th International Conference
+  A., Ngo, R., Noh, H., Ouyang, L., O’Keefe, C., Pachocki,               on Neural Information Processing Systems, NIPS ’23,
+  J., Paino, A., Palermo, J., Pantuliano, A., Parascandolo,              Red Hook, NY, USA, 2023. Curran Associates Inc.
+  G., Parish, J., Parparita, E., Passos, A., Pavlov, M., Peng,
+  A., Perelman, A., de Avila Belbute Peres, F., Petrov, M.,            Wang, Y., Ma, X., Zhang, G., Ni, Y., Chandra, A., Guo,
+  de Oliveira Pinto, H. P., Michael, Pokorny, Pokrass, M.,              S., Ren, W., Arulraj, A., He, X., Jiang, Z., Li, T., Ku,
+  Pong, V. H., Powell, T., Power, A., Power, B., Proehl, E.,            M., Wang, K., Zhuang, A., Fan, R., Yue, X., and Chen,
+  Puri, R., Radford, A., Rae, J., Ramesh, A., Raymond, C.,              W. Mmlu-pro: a more robust and challenging multi-task
+  Real, F., Rimbach, K., Ross, C., Rotsted, B., Roussez,                language understanding benchmark. In Proceedings of
+  H., Ryder, N., Saltarelli, M., Sanders, T., Santurkar, S.,            the 38th International Conference on Neural Information
+  Sastry, G., Schmidt, H., Schnurr, D., Schulman, J., Sel-              Processing Systems, NIPS ’24, Red Hook, NY, USA,
+  sam, D., Sheppard, K., Sherbakov, T., Shieh, J., Shoker,              2025. Curran Associates Inc. ISBN 9798331314385.
+  S., Shyam, P., Sidor, S., Sigler, E., Simens, M., Sitkin,
+  J., Slama, K., Sohl, I., Sokolowsky, B., Song, Y., Stau-             Wei, J., Wang, X., Schuurmans, D., Bosma, M., Ichter, B.,
+  dacher, N., Such, F. P., Summers, N., Sutskever, I., Tang,            Xia, F., Chi, E. H., Le, Q. V., and Zhou, D. Chain-of-
+  J., Tezak, N., Thompson, M. B., Tillet, P., Tootoonchian,             thought prompting elicits reasoning in large language
+  A., Tseng, E., Tuggle, P., Turley, N., Tworek, J., Uribe, J.          models. In Proceedings of the 36th International Confer-
+  F. C., Vallone, A., Vijayvergiya, A., Voss, C., Wainwright,           ence on Neural Information Processing Systems, NIPS
+  C., Wang, J. J., Wang, A., Wang, B., Ward, J., Wei, J.,               ’22, Red Hook, NY, USA, 2022. Curran Associates Inc.
+  Weinmann, C., Welihinda, A., Welinder, P., Weng, J.,                  ISBN 9781713871088.
+  Weng, L., Wiethoff, M., Willner, D., Winter, C., Wolrich,            Yang, A., Li, A., Yang, B., Zhang, B., Hui, B., Zheng,
+  S., Wong, H., Workman, L., Wu, S., Wu, J., Wu, M.,                     B., Yu, B., Gao, C., Huang, C., Lv, C., Zheng, C., Liu,
+  Xiao, K., Xu, T., Yoo, S., Yu, K., Yuan, Q., Zaremba,                  D., Zhou, F., Huang, F., Hu, F., Ge, H., Wei, H., Lin,
+  W., Zellers, R., Zhang, C., Zhang, M., Zhao, S., Zheng,                H., Tang, J., Yang, J., Tu, J., Zhang, J., Yang, J., Yang,
+  T., Zhuang, J., Zhuk, W., and Zoph, B. Gpt-4 technical                 J., Zhou, J., Zhou, J., Lin, J., Dang, K., Bao, K., Yang,
+  report, 2024.                                                          K., Yu, L., Deng, L., Li, M., Xue, M., Li, M., Zhang,
+                                                                         P., Wang, P., Zhu, Q., Men, R., Gao, R., Liu, S., Luo,
+Patil, S. G., Zhang, T., Wang, X., and Gonzalez, J. E. Go-
+                                                                         S., Li, T., Tang, T., Yin, W., Ren, X., Wang, X., Zhang,
+  rilla: Large language model connected with massive
+                                                                         X., Ren, X., Fan, Y., Su, Y., Zhang, Y., Zhang, Y., Wan,
+  APIs. In The Thirty-eighth Annual Conference on Neural
+                                                                         Y., Liu, Y., Wang, Z., Cui, Z., Zhang, Z., Zhou, Z., and
+  Information Processing Systems, 2024. URL https:
+                                                                         Qiu, Z. Qwen3 technical report, 2025. URL https:
+  //openreview.net/forum?id=tBRNC6YemY.
+                                                                         //arxiv.org/abs/2505.09388.
+Radford, A., Wu, J., Child, R., Luan, D., Amodei, D., and
+                                                                       Zhou, Y., Lyu, K., Rawat, A. S., Menon, A. K., Ros-
+  Sutskever, I. Language models are unsupervised multitask
+                                                                         tamizadeh, A., Kumar, S., Kagy, J.-F., and Agarwal, R.
+  learners. OpenAI, 2019.
+                                                                         Distillspec: Improving speculative decoding via knowl-
+Stern, M., Shazeer, N., and Uszkoreit, J. Blockwise                      edge distillation. In The Twelfth International Confer-
+  parallel decoding for deep autoregressive mod-                         ence on Learning Representations, 2024. URL https:
+  els. In Bengio, S., Wallach, H., Larochelle, H.,                       //openreview.net/forum?id=rsY6J3ZaTF.
+
+                                                                  13
+                        SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+A. Proof of Uncertainty Reduction Using Bidirectional Context
+In this section, we provide a formal, information-theoretic proof that incorporating bidirectional context strictly reduces the
+uncertainty of selecting acceptable tokens.
+Theorem 1. When the suffix x>t provides additional information about a token Xt given the prefix x<t (i.e., the conditional
+mutual information I(Xt ; x>t | x<t ) > 0), the uncertainty about Xt , measured by conditional entropy, is strictly reduced
+when using the bidirectional context ct = (x<t , x>t ).
+
+                                                H(Xt | ct ) < H(Xt | x<t )                                                  (9)
+
+Proof. The proof follows directly from the definition of conditional mutual information.
+
+ 1. The definition of conditional mutual information between two random variables A and B given a third variable C is:
+
+                                            I(A; B | C) = H(A | C) − H(A | B, C)                                          (10)
+
+ 2. We substitute our variables: A = Xt , B = x>t , and C = x<t .
+
+                                     I(Xt ; x>t | x<t ) = H(Xt | x<t ) − H(Xt | x>t , x<t )                               (11)
+
+ 3. By our definition, the bidirectional context is ct = (x<t , x>t ). Therefore, the final term is equivalent to the entropy
+    conditioned on the bidirectional context:
+
+                                                H(Xt | x>t , x<t ) = H(Xt | ct )                                          (12)
+
+ 4. The premise of our theorem states that I(Xt ; x>t | x<t ) > 0. Substituting this into the equation from step 2 gives:
+
+                                                 H(Xt | x<t ) − H(Xt | ct ) > 0                                           (13)
+
+ 5. Rearranging the terms yields the final result:
+
+                                                     H(Xt | ct ) < H(Xt | x<t )                                           (14)
+
+This concludes the proof, demonstrating that conditioning on bidirectional context logically leads to lower uncertainty.
+
+A.1. Discussion on the Premise
+It is crucial to understand the role of the premise, I(Xt ; x>t | x<t ) > 0. From a Natural Language Processing (NLP),
+this premise is not merely an assumption but a well-established empirical fact. Language is inherently structured, and for
+any non-trivial linguistic context, the suffix almost always contains information that helps resolve ambiguity or refine the
+prediction of a token (Devlin et al., 2019). Therefore, while our proof relies on a mathematical assumption, its real-world
+applicability is grounded in the fundamental nature of human language.
+
+B. Verifier Training
+B.1. Statistics
+Table 5 shows the training data of verifiers across judge decoding methods. Following previous works, AutoJudge uses math
+and coding datasets to train the judge verifier. It assigns a token label as acceptable if the newly generated response after
+replacing a token preserves the original final answer in math and coding problems. To further utilize general datasets like
+Dolly15k, we implement AutoJudge+ by generating token labels using LLMs-as-Judge approaches. Specifically, LLMs
+decide whether the original response and the alternative response are semantically [SAME] or [DIFFERENT]. We assign a
+token label as acceptable for tokens that results in [SAME].
+
+                                                              14
+                        SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+                                Table 5. Data for training verifier of each judge decoding methods.
+             Target Model   Method        Dataset                                          Num. of samples   Label Rate
+                            AutoJudge     GSM8K (train), LiveCodeBench (train)                 14896           13633
+             Llama-3.1-8B   AutoJudge+    GSM8K (train), LiveCodeBench (train), Dolly15k       39069           37261
+                            SelfJudge     GSM8K (train), LiveCodeBench (train), Dolly15k       69432           42253
+                            AutoJudge     GSM8K (train), LiveCodeBench (train)                 24748           13068
+             Qwen-2.5-7B    AutoJudge+    GSM8K (train), LiveCodeBench (train), Dolly15k       55757           44067
+                            SelfJudge     GSM8K (train), LiveCodeBench (train), Dolly15k       95128           58482
+
+
+            Llama-3.1-8B/Llama-3.2-1B                                        Qwen-2.5-7B/Qwen-2.5-0.5B
+
+
+
+
+Figure 5. ROC curve of our judge verifier. We train each verifier for Llama-3.1-8B/Llama-3.2-1B and Qwen-2.5-7B/Qwen-2.5-0.5-B,
+individually. Red point represents threshold value with the best F1 score on validation set.
+
+
+
+B.2. Training Logistic Regressor
+We employed a logistic regression classifier to address the binary classification problem, which determines acceptable
+and unacceptable token. We optimized hyperparameters through grid search over the L2 regularization parameter C . We
+explored C values from 0.001 to 100 across 10 logarithmically spaced points. Finally, we selected the verifier with the best
+ROC-AUC.
+During inference phase, we apply the trained verifier our two-phase verification method. For the judge verification phase,
+we select the threshold θ to decide the acceptable tokens. We set the θ to value of the best recall and the best F1 as shown in
+Figure 5.
+
+B.3. Dataset Generation Time
+AutoJudge generates new responses by replacing each mismatched token and completing the text, which is computationally
+expensive. This requires generating responses Num. of Queries × Num. of Mismatched Tokens times. In contrast, our
+approach simply computes likelihood differences from the original response without generating new text. We only need
+to partially prefill a few tokens to calculate these likelihoods. As partially prefilling requires much less computational
+cost compared to generation, our approach is significantly efficient, making our method applicable to large models. Using
+Llama-3.1-8B on NVIDIA V100 GPUs, our SelfJudge method processed 69,432 data points in 8 hours, while AutoJudge
+processed only 14,896 data points in 82 hours.
+
+C. Experimental Configuration
+For mathematical reasoning evaluation, we utilize GSM8K (Cobbe et al., 2021) and MATH-500 (Lightman et al., 2023)
+using the standard train/test split and evaluation prompts in the benchmark. For code generation evaluation, we leverage
+LiveCodeBench (Jain et al., 2025). Since this benchmark does not provide predefined train/test splits, we implement a
+
+                                                                15
+                        SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+4-fold cross-validation strategy. For the summarization task, we employ the CNN/DailyMail datasets (Nallapati et al., 2016)
+using the conventional test split. For general knowledge assessment, we evaluate on MMLU (Hendrycks et al., 2021), a
+multiple-choice QA benchmark. While the original MMLU benchmark employs a multiple-choice prompt that encourages
+language models to directly answer among four choices, we apply chain-of-thought prompting (Wang et al., 2025). This
+modification allows us to simultaneously assess both QA task performance and inference efficiency, taking into account the
+trade-off between accuracy and the average accepted lengths.
+
+C.1. Math Reasoning Benchmarks
+GSM8K (Cobbe et al., 2021) is a dataset of high-quality, diverse grade-school math word problems. We used 1,319 test
+problems for our evaluation. The MATH-500 dataset contains a subset of 500 problems from the MATH benchmark, which
+was created by (Lightman et al., 2023). For our evaluation, we used a prompt that required the answer format to appear
+between [answer] and [\answer]. After extracting the answers, we normalized the format by removing uppercase letters and
+certain operators. We finally check the correctness of the answer with ground truths to measure accuracy.
+
+C.2. Coding Benchmark
+LiveCodeBench (Jain et al., 2025) is a continuously updating coding benchmark for evaluating Large Language Models. It
+evaluates LLMs across multiple capabilities including code generation, self-repair, test output prediction, and code execution.
+We used release version 0.0.5, which contains 880 programming problems, and applied 4-fold cross-validation to create
+training and test datasets. We evaluated performance using the Pass@1 metric, which measures the percentage of problems
+successfully solved on the first attempt when evaluated against comprehensive test suites.
+
+C.3. Summarization Benchmark
+The CNN/DailyMail dataset (Nallapati et al., 2016) is an English-language dataset containing over 300,000 unique news
+articles written by journalists at CNN and the Daily Mail. We evaluated summarization quality on 11,490 test samples
+from version 2.0.0, which supports both extractive and abstractive summarization. Since our evaluation focuses on relaxed
+speculative decoding methods that maintain token-level equivalence with standard decoding, traditional metrics like ROUGE
+cannot effectively differentiate between methods—all produce identical outputs in terms of content. Therefore, we instead
+report factual consistency scores to assess summarization quality (Laban et al., 2022). We measure factual consistency using
+a Natural Language Inference (NLI) model to classify the relationship between source articles and generated summaries.
+Specifically, we identify sentences that are either entailed by or contradict the source material. The factual consistency score
+(FC) is computed as:
+
+
+
+                                                           M
+                                                       1 X
+                              Factual Consistency =          (Entailmentsi − Contradictionsi )                             (15)
+                                                       M i=1
+
+
+
+
+where M is the number of summary sentences evaluated. We employed the deberta-large-mnli model for NLI clas-
+sification due to its strong performance on factual verification tasks. In Table 7, we can observe the result of summarization
+task in more details. As we mentioned, ROUGE scores, which depend on token-level alignment, do not show distinctive
+difference across methods. Hence, we selected the FC score as our summarization task metric, as it reflect more semantic
+information by considering entailment of fact when evaluating results.
+
+C.4. Multiple Choices Benchmark
+MMLU (Hendrycks et al., 2021) is a massive multitask benchmark containing 14,042 multiple-choice questions across 57
+tasks. The benchmark spans diverse domains including humanities, social sciences, hard sciences, and other fields, covering
+subjects from elementary mathematics to US history, computer science, and law. While the original MMLU evaluation
+prompts models to directly select answers from ’A’, ’B’, ’C’, or ’D’, we adopted the chain-of-thought prompting approach
+from (Wang et al., 2025) to measure both inference efficiency and task performance simultaneously.
+
+                                                               16
+                        SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+Table 6. Coding Task Performance comparison on Table 7. Summarization Task Performance Comparison on Llama-3.1-8B/Llama-
+Llama-3.1-8B/Llama-3.2-1B.                     3.2-1B across various SD methods. m is the averaged accepted length.
+
+      Method          m / Pass@1      ∆task          Method            m      ROUGE1       ROUGE2        ROUGE-L        FC
+      SD               7.88 / 8.6       0.0          SD               4.35      27.1         10.8          22.4        64.6
+      Top-k           13.36 / 0.7      -7.9          TopK             7.49      26.8         10.5          22.0        62.5
+      AutoJudge-R     15.78 / 0.7      -7.9          AutoJudge-R      4.36      27.0         10.8          22.4        64.5
+      AutoJudge-F     19.63 / 2.1      -6.5          AutoJudge-F      4.74      27.1         10.9          22.5        64.5
+      SelfJudge-R      8.12 / 9.7     +1.1           SelfJudge-R      4.92      27.5         11.0          22.8        65.5
+      SelfJudge-F     9.52 / 10.0     +1.4           SelfJudge-F      6.05      26.2         10.3          21.5        63.9
+
+                                Table 8. Data generation time comparison on Llama-3.1-70B/8B.
+
+                                           Method        53K labels     1M labels
+                                           AutoJudge      120 hours     ∼100 days
+                                           SelfJudge      8.5 hours      ∼6 days
+
+
+
+D. Additional Experiments
+D.1. Scaling to Large Model.
+Data Generation Cost and Scalability. To examine the scalability of SelfJudge to larger models, we conducted
+additional experiments with Llama-3.1-70B/8B as target and draft models, respectively. Following the same protocol as
+our main experiments, we sampled 500 instances from GSM8K (train), 220 from Live Code Bench (train), and 500 from
+Dolly15k. SelfJudge generated a total of 53,318 token labels for verifier training.
+Table 8 presents the data generation time comparison between SelfJudge and AutoJudge. Using four H100
+GPUs, SelfJudge requires only 8.5 hours to generate these labels, while AutoJudge required 120 hours for the same
+dataset—achieving a 14× speedup. It is attributed to the fact that our data generation only requires the prefill operation of
+the target model’s response given a mismatched index, whereas AutoJudge needs to complete the response generation to
+obtain the final answer.
+While our results demonstrate that using 53,318 token labels as training data is sufficient for effective verifier, scenarios
+requiring higher-capacity verifiers may necessitate larger datasets. SelfJudge would require approximately 6 days to
+generate 1 million token labels, which remains manageable, whereas AutoJudge would require approximately 100 days,
+making data generation prohibitively expensive.
+Scaling to a larger models using Llama-3.1-70B/8B. We evaluated SelfJudge by measuring both the accepted length
+(m) and task performance. Due to the prohibitive data generation time, AutoJudge could not complete the data generation
+within the experimental timeframe and is marked as Out of Time (OOT). Table 2 presents the results on GSM8K and MMLU
+benchmarks. The result confirms that SelfJudge maintains accuracy while improving accepted length and inference
+speed compared to SD, even on the 70B target model. This demonstrates that our approach scales effectively to larger
+models.
+
+D.2. Analysis on Two-stage Verification
+Following (Bachmann et al., 2025), we adopt the two-stage paradigm, which incorporates alignment-based and judge-based
+verification. A token accepted by either method is retained in the final output. This design reflects the fundamental role of
+judge verification: to recover semantically acceptable tokens that alignment-based methods would conservatively reject.
+Ablation Study on Verification Phase.
+Table 9 shows that Judge-only verification yields a very low accepted length compared to SD. This is because current
+judge verifiers are designed as lightweight classifiers optimized to complement alignment-based methods by recovering
+acceptable tokens that alignment would miss. In fact, both (Bachmann et al., 2025) and we focus on setting the threshold of
+the verifier (classifier) to accurately classify tokens that must be rejected. On the other hand, we allow for cases where some
+acceptable tokens are incorrectly rejected, since alignment-based verification can correct these errors without any additional
+
+                                                              17
+                                    SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+Table 10. Freuquently appeared token                Table 11. Freuquently appeared token accep-                 Table 12. Freuquently appeared token accep-
+acceptance by SelfJudge on Math                     tance by SelfJudge on Coding Problem                        tance by SelfJudge on General Reason-
+Problem (GSM8K)                                     (LiveCodeBench)                                             ing (MMLU)
+   Category       Origin      Alter.      Count         Category       Origin         Alter.           Count        Category        Origin        Alter.      Count
+                  solve       find         22                          \n             \n\n              44                          .             ,             7
+                  calculate   find          7                          :\n            :\n\n             21                          ,             .             7
+   Similar        x           *             4                          (8 spaces)\n   (7 spaces)         7                          .             .\n\n         6
+   Semantic       find        calculate     4                          (7 spaces)     (8 spaces)\n       5                          .\n\n         .             5
+                  number      amount        2                          ):\n\n         ):\n               4                          ,             )(            2
+                  amount      charge        2                          ))\n\n         ))\n               4                          because       .\n\n         2
+                  .\n\n       .             9                          of             \n                 4                          \n\n          \n            2
+                  .           ,             6                          \n             \n(8 spaces)\n     3          Punctuation/    ,             a             2
+                  .           .\n\n         6                          to             \n                 3          Format          (             ,             2
+                                                        Line Break/                                                 Changes         ,             .\n\n         2
+                  :           :\n           5                          \n\n           \n                 3
+                                                        Indentation                                                                 .\n\n         ,             2
+                  (           +             4                          ]\n            ]\n\n              2
+                                                        Changes                                                                     This          \n            2
+                  To          \n            4                          ]\n            ]                  2
+                  \n\n        So            3                          .\n            .\n\n              2                          \n\n          In            2
+                  ,           .             3                          for            \n                 2                          ),            )             2
+   Punctuation/   per         .\n\n         3                          )}\n           )}\n\n             2                          ,                           2
+   Format         :\n\n       :\n           2                          ().            ()\n\n             2                          ’,            ’             2
+                  (           .             2                          in             \n                 2                          )\n\n         )\n           2
+                  ).          )             2                          \n             of                 2                          a             the           5
+                  .\n\n       .\n           2                          ]\n\n          ]\n                2                          the           a             5
+                  ()          (             2                          )]\n           )]\n\n             2                          the           this          3
+                  ()          the           2                          ():\n          s                  6                          the           its           2
+                                                        Punctuation/                                                                a             an            2
+                  \n\n        Since         2                          :              :\n\n              4
+                                                        Brackets                                                                    the           an            2
+                  ()          :\n           2                          ‘              ‘.                 3
+                                                        Changes                                                                     we            the           2
+                  :           :\n\n         2                          ==             !=                 3
+                  in          per           6                          code           Python             5                          its           the           2
+                  /           per           2                          #              total              4          Articles/       known         a             2
+   Preposition/   /p          per           2                          number         length             3          Determiners     a             every         2
+                                                        Synonyms/                                                   Changes         in            a             2
+   Article        per         of            2                          number         element            3
+                                                        Similar                                                                     validity      correct       6
+                  a           one           2                          return         find               2          Mathematical/
+                                                        Meaning                                                                     Statement     statement     5
+                  ,           and           2                          max            maximum            2          Logic Terms
+                  Let         To            5                          count          number             2                          correctness   correct       3
+                                                                                                                    Changes
+                  1           We            4                          number         count              2                          answer        correct       3
+   Sentence                                                                                                                         let           we            7
+                  Next        Now           3
+   Starter                                                                                                                          satisfy       make          3
+                  The         Since         2                                                                       Verbs/
+                  let         we            2                                                                                       must          is            3
+                                                                                                                    Predicates
+                                                                                                                                    use           multiply      2
+                                                                                                                    Changes
+                                                                                                                                    is            does          2
+                                                                                                                                    is            means         2
+
+
+
+
+cost. Therefore, Judge-only achieves the low performance as standalone, while it improves the overall performance when it
+is combined with the alignment-based verification as shown in SelfJudge.
+
+                              Table 9. Ablation study on the two-stage verification phase on Llama-3.1-8B/Llama-3.2-1B.
+
+                                           Method                         GSM8K              LiveCodeBench        MMLU
+                                           Alignment-only(SD)           9.14 / 80.7               7.88 / 8.6     4.36 / 65.0
+                                           Judge-only                   2.08 / 80.2               1.76 / 9.2     1.45 / 65.0
+                                           Two-stage (SelfJudge)        11.29 / 80.5              9.52 / 10.0    6.38 / 62.7
+
+
+D.3. Qualitative Analysis
+Tables 10, 11, and 12 present the most frequently accepted tokens by SelfJudge while they are rejected by Standard SD
+across three distinct domains: mathematical reasoning (GSM8K), coding (LiveCodeBench), and general reasoning (MMLU).
+These results reveal several key insights about the flexible nature of our approach and domain-specific characteristics
+of semantically preserving token modifications that do not compromise response quality. Domain-Agnostic Strengths.
+Across all three tasks, SelfJudge demonstrates consistent acceptance of tokens that preserve semantic meaning and
+logical equivalence. Mathematical terms like “solve → find” and calculate → find” in GSM8K, along with synonymous
+replacements such as number → element” in coding tasks, highlight the model’s ability to identify semantically equivalent
+tokens that would not alter the fundamental meaning of the response. Moreover, SelfJudge successfully allows minor
+formatting discrepancies such as “, → .” and “\n → \n \n”. This flexibility enables speculative decoding to achieve
+significant latency reduction while preserving the semantic integrity and quality of the original target model response.
+Mathematical Reasoning Characteristics. In GSM8K, SelfJudge exhibits a particular pattern of accepting mathemati-
+cal vocabulary variations that preserve computational meaning. The frequent acceptance of transformations like x → *”
+and find → calculate” indicates that SelfJudge correctly identifies when mathematical operations remain functionally
+equivalent. Additionally, the acceptance of sentence starters like “Let → To” and “Next → Now” demonstrates that these
+
+                                                                                      18
+                        SelfJudge: Faster Speculative Decoding via Self-Supervised Judge Verification
+
+discourse markers do not fundamentally alter the mathematical reasoning process, allowing for flexible problem-solving
+exposition styles without compromising the logical flow.
+Coding Domain Specificity. LiveCodeBench results reveal how SelfJudge achieves high acceptance rates while
+maintaining code functionality. SelfJudge correctly accepts functionally equivalent code transformations, such as
+whitespace normalization (“\n → \n\n”) and formatting changes that do not affect program execution. Notably, synonym
+acceptance for programming concepts (“max → maximum”, “count → number”) shows the model’s ability to recognize
+coding-specific terminology variations that preserve semantics. The acceptance of structural changes in brackets and
+punctuation effectively improve the efficiency of judge verification while preserving the target model’s intention.
+General Reasoning Adaptability. Table 5 exhibits frequent acceptance of transformations involving punctuation and
+formatting variations, indicating that such changes do not alter the semantic content or factual accuracy of responses. Partic-
+ularly noteworthy is the acceptance of articles/determiners changes (“a → the”, “the → a”) and logical term modifications (
+“validity → correct”), which suggests SelfJudge can distinguish between semantically equivalent expressions that convey
+identical meaning. We argue that minor linguistic variations with these token changes do not compromise the informational
+content or reasoning quality of the original response.
+
+D.4. Hyperparameter Sensitivity Analysis
+Prediction Threshold Analysis. To comprehensively analyze the relationship between inference efficiency and task
+performance across varying threshold values, we conduct a systematic investigation into the threshold sensitivity of each
+method with respect to parameter θ. In Figure 3, our experimental results demonstrate that SelfJudge consistently
+achieves superior performance compared to all baseline methods across diverse thresholds. This robust performance
+advantage indicates that SelfJudge represents a fundamentally superior approach, delivering optimal trade-offs between
+accepted sequence lengths and task-specific performance metrics while maintaining stability across different threshold
+settings. It implies that our method’s effectiveness is not contingent upon fine-tuned hyperparameter selection, thereby
+enhancing its practical applicability and robustness in real-world deployment scenarios.
+
+
+
+
+                                                              19
+

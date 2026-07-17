@@ -1,0 +1,39 @@
+===== PAGE 26 =====
+
+Submission and Formatting Instructions for ICML 2026
+F. More Ablation Study
+Figure 6. Auto Top-K ablation. (a) Auto Top-K outperforms fixed Top-K=2 on most tasks. (b-d) PCA visualizations show inputs naturally
+require varying numbers of experts: one (b), two (c), or three (d).
+F.1. Auto Top-K Motivation and Analysis
+We analyze the motivation for our Auto Top-K strategy over fixed Top-K selection. The core observation is that different
+inputs inherently require different numbers of experts—a property that fixed Top-K cannot capture.
+Figure 6(b-d) visualizes PCA projections of routing representations across different input samples, colored by their dominant
+expert assignment. These visualizations reveal three distinct patterns:
+(i) Well-separated clusters (Figure 6b). All five clusters are clearly separated in the representation space. Each input strongly
+belongs to a single expert, and the routing distribution is peaked (high confidence). In this case, activating additional
+experts would introduce noise from irrelevant specializations. Auto Top-K naturally selects only the dominant expert since
+secondary experts fall below the relative threshold θ · maxj wj(x).
+(ii) Partially overlapping clusters (Figure 6c). Two clusters exhibit significant overlap, indicating that certain inputs share
+characteristics of multiple experts. The routing distribution for these inputs is flatter, with two experts receiving similar
+probabilities. Fixed Top-1 would arbitrarily discard one relevant expert, while Auto Top-K includes both since they exceed
+the relative threshold.
+(iii) Multi-cluster overlap (Figure 6d). Three clusters overlap substantially, suggesting these inputs benefit from contributions
+of three experts. This occurs for complex or ambiguous inputs that span multiple specializations. Auto Top-K activates all
+three relevant experts, while fixed Top-2 would exclude one.
+This natural variation in input complexity—some inputs clearly belonging to one expert while others requiring multi-
+ple—motivates our relative threshold strategy. By selecting experts satisfying wi(x) ≥θ · maxj wj(x), Auto Top-K
+automatically adjusts selection based on routing confidence: confident routing (peaked distribution) activates fewer experts,
+while uncertain routing (flat distribution) activates more.
+Figure 6(a) validates this design empirically. Auto Top-K consistently outperforms fixed Top-K=2 across both text and
+vision tasks. Improvements are particularly notable on tasks with diverse input complexity: CoLA and QNLI (text), ChartQA
+and VQA-RAD (vision). The radar chart shows that Auto Top-K matches or exceeds fixed Top-K on nearly all benchmarks,
+with no significant degradation on any task.
+Key Insight: Input complexity varies naturally—some inputs clearly belong to one expert while others span multiple specializations.
+Auto Top-K adapts to this variation via confidence-aware selection, whereas fixed Top-K imposes a rigid cardinality that either wastes
+computation (selecting irrelevant experts) or discards useful experts.
+F.2. N-gram Window Size (Figure 7a-b)
+We analyze the effect of n-gram window size on routing granularity. Window size n = 1 corresponds to token-level routing
+where each token independently selects its own experts, while larger n groups adjacent tokens into windows that share a
+single routing decision. The motivation for n-gram routing is semantic coherence: adjacent tokens often form meaningful
+linguistic units (e.g., phrases, named entities) or coherent visual regions that benefit from consistent expert processing. By
+26

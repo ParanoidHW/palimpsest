@@ -1,0 +1,52 @@
+===== PAGE 11 =====
+
+Preprint. Under review.
+Felix Draxler, Justus Will, Farrin Marouf Sofian, Theofanis Karaletsos, Sameer Singh,
+and Stephan Mandt. Parallel token prediction for language models. arXiv preprint
+arXiv:2512.21323, 2025.
+Yichao Fu, Xuewei Wang, Yuandong Tian, and Jiawei Zhao. Deep think with confidence.
+arXiv preprint arXiv:2508.15260, 2025.
+Leo Gao, Jonathan Tow, Baber Abbasi, Stella Biderman, Sid Black, Anthony DiPofi, Charles
+Foster, Laurence Golding, Jeffrey Hsu, Alain Le Noac’h, Haonan Li, Kyle McDonell,
+Niklas Muennighoff, Chris Ociepa, Jason Phang, Laria Reynolds, Hailey Schoelkopf,
+Aviya Skowron, Lintang Sutawika, Eric Tang, Anish Thite, Ben Wang, Kevin Wang, and
+Andy Zou. The language model evaluation harness, 07 2024. URL https://zenodo.org/
+records/12608602.
+Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian,
+Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Alex Vaughan, et al. The
+llama 3 herd of models. arXiv preprint arXiv:2407.21783, 2024.
+Lanxiang Hu, Siqi Kou, Yichao Fu, Samyam Rajbhandari, Tajana Rosing, Yuxiong He, Zhijie
+Deng, and Hao Zhang. Fast and accurate causal parallel decoding using jacobi forcing.
+arXiv preprint arXiv:2512.14681, 2025.
+Zhewei Kang, Xuandong Zhao, and Dawn Song. Scalable best-of-n selection for large
+language models via self-certainty. arXiv preprint arXiv:2502.18581, 2025.
+Yoon Kim and Alexander M Rush. Sequence-level knowledge distillation. In Proceedings of
+the 2016 conference on empirical methods in natural language processing, pp. 1317–1327, 2016.
+Yaniv Leviathan, Matan Kalman, and Yossi Matias. Fast inference from transformers via
+speculative decoding. In International Conference on Machine Learning, pp. 19274–19286.
+PMLR, 2023.
+Yuhui Li, Fangyun Wei, Chao Zhang, and Hongyang Zhang. Eagle-3: Scaling up inference ac-
+celeration of large language models via training-time test. arXiv preprint arXiv:2503.01840,
+2025.
+Aixin Liu, Bei Feng, Bing Xue, Bingxuan Wang, Bochao Wu, Chengda Lu, Chenggang Zhao,
+Chengqi Deng, Chenyu Zhang, Chong Ruan, et al. Deepseek-v3 technical report. arXiv
+preprint arXiv:2412.19437, 2024.
+Xiaoxuan Liu, Jiaxiang Yu, Jongseok Park, Ion Stoica, and Alvin Cheung. Speculative
+decoding: Performance or illusion? arXiv preprint arXiv:2601.11580, 2025.
+Divyat Mahajan, Sachin Goyal, Badr Youbi Idrissi, Mohammad Pezeshki, Ioannis Mitliagkas,
+David Lopez-Paz, and Kartik Ahuja. Beyond multi-token prediction: Pretraining llms
+with future summaries. arXiv preprint arXiv:2510.14751, 2025.
+Mohammad Samragh, Arnav Kundu, David Harrison, Kumari Nishu, Devang Naik, Minsik
+Cho, and Mehrdad Farajtabar. Your llm knows the future: Uncovering its multi-token
+prediction potential. arXiv preprint arXiv:2507.11851, 2025.
+Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang,
+Mingchuan Zhang, Y. K. Li, Y. Wu, and Daya Guo. Deepseekmath: Pushing the limits of
+mathematical reasoning in open language models, 2024. URL https://arxiv.org/abs/
+2402.03300.
+Dequan Wang, Evan Shelhamer, Shaoteng Liu, Bruno Olshausen, and Trevor Darrell. Tent:
+Fully test-time adaptation by entropy minimization. In International Conference on Learning
+Representations, 2021. URL https://openreview.net/forum?id=uXl3bZLkr3c.
+Zhangchen Xu, Fengqing Jiang, Luyao Niu, Yuntian Deng, Radha Poovendran, Yejin Choi,
+and Bill Yuchen Lin. Magpie: Alignment data synthesis from scratch by prompting
+aligned llms with nothing. arXiv preprint arXiv:2406.08464, 2024.
+11

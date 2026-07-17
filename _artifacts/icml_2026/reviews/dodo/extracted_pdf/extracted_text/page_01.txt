@@ -1,0 +1,76 @@
+===== PAGE 1 =====
+
+DODO: Discrete OCR Diffusion Models
+Sean Man∗1 Gilad Deutch∗2 Roy Ganz 2 Roi Ronen 2 Shahar Tsiper 2 Shai Mazor 2 Niv Nayman 2
+Abstract
+Optical Character Recognition (OCR) is a funda-
+mental task for digitizing information, serving as
+a critical bridge between visual data and textual
+understanding. While modern Vision-Language
+Models (VLM) have achieved high accuracy in
+this domain, they predominantly rely on autore-
+gressive decoding, which becomes computation-
+ally expensive and slow for long documents as it
+requires a sequential forward pass for every gen-
+erated token. We identify a key opportunity to
+overcome this bottleneck: unlike open-ended gen-
+eration, OCR is a highly deterministic task where
+the visual input strictly dictates a unique output
+sequence, theoretically enabling efficient, paral-
+lel decoding via diffusion models. However, we
+show that existing masked diffusion models fail to
+harness this potential; those introduce structural
+instabilities that are benign in flexible tasks, like
+captioning, but catastrophic for the rigid, exact-
+match requirements of OCR. To bridge this gap,
+we introduce DODO, the first VLM to utilize
+block discrete diffusion and unlock its speedup
+potential for OCR. By decomposing generation
+into blocks, DODO mitigates the synchroniza-
+tion errors of global diffusion. Empirically, our
+method achieves near state-of-the-art accuracy
+while enabling up to 5× faster inference com-
+pared to autoregressive baselines.
+1. Introduction
+Optical character recognition (OCR) is a core component of
+modern document understanding systems, enabling the ex-
+traction of structured text from images such as scanned doc-
+uments, forms, and natural scenes. Vision–language models
+are increasingly used for large-scale document parsing and
+multimodal reasoning (Alayrac et al., 2022; Li et al., 2022;
+*These authors contributed equally to this work. Work con-
+ducted during an internship at Amazon
+1Technion - Israel Institute of Technology, Haifa, Israel.
+2Amazon Web Services. Correspondence to: Niv Nayman <ni-
+vay@amazon.com>.
+Diffusion step
+Tokens / Step
+Figure 1. DODO: High-throughput parallel generation. Unlike
+autoregressive models constrained to a strict left-to-right sequence,
+DODO generates text across the entire canvas simultaneously (with
+same color) based on visual confidence. In this example, it resolves
+148 tokens in just 20 forward passes (≈7 tokens/step on average).
+Simultaneously generated tokens are adaptively distributed across
+steps.
+2023; Ganz et al., 2023; Dai et al., 2023; Wu et al., 2024; Li
+et al., 2024; Ganz et al., 2024; Chen et al., 2025; Bai et al.,
+2025b;a; Liu et al., 2025). However, the high computational
+cost and latency of these architectures have re-established
+OCR transcription as a critical bottleneck where both accu-
+racy and inference efficiency are essential (Blecher et al.,
+2023; Wei et al., 2024; Abramovich et al., 2024; Nacson
+et al., 2025; Wei et al., 2025b).
+Crucially, OCR differs fundamentally from semantically
+flexible tasks like image captioning (Sidorov et al., 2020;
+Chen et al., 2023; Lin et al., 2014) or visual question answer-
+ing (VQA) (Antol et al., 2015; Singh et al., 2019; Mathew
+et al., 2021; Yue et al., 2024) as it is semantically rigid.
+Conditioned on the image, the posterior distribution is effec-
+tively unimodal, meaning the visual input strictly dictates
+a single valid sequence. This determinism exposes a crit-
+ical inefficiency in standard Autoregressive (AR) models:
+they generate text sequentially, creating a significant latency
+bottleneck for long document sequences. Conversely, this
+characteristic makes OCR uniquely suited for Masked Dif-
+1
+arXiv:2602.16872v2  [cs.CV]  27 May 2026

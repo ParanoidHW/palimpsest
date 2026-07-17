@@ -79,7 +79,7 @@
     "review_checklist": {
       "status": "present",
       "path": "review_checklist.md",
-      "sha256": "d87c511ccde6a9b0070b77ecad61f32c8f0227eb9ea8d47155648707ccd4a8e0",
+      "sha256": "0da6cf735936c3bffdadf02f8346959a9b604bba82385c1738e353a2acb40f82",
       "reason": null
     },
     "figure_inventory": {

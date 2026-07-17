@@ -1,0 +1,7 @@
+===== PAGE 31 =====
+
+Submission and Formatting Instructions for ICML 2026
+Figure 11. t-SNE visualization of routing representations across all 24 layers on GLUE, colored by dominant expert assignment. Inputs
+routed to the same expert cluster together, confirming that zero-parameter routing learns meaningful specialization. Clustering sharpness
+varies by layer, with later layers showing more distinct expert separation.
+31

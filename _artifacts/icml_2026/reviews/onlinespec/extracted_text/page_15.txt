@@ -1,0 +1,75 @@
+===== PAGE 15 =====
+
+Published as a workshop paper in Lifelong Agent @ ICLR 2026
+et al. (2025) apply MTP to Speech-LLaMA and reduce the number of decoder calls while maintaining
+recognition accuracy. Medusa (Cai et al., 2024) augments LLMs with extra decoding heads that
+predict multiple subsequent tokens in parallel, and employs tree-based attention to construct and
+verify multiple candidate continuations simultaneously. Hydra (Ankner et al., 2024) extends Medusa
+by introducing sequentially dependent draft heads, where each head conditions its prediction on
+preceding draft tokens rather than solely on verified hidden states. CLLM (Kou et al., 2024) leverages
+Jacobi decoding (Song et al., 2021) and trains the model to consistently predict the fixed point from
+any intermediate state. Recently, DeepSeek-V3 (Liu et al., 2024a) employs sequential MTP modules
+that maintain a complete causal chain at each prediction depth; while primarily designed to improve
+training performance, these modules can be employed for speculative decoding during inference to
+further accelerate the inference speed.
+Comparison with existing methods.
+Although previous advances that explore interactive feedback
+have achieved notable empirical improvements (Liu et al., 2024b; Wang et al., 2025; Bhansali &
+Heck, 2025), they still have several limitations. First, they rely on ad hoc algorithmic designs without
+principled theoretical foundations connecting their update strategies to acceleration performance.
+Second, they are tailored to specific scenarios: DistillSpec focuses on offline distillation with on-policy
+data; OSD targets token-level verification feedback; DVI explores reinforcement learning schedules
+for evolving draft heads; and ATLAS emphasizes system-level traffic adaptation. Consequently,
+they do not provide a unified framework applicable to the broader generation-refinement paradigm.
+In contrast, our OnlineSPEC framework addresses these gaps by formulating general generation-
+refinement methods as an online learning problem, for the first time, establishing a theoretical
+connection between algorithmic regret and acceleration rate in Theorem 1, and providing a systematic
+way to incorporate advanced online learning techniques within a unified formulation.
+A.2
+ONLINE LEARNING
+In this section, we introduce the related topics of online learning.
+Online Convex Optimization.
+Online learning is a powerful paradigm for timely adjusting
+the decision on-the-fly, which is deemed as a T-round iterative game between a player and an
+environment. At iteration t ∈{1, . . . , T}, the player selects a decision wt, and the environment
+simultaneously selects an online function ft. Subsequently, the learner will suffer a loss and observe
+certain gradient information as the feedback. The classical measure for online learning is the static
+regret (Cesa-Bianchi & Lugosi, 2006),
+RegT
+
+{ft, w}T
+t=1
+
+≜
+T
+X
+t=1
+ft(wt) −min
+w∈W
+T
+X
+t=1
+ft(w),
+which compares the online learner’s performance against the best fixed decision in hindsight. The
+theoretical foundations of online convex optimization are well-established (Hazan, 2016). The most
+classical algorithm is online gradient descent (OGD) (Zinkevich, 2003), which updates the decision
+by moving along the negative gradient of the loss function. OGD achieves an O(
+√
+T) static regret
+for convex functions, which is known to be minimax optimal. Subsequent work demonstrates that
+OGD is a special case of online mirror descent (OMD) (Orabona, 2019), which generalizes gradient
+descent to non-Euclidean geometries by replacing the squared Euclidean norm with a more general
+Bregman divergence.
+With the growing interest of the community, notable progress in modern online learning has emerged
+along two main directions: adaptive online learning, which exploits environmental structure for
+improved performance; and non-stationary online learning, which handles distribution shifts in
+dynamic environments.
+Adaptive Online Learning.
+Adaptive online learning aims to achieve better performance by
+exploiting predictable patterns in the environment, which reuses historical information for a better
+regret rate. A prominent technique is optimistic online learning (Rakhlin & Sridharan, 2013), which
+reuses historical information to construct predictive hints for future gradients. At each round, the
+learner performs a two-step update: one with the predicted gradient (hint) and one with the actual
+gradient. When the hints are accurate, this approach achieves tighter regret bounds that depend on the
+cumulative hint error rather than the time horizon T. Optimistic online learning has been successfully
+15

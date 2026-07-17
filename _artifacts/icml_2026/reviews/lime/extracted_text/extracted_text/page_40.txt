@@ -1,0 +1,69 @@
+===== PAGE 40 =====
+
+Submission and Formatting Instructions for ICML 2026
+H. Algorithm Details
+This appendix provides a detailed description of the LiME forward pass and training procedure presented in Algorithm 1.
+LiME transforms any PEFT-adapted linear layer into a mixture-of-experts layer with zero additional routing parameters.
+The key insight is that routing signals can be derived directly from existing computations—the frozen base output z and the
+PEFT output ˆz—eliminating the need for a learned router network.
+The algorithm takes a batch of token sequences x ∈RB×T ×di as input, where B is the batch size, T is the sequence length,
+and di is the input dimension. The pretrained linear layer W0 ∈Rdo×di remains fixed throughout training, preserving
+knowledge learned during pretraining while allowing task-specific adaptation through PEFT. The trainable components
+include: (1) PEFT parameters ϕ from any parameter-efficient method (LoRA, Adapter, Prefix Tuning, IA³, etc.); (2) expert
+modulators {pi}E
+i=1 where each pi ∈Rdo modulates the PEFT adaptation for expert i; (3) an optional shared modulator
+ps ∈Rdo providing baseline adaptation; and (4) a learnable scalar γ ∈R controlling the shared modulator contribution.
+Step 1 computes the frozen linear transformation z = W0x ∈RB×T ×do. This computation is shared with standard
+inference and adds no overhead. The output z serves dual purposes: the base representation for the final output and a routing
+signal encoding pretrained knowledge.
+Step 2 applies the PEFT module to produce task-specific adaptations ˆz = δ(x) ∈RB×T ×do. For LoRA, this is ˆz =
+(xA⊤)B⊤· (αLoRA/r). The PEFT adaptation captures task-relevant features and also serves as a routing signal.
+Step 3 computes routing weights from the first E dimensions of z and ˆz, requiring no additional parameters. We first
+normalize by the infinity norm to ensure stable routing: ˜z1:E = z[:,:,1:E]/∥z[:,:,1:E]∥∞and ˜ˆz1:E = ˆz[:,:,1:E]/∥ˆz[:,:,1:E]∥∞.
+The normalized signals are combined and passed through softmax: w = softmax(((1 −γr) · ˜z1:E + γr · ˜ˆz1:E)/τ). The
+routing balance γr controls the information source: γr = 0 routes based on pretrained features only, γr = 1 uses PEFT
+features only, and γr ∈[0.6, 0.8] provides optimal performance by combining both signals (§4.1). Our ablation study (§4.1)
+demonstrates that routing features can be drawn from any subset of the feature space—leading, central, trailing, or random
+dimensions all achieve comparable performance—supporting our low-rank redundancy hypothesis.
+Step 4 performs Auto Top-K selection, adaptively selecting experts based on relative routing weights: Sθ = {i : wi ≥
+θ · maxj wj}. This selects all experts whose routing weight is at least θ times the maximum weight. The selected weights
+are renormalized: ˜wi = wi/ P
+j∈Sθ wj. When routing is confident, fewer experts are activated; when uncertain, more
+experts contribute.
+Step 5 combines expert modulators using renormalized routing weights: P = P
+i∈Sθ ˜wi · pi ∈RB×T ×do.
+Step 6 produces the final output by combining the base representation with modulated PEFT adaptation: h = z + ˆz ⊙P +
+γ · (ˆz ⊙ps), where ⊙denotes element-wise multiplication. The three terms represent frozen base output, expert-modulated
+adaptation, and shared adaptation respectively.
+Step 7 applies load balancing during training only. We compute mean routing probabilities ¯pi =
+1
+BT
+P
+b,t wi(xb,t), then
+apply importance loss Limp = E · PE
+i=1 ¯p2
+i −1 (zero when uniform) and KL-uniform loss LKL = PE
+i=1 ¯pi log(E · ¯pi). The
+total loss is L = Ltask + α · Limp + β · LKL. Ablation studies (§4.1) show optimal coefficients around α = β ≈0.01–0.1.
+Complexity. For a single LiME layer with PEFT parameters |ϕ|, the parameter count is:
+|ϕLiME| =
+|ϕ|
+|{z}
+shared PEFT
++
+E · do
+| {z }
+expert modulators
++
+do + 1
+| {z }
+shared modulator +γ
+In contrast, traditional MoE-PEFT requires E · |ϕ| +
+d · E
+|{z}
+learned router
+parameters. Routing cost is O(T · E) for token-level,
+O(T/n · E) for n-gram, and O(E) for sequence-level routing. Since E ≪d typically, routing overhead is negligible.
+During inference, Step 7 is skipped entirely, with no additional overhead compared to standard PEFT except for lightweight
+expert modulation.
+40

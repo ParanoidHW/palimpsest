@@ -1,0 +1,110 @@
+===== PAGE 10 =====
+
+DODO: Discrete OCR Diffusion Models
+Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H.,
+Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano,
+R., et al. Training verifiers to solve math word problems.
+arXiv preprint arXiv:2110.14168, 2021.
+Dai, W., Li, J., LI, D., Tiong, A., Zhao, J., Wang, W.,
+Li, B., Fung, P. N., and Hoi, S.
+Instructblip: To-
+wards general-purpose vision-language models with
+instruction tuning. In Oh, A., Naumann, T., Globerson,
+A., Saenko, K., Hardt, M., and Levine, S. (eds.),
+Advances in Neural Information Processing Systems,
+volume 36, pp. 49250–49267. Curran Associates, Inc.,
+2023.
+URL https://proceedings.neurips.
+cc/paper_files/paper/2023/file/
+9a6a435e75419a836fe47ab6793623e6-Paper-Conference.
+pdf.
+Ganz, R., Nuriel, O., Aberdam, A., Kittenplon, Y., Mazor,
+S., and Litman, R. Towards models that can see and
+read. In Proceedings of the IEEE/CVF International Con-
+ference on Computer Vision (ICCV), pp. 21718–21728,
+October 2023.
+Ganz, R., Kittenplon, Y., Aberdam, A., Avraham, E. B.,
+Nuriel, O., Mazor, S., and Litman, R. Question aware
+vision transformer for multimodal reasoning, 2024. URL
+https://arxiv.org/abs/2402.05472.
+Li, B., Zhang, Y., Guo, D., Zhang, R., Li, F., Zhang, H.,
+Zhang, K., Zhang, P., Li, Y., Liu, Z., and Li, C. Llava-
+onevision: Easy visual task transfer, 2024. URL https:
+//arxiv.org/abs/2408.03326.
+Li, J., Li, D., Xiong, C., and Hoi, S. BLIP: Bootstrapping
+language-image pre-training for unified vision-language
+understanding and generation. In Chaudhuri, K., Jegelka,
+S., Song, L., Szepesvari, C., Niu, G., and Sabato, S.
+(eds.), Proceedings of the 39th International Conference
+on Machine Learning, volume 162 of Proceedings of
+Machine Learning Research, pp. 12888–12900. PMLR,
+17–23 Jul 2022. URL https://proceedings.mlr.
+press/v162/li22n.html.
+Li, J., Li, D., Savarese, S., and Hoi, S.
+Blip-2: Boot-
+strapping language-image pre-training with frozen im-
+age encoders and large language models, 2023. URL
+https://arxiv.org/abs/2301.12597.
+Li, S., Kallidromitis, K., Bansal, H., Gokul, A., Kato, Y.,
+Kozuka, K., Kuen, J., Lin, Z., Chang, K.-W., and Grover,
+A. Lavida: A large diffusion model for vision-language
+understanding. In The Thirty-ninth Annual Conference
+on Neural Information Processing Systems, 2025a.
+Li, Y., Yang, G., Liu, H., Wang, B., and Zhang, C. dots.ocr:
+Multilingual document layout parsing in a single vision-
+language model, 2025b. URL https://arxiv.org/
+abs/2512.02498.
+Li, Z., Liu, Y., Liu, Q., Ma, Z., Zhang, Z., Zhang, S., Guo, Z.,
+Zhang, J., Wang, X., and Bai, X. Monkeyocr: A unified
+ocr system with multi-stage pipelines. arXiv preprint
+arXiv:2506.05218, 2025c.
+Lin, T.-Y., Maire, M., Belongie, S., Hays, J., Perona, P., Ra-
+manan, D., Doll´ar, P., and Zitnick, C. L. Microsoft coco:
+Common objects in context. In European conference on
+computer vision, pp. 740–755. Springer, 2014.
+Liu,
+C. et al.
+Focus anywhere for fine-grained
+multi-page document understanding.
+arXiv preprint
+arXiv:2405.14295, 2024.
+Liu, Z., Zhu, L., Shi, B., Zhang, Z., Lou, Y., Yang, S., Xi,
+H., Cao, S., Gu, Y., Li, D., Li, X., Fang, Y., Chen, Y.,
+Hsieh, C.-Y., Huang, D.-A., Cheng, A.-C., Nath, V., Hu,
+J., Liu, S., Krishna, R., Xu, D., Wang, X., Molchanov, P.,
+Kautz, J., Yin, H., Han, S., and Lu, Y. Nvila: Efficient
+frontier visual language models, 2025. URL https:
+//arxiv.org/abs/2412.04468.
+Luxembourg, O., Permuter, H., and Nachmani, E. Plan for
+speed–dilated scheduling for masked diffusion language
+models. arXiv preprint arXiv:2506.19037, 2025.
+Mandal, S., Talewar, A., Ahuja, P., and Juvatkar, P.
+Nanonets-ocr-s: A model for transforming documents
+into structured markdown with intelligent content recog-
+nition and semantic tagging, 2025.
+Mathew, M., Karatzas, D., and Jawahar, C. Docvqa: A
+dataset for vqa on document images. In Proceedings
+of the IEEE/CVF winter conference on applications of
+computer vision, pp. 2200–2209, 2021.
+Nacson, M. S., Aberdam, A., Ganz, R., Ben Avraham,
+E., Golts, A., Kittenplon, Y., Mazor, S., and Litman,
+R. Docvlm: Make your vlm an efficient reader. In Pro-
+ceedings of the Computer Vision and Pattern Recognition
+Conference, pp. 29005–29015, 2025.
+Nassar, A., Marafioti, A., Omenetti, M., Lysak, M., Livathi-
+nos, N., Auer, C., Morin, L., de Lima, R. T., Kim, Y.,
+Gurbuz, A. S., Dolfi, M., Farr´e, M., and Staar, P. W. J.
+Smoldocling: An ultra-compact vision-language model
+for end-to-end multi-modal document conversion, 2025.
+URL https://arxiv.org/abs/2503.11576.
+Ouyang, L. et al. Omnidocbench: Benchmarking diverse
+pdf document parsing with comprehensive annotations. In
+Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR), 2025.
+Poznanski, A. et al.
+olmocr: Unlocking trillions of to-
+kens in pdfs with vision language models.
+Hugging
+Face Datasets, 2024. https://huggingface.co/
+datasets/allenai/olmOCR-mix-1025.
+10

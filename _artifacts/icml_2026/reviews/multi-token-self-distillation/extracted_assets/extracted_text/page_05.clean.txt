@@ -1,0 +1,64 @@
+===== PAGE 5 =====
+
+Preprint. Under review.
+“Hard” teacher distribution.
+Finally, to further enhance the clarity of our supervision
+signals, we also consider a version of Equation (3) where the readout function applied to the
+teacher is also the argmax. This reduces PθT(y′|x1:ir) to a delta distribution with zero entropy.
+By construction, computing the loss using a “hard” version of the student-forced teacher’s
+distribution requires that the student’s entropy drop to zero to minimize it completely.
+While we do not achieve such full convergence in our experiments, we do observe the
+desired entropy reduction effect one would expect under this setting and adopt it for our
+main training runs.
+Choice of teacher model.
+While Equation (3) imposes no particular constraints on the
+exact model chosen as the teacher or the initialization of the student policy, we believe
+a natural choice exists. In the special case where k = 1, during the first step of training,
+the online MTP objective reduces to a standard NTP knowledge distillation approach; the
+student need only predict a single token following a given prefix that is likely under the
+teacher. For this reason, we posit that initializing the student and the teacher using the same
+pretrained checkpoint, θ0
+T = θ0
+S, ensures that the loss function is well behaved in the early
+stages of training. Under this initialization, at step 0 and k = 1, the student and teacher’s
+predictions are exactly the same and Equation (3) is 0. Therefore, we will run all experiments
+under θ0
+T = θ0
+S initialization, but with k ≥2 to allow the student to actually learn to perform
+accelerated inference.
+3.4
+Inference
+The training objective Equation (3) uses the deterministic argmax readout function to
+materialize the student’s k-token rollout y′. However, at inference time, we must also choose
+a method for sampling from the student. We note that in our simple MTP formulation,
+PθS(y′|x1:i) does not explicitly parametrize the product distribution over Yk and instead
+produces PθS(y′
+j|x1:i),
+j ∈[1, ..k]. Therefore, under the softmax readout, the k tokens would
+actually be sampled individually. If the distribution has any entropy—meaning the student
+is not perfectly certain about the individual tokens at each position—then the sampled
+tokens may not be mutually compatible.
+In principle, this issue is resolved simply by using the greedy argmax readout function at
+test time. Because the model is trained using a deterministic argmax, a well fit MTP model
+should yield argmax tokens at each position that are compatible with their argmax neighbors.
+The only thing that matters for such a model is which token is assigned the largest logit
+value rather than the entropy of the model’s entire output distribution. Therefore, we must
+determine empirically whether or not argmax tokens produced by a student model trained
+using Equation (3) are actually coherent in practice. Later, we will see that despite the fact
+that it is not strictly necessary, high generation coherence (low perplexity) appears to be
+closely correlated with high token confidence (low entropy) in our experiments, and we will
+exploit this fact to create a simple adaptive sampler.
+4
+Implementation Details
+In Section 3, we introduced our method in an abstract manner. Now, in Section 4.1 through
+Section 4.3 we provide details about the actual implementation of our training and inference
+scheme; complete details can be found in Appendix B including a formal procedure in
+Algorithm 1. Figures 2 and 3 are rendered in support of components of our implementa-
+tion that are most succinctly described using visuals such as attention patterns and input
+tokenization and masking.
+4.1
+Tokenization and Masking
+The training objective proposed in Equation (3) is computed over a specific position i in a
+ground truth sequence X and the next k tokens that the student predicts to follow the prefix
+x1:i. For any sequence X of length N, there are N −1 unique prefixes that can be materialized
+5

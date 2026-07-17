@@ -1,0 +1,41 @@
+===== PAGE 16 =====
+
+Submission and Formatting Instructions for ICML 2026
+Then
+z = A(n)
+e x,
+e = ˆe(z),
+x ∈Se.
+By the factorization-on-support assumption (applied to this e and x ∈Se),
+A(n−1)
+rn−1(x)x = Re A(n)
+e x.
+Using rn−1(x) = rn−1(X(ω)) = In−1(ω) and A(n)
+e x = z,
+Zn−1(ω) = A(n−1)
+In−1(ω)X(ω) = Re z.
+Using e = ˆe(z),
+Zn−1(ω) = Rˆe(z)z = h(z) = h(Zn(ω)).
+Thus,
+Zn−1 = h(Zn)
+a.s.
+Let U := Zn and V := Zn−1. Then V = h(U) almost surely. Hence
+σ(V ) ⊆σ(U).
+Therefore,
+H(Y | U) ≤H(Y | V ).
+It follows that
+I(Y ; U) = H(Y ) −H(Y | U)
+(6)
+≥H(Y ) −H(Y | V )
+(7)
+= I(Y ; V ).
+(8)
+Substituting U = Zn and V = Zn−1 yields
+I(Y ; Zn) ≥I(Y ; Zn−1).
+Corollary 1 By induction, for any n ≥1:
+I(Y ; Zn) ≥I(Y ; Zn−1) ≥· · · ≥I(Y ; Z1)
+Thus, MoE with n experts preserves at least as much label information as a single-expert model.
+Practical Implication: While more experts can preserve more information, realizing this benefit requires sufficient training data per
+expert. Traditional MoE-PEFT suffers from data fragmentation as E increases. LiME mitigates this via lightweight expert vectors and
+a shared PEFT backbone.
+16

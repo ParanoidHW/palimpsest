@@ -1,0 +1,46 @@
+===== PAGE 12 =====
+
+DODO: Discrete OCR Diffusion Models
+A. Attention Structure Visualization
+Q
+K
+Block #1
+Block #2
+Block #3
+Q
+K
+Block #1
+Block #2
+Block #3
+DODO fast
+Block Causal
+DODO
+Bidirectional
+Figure A1. Visualization of the attention structure. Full bidirectional attention allows prior blocks to attend to the current block (green
+hatched), meaning their internal representations dynamically adapt during the forward pass. Block-causal masking prevents prior blocks
+from attending to the current block. This ensures the history representations remain invariant, enabling exact KV-caching for faster
+inference.
+B. Additional Ablations
+B.1. Sampling Strategies
+To optimize the inference process, we investigate the impact of the decoding schedule. Given the intolerance of OCR tasks to
+transcription errors, our primary objective is not merely to maximize speed, but to identify the fastest strategy that maintains
+high fidelity. We compares two distinct sampling strategies:
+• Confidence Thresholding (Yu et al., 2025): A dynamic strategy that unmasks all tokens whose prediction probability
+exceeds a fixed threshold p. This allows for adaptive step sizes: the model accelerates through clear text and slows
+down for ambiguous regions. This is the default strategy used in our main experiments (with p = 0.99).
+• Confidence Top-K (Zheng et al., 2023): A fixed-rate strategy that unmasks exactly K tokens per step, guaranteeing a
+steady generation pace regardless of model confidence.
+Figure B2 illustrates the performance trade-offs. In the high-accuracy regime required for OCR, Confidence Thresholding
+emerges as the superior strategy. By strictly enforcing a high confidence floor (p = 0.99), it ensures that the model only
+commits to tokens when certainty is high. While other strategies (such as aggressive Top-K) may achieve higher raw
+throughput, they do so at the cost of unacceptable error rates. Thus, confidence thresholding provides the optimal balance,
+maximizing speed strictly within the bounds of usable accuracy.
+C. Fine-Grained Evaluation Breakdown
+We provide a detailed breakdown of OmniDocBench results by document length and document type.
+Table 4 reveals that DODO’s advantage over autoregressive VLMs grows with document length: at 4096+ tokens, DODO
+achieves 0.079 vs. Qwen 7B’s 0.185, as longer sequences amplify the benefit of parallel decoding. Conversely, for very
+short documents (0–128 tokens), all methods perform similarly since sequential overhead is minimal.
+Table 5 shows that DODO performs consistently across document types, with particularly strong results on PPT slides
+(0.014) and academic papers (0.050). The bidirectional variant further improves on structured layouts (Academic, Book)
+where long-range context aids alignment.
+12

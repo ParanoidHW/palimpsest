@@ -1,0 +1,40 @@
+===== PAGE 27 =====
+
+Submission and Formatting Instructions for ICML 2026
+Figure 7. Hyperparameter ablations. (a-b) N-gram window size shows robust performance across text and vision tasks. (c) Fixed Top-K
+selection peaks at k = 2-3; fewer limits expressiveness, more introduces noise. (d) Number of experts: optimal range E ∈[3, 6] balances
+capacity and training efficiency.
+sharing routing decisions within windows, n-gram routing encourages locally consistent expert assignments that respect
+these natural boundaries.
+On text tasks (a), performance remains stable across window sizes, with slight variations per task. On vision tasks (b), we
+observe similar robustness. This stability suggests that the semantic coherence assumption holds—grouping adjacent tokens
+does not degrade performance while providing implicit regularization by reducing the model’s capacity to overfit to spurious
+token-level patterns.
+Note that n-gram routing does not reduce computation: since LiME derives routing from existing representations (z and
+ˆz), all token representations must be computed regardless of window size. N-gram windowing only affects how routing
+probabilities are shared, not the underlying forward pass. Based on these results, we use n = 3 as default to capture
+phrase-level semantics while maintaining accuracy.
+F.3. Fixed Top-K Selection (Figure 7c)
+We vary fixed Top-K from k = 1 to k = 6. With k = 1, only the highest-scoring expert is activated, limiting expressiveness.
+Performance generally improves from k = 1 to k = 2 or k = 3 as additional experts contribute complementary special-
+izations. Beyond k = 3, accuracy plateaus or slightly decreases—activating too many experts dilutes the contribution of
+relevant ones with noise from less relevant experts. On average, k = 2 provides the best fixed-cardinality baseline, which
+we use for comparison against Auto Top-K.
+F.4. Number of Experts (Figure 7d)
+We scale the number of experts from E = 1 to E = 10. Performance improves from E = 1 to E ≈4-5, consistent with
+Theorem 1 that more experts preserve more task-relevant information. The optimal range E ∈[3, 6] (highlighted) achieves
+peak accuracy across most tasks. Beyond E = 6, performance plateaus or slightly degrades. This occurs because each
+expert receives fewer training samples as E increases, making meaningful specialization harder without proportionally more
+diverse data. We use E = 4 as default to balance capacity and training efficiency.
+F.5. Expert Scaling: LiME vs MoELoRA (Figure 8)a.
+We compare how LiME and MoELoRA scale with increasing number of experts on GLUE tasks. The shaded region
+highlights where LiME outperforms MoELoRA. Two patterns emerge clearly:
+LiME maintains stability. Across all six tasks, LiME (green) shows relatively stable performance as E increases from 1 to
+10. Performance typically peaks around E = 3–5 and remains within a narrow range thereafter.
+MoELoRA degrades significantly. In contrast, MoELoRA (red) exhibits sharp degradation beyond E = 3–4. The drops are
+particularly severe on CoLA (∼78% to ∼70%), STS-B (∼80% to ∼74%), and MRPC (∼83% to ∼73%)—losses of 8–10
+percentage points.
+This divergence stems from overfitting: MoELoRA replicates full adapter modules per expert (E × |ϕ| parameters), causing
+each expert to see fewer training samples as E increases. With insufficient data per expert, MoELoRA overfits to training
+noise rather than learning meaningful specialization. LiME avoids this by using lightweight modulation vectors (E × d
+27

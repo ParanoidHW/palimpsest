@@ -25,9 +25,9 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [done] W10 Report: `analysis.md` is a concise Chinese abstract-level blocked report following the reusable section structure and preserving all material limitations.
 - [done] W10 Revision information: `analysis.md#修订信息` records the initial `1.0.0` / `rev-initial-20260716` entry with no predecessor.
 - [skipped-with-reason] W11 Generated diagram: parent contract states the installed CLI has only `generate`/`edit`, not mandatory `responses-doc --input-file analysis.md`; prompt-only art is forbidden.
-- [pending] D1 Delegated handoff: after W11, write the preliminary contract-compliant `agent_handoff.md`, or mark standalone invocation with reason; freeze it before final deliverable hashing.
-- [pending] D2 Deliverable manifest: validate a preliminary `deliverable_manifest.json`, including revision history/current revision identity; finalize/freeze checklist and handoff, recompute hashes, then pass final structural and semantic validation with no errors.
-- [pending] D3 Artifact manifest: in delegated runs, preflight-generate/verify `artifact_manifest.sha256` before the freeze, then regenerate/verify it last after the final deliverable manifest; do not edit covered files afterward. Mark standalone invocation with reason.
+- [done] D1 Delegated handoff: `agent_handoff.md` is contract-compliant, records provenance, blocked status, synthesis claims, promotion candidates, limitations, and no suspected out-of-folder write.
+- [done] D2 Deliverable manifest: `deliverable_manifest.json` passed Draft 2020-12 validation; revision, terminology, symbols, visual counts, provenance, and blocked evidence classifications agree with the frozen artifacts.
+- [done] D3 Artifact manifest: `artifact_manifest.sha256` was generated last after all covered files were frozen and verified with `sha256sum -c`.
 
 ## Quality Checks
 
@@ -43,13 +43,13 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [done] Q10 No gain attribution is made; absent matched evidence is explicit.
 - [skipped-with-reason] Q11 No checkpoint/config is linked or found; all configuration claims are marked unverified.
 - [done] Q12 Failed/empty acquisition and access checks, including Semantic Scholar 429 and OpenReview 403, are recorded with effects in `recovery/recovery_log.md`.
-- [pending] Q13 Delegated runs preserved the task packet, produced a schema-compliant handoff and complete artifact manifest, and passed the parent-provided write-isolation mode or reported suspected out-of-folder edits; standalone runs classify this item with reason.
-- [pending] Q14 `deliverable_manifest.json` passes structural and semantic validation and agrees with the centralized terminology/symbol chapter, key-term/symbol coverage, artifact hashes, visual counts/missing types, evidence status, invocation mode/provenance, frozen checklist/handoff, and limitations.
+- [done] Q13 Delegated run preserved the immutable task packet, produced the handoff and final artifact manifest, and reported no suspected out-of-folder write (without self-certifying filesystem isolation).
+- [done] Q14 `deliverable_manifest.json` passed structural validation and the recorded semantic/path/hash/visual/provenance/checklist consistency checks for the blocked delivery.
 - [done] Q15 Every design identifiable from the abstract has a complete rationale row with author-stated source, target problem, stated mechanism, reviewer-supplied alternatives, and `unverified` evidence judgment; unknown full-paper designs are disclosed.
-- [pending] Q16 Revision metadata matches `analysis.md` and the manifest; history has one valid initial/migration bootstrap, is ordered and append-only, keeps unresolved issue IDs blocked until exactly one later migration-resolution, makes every later tracked entry point to the exact superseded revision/manifest hash, and identifies the latest frozen state.
+- [done] Q16 Revision metadata matches `analysis.md` and the manifest: one valid initial bootstrap (`1.0.0`, `rev-initial-20260716`), no migration predecessor, current revision is latest, and no post-freeze content revision was made.
 
 ## Final Classification
 
-- [pending] F1 `analysis.md`, `figure_inventory.md`, and `deliverable_manifest.json` exist and agree on counted visuals; `figures/contact-sheet.png` exists when crops exist, otherwise precise visual-block evidence exists.
-- [pending] F2 Every workflow and quality item above is `done`, `blocked`, or `skipped-with-reason`; none remains `pending`.
-- [pending] F3 The final response/handoff states every material limitation and does not declare blocked evidence complete.
+- [done] F1 `analysis.md`, `figure_inventory.md`, and `deliverable_manifest.json` agree on zero counted visuals and the precise no-PDF blocker; no contact sheet exists because zero crops exist.
+- [done] F2 Every workflow and quality item above is now `done`, `blocked`, or `skipped-with-reason`; no item remains pending.
+- [done] F3 Final handoff and response preserve blocked status and state every material limitation; no blocked evidence is declared complete.

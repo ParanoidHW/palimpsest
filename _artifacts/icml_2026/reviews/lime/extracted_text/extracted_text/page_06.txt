@@ -1,0 +1,214 @@
+===== PAGE 6 =====
+
+Submission and Formatting Instructions for ICML 2026
+Table 2. Average results across benchmark categories. Highlighted rows show our LiME variants. Bold: best; underline: second best.
+#TTP: total trainable parameters. Detailed per-task results in Tables 6, 7, 8, 9, 10, 11, 12.
+Method
+#TTP
+Vision
+Benchmark
+Image
+Classification
+Commonsense
+Reasoning
+GLUE
+High Level
+Reasoning
+Object Motion
+& Spatial
+Action
+Understanding
+PromptTuning
+0.07M
+72.63±2.24
+50.22±0.96
+77.50±1.53
+71.91±1.35
+15.86±2.29
+14.51±2.64
+15.86±2.42
+LoRA
+1.74M
+77.02±1.59
+93.92±0.56
+83.80±1.27
+90.64±0.97
+43.23±1.88
+62.85±2.19
+50.99±1.96
+DoRA
+2.09M
+76.35±1.62
+93.35±0.68
+83.53±1.01
+90.37±0.99
+42.56±1.88
+62.14±2.13
+50.41±2.07
+LoRA-FA
+0.70M
+76.31±1.62
+93.50±0.55
+83.45±1.11
+90.31±0.81
+42.47±1.94
+61.97±2.17
+50.30±2.07
+SliceFine
+1.74M
+77.06±1.53
+93.98±0.53
+83.84±1.22
+90.54±0.97
+43.30±1.86
+62.91±2.12
+51.06±1.94
+MoCLE
+5.92M
+77.59±1.39
+94.25±0.42
+84.18±1.03
+90.66±0.85
+43.78±1.87
+63.43±2.10
+51.53±1.94
+MoELoRA
+10.79M
+77.27±1.41
+93.97±0.57
+84.08±1.06
+91.21±0.87
+43.84±1.89
+63.07±1.95
+51.13±2.00
+MixLoRA
+3.83M
+77.08±1.30
+93.25±0.60
+83.27±0.99
+90.50±0.86
+43.86±1.91
+63.54±2.04
+51.70±1.88
+HydraLoRA
+5.92M
+78.11±1.45
+94.58±0.52
+84.43±1.03
+91.05±0.88
+45.79±1.92
+64.95±2.07
+53.28±2.01
+MoLA
+9.04M
+77.10±1.48
+94.74±0.54
+84.07±0.96
+90.88±0.94
+42.97±1.90
+62.74±2.08
+50.97±1.99
+MoRe
+3.59M
+77.98±1.30
+93.84±0.57
+84.44±1.09
+90.74±0.97
+45.58±1.95
+64.95±2.06
+53.48±1.98
+MoEDoRA
+12.19M
+78.07±1.43
+94.72±0.71
+84.11±0.98
+90.98±0.97
+45.92±1.90
+65.16±2.06
+52.54±2.01
+LiMEPromptTuning
+0.09M
+73.48±1.91
+51.07±0.75
+78.38±1.28
+72.68±1.12
+16.73±2.04
+15.39±2.33
+16.95±2.17
+LiMELoRA
+3.49M
+78.01±1.31
+94.47±0.53
+84.98±0.86
+91.02±0.84
+45.00±1.86
+65.05±2.08
+53.19±1.93
+LiMEDoRA
+3.84M
+78.12±1.48
+94.50±0.52
+84.76±0.88
+91.11±0.92
+45.65±1.88
+65.41±2.14
+53.39±1.97
+LiMELoRAFA
+2.44M
+77.77±1.47
+94.61±0.67
+84.49±0.84
+91.14±0.87
+44.91±1.99
+64.89±2.12
+53.01±1.94
+LiMESliceFine
+2.44M
+77.77±1.41
+94.34±0.52
+84.50±0.96
+91.19±0.82
+45.34±1.84
+65.14±2.03
+52.73±1.90
+Figure 2. Efficiency comparison of LiME vs. MoE-PEFT baselines. (a) LiME variants (stars) achieve higher throughput and shorter
+training time; LiMEPromptTuning is the most efficient (4.52 samples/s, 25 min). (b) All methods show comparable peak memory due to
+the dominant frozen backbone. (c) LiME requires 0.02–0.57M trainable parameters—up to 4× fewer than corresponding MoE-PEFT
+methods. (d) Total model size remains comparable (∼894M) across all methods.
+0.57M— 4× fewer than MoEDoRA (2.16M)—while main-
+taining comparable total size (∼894M). This stems from our
+modulation design: instead of replicating adapters per ex-
+pert (E×|ϕ|), LiME uses lightweight expert vectors (E×d).
+Notably, LiMEPromptTuning achieves the best efficiency
+with only 0.02M parameters and 4.52 samples/s throughput,
+demonstrating LiME’s versatility across PEFT methods.
+Key Finding: LiME achieves competitive performance with up
+to 4× fewer trainable parameters and up to 29% faster training
+compared to corresponding MoE-PEFT baselines.
+Empirical Evidence of Theorem 1. We empirically study
+Theorem 1, which states that adding experts makes the MoE
+output at least as informative about the target. Figure 3(c–d)
+reports GLUE accuracy as we vary the number of experts
+from 1 to 10. Both LiME and MoELoRA peak at 3–5
+experts (stars), suggesting that a moderate number of experts
+often provides the best balance between added capacity and
+how well experts can be trained.
+This behavior is expected in practice because Theorem 1
+describes capacity under an ideal solution, while accuracy
+depends on finite-data training. If a batch contains N for
+E experts, each expert receives fewer tokens on average
+(about O(N/E)). With fewer examples per expert, rout-
+ing and load balancing become harder and experts can be
+under-trained, which may reduce generalization and hurt
+performance (Lepikhin et al., 2020; Geiger et al., 2020).
+MoE-PEFT is more sensitive to this because it learns a sep-
+arate adapter for each expert, so each adapter is trained
+on a smaller slice of data. LiME is more stable because
+all experts share the same PEFT module and only learn
+lightweight scaling vectors; the shared adaptation is trained
+on the full dataset. As a result, LiMELoRA scales to larger
+E better than MoELoRA in the limited-data setting (§F.5).
+Empirical Evidence of Theorem 2. Theorem 2 predicts
+that LiME can match expert-specific PEFT up to a small
+performance gap. We test this by comparing the internal
+6
