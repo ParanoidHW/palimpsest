@@ -71,38 +71,26 @@ MDLM 在理解与 zero-shot likelihood 上强，但少步生成上下文一致�
 ### 核心公式
 
 前向转移为
-
-\[
+$$
 Q_{t|s}=\alpha_{t|s}I+\beta_{t|s}K,\qquad \alpha_{t|s}+\beta_{t|s}=1.
-\]
-
+$$
 单 mask 特例为
-
-\[
+$$
 K=\frac{k}{N}J+\mu M,\qquad k+\mu=1.
-\]
-
+$$
 定义
-
-\[
-r(e)=\frac{k}{N}+\mu\delta_{e,m},\qquad
-f_t(x,e)=\alpha_t p(x,e)+\beta_t r(e),
-\]
-
+$$
+r(e)=\frac{k}{N}+\mu\delta_{e,m},\qquad f_t(x,e)=\alpha_t p(x,e)+\beta_t r(e),
+$$
 则后验可写成
-
-\[
-q(z_s=e\mid z_t,x)=
-\frac{f_s(x,e)f_{t|s}(e,z_t)}{f_t(x,z_t)}.
-\]
-
+$$
+q(z_s=e\mid z_t,x)=\frac{f_s(x,e)f_{t|s}(e,z_t)}{f_t(x,z_t)}
+$$
 论文进一步给出
-
-\[
-D_{\mathrm{KL}}=\frac{\beta_{t|s}\alpha_s r(z_t)}{f_t(x,z_t)}h_t(x,z_t,\tilde x_0),
-\]
-
-并在 (s\to t) 时用 Lemma 3.5 的极限式替换数值不稳定的首项，得到 Eq. (15) 的连续时间训练目标。代码 `XDMHelper.sample_one_step` 直接实现从 mask/token 两种状态分支计算 posterior，`get_kl` 实现 (h_t) 的标量分解；这与论文的概念对象一致。
+$$
+D_{\mathrm{KL}}=\frac{\beta_{t|s}\alpha_s r(z_t)}{f_t(x,z_t)}h_t(x,z_t,\tilde x_0)
+$$
+并在 $s\to t$ 时用 Lemma 3.5 的极限式替换数值不稳定的首项，得到 Eq. (15) 的连续时间训练目标。代码 `XDMHelper.sample_one_step` 直接实现从 mask/token 两种状态分支计算 posterior，`get_kl` 实现$h_t$ 的标量分解；这与论文的概念对象一致。
 
 ### 设计-理由矩阵
 
