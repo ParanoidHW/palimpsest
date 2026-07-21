@@ -1,0 +1,328 @@
+{
+  "schema_version": "1.3.0",
+  "deliverable_type": "paper-deep-review",
+  "invocation_mode": "standalone",
+  "paper": {
+    "paper_key": "magi-1",
+    "title": "MAGI-1: Autoregressive Video Generation at Scale",
+    "venue_and_year": "Technical report / arXiv, 2025",
+    "paper_url": "https://arxiv.org/abs/2505.13211"
+  },
+  "completion_status": "complete",
+  "revision_info": {
+    "document_path": "analysis.md",
+    "section_heading": "修订信息",
+    "current_version": "1.0.0",
+    "current_revision_id": "rev-initial-20260721",
+    "history": [
+      {
+        "revision_id": "rev-initial-20260721",
+        "version": "1.0.0",
+        "revised_at": "2026-07-21T21:00:00+08:00",
+        "revised_by": "Codex",
+        "revision_type": "initial",
+        "supersedes": null,
+        "migration_resolution": null,
+        "summary": "Initial auditable review with paper, code, original visuals, chunk-token accounting, system evidence, and limitations.",
+        "reason": "User requested a standalone deep review with special attention to chunkwise-AR parameters.",
+        "affected_locations": [
+          "analysis.md",
+          "figure_inventory.md",
+          "review_checklist.md",
+          "deliverable_manifest.json"
+        ],
+        "evidence": [
+          "arXiv:2505.13211v1",
+          "SandAI-org/MAGI-1 commit 0fcefdef8ce2df37a3b8890979433c06eb003328",
+          "SandAI-org/MagiAttention commit d3eb7fd2b4358510ff46fa039fdcc7b2475589f7"
+        ],
+        "impact_on_conclusions": "material"
+      }
+    ]
+  },
+  "schema_validation": {
+    "status": "passed",
+    "validator": "python-jsonschema Draft202012Validator with format checker",
+    "errors": []
+  },
+  "semantic_validation": {
+    "status": "passed",
+    "validator": "manual paper-deep-review 1.3.0 semantic audit plus hash/link checks",
+    "checks": {
+      "artifact_paths_and_hashes": true,
+      "revision_section_matches_manifest": true,
+      "revision_history_consistency": true,
+      "current_revision_is_latest": true,
+      "unresolved_migrations_resolved": true,
+      "terminology_symbol_section_consistency": true,
+      "key_term_symbol_coverage": true,
+      "design_rationale_evidence_consistency": true,
+      "design_rationale_core_design_coverage": true,
+      "visual_count_sum": true,
+      "missing_visual_types": true,
+      "provenance_hash_equality": true,
+      "checklist_manifest_consistency": true
+    },
+    "errors": []
+  },
+  "artifacts": {
+    "paper_pdf": {
+      "status": "present",
+      "path": "paper.pdf",
+      "sha256": "aa0697368aa6e109788c55c1f5bff23427bea1525f15048c3e83d385f5056406",
+      "reason": null
+    },
+    "analysis": {
+      "status": "present",
+      "path": "analysis.md",
+      "sha256": "137fba7877d3681c22d341c8fd3fd9438506118ac590dfd24d1de7643be4a483",
+      "reason": null
+    },
+    "review_checklist": {
+      "status": "present",
+      "path": "review_checklist.md",
+      "sha256": "d961c4affad58d9bf26988ccb7bb94ec37de837c79049dbfb3d7d56a1cb79d9f",
+      "reason": null
+    },
+    "figure_inventory": {
+      "status": "present",
+      "path": "figure_inventory.md",
+      "sha256": "75134cd5652bc7b905aef4376051c7c417897717e6e90daffc0c541e63cf0c10",
+      "reason": null
+    },
+    "contact_sheet": {
+      "status": "present",
+      "path": "figures/contact-sheet.png",
+      "sha256": "7f382ac0218f478b287cf067b43c0352db5a11507b29f446e84881b26f512854",
+      "reason": null
+    },
+    "source_archive": {
+      "status": "blocked",
+      "path": null,
+      "sha256": null,
+      "reason": "The arXiv source transfer repeatedly stalled and the retained source.tar is known incomplete; it is not represented as a valid source archive. Complete PDF and official HTML remain available."
+    },
+    "code_snapshot": {
+      "status": "present",
+      "path": "code",
+      "sha256": "b41b08087ef542d368343e235a916a55732f0bc56443867a61c605546e776b06",
+      "reason": null
+    },
+    "openreview_reviews": {
+      "status": "present",
+      "path": "openreview_reviews.md",
+      "sha256": "eca834beebcc9bf4c855428b8d816c6950fe5e75348da70efc02adaf22f76bf9",
+      "reason": null
+    },
+    "generated_diagram": {
+      "status": "skipped-with-reason",
+      "path": null,
+      "sha256": null,
+      "reason": "The available image CLI exposes generate/edit only and lacks the workflow-required responses-doc --input-file analysis.md path; no prompt-only substitute was used."
+    },
+    "task_packet": {
+      "status": "not-applicable",
+      "path": null,
+      "sha256": null,
+      "reason": "Standalone invocation has no parent task packet."
+    },
+    "agent_handoff": {
+      "status": "not-applicable",
+      "path": null,
+      "sha256": null,
+      "reason": "Standalone invocation has no delegated-agent handoff."
+    },
+    "artifact_manifest_path": null
+  },
+  "visual_evidence": {
+    "mechanism_count": 3,
+    "result_or_system_count": 1,
+    "counted_total": 4,
+    "missing_types": [],
+    "inventory_fields_complete": true,
+    "contact_sheet_qa": "passed",
+    "individual_crop_qa": "passed"
+  },
+  "terminology_and_symbols": {
+    "document_path": "analysis.md",
+    "section_heading": "0.1 术语与符号",
+    "terms": [
+      {
+        "term": "Chunkwise-AR",
+        "definition": "Chunk-autoregressive video generation with within-chunk continuous flow denoising and block-causal inter-chunk conditioning.",
+        "aliases": ["chunk-wise autoregressive denoising"],
+        "sources": ["Section 2", "Figure 1"],
+        "ambiguity_notes": "It is not frame-by-frame or discrete-token autoregression."
+      },
+      {
+        "term": "Denoising window",
+        "definition": "The number of chunks concurrently progressing through staggered denoising stages.",
+        "aliases": ["window_size"],
+        "sources": ["Figure 1", "24B_base_config.json"],
+        "ambiguity_notes": "It differs from total clip chunk count and KV history range."
+      },
+      {
+        "term": "PnP",
+        "definition": "Online packing of variable-duration and variable-resolution samples into a fixed token-capacity training context.",
+        "aliases": ["Patch-and-Pack"],
+        "sources": ["Section 5.2"],
+        "ambiguity_notes": "The 4M-token capacity describes a packed batch/context, not one default video."
+      },
+      {
+        "term": "TPOC",
+        "definition": "Steady-state time per one-second output chunk after the first chunk.",
+        "aliases": ["time per output chunk"],
+        "sources": ["Section 6.1", "Table 6"],
+        "ambiguity_notes": "It is distinct from time to first chunk."
+      },
+      {
+        "term": "MagiAttention",
+        "definition": "A distributed irregular-attention stack combining flexible FlashAttention, load-balanced dispatch, group collectives, and overlap.",
+        "aliases": ["FFA stack"],
+        "sources": ["Section 5.3", "Figure 14", "MagiAttention repository"],
+        "ambiguity_notes": "It denotes more than a single CUDA attention kernel."
+      }
+    ],
+    "symbol_applicability": "applicable",
+    "symbols": [
+      {
+        "symbol": "x_i^t",
+        "meaning": "Latent of chunk i at flow time t.",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per chunk and denoising time",
+        "units_or_values": "latent tensor, t in [0,1]",
+        "sources": ["Section 2.2"],
+        "ambiguity_notes": "The paper uses t=0 for clean and t=1 for noise."
+      },
+      {
+        "symbol": "v_i^*",
+        "meaning": "Flow-matching target velocity x_i^1-x_i^0.",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per chunk and denoising time",
+        "units_or_values": "latent velocity",
+        "sources": ["Section 2.2"],
+        "ambiguity_notes": "This is not epsilon prediction."
+      },
+      {
+        "symbol": "C",
+        "meaning": "Latent frames per chunk.",
+        "provenance": "code-defined",
+        "scope_or_indexing": "per inference request",
+        "units_or_values": "6 latent frames by default",
+        "sources": ["24B_base_config.json", "video_generate.py"],
+        "ambiguity_notes": "With 4x temporal VAE compression this represents 24 raw frames."
+      },
+      {
+        "symbol": "N_c",
+        "meaning": "Visual DiT token count per chunk.",
+        "provenance": "analysis-derived",
+        "scope_or_indexing": "per chunk",
+        "units_or_values": "6*(H/16)*(W/16) tokens for default settings",
+        "sources": ["video_generate.py:360-369", "analysis.md#22-token-公式与代码交叉核验"],
+        "ambiguity_notes": "It excludes text, padding, CFG branches, and replicated KV reads."
+      },
+      {
+        "symbol": "K",
+        "meaning": "Total generated chunks in a clip.",
+        "provenance": "analysis-derived",
+        "scope_or_indexing": "per clip",
+        "units_or_values": "ceil((raw_frames/4)/6)",
+        "sources": ["video_generate.py:91-99", "analysis.md#2-chunkwise-ar-参数核算"],
+        "ambiguity_notes": "It is not the concurrent denoising window size."
+      }
+    ],
+    "coverage": {
+      "key_terms": "passed",
+      "key_symbols": "passed",
+      "ambiguities": "passed"
+    }
+  },
+  "design_rationales": [
+    {
+      "design": "24-frame chunkwise autoregressive denoising",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 2", "Figure 1"],
+      "concrete_problem": "Whole-video bidirectional denoising cannot naturally stream and becomes expensive for long videos.",
+      "causal_mechanism": "Block-causal chunks permit playback and KV reuse after each one-second unit while retaining within-chunk parallel denoising.",
+      "analysis_basis": ["Figure 1", "official inference code", "Table 6"],
+      "alternatives_tradeoffs": "Global bidirectional video DiT can use future context but lacks the same streaming and bounded-history properties.",
+      "validation_evidence": {
+        "type": "code",
+        "sources": ["video_generate.py", "Table 6"],
+        "judgment": "partially-supported"
+      }
+    },
+    {
+      "design": "Finite-range block-causal KV cache",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Sections 2.3 and 6.1", "Table 6"],
+      "concrete_problem": "Recomputing all previously generated chunks increases steady-state latency and history cost.",
+      "causal_mechanism": "Completed clean chunks provide cached keys and values; a finite range bounds steady-state work.",
+      "analysis_basis": ["block-causal mask", "default range configuration", "incremental latency table"],
+      "alternatives_tradeoffs": "Full history may improve long-range consistency but grows memory and attention cost with video duration.",
+      "validation_evidence": {
+        "type": "direct-ablation",
+        "sources": ["Table 6"],
+        "judgment": "supported"
+      }
+    },
+    {
+      "design": "Noisy clean-context injection",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 2.4"],
+      "concrete_problem": "Training on perfect clean history creates exposure bias relative to imperfect generated history.",
+      "causal_mechanism": "Adding up to 5% noise to context chunks trains the model to tolerate accumulated generation errors.",
+      "analysis_basis": ["training recipe description"],
+      "alternatives_tradeoffs": "Self-forcing would more closely match inference but costs additional sampling during training.",
+      "validation_evidence": {
+        "type": "none",
+        "sources": [],
+        "judgment": "unverified"
+      }
+    },
+    {
+      "design": "MagiAttention distributed irregular-attention stack",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 5.3", "Figure 14"],
+      "concrete_problem": "Packed 4M-token contexts with heterogeneous masks cause load imbalance and redundant communication.",
+      "causal_mechanism": "Flexible FlashAttention, optimized dispatch, group collectives, and adaptive overlap balance work and hide communication.",
+      "analysis_basis": ["Figure 14", "system scaling results", "official MagiAttention repository"],
+      "alternatives_tradeoffs": "Generic Ulysses or ring attention is simpler but may underutilize ranks under irregular packed masks.",
+      "validation_evidence": {
+        "type": "indirect",
+        "sources": ["Section 5.3 scaling results", "MagiAttention code"],
+        "judgment": "partially-supported"
+      }
+    }
+  ],
+  "evidence_checks": {
+    "claim_matrix": "passed",
+    "design_rationale_analysis": "passed",
+    "symbol_table": "passed",
+    "evidence_loop": "passed",
+    "code_cross_check": "passed",
+    "openreview_cross_check": "skipped-with-reason",
+    "infrastructure_analysis": "passed",
+    "gain_attribution": "passed"
+  },
+  "limitations": [
+    {
+      "requirement": "Complete arXiv source archive",
+      "status": "blocked",
+      "reason": "The source download repeatedly stalled and the retained partial file is not treated as valid.",
+      "effect_on_conclusions": "Low impact: complete PDF, official HTML, metadata, and official code support all core reviewed claims."
+    },
+    {
+      "requirement": "Document-input generated analysis diagram",
+      "status": "skipped-with-reason",
+      "reason": "The available CLI lacks responses-doc --input-file, and the required workflow forbids a prompt-only substitute.",
+      "effect_on_conclusions": "No impact: generated diagrams are auxiliary and not paper evidence."
+    },
+    {
+      "requirement": "Full training and production-serving reproducibility",
+      "status": "blocked",
+      "reason": "The public repository contains inference code but not full training data/code or the complete 24-GPU production scheduler and telemetry stack.",
+      "effect_on_conclusions": "Training-scale, data, 4M-token packing, and production-utilization claims remain author-reported rather than independently reproduced."
+    }
+  ]
+}

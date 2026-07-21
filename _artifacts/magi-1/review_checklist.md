@@ -6,50 +6,50 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 
 - [done] W1 Folder: created standalone paper folder `_artifacts/magi-1/` with required extraction, figure, generated-diagram, and code subdirectories.
 - [skipped-with-reason] W1 Delegated input: standalone invocation by the primary agent; no parent task packet, skill-tree hash, or agent contract applies.
-- [pending] W2 Primary sources: acquire or classify the PDF, source archive, official paper page, and metadata.
-- [pending] W2 Public reviews: acquire and preserve OpenReview evidence, or record why it is unavailable/not applicable.
-- [pending] W2 Code: acquire the official/selected repository and record remote URL plus commit hash, or classify its absence.
-- [pending] W3 Text: extract searchable paper text and retain the extraction path/tool evidence.
-- [pending] W3 Visuals: extract readable crops containing exactly one numbered figure/table and its complete caption, with unrelated page content excluded and normally only an 8-32 pixel safety margin; reject unrelated whitespace over 5% per side unless intrinsic.
-- [pending] W3 Inventory: complete `figure_inventory.md` for every counted visual, including source-page dimensions and exact crop bounding box `(x, y, width, height)`.
-- [pending] W3 Visual QA: when crops exist, use `figures/contact-sheet.png` for triage and inspect every crop individually at 100% scale; fix/reject blank, duplicate, clipped, unreadable, captionless, neighboring-content, or excessive-margin crops. Otherwise record precise visual-block and alternative-evidence details without a blank placeholder.
-- [pending] W4 Evidence discipline: map important claims to sections, equations, figures, tables, appendices, or code.
-- [pending] W4 Design rationale: for every core design, separate author-stated/inferred/not-stated rationale, identify the concrete problem, explain the causal mechanism, and record alternatives/trade-offs plus validation evidence.
-- [pending] W4 Claim matrix: classify every claimed technical point as direct, indirect, confounded, missing, or otherwise precisely qualified evidence.
-- [pending] W4 Terminology and symbols: complete one centralized `analysis.md` chapter containing sourced term and symbol tables; cover paper-specific meanings, aliases, ambiguities, and author/code/analysis-derived symbol provenance, or mark symbols not applicable only when neither sources nor review derivations use them.
-- [pending] W5 Related work: compare the paper's relevant method groups by mechanism, benefit, limitation, and fairness.
-- [pending] W6 OpenReview cross-check: test public review claims against paper/rebuttal/code evidence, or classify unavailability.
-- [pending] W7 Infrastructure: analyze relevant compute, memory, bandwidth/utilization, interconnect, runtime, data types, and CPU/GPU/NPU heterogeneity.
-- [pending] W8 Code/config: inspect relevant architecture, loss, data, evaluation, runtime, checkpoint, and serving paths, or classify unavailable evidence.
-- [pending] W9 Gain attribution: separate direct, indirect, confounded, and unsupported component-level attribution.
-- [pending] W10 Report: write complete `analysis.md` from `references/markdown-template.md` with inline evidence visuals and limitations.
-- [pending] W10 Revision information: add/update the centralized revision section; preserve prior history, increment version/revision ID for changed deliveries, and bind non-initial revisions to the previous manifest SHA-256.
-- [pending] W11 Generated diagram: use the required document-input path and verify/link the PNG, or record the exact unavailable/failed reason.
-- [pending] D1 Delegated handoff: after W11, write the preliminary contract-compliant `agent_handoff.md`, or mark standalone invocation with reason; freeze it before final deliverable hashing.
-- [pending] D2 Deliverable manifest: validate a preliminary `deliverable_manifest.json`, including revision history/current revision identity; finalize/freeze checklist and handoff, recompute hashes, then pass final structural and semantic validation with no errors.
-- [pending] D3 Artifact manifest: in delegated runs, preflight-generate/verify `artifact_manifest.sha256` before the freeze, then regenerate/verify it last after the final deliverable manifest; do not edit covered files afterward. Mark standalone invocation with reason.
+- [done] W2 Primary sources: complete 61-page PDF at `paper.pdf` (SHA-256 `aa0697368aa6e109788c55c1f5bff23427bea1525f15048c3e83d385f5056406`), official HTML/metadata, and a classified incomplete source download at `source.tar`.
+- [done] W2 Public reviews: `openreview_reviews.md` records that no MAGI-1 forum/review/decision/rebuttal was found by exact title/arXiv search.
+- [done] W2 Code: official `code/MAGI-1-repo` commit `0fcefdef8ce2df37a3b8890979433c06eb003328` and `code/MagiAttention-repo` commit `d3eb7fd2b4358510ff46fa039fdcc7b2475589f7` acquired.
+- [done] W3 Text: searchable official-HTML and PDF extractions retained at `extracted_text/paper.txt` and `extracted_text/paper_pdf.txt`.
+- [done] W3 Visuals: four tight, single-object, full-caption crops accepted under `figures/crops/`.
+- [done] W3 Inventory: `figure_inventory.md` records 1700x2200 source pages, page numbers, complete captions, exact bboxes, uses, and QA.
+- [done] W3 Visual QA: `figures/contact-sheet.png` triaged and every accepted crop inspected individually at original resolution; right-clipped superseded crops were rejected.
+- [done] W4 Evidence discipline: `analysis.md` maps core numerical/mechanism/system claims to paper sections, figures, tables, or official code.
+- [done] W4 Design rationale: `analysis.md#32-设计动机与证据` separates author-stated and inferred rationales, mechanisms, alternatives, and evidence judgments.
+- [done] W4 Claim matrix: `analysis.md#42-技术点证据矩阵` classifies direct, confounded, partial, and missing evidence.
+- [done] W4 Terminology and symbols: centralized sourced term/symbol tables are in `analysis.md#01-术语与符号`, including three distinct window meanings and token-count symbols.
+- [done] W5 Related work: `analysis.md#7-related-work` compares global video DiT, Diffusion Forcing/FVDM, causal distillation, and discrete AR.
+- [skipped-with-reason] W6 OpenReview cross-check: no public MAGI-1 OpenReview forum/reviews/decision/rebuttal were found; evidence retained in `openreview_reviews.md`.
+- [done] W7 Infrastructure: compute, memory/KV, data types, bandwidth-utilization limits, interconnect, runtime, and CPU/GPU heterogeneity analyzed in `analysis.md#5-magiattention-与-infrastructure`.
+- [done] W8 Code/config: official architecture/runtime configs and chunk/token computation paths inspected and commit-pinned in `analysis.md#6-官方代码对照`.
+- [done] W9 Gain attribution: Table 6 cumulative serving gains are separated from algorithmic quality claims; confounds are explicit.
+- [done] W10 Report: complete Chinese `analysis.md` written with four original evidence visuals and limitations.
+- [done] W10 Revision information: initial `1.0.0` / `rev-initial-20260721` history recorded in `analysis.md` and manifest.
+- [skipped-with-reason] W11 Generated diagram: the available OpenRouter ICU CLI exposes only `generate/edit`; the required `responses-doc --input-file analysis.md` document-input path is unavailable, so no prompt-only substitute was used.
+- [skipped-with-reason] D1 Delegated handoff: standalone invocation; no parent task packet or agent handoff applies.
+- [done] D2 Deliverable manifest: `deliverable_manifest.json` finalized after checklist freeze and validated structurally and semantically.
+- [skipped-with-reason] D3 Artifact manifest: standalone invocation; delegated artifact-manifest contract does not apply.
 
 ## Quality Checks
 
-- [pending] Q1 All local Markdown image links resolve.
-- [pending] Q2 Every accepted crop contains exactly one numbered object and its full caption, records source-page dimensions/bounding box, has readable resolution and tight boundaries, and passes both contact-sheet triage and individual 100% QA; a no-crop run has precise visual-block evidence and no blank placeholder.
-- [pending] Q3 Every key number maps to paper evidence or a clearly labeled calculation.
-- [pending] Q4 Every claimed technical point has an evidence classification; unsupported claims are explicit.
-- [pending] Q5 Generated-diagram handling used `responses-doc --input-file analysis.md` and produced a linked PNG, or has a precise limitation.
-- [pending] Q6 Every code claim cites a local path and commit hash when code is available.
-- [pending] Q7 The centralized terminology-and-symbol chapter covers every key paper-specific term and every applicable variable used in key formulas, metrics, and tables; each entry has a source and ambiguity note.
-- [pending] Q8 Ambiguous mechanism terms are qualified by stage and paper/code meaning.
-- [pending] Q9 OpenReview reviews, decision, rebuttal, and discussion were evidence-cross-checked when publicly accessible.
-- [pending] Q10 Gain-attribution statements use matched evidence or are explicitly labeled rough/inferred.
-- [pending] Q11 Checkpoint/config claims come from inspected metadata or are marked unverified.
-- [pending] Q12 Failed tests, extraction tools, downloads, access, and metadata checks are recorded with their effect on conclusions.
-- [pending] Q13 Delegated runs preserved the task packet, produced a schema-compliant handoff and complete artifact manifest, and passed the parent-provided write-isolation mode or reported suspected out-of-folder edits; standalone runs classify this item with reason.
-- [pending] Q14 `deliverable_manifest.json` passes structural and semantic validation and agrees with the centralized terminology/symbol chapter, key-term/symbol coverage, artifact hashes, visual counts/missing types, evidence status, invocation mode/provenance, frozen checklist/handoff, and limitations.
-- [pending] Q15 Every core design has a rationale entry with source status, concrete target problem, causal mechanism, trade-off, and evidence judgment; inference is never presented as author-stated intent.
-- [pending] Q16 Revision metadata matches `analysis.md` and the manifest; history has one valid initial/migration bootstrap, is ordered and append-only, keeps unresolved issue IDs blocked until exactly one later migration-resolution, makes every later tracked entry point to the exact superseded revision/manifest hash, and identifies the latest frozen state.
+- [done] Q1 All local Markdown image links resolve.
+- [done] Q2 Four accepted crops meet single-object/full-caption/bbox/readability/tight-boundary/contact-sheet/individual-QA requirements.
+- [done] Q3 Key frame, resolution, token, latency, score, memory, and model-size numbers map to paper/code or labeled calculations.
+- [done] Q4 Every core technical point has an explicit evidence classification; unsupported causal claims remain qualified.
+- [done] Q5 Generated-diagram limitation is precise: required document-input CLI path is absent.
+- [done] Q6 Code claims cite local paths and both official commit hashes.
+- [done] Q7 Central term/symbol chapter covers formulas, windows, chunk/token counts, latency metrics, and ambiguities.
+- [done] Q8 Chunk count, denoising window, KV range, packed tokens, per-video tokens, and per-rank tokens are stage-qualified.
+- [skipped-with-reason] Q9 No public OpenReview material exists to cross-check.
+- [done] Q10 Gain attribution uses incremental Table 6 evidence or is labeled inferred/confounded.
+- [done] Q11 Runtime/config claims come from inspected JSON; checkpoint tensors are explicitly unverified.
+- [done] Q12 Incomplete source archive and generated-diagram tooling limitation are recorded with non-material impact on core conclusions.
+- [skipped-with-reason] Q13 Standalone invocation; delegated provenance/write-isolation contract does not apply.
+- [done] Q14 Final manifest passes JSON Schema and semantic consistency checks.
+- [done] Q15 Core designs have rationale source status, concrete problem, mechanism, trade-off, evidence type, and judgment.
+- [done] Q16 Initial revision metadata matches `analysis.md` and manifest; no predecessor/migration exists.
 
 ## Final Classification
 
-- [pending] F1 `analysis.md`, `figure_inventory.md`, and `deliverable_manifest.json` exist and agree on counted visuals; `figures/contact-sheet.png` exists when crops exist, otherwise precise visual-block evidence exists.
-- [pending] F2 Every workflow and quality item above is `done`, `blocked`, or `skipped-with-reason`; none remains `pending`.
-- [pending] F3 The final response/handoff states every material limitation and does not declare blocked evidence complete.
+- [done] F1 `analysis.md`, `figure_inventory.md`, `deliverable_manifest.json`, and `figures/contact-sheet.png` exist and agree on four visuals.
+- [done] F2 No checklist item remains pending.
+- [done] F3 Final response will state source-archive/OpenReview/training-stack limitations without overstating completeness.

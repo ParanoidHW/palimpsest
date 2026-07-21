@@ -1,0 +1,26 @@
+{
+  "page_dir": "figures/page_png",
+  "crop_dir": "figures/crops",
+  "crops": [
+    {
+      "name": "fig1-chunkwise-ar-caption.png",
+      "page": "page02.png",
+      "box": [285, 1150, 1420, 1665]
+    },
+    {
+      "name": "fig3-ardf-architecture-caption.png",
+      "page": "page05.png",
+      "box": [390, 1080, 1420, 1980]
+    },
+    {
+      "name": "fig14-magi-attention-caption.png",
+      "page": "page24.png",
+      "box": [285, 170, 1420, 1160]
+    },
+    {
+      "name": "table6-inference-latency-caption.png",
+      "page": "page29.png",
+      "box": [285, 640, 1420, 1090]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+HTTP/2 206 
+server: Tengine
+content-type: application/pdf
+content-length: 200
+date: Wed, 08 Jul 2026 13:51:35 GMT
+x-oss-request-id: 6A4E55E725A0A13536714286
+x-oss-cdn-auth: success
+accept-ranges: bytes
+x-oss-object-type: Normal
+x-oss-storage-class: Standard
+content-md5: 9SSGQf7O67Ss6dbDXyJJ+Q==
+x-oss-server-time: 22
+via: ens-cache22.l2hk7[0,25,304-0,H], ens-cache27.l2hk7[29,0], ens-cache25.hk46[0,0,206-0,H], ens-cache9.hk46[6,0]
+etag: "F5248641FECEEBB4ACE9D6C35F2249F9"
+last-modified: Fri, 25 Apr 2025 09:39:45 GMT
+x-oss-hash-crc64ecma: 12387604217603509379
+age: 1102718
+ali-swift-global-savetime: 1783518695
+x-cache: HIT TCP_HIT dirn:11:332777343
+content-range: bytes 118000-118199/27998523
+x-swift-savetime: Mon, 13 Jul 2026 07:30:30 GMT
+x-swift-cachetime: 2182865
+access-control-allow-origin: *
+timing-allow-origin: *
+eagleid: 9b66af9d17846214136225194e
+

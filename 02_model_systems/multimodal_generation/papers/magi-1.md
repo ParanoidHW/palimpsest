@@ -73,12 +73,12 @@ MAGI-1 的核心不是“用 AR 取代 diffusion”，而是把视频 flow denoi
 
 ### 2.1 直接答案
 
-| 场景 | 总 raw 帧 | 输出分辨率 | 总生成 chunk | 每 chunk raw 帧 | 每 chunk 时长 | 每 chunk 视觉 token | 总视觉 token |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| 24B 官方默认配置 | 96 | 720x1280 | 4 | 24 | 1 秒 | 21,600 | 86,400 |
-| 4.5B 官方默认配置 | 96 | 720x720 | 4 | 24 | 1 秒 | 12,150 | 48,600 |
-| 论文实时 serving | 按流式长度增长 | 480x640（3:4） | 每秒增加 1 | 24 | 1 秒 | 7,200 | $7,200K$ |
-| 论文 720p、16 秒示例 | 384 | 720x1280 | 16 | 24 | 1 秒 | 21,600 | 345,600 |
+| 场景             | 总 raw 帧 |        输出分辨率 | 总生成 chunk | 每 chunk raw 帧 | 每 chunk 时长 | 每 chunk 视觉 token | 总视觉 token |
+| -------------- | ------: | -----------: | --------: | ------------: | ---------: | ---------------: | --------: |
+| 24B 官方默认配置     |      96 |     720x1280 |         4 |            24 |        1 秒 |           21,600 |    86,400 |
+| 4.5B 官方默认配置    |      96 |      720x720 |         4 |            24 |        1 秒 |           12,150 |    48,600 |
+| 论文实时 serving   | 按流式长度增长 | 480x640（3:4） |    每秒增加 1 |            24 |        1 秒 |            7,200 |  $7,200K$ |
+| 论文 720p、16 秒示例 |     384 |     720x1280 |        16 |            24 |        1 秒 |           21,600 |   345,600 |
 
 结论：论文与代码共同给出 **每个 chunk 24 帧、24fps 下 1 秒**。Figure 1 画了 5 个彩色块，其中最左是已完成的 `t=0` clean/context chunk，右侧 4 个才是处于不同噪声阶段的活跃去噪窗口；因此正确表述是 **最多 4 个 chunk 并行/流水去噪，图中同时展示 1 个 clean 上下文 + 4 个活跃 chunk**，而不是“同时生成 5 个 chunk”。官方默认 96 帧 clip 恰好含 4 个生成 chunk。
 
@@ -123,16 +123,16 @@ $$
 
 ### 3.2 设计动机与证据
 
-| 设计 | why 状态 | 具体问题 | 因果机制 | 替代/权衡 | 验证证据 | 判断 |
-|---|---|---|---|---|---|---|
-| 24-frame chunkwise-AR | author-stated | 全视频联合去噪不可流式，长序列成本高 | 块间单向、块内并行；完成一块即可播放并缓存 | 全局双向 DiT 可用未来上下文，可能更一致 | Figure 1、代码、latency；缺 matched quality ablation | mechanism supported，质量归因未验证 |
-| monotonic staggered noise schedule | author-stated | 逐块串行会浪费并行算力 | 早块更干净、后块更嘈杂，使多个 chunk 同时推进 | 同噪声级并行实现简单但不满足 AR 顺序 | Figure 1/Section 2，推理代码 | supported by implementation |
-| block-causal attention + finite KV | author-stated | 保持时间因果并控制历史成本 | 当前块只读自身与已去噪前块；有限 range 使稳态 cache 有界 | 全历史质量潜力更高但成本随时长增加 | mask 图、KV cache latency、代码 | partially supported |
-| 5% noisy clean-context injection | author-stated | 训练看 clean history、推理看有误差 history 的 exposure bias | 轻微扰动条件块，增强对累积误差鲁棒性 | self-forcing 更贴近推理但训练昂贵 | Section 2.4，无独立消融 | plausible/unverified |
-| shortcut distillation | author-stated | 64-step flow sampling 太慢 | 联合条件化 step budget，支持 64/32/16/8 步 | consistency/trajectory distillation 等 | 速度与质量表，但多项改动共变 | partially supported |
-| PnP online packing | author-stated | 变长、变分辨率样本造成 padding 浪费 | 把样本装入固定 token capacity，报告 99% capacity utilization | bucketing 简单但碎片更多 | Section 5.2 系统指标 | supported as utilization claim |
-| MagiAttention | author-stated | 4M-token、异构 mask 下普通 CP 负载与通信不均 | FFA、dispatch solver、group collectives、adaptive overlap | Ulysses/Ring 更通用、实现成本低 | Figure 14 与 scaling 实验；独立组件消融有限 | partially supported |
-| W8A8/FP8 SmoothQuant | author-stated | 24B linear 层计算与 HBM 压力 | 除首尾层外量化权重/激活，利用 H100/H800 tensor cores | INT8 更普适但论文观察到 artifact | Table 6 +30% speed，质量校准说明有限 | serving speed supported，质量边界不充分 |
+| 设计                                 | why 状态        | 具体问题                                             | 因果机制                                                   | 替代/权衡                                 | 验证证据                                           | 判断                              |
+| ---------------------------------- | ------------- | ------------------------------------------------ | ------------------------------------------------------ | ------------------------------------- | ---------------------------------------------- | ------------------------------- |
+| 24-frame chunkwise-AR              | author-stated | 全视频联合去噪不可流式，长序列成本高                               | 块间单向、块内并行；完成一块即可播放并缓存                                  | 全局双向 DiT 可用未来上下文，可能更一致                | Figure 1、代码、latency；缺 matched quality ablation | mechanism supported，质量归因未验证     |
+| monotonic staggered noise schedule | author-stated | 逐块串行会浪费并行算力                                      | 早块更干净、后块更嘈杂，使多个 chunk 同时推进                             | 同噪声级并行实现简单但不满足 AR 顺序                  | Figure 1/Section 2，推理代码                        | supported by implementation     |
+| block-causal attention + finite KV | author-stated | 保持时间因果并控制历史成本                                    | 当前块只读自身与已去噪前块；有限 range 使稳态 cache 有界                    | 全历史质量潜力更高但成本随时长增加                     | mask 图、KV cache latency、代码                     | partially supported             |
+| 5% noisy clean-context injection   | author-stated | 训练看 clean history、推理看有误差 history 的 exposure bias | 轻微扰动条件块，增强对累积误差鲁棒性                                     | self-forcing 更贴近推理但训练昂贵               | Section 2.4，无独立消融                              | plausible/unverified            |
+| shortcut distillation              | author-stated | 64-step flow sampling 太慢                         | 联合条件化 step budget，支持 64/32/16/8 步                      | consistency/trajectory distillation 等 | 速度与质量表，但多项改动共变                                 | partially supported             |
+| PnP online packing                 | author-stated | 变长、变分辨率样本造成 padding 浪费                           | 把样本装入固定 token capacity，报告 99% capacity utilization     | bucketing 简单但碎片更多                     | Section 5.2 系统指标                               | supported as utilization claim  |
+| MagiAttention                      | author-stated | 4M-token、异构 mask 下普通 CP 负载与通信不均                  | FFA、dispatch solver、group collectives、adaptive overlap | Ulysses/Ring 更通用、实现成本低                | Figure 14 与 scaling 实验；独立组件消融有限                | partially supported             |
+| W8A8/FP8 SmoothQuant               | author-stated | 24B linear 层计算与 HBM 压力                           | 除首尾层外量化权重/激活，利用 H100/H800 tensor cores                 | INT8 更普适但论文观察到 artifact               | Table 6 +30% speed，质量校准说明有限                    | serving speed supported，质量边界不充分 |
 
 ### 3.3 ARDF 架构
 
