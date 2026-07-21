@@ -4,7 +4,7 @@
 > - 文档类型：Survey
 > - 领域入口：[README](../README.md)
 > - 证据资产：`../assets/surveys/diffusion-evolution/`
-> - 相关文档：[Cosmos 3](../papers/cosmos-3.md)，[Model pipeline](../topics/model-pipeline.md)
+> - 相关文档：[MAGI-1](../papers/magi-1.md)，[Cosmos 3](../papers/cosmos-3.md)，[Model pipeline](../topics/model-pipeline.md)
 
 ## 资料边界
 
@@ -138,6 +138,12 @@ ControlNet 的思路是给预训练 diffusion 增加可训练控制分支，让�
 - 视频是 world model 的前置压力测试。
 - 只会生成漂亮单帧不够，模型需要理解物体如何随时间变化。
 - 视频还把推理成本问题放大，因为 denoising loop 要乘上空间和时间维度。
+
+MAGI-1 是这条主线中值得单独区分的一种系统化因果 video DiT：它不是逐帧离散 AR，而是让每个 1 秒 chunk 在块内做 flow denoising、块间保持 autoregressive causality。默认最多 4 个 chunk 处于错位噪声阶段并行推进，已完成 chunk 进入 KV cache，从而支持流式播放和有限历史成本。其 [chunk/frame/token 精确核算](../papers/magi-1.md#2-chunkwise-ar-参数核算) 显示：每块 24 raw frames；720x1280 时每块 21,600 visual tokens；论文 480x640 实时路径为每块 7,200 tokens。这里必须把总 chunk 数、4-chunk denoising window、KV range 和 4M packed training tokens 分开理解。
+
+![MAGI-1 chunkwise-AR](../assets/papers/magi-1/fig1-chunkwise-ar.png)
+
+MAGI-1 也说明视频 diffusion 的算法与 infra 已经不可分割：block-causal KV cache、shortcut distillation、context parallel、FP8 SmoothQuant、CUDA Graph 与 tiled/compiled VAE 共同把 24B 模型的 TPOC 推到 0.98 秒。这个结果不能只归因于 chunkwise-AR；逐级延迟和质量证据边界见 [MAGI-1 serving 归因](../papers/magi-1.md#43-serving-收益归因)。
 
 ## 7. 2023-2025：音频与 3D 扩展
 

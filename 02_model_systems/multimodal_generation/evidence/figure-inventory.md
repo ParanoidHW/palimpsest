@@ -4,8 +4,8 @@
 > - 文档类型：Evidence
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[Diffusion evolution](../surveys/diffusion-evolution.md)
-> - 证据资产：`../assets/papers/cosmos-3/`
-> - 相关文档：[Cosmos 3](../papers/cosmos-3.md)，[Q&A supplement](../supplements/cosmos-3-q-and-a.md)
+> - 证据资产：`../assets/papers/`
+> - 相关文档：[MAGI-1](../papers/magi-1.md)，[Cosmos 3](../papers/cosmos-3.md)，[Q&A supplement](../supplements/cosmos-3-q-and-a.md)
 
 Cosmos 3 资产来自 arXiv:2606.02800v1 的 LaTeX/TikZ/source-native figures；PDF 页码按 139 页 v1 核验。`bbox` 对 source-native export 使用资产自身 `(0,0,width,height)`。这些资产是论文图体的无损/高分辨率导出，完整 caption 在本清单中保留；正文邻近段落提供中文解释。2026-07-11 以原分辨率逐图检查图体、legend、文字与边缘。
 
@@ -71,6 +71,10 @@ Cosmos 3 资产来自 arXiv:2606.02800v1 的 LaTeX/TikZ/source-native figures；
 | PixelDiT Table 5 / p.8 | Ablations of PixelDiT-XL on ImageNet 256x256; incremental components include RoPE/RMSNorm, dual-level path, token compaction and pixel-wise AdaLN. OOM marks the uncompacted dual-level variant. | `1489x2105`; `(755,1115,620,450)` | `../assets/papers/pixeldit/table5_core_ablation_caption.png`; core ablation | pass |
 | SwiftFusion Figure 10 / p.12 | Ablation studies in SwiftFusion. | `1700x2200`; `(135,270,1555,295)` | `../assets/papers/swiftfusion/fig10-ablation-caption.png`; component attribution | pass |
 | Causal-rCM Table 5 / p.16 | Ablation of initialization strategies for 4-step SF-DMD. | `1786x2526`; `(435,250,920,530)` | `../assets/papers/causal-rcm/table5_initialization_ablation_caption.png`; initialization evidence | pass |
+| MAGI-1 Figure 1 / p.2 | (Left) MAGI-1 performs chunk-wise autoregressive denoising. The video is generated in chunks of 24 frames, where each chunk attends to all previously denoised chunks. Once a chunk reaches a certain denoising level, the next chunk begins generation. (Right) A block-causal attention mask enforces temporal causality across chunks, enabling pipelined and parallel generation. | `1700x2200`; `(285,1150,1135,515)` | `../assets/papers/magi-1/fig1-chunkwise-ar.png`; chunkwise-AR order, 24-frame unit, causal mask | pass；单一 Figure 1、完整 caption、原分辨率复核 |
+| MAGI-1 Figure 3 / p.5 | Model Architecture of Auto-Regressive Denoising Model. | `1700x2200`; `(390,1080,1030,900)` | `../assets/papers/magi-1/fig3-ardf-architecture.png`; ARDF architecture | pass；单一 Figure 3、完整 caption、紧边界 |
+| MAGI-1 Figure 14 / p.24 | Overview of MagiAttention: (1) Flex-Flash-Attention(FFA), an efficient attention supports flexible mask patterns and native considers distribution requirements; (2) The dispatch solver shards and dispatches packed data with ultra-long contexts and heterogeneous masks, ensuring load-balanced computation; (3) Group-Cast and Group-Reduce primitives eliminate redundant communication; (4) The adaptive multi-stage overlap strategy effectively hides communication latency; (5) Forward and backward timelines of MagiAttention. With all techniques together, MagiAttention reach linear scalability under diverse scenarios. | `1700x2200`; `(285,170,1135,990)` | `../assets/papers/magi-1/fig14-magi-attention.png`; distributed attention, load balance, overlap | pass；单一 Figure 14、完整 caption 含末句 |
+| MAGI-1 Table 6 / p.29 | Inference Optimization and Latency Gain. | `1700x2200`; `(285,640,1135,450)` | `../assets/papers/magi-1/table6-inference-latency.png`; TTFC/TPOC attribution | pass；单一 Table 6、完整标题、无相邻章节 |
 
 以下三张为 paper-level AI 生成解释图，不属于原论文证据，均由对应完整 `analysis.md` 作为 OpenRouter ICU document input 生成并在原分辨率检查：
 
