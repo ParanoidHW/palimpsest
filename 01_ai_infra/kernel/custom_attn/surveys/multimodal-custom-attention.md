@@ -6,7 +6,7 @@
 > - 证据资产：`../assets/papers/`
 > - 相关文档：[Selection](../evidence/selection.md)，[Figure inventory](../evidence/figure-inventory.md)
 
-> **版本**：图文精读版，2026-07-12。
+> **版本**：图文精读版，2026-07-21。
 > **读者**：设计/评审多模态 attention kernel、长视频 runtime、统一模型训练与 serving 的工程人员。
 > **范围**：高分辨率 VLM 理解、视频/世界模型生成、理解-生成统一模型；论文与源码证据以 NVIDIA CUDA 为主，另含面向非 SIMT DSA 的工程推演。
 > **证据包**：[选篇与图表证据](../evidence/selection.md)。原论文图均保留完整 caption；图的结论不替代正文和源码核验。
@@ -23,6 +23,7 @@
 2. **结构化 block 邻接**：LVSA 的 local window + rotating global anchors 变成 CSR，FlashInfer 的 block scheduler 只遍历已列出的 tile。
 3. **选择后打包**：VMoBA、Token Sparse Attention、VLM FlexAttention 先选 block/token/高分辨率区域，再将连续 QKV 交给成熟 FlashAttention/varlen kernel。
 4. **架构级绕开**：FrameDiT 把 temporal token attention 改为 frame-level matrix attention；它提醒我们并非每个长序列问题都应该以 sparse mask 解决。
+5. **分布式异构 mask runtime**：MagiAttention 用 `AttnSlice`、跨 rank workload dispatch、按需 GroupCast/GroupReduce 和多阶段 overlap，把已有 mask 变成可扩展的 context-parallel 执行计划；它优化的是分布式执行路径，不是学习式 token 选择。
 
 ### 2. 常见 kernel 路线与趋势是什么？
 
@@ -33,6 +34,7 @@
 | 定制 Triton / FlashAttention 衍生      | block ranges / offsets + QKV/JVP    | Causal-rCM                  | forward/backward/JVP 都需要特殊可见性 | 开发、autotune、寄存器压力           |
 | FlashInfer block sparse            | CSR `indptr, indices` + plan        | LVSA                        | 长视频/页化 KV、结构化邻接               | planner、gather、非连续访存        |
 | selector + gather + varlen         | token/block index、compact QKV       | VMoBA、TSA、VLM FlexAttention | 动态/学习式选择                      | top-k、sort、gather/scatter   |
+| AttnSlice + distributed CP         | `QRange/KRange/MaskType` + `CalcMeta/CommMeta` | MagiAttention                 | 已知异构 mask 的跨卡训练、varlen block-causal | planner、跨卡通信、slice merge、overlap 调参 |
 | dense score bias                   | `[B,1,Lk]` 或 broadcast bias         | FrameDiT 公共代码路径             | correctness fallback          | 仍可能遍历 dense QK tile         |
 
 ### 3. 定制 mask 到底如何表达？
@@ -43,6 +45,7 @@
 rule / BlockMask      : q/k block id、window、stream id、offset，kernel 或 compiler 在线判定
 CSR / page metadata   : indptr[int32], indices[int32]，planner 构造稀疏 tile traversal
 selected segments     : token/block indices + cu_seqlens，先 gather 再跑 varlen attention
+AttnSlice / CP plan   : Q/K ranges + mask type -> per-rank compute/communication metadata
 dense bool/bias       : 仅用于小序列、调试或框架 fallback；不是长序列 sparse runtime
 ```
 
@@ -297,6 +300,23 @@ Matrix Attention 将一帧视为矩阵，沿 frame-level 计算 Q/K/V 和 attent
 
 但官方 commit `359bd12` 中的公开 `models/latte_t2v.py:761-779` 对二维 mask 会转为 `-10000` bias 并 broadcast 到 score path；该实现不证明存在 custom sparse kernel。报告将“论文算法的复杂度收益”和“公开代码的 mask implementation”严格分开。详见 [FrameDiT 精读](../papers/framedit.md)。
 
+### 2.11 分布式异构 mask runtime：MagiAttention 的 AttnSlice 与 CP 执行计划
+
+**它解决什么**：前述路线大多关注单卡 kernel 如何表达或跳过稀疏区域；但在 context parallel 训练中，即使逻辑 mask 已经很稀疏，仍会遇到三个跨卡问题：不同 rank 的有效 QK area 不均衡、Ring/Ulysses 式通信发送了不需要的 KV、通信与不规则 Attention 难以稳定重叠。MagiAttention 面向的是这个 runtime 层，而不是新的 token/block 重要性模型。
+
+**mask 表达与 lowering**：它把可见区域编码为 `AttnSlice=(QRange,KRange,MaskType)`，其中 `MaskType` 覆盖 `FULL`、`CAUSAL`、`INV-CAUSAL`、`BI-CAUSAL`。这些 slice 可以对应 MAGI-1 的 varlen block-causal mask，并在 CP 分片后继续解释。`CalcMeta` 描述每个 rank 要算哪些 slice，`CommMeta` 描述 KV/dKV 的发送、接收和归约。
+
+**和已有路线的边界**：
+
+- 相比 Causal-rCM 的 range-CSR/JVP kernel，MagiAttention 多了 rank placement、通信对象和 forward/backward schedule；Causal-rCM 仍更适合解释单算子 mask/JVP 正确性。
+- 相比 LVSA 的 CSR + FlashInfer，MagiAttention 不只列出 active blocks，还要让 active blocks 在多个 CP rank 间按 mask area 重新分配；LVSA 的 CPU geometry planner 更偏单卡/页化 KV。
+- 相比 VMoBA/TSA，MagiAttention 不做 top-k 或 token selection；它假设 mask 已由模型语义或数据布局确定，然后优化执行。
+- 相比 Ring/Ulysses，MagiAttention 的 `GroupCast/GroupReduce` 只传给真正需要 KV/dKV 的 rank，但需要额外 transfer table、reorder、scatter/reduce 和跨卡调度。
+
+**优点**：适合静态或可预先知道的异构 mask、varlen block-causal mask、超长 packed context 和多卡训练；能同时优化计算负载、通信 volume 和 overlap。**代价**：planner/metadata 复杂度显著高于单卡 sparse kernel；AlltoAll-v 原型有重排和复制开销；overlap degree 依赖负载与通信比，常需手工调参；当前 static solver 对“全局 mask 在一个 microbatch 内已知且跨层稳定”有较强假设，dynamic solver 的泛化性仍需单独验证。
+
+它因此应被归入“**分布式异构 mask 执行层**”，不能和 VMoBA 的“学习式 block 选择”、LVSA 的“结构化邻接”、或 FrameDiT 的“架构级绕开”混为同一类稀疏算法。MAGI-1 的具体 chunk/frame/token 核算和训练/serving 边界见 [MAGI-1 Paper](../../../../02_model_systems/multimodal_generation/papers/magi-1.md#2-chunkwise-ar-参数核算)。
+
 ---
 
 ## 3. 跨论文实现对照：mask 是在哪里变小的？
@@ -306,6 +326,7 @@ Matrix Attention 将一帧视为矩阵，沿 frame-level 计算 Q/K/V 和 attent
 | FlexAttention VLM | 上层 attention map | selected visual token index + compact features | 不应有 | selector 本身的 score 成本 |
 | Cosmos 3 | 模型语义 lowering | 两个 varlen stream | 否 | segmentation/padding、双调用调度 |
 | Causal-rCM | `BlockPattern` + runtime predicate | `BlockMask` / range metadata / JVP kernel | 否 | backward/JVP backend 兼容 |
+| MagiAttention | `AttnSlice` + dispatch solver | per-rank `CalcMeta/CommMeta` + FFA/group collectives | 否 | planner、跨卡 KV/dKV、overlap stage |
 | LVSA | CPU geometry planner | CSR + FlashInfer plan | 否 | planner 与 compact copy |
 | VMoBA | GPU gate + top-k/threshold | indices + `cu_seqlens` + packed QKV | 临时 gate 为 $[C,H,S]$，非 pair matrix | selection/pack/LSE 成本 |
 | HASTE | 在线 refresh + 离线 budget calibration | 未核验 | 不应有 | descriptor 复用何时失效 |
@@ -313,6 +334,20 @@ Matrix Attention 将一帧视为矩阵，沿 frame-level 计算 Q/K/V 和 attent
 | TSA | GPU per-head selector | compact QKV + scatter index | 否 | gather/scatter、余下 token 语义 |
 | MInference | online sparse index builder | pattern-specific index/ranges | 否 | index build、pattern 错配 |
 | FrameDiT 公共代码 | framework mask | dense additive bias | 可能 broadcast | 不是 sparse execution |
+
+### 3.1 路线选择：特点、优缺点与泛用性
+
+| 路线 | 主要特点 | 优点 | 局限/风险 | 泛用性判断 |
+|---|---|---|---|---|
+| Dense/causal varlen FA | 把语义拆成少量连续 stream 或矩形调用 | kernel 成熟、吞吐高、复现成本低 | 复杂 mask 需要多次调用，stream 切分和 padding 会吞掉收益 | **高**：适合规则 causal/full；复杂异构 mask 需先 lowering |
+| Flex/BlockMask/predicate | 以 block id、offset 和 predicate 描述可见性 | 表达规则复杂 mask 方便，可保留统一编程接口 | compile/cache、block padding 和 backend fallback；不保证物理跳过比例 | **中高**：适合规则或 block-regular mask |
+| CSR/block sparse | `indptr/indices` 显式列出有效 block/page | 直接跳过空 block，适合长视频、页化 KV、结构化邻接 | planner、非连续访存、gather 和 row-degree 长尾 | **中高**：结构稳定时强；动态更新成本高 |
+| selector + compact varlen | 先 top-k/threshold 选 token/block，再 gather 成连续 QKV | 可叠加成熟 FA，选择粒度灵活，适合学习式稀疏 | selector、sort、gather/scatter、LSE merge 可能主导端到端时间；质量依赖 recall | **中**：适合动态重要性选择 |
+| 专用 spatial/temporal kernel | 改变 token topology 或按 head 走专门路径 | 对固定视频模式可达到高硬件效率 | 模式迁移性差，新增模态/布局常需新 kernel | **低到中**：固定 workload 最优，通用性最弱 |
+| AttnSlice + distributed CP | mask slice、rank dispatch、按需 group collective、overlap 联合规划 | 同时处理异构 mask、跨卡负载、通信 volume 和流水隐藏 | planner/metadata/通信实现复杂；静态 mask 假设、调参和跨节点尾延迟 | **中**：适合超长 packed context 和已知异构 mask 的多卡训练 |
+| 架构级绕开 | 直接改变 attention 对象，如 frame-level matrix attention | 从根上降低 token-pair 拓扑，避免通用 sparse runtime | 模型表达能力和适用任务改变，难作为 drop-in kernel | **任务相关**：固定视频结构有效 |
+
+选择原则不是“越稀疏越好”：先判断 mask 是否能 lower 成少量矩形；不能时再选择 predicate、CSR 或 compact segments；只有当跨卡 workload 和通信成为瓶颈时，才需要把 mask IR 升级为包含 rank placement 与 communication metadata 的 distributed plan。
 
 ---
 
@@ -332,6 +367,7 @@ Lowering
   B. regular graph -> BlockMask / kernel predicate
   C. explicit sparse graph -> CSR/page metadata + planner
   D. learned tokens/blocks -> selector + gather + compact varlen
+  E. distributed heterogeneous graph -> AttnSlice + rank/communication plan
         |
         v
 AttentionPlan -> run(Q,K,V,Plan) -> cache/update/reuse
