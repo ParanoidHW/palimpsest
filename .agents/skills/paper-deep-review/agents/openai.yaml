@@ -1,0 +1,4 @@
+interface:
+  display_name: "Paper Deep Review"
+  short_description: "Review one paper and publish governed canonical knowledge"
+  default_prompt: "Use $paper-deep-review to produce a revision-tracked, schema-valid review with original evidence and infra analysis, then promote canonical Paper/Asset knowledge when a project organization profile applies."

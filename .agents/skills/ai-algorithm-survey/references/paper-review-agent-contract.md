@@ -21,7 +21,7 @@ Use this contract for every selected paper delegated by `$ai-algorithm-survey`. 
 - Do not let a paper agent edit `execution_checklist.md`, survey-level `figure_inventory.md`, `selection.md`, `paper_db.jsonl`, `synthesis.md`, or any other paper folder.
 - Dispatch agents in parallel only when each agent has an enforced write sandbox or independent worktree. With a shared writable workspace, dispatch sequentially and compare a complete path/hash manifest of every workspace file outside `allowed_write_root` before and after the run; exclude `.git/` metadata and include every other paper folder.
 - The parent must record each unique dispatch, context-free spawn mode, runtime agent task/id, filesystem-isolation mode, task-packet hash, skill-tree/contract hashes, out-of-root integrity result, and verdict in `agent_dispatch_log.md`.
-- The paper agent must load the exact repository `$paper-deep-review` directory and report its deterministic tree hash plus the agent-contract hash. Pasting or summarizing the skill into the task packet does not satisfy this requirement.
+- The parent must resolve the project-scoped `$paper-deep-review` directory from the active skill catalog. The paper agent must load that exact directory and report its deterministic tree hash plus the agent-contract hash. Do not silently fall back to a system-scoped duplicate; pasting or summarizing the skill into the task packet does not satisfy this requirement.
 - This contract isolates inherited model context and either enforces or audits write ownership. It cannot prove that a shared-workspace agent never read another file. Use an OS-level read sandbox or separate workspace when source confidentiality is required.
 
 The parent owns `agent_dispatch_log.md`. For each batch and paper, record:
@@ -71,7 +71,7 @@ allowed_write_root: <same exclusive paper folder>
 agent_contract: <path to this file>
 agent_contract_sha256: <sha256 computed by parent immediately before dispatch>
 required_skill: paper-deep-review
-required_skill_dir: <exact repository path to paper-deep-review/>
+required_skill_dir: <exact active project-scoped path to paper-deep-review/>
 required_skill_tree_sha256: <deterministic tree hash computed immediately before dispatch>
 ```
 
@@ -152,6 +152,8 @@ Keep `agent_handoff.md` compact and use these headings:
 - Code commit inspected: <hash | unavailable | not applicable>
 - OpenReview cross-check: <done | unavailable | not applicable>
 - Generated diagram: <path | skipped-with-reason>
+- Knowledge organization: <resolved profile/provenance | not applicable>
+- Promotion responsibility: parent survey agent
 
 ## Claims For Synthesis
 
@@ -167,6 +169,11 @@ Keep `agent_handoff.md` compact and use these headings:
 
 | Type | Term/symbol | Alias/provenance | Paper-specific meaning | Scope/unit/value | Source | Ambiguity/caveat |
 |---|---|---|---|---|---|---|
+
+## Knowledge Promotion Recommendations
+
+| Canonical candidate | Existing owner/path | Suggested operation | Eligible formal assets | Required links | Ownership caveat |
+|---|---|---|---|---|---|
 
 ## Revision Summary
 
@@ -197,7 +204,8 @@ The parent survey agent must inspect files rather than accepting the agent's mes
 10. Confirm the design-rationale matrix covers every core design, distinguishes author-stated/inferred/not-stated rationale, identifies a concrete target problem and causal mechanism, records alternatives/trade-offs even when the paper does not discuss them, and links validation evidence or marks it unverified. Empty rationale dimensions fail acceptance.
 11. Confirm the explicit evidence loop reaches a limitation and implementation claims cite code paths plus commit hashes or are labeled as inference/unavailable.
 12. Confirm key claims, revision entries, terminology/symbol entries, and design rationales in `agent_handoff.md` point to exact `analysis.md`, paper, figure/table, or code evidence.
-13. Verify the enforced write boundary. Without one, compare complete pre/post workspace path/hash manifests outside `allowed_write_root`, excluding `.git/` and including created, deleted, and modified paths plus every other paper folder. Any unexplained difference rejects the dispatch pending reconciliation.
+13. When a research knowledge organization applies, confirm the agent changed no formal/global path, its handoff records canonical Paper/Asset promotion recommendations, and the parent owns promotion planning and publisher validation.
+14. Verify the enforced write boundary. Without one, compare complete pre/post workspace path/hash manifests outside `allowed_write_root`, excluding `.git/` and including created, deleted, and modified paths plus every other paper folder. Any unexplained difference rejects the dispatch pending reconciliation.
 
 ## 7. Deterministic Parent Verdict
 

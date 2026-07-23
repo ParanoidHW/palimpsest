@@ -1,0 +1,785 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-wushu.local/schemas/paper-deep-review-deliverable-1.3.0.json",
+  "title": "Paper Deep Review Deliverable Manifest",
+  "description": "Machine-readable manifest for one paper-deep-review delivery.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "deliverable_type",
+    "invocation_mode",
+    "paper",
+    "completion_status",
+    "revision_info",
+    "schema_validation",
+    "semantic_validation",
+    "artifacts",
+    "visual_evidence",
+    "terminology_and_symbols",
+    "design_rationales",
+    "evidence_checks",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.3.0" },
+    "deliverable_type": { "const": "paper-deep-review" },
+    "invocation_mode": { "enum": ["standalone", "delegated"] },
+    "paper": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["paper_key", "title", "venue_and_year", "paper_url"],
+      "properties": {
+        "paper_key": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "venue_and_year": { "type": "string", "minLength": 1 },
+        "paper_url": { "type": ["string", "null"], "format": "uri" }
+      }
+    },
+    "completion_status": { "enum": ["complete", "blocked"] },
+    "revision_info": { "$ref": "#/$defs/revisionInfo" },
+    "schema_validation": { "$ref": "#/$defs/schemaValidation" },
+    "semantic_validation": { "$ref": "#/$defs/paperSemanticValidation" },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "paper_pdf",
+        "analysis",
+        "review_checklist",
+        "figure_inventory",
+        "contact_sheet",
+        "source_archive",
+        "code_snapshot",
+        "openreview_reviews",
+        "generated_diagram",
+        "task_packet",
+        "agent_handoff",
+        "artifact_manifest_path"
+      ],
+      "properties": {
+        "paper_pdf": { "$ref": "#/$defs/artifact" },
+        "analysis": { "$ref": "#/$defs/artifact" },
+        "review_checklist": { "$ref": "#/$defs/artifact" },
+        "figure_inventory": { "$ref": "#/$defs/artifact" },
+        "contact_sheet": { "$ref": "#/$defs/artifact" },
+        "source_archive": { "$ref": "#/$defs/artifact" },
+        "code_snapshot": { "$ref": "#/$defs/artifact" },
+        "openreview_reviews": { "$ref": "#/$defs/artifact" },
+        "generated_diagram": { "$ref": "#/$defs/artifact" },
+        "task_packet": { "$ref": "#/$defs/artifact" },
+        "agent_handoff": { "$ref": "#/$defs/artifact" },
+        "artifact_manifest_path": { "type": ["string", "null"], "minLength": 1 }
+      }
+    },
+    "visual_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mechanism_count",
+        "result_or_system_count",
+        "counted_total",
+        "missing_types",
+        "inventory_fields_complete",
+        "contact_sheet_qa",
+        "individual_crop_qa"
+      ],
+      "properties": {
+        "mechanism_count": { "type": "integer", "minimum": 0 },
+        "result_or_system_count": { "type": "integer", "minimum": 0 },
+        "counted_total": { "type": "integer", "minimum": 0 },
+        "missing_types": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["mechanism", "result-or-system"] }
+        },
+        "inventory_fields_complete": { "type": "boolean" },
+        "contact_sheet_qa": { "enum": ["passed", "blocked", "not-applicable"] },
+        "individual_crop_qa": { "enum": ["passed", "blocked", "not-applicable"] }
+      }
+    },
+    "terminology_and_symbols": { "$ref": "#/$defs/terminologyAndSymbols" },
+    "design_rationales": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/designRationale" }
+    },
+    "evidence_checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_matrix",
+        "design_rationale_analysis",
+        "symbol_table",
+        "evidence_loop",
+        "code_cross_check",
+        "openreview_cross_check",
+        "infrastructure_analysis",
+        "gain_attribution"
+      ],
+      "properties": {
+        "claim_matrix": { "$ref": "#/$defs/checkStatus" },
+        "design_rationale_analysis": { "$ref": "#/$defs/checkStatus" },
+        "symbol_table": { "$ref": "#/$defs/checkStatus" },
+        "evidence_loop": { "$ref": "#/$defs/checkStatus" },
+        "code_cross_check": { "$ref": "#/$defs/checkStatus" },
+        "openreview_cross_check": { "$ref": "#/$defs/checkStatus" },
+        "infrastructure_analysis": { "$ref": "#/$defs/checkStatus" },
+        "gain_attribution": { "$ref": "#/$defs/checkStatus" }
+      }
+    },
+    "delegated_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dispatch_id",
+        "agent_task_name",
+        "task_packet_sha256",
+        "skill_tree_sha256",
+        "agent_contract_sha256"
+      ],
+      "properties": {
+        "dispatch_id": { "type": "string", "minLength": 1 },
+        "agent_task_name": { "type": "string", "minLength": 1 },
+        "task_packet_sha256": { "$ref": "#/$defs/sha256" },
+        "skill_tree_sha256": { "$ref": "#/$defs/sha256" },
+        "agent_contract_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/limitation" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "invocation_mode": { "const": "delegated" } } },
+      "then": {
+        "required": ["delegated_provenance"],
+        "properties": {
+          "artifacts": {
+            "properties": {
+              "task_packet": { "$ref": "#/$defs/presentArtifact" },
+              "agent_handoff": { "$ref": "#/$defs/presentArtifact" },
+              "artifact_manifest_path": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      },
+      "else": {
+        "not": { "required": ["delegated_provenance"] },
+        "properties": {
+          "artifacts": {
+            "properties": {
+              "task_packet": { "$ref": "#/$defs/notApplicableArtifact" },
+              "agent_handoff": { "$ref": "#/$defs/notApplicableArtifact" },
+              "artifact_manifest_path": { "type": "null" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "completion_status": { "const": "complete" } } },
+      "then": {
+        "properties": {
+          "schema_validation": {
+            "properties": { "status": { "const": "passed" } }
+          },
+          "semantic_validation": {
+            "properties": {
+              "status": { "const": "passed" },
+              "checks": {
+                "properties": {
+                  "artifact_paths_and_hashes": { "const": true },
+                  "revision_section_matches_manifest": { "const": true },
+                  "revision_history_consistency": { "const": true },
+                  "current_revision_is_latest": { "const": true },
+                  "unresolved_migrations_resolved": { "const": true },
+                  "terminology_symbol_section_consistency": { "const": true },
+                  "key_term_symbol_coverage": { "const": true },
+                  "design_rationale_evidence_consistency": { "const": true },
+                  "design_rationale_core_design_coverage": { "const": true },
+                  "visual_count_sum": { "const": true },
+                  "missing_visual_types": { "const": true },
+                  "provenance_hash_equality": { "const": true },
+                  "checklist_manifest_consistency": { "const": true }
+                }
+              }
+            }
+          },
+          "artifacts": {
+            "properties": {
+              "paper_pdf": { "$ref": "#/$defs/presentArtifact" },
+              "analysis": { "$ref": "#/$defs/presentArtifact" },
+              "review_checklist": { "$ref": "#/$defs/presentArtifact" },
+              "figure_inventory": { "$ref": "#/$defs/presentArtifact" }
+            }
+          },
+          "evidence_checks": {
+            "properties": {
+              "claim_matrix": { "const": "passed" },
+              "design_rationale_analysis": { "const": "passed" },
+              "symbol_table": { "const": "passed" },
+              "evidence_loop": { "const": "passed" },
+              "infrastructure_analysis": { "const": "passed" },
+              "gain_attribution": { "const": "passed" }
+            }
+          },
+          "terminology_and_symbols": {
+            "properties": {
+              "terms": { "minItems": 1 },
+              "coverage": {
+                "properties": {
+                  "key_terms": { "const": "passed" },
+                  "ambiguities": { "const": "passed" }
+                }
+              }
+            }
+          },
+          "design_rationales": { "minItems": 1 }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          { "properties": { "completion_status": { "const": "complete" } } },
+          { "properties": { "terminology_and_symbols": { "properties": { "symbol_applicability": { "const": "applicable" } } } } }
+        ]
+      },
+      "then": {
+        "properties": {
+          "terminology_and_symbols": {
+            "properties": {
+              "coverage": { "properties": { "key_symbols": { "const": "passed" } } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "visual_evidence": {
+            "properties": { "counted_total": { "minimum": 1 } },
+            "required": ["counted_total"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "artifacts": {
+            "properties": { "contact_sheet": { "$ref": "#/$defs/presentArtifact" } }
+          },
+          "visual_evidence": {
+            "properties": {
+              "inventory_fields_complete": { "const": true },
+              "contact_sheet_qa": { "const": "passed" },
+              "individual_crop_qa": { "const": "passed" }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "artifacts": {
+            "properties": { "contact_sheet": { "$ref": "#/$defs/notApplicableArtifact" } }
+          },
+          "visual_evidence": {
+            "properties": {
+              "contact_sheet_qa": { "const": "not-applicable" },
+              "individual_crop_qa": { "const": "not-applicable" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "visual_evidence": {
+            "properties": { "mechanism_count": { "const": 0 } },
+            "required": ["mechanism_count"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "visual_evidence": {
+            "properties": {
+              "missing_types": { "contains": { "const": "mechanism" } }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "visual_evidence": {
+            "properties": {
+              "counted_total": { "minimum": 1 },
+              "missing_types": { "not": { "contains": { "const": "mechanism" } } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "visual_evidence": {
+            "properties": { "result_or_system_count": { "const": 0 } },
+            "required": ["result_or_system_count"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "visual_evidence": {
+            "properties": {
+              "missing_types": { "contains": { "const": "result-or-system" } }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "visual_evidence": {
+            "properties": {
+              "counted_total": { "minimum": 1 },
+              "missing_types": { "not": { "contains": { "const": "result-or-system" } } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "visual_evidence": {
+            "properties": { "counted_total": { "const": 0 } },
+            "required": ["counted_total"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "visual_evidence": {
+            "properties": {
+              "mechanism_count": { "const": 0 },
+              "result_or_system_count": { "const": 0 }
+            }
+          },
+          "limitations": { "minItems": 1 }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "artifact": {
+      "oneOf": [
+        { "$ref": "#/$defs/presentArtifact" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "path", "sha256", "reason"],
+          "properties": {
+            "status": { "enum": ["blocked", "skipped-with-reason", "not-applicable"] },
+            "path": { "type": "null" },
+            "sha256": { "type": "null" },
+            "reason": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "presentArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "path", "sha256", "reason"],
+      "properties": {
+        "status": { "const": "present" },
+        "path": { "type": "string", "minLength": 1, "pattern": "^(?!/)", "description": "Relative file or directory path." },
+        "sha256": { "allOf": [{ "$ref": "#/$defs/sha256" }], "description": "File SHA-256 or deterministic tree SHA-256 for a directory." },
+        "reason": { "type": "null" }
+      }
+    },
+    "notApplicableArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "path", "sha256", "reason"],
+      "properties": {
+        "status": { "const": "not-applicable" },
+        "path": { "type": "null" },
+        "sha256": { "type": "null" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "checkStatus": {
+      "enum": ["passed", "blocked", "skipped-with-reason", "not-applicable"]
+    },
+    "schemaValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "validator", "errors"],
+      "properties": {
+        "status": { "enum": ["passed", "failed", "blocked"] },
+        "validator": { "type": "string", "minLength": 1 },
+        "errors": { "type": "array", "items": { "type": "string" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "passed" } } },
+          "then": { "properties": { "errors": { "maxItems": 0 } } }
+        }
+      ]
+    },
+    "paperSemanticValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "validator", "checks", "errors"],
+      "properties": {
+        "status": { "enum": ["passed", "failed", "blocked"] },
+        "validator": { "type": "string", "minLength": 1 },
+        "checks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "artifact_paths_and_hashes",
+            "revision_section_matches_manifest",
+            "revision_history_consistency",
+            "current_revision_is_latest",
+            "unresolved_migrations_resolved",
+            "terminology_symbol_section_consistency",
+            "key_term_symbol_coverage",
+            "design_rationale_evidence_consistency",
+            "design_rationale_core_design_coverage",
+            "visual_count_sum",
+            "missing_visual_types",
+            "provenance_hash_equality",
+            "checklist_manifest_consistency"
+          ],
+          "properties": {
+            "artifact_paths_and_hashes": { "type": "boolean" },
+            "revision_section_matches_manifest": { "type": "boolean" },
+            "revision_history_consistency": { "type": "boolean" },
+            "current_revision_is_latest": { "type": "boolean" },
+            "unresolved_migrations_resolved": { "type": "boolean" },
+            "terminology_symbol_section_consistency": { "type": "boolean" },
+            "key_term_symbol_coverage": { "type": "boolean" },
+            "design_rationale_evidence_consistency": { "type": "boolean" },
+            "design_rationale_core_design_coverage": { "type": "boolean" },
+            "visual_count_sum": { "type": "boolean" },
+            "missing_visual_types": { "type": "boolean" },
+            "provenance_hash_equality": { "type": "boolean" },
+            "checklist_manifest_consistency": { "type": "boolean" }
+          }
+        },
+        "errors": { "type": "array", "items": { "type": "string" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "passed" } } },
+          "then": { "properties": { "errors": { "maxItems": 0 } } }
+        }
+      ]
+    },
+    "designRationale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "design",
+        "rationale_status",
+        "rationale_sources",
+        "concrete_problem",
+        "causal_mechanism",
+        "analysis_basis",
+        "alternatives_tradeoffs",
+        "validation_evidence"
+      ],
+      "properties": {
+        "design": { "type": "string", "minLength": 1 },
+        "rationale_status": { "enum": ["author-stated", "inferred", "not-stated"] },
+        "rationale_sources": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "concrete_problem": { "type": "string", "minLength": 1 },
+        "causal_mechanism": { "type": "string", "minLength": 1 },
+        "analysis_basis": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "alternatives_tradeoffs": { "type": "string", "minLength": 1 },
+        "validation_evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "sources", "judgment"],
+          "properties": {
+            "type": { "enum": ["direct-ablation", "replacement-baseline", "sensitivity", "theory", "mechanism-visualization", "code", "indirect", "none"] },
+            "sources": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "judgment": { "enum": ["supported", "partially-supported", "plausible", "unverified"] }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "rationale_status": { "const": "not-stated" } } },
+          "then": { "properties": { "rationale_sources": { "maxItems": 0 } } },
+          "else": { "properties": { "rationale_sources": { "minItems": 1 } } }
+        },
+        {
+          "if": { "properties": { "validation_evidence": { "properties": { "type": { "const": "none" } } } } },
+          "then": {
+            "properties": {
+              "validation_evidence": {
+                "properties": {
+                  "sources": { "maxItems": 0 },
+                  "judgment": { "const": "unverified" }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "validation_evidence": { "properties": { "sources": { "minItems": 1 } } }
+            }
+          }
+        }
+      ]
+    },
+    "terminologyAndSymbols": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_path",
+        "section_heading",
+        "terms",
+        "symbol_applicability",
+        "symbols",
+        "coverage"
+      ],
+      "properties": {
+        "document_path": { "const": "analysis.md" },
+        "section_heading": { "type": "string", "minLength": 1 },
+        "terms": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/termEntry" }
+        },
+        "symbol_applicability": { "enum": ["applicable", "not-applicable"] },
+        "symbols": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/symbolEntry" }
+        },
+        "coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["key_terms", "key_symbols", "ambiguities"],
+          "properties": {
+            "key_terms": { "$ref": "#/$defs/checkStatus" },
+            "key_symbols": { "$ref": "#/$defs/checkStatus" },
+            "ambiguities": { "$ref": "#/$defs/checkStatus" }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "allOf": [
+              { "properties": { "symbol_applicability": { "const": "applicable" } } },
+              { "properties": { "coverage": { "properties": { "key_symbols": { "const": "passed" } } } } }
+            ]
+          },
+          "then": {
+            "properties": {
+              "symbols": { "minItems": 1 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "symbol_applicability": { "const": "not-applicable" } } },
+          "then": {
+            "properties": {
+              "symbols": { "maxItems": 0 },
+              "coverage": { "properties": { "key_symbols": { "const": "not-applicable" } } }
+            }
+          }
+        }
+      ]
+    },
+    "termEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["term", "definition", "aliases", "sources", "ambiguity_notes"],
+      "properties": {
+        "term": { "type": "string", "minLength": 1 },
+        "definition": { "type": "string", "minLength": 1 },
+        "aliases": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "sources": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "ambiguity_notes": { "type": "string", "minLength": 1 }
+      }
+    },
+    "symbolEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["symbol", "meaning", "provenance", "scope_or_indexing", "units_or_values", "sources", "ambiguity_notes"],
+      "properties": {
+        "symbol": { "type": "string", "minLength": 1 },
+        "meaning": { "type": "string", "minLength": 1 },
+        "provenance": { "enum": ["author-defined", "code-defined", "analysis-derived"] },
+        "scope_or_indexing": { "type": "string", "minLength": 1 },
+        "units_or_values": { "type": "string", "minLength": 1 },
+        "sources": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "ambiguity_notes": { "type": "string", "minLength": 1 }
+      }
+    },
+    "revisionInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_path", "section_heading", "current_version", "current_revision_id", "history"],
+      "properties": {
+        "document_path": { "const": "analysis.md" },
+        "section_heading": { "type": "string", "minLength": 1 },
+        "current_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "current_revision_id": { "type": "string", "pattern": "^rev-[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "history": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/revisionEntry" }
+        }
+      }
+    },
+    "revisionEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision_id",
+        "version",
+        "revised_at",
+        "revised_by",
+        "revision_type",
+        "supersedes",
+        "migration_resolution",
+        "summary",
+        "reason",
+        "affected_locations",
+        "evidence",
+        "impact_on_conclusions"
+      ],
+      "properties": {
+        "revision_id": { "type": "string", "pattern": "^rev-[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "revised_at": { "type": "string", "format": "date-time" },
+        "revised_by": { "type": "string", "minLength": 1 },
+        "revision_type": { "enum": ["initial", "migration", "migration-resolution", "content-update", "evidence-update", "correction", "format-only", "mixed"] },
+        "supersedes": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/supersededRevision" },
+            { "$ref": "#/$defs/legacySupersededRevision" },
+            { "$ref": "#/$defs/unresolvedSupersededRevision" }
+          ]
+        },
+        "migration_resolution": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/migrationResolution" }
+          ]
+        },
+        "summary": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "affected_locations": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "pattern": "^(?!/)" }
+        },
+        "evidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "impact_on_conclusions": { "enum": ["none", "minor", "material"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "revision_type": { "const": "initial" } } },
+          "then": { "properties": { "supersedes": { "type": "null" } } },
+          "else": {
+            "if": { "properties": { "revision_type": { "const": "migration" } } },
+            "then": {
+              "properties": {
+                "supersedes": {
+                  "oneOf": [
+                    { "$ref": "#/$defs/legacySupersededRevision" },
+                    { "$ref": "#/$defs/unresolvedSupersededRevision" }
+                  ]
+                }
+              }
+            },
+            "else": { "properties": { "supersedes": { "$ref": "#/$defs/supersededRevision" } } }
+          }
+        },
+        {
+          "if": { "properties": { "revision_type": { "const": "migration-resolution" } } },
+          "then": { "properties": { "migration_resolution": { "$ref": "#/$defs/migrationResolution" } } },
+          "else": { "properties": { "migration_resolution": { "type": "null" } } }
+        }
+      ]
+    },
+    "supersededRevision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "revision_id", "version", "deliverable_manifest_sha256"],
+      "properties": {
+        "kind": { "const": "tracked" },
+        "revision_id": { "type": "string", "pattern": "^rev-[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "deliverable_manifest_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "legacySupersededRevision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "revision_id", "version", "deliverable_manifest_sha256", "reason"],
+      "properties": {
+        "kind": { "const": "legacy-manifest" },
+        "revision_id": { "type": ["string", "null"], "pattern": "^rev-[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "version": { "type": ["string", "null"], "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "deliverable_manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "unresolvedSupersededRevision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "issue_id", "revision_id", "version", "deliverable_manifest_sha256", "reason", "recovery_attempts"],
+      "properties": {
+        "kind": { "const": "unresolved" },
+        "issue_id": { "type": "string", "pattern": "^migration-[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "revision_id": { "type": ["string", "null"], "pattern": "^rev-[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "version": { "type": ["string", "null"], "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "deliverable_manifest_sha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/sha256" }
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1 },
+        "recovery_attempts": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "migrationResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issue_id", "recovered_predecessor"],
+      "properties": {
+        "issue_id": { "type": "string", "pattern": "^migration-[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "recovered_predecessor": { "$ref": "#/$defs/legacySupersededRevision" }
+      }
+    },
+    "limitation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirement", "status", "reason", "effect_on_conclusions"],
+      "properties": {
+        "requirement": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["blocked", "skipped-with-reason"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "effect_on_conclusions": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
