@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Algorithm Survey"
+  short_description: "Survey methods and system adoption into governed knowledge"
+  default_prompt: "Use $ai-algorithm-survey to research methods and system adoption, run isolated $paper-deep-review agents where required, and publish validated canonical knowledge when a project organization profile is available."
