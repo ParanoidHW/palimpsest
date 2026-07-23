@@ -51,6 +51,13 @@
 | Cosmos 3 | 官方架构图 | MoT 将 reasoner 与 generator 参数路径分离，并在统一 packed multimodal sequence 上协作。 | `../../../../02_model_systems/multimodal_generation/assets/papers/cosmos-3/mot-architecture.png` / `(0,0,1672,763)` | 参数路径 |
 | Cosmos 3 | 知识库整理图 | Two-way flat attention 被 lower 为 causal reasoner 与 full generator 两次 varlen attention 调用。 | `../../../../02_model_systems/multimodal_generation/assets/papers/cosmos-3/two-way-attention-infra.png` / `(0,0,942,591)` | kernel lowering |
 
+## Survey 派生图
+
+| 图 | 数据口径 | 正式资产 / bbox | QA |
+|---|---|---|---|
+| 2020–2026 年度与会场计数 | 严格多模态任务；main conference 与 CVPR Findings 分列；截至 2026-07-23 的 38 篇审计集 | `../assets/surveys/multimodal-custom-attention/venue-year-counts.png` / `(0,0,2420,1210)` | 原分辨率检查通过；柱高与 CSV 汇总一致 |
+| 已核验组织 full-counting | 只含 6 篇已直接核验首页 affiliation 的论文；同一机构每篇最多计 1 次 | `../assets/surveys/multimodal-custom-attention/organization-method-distribution.png` / `(0,0,1760,1056)` | 原分辨率检查通过；明确标注非全量排名 |
+
 ## QA
 
 - 逐张在原分辨率下检查图体、legend/axis、完整 caption、外边距和相邻正文；contact sheet 仅用于批量初筛。状态：`pass`（2026-07-10），路径复核：`pass`（2026-07-11）。

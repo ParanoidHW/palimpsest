@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Knowledge Publisher"
+  short_description: "Promote research artifacts into a governed knowledge base"
+  default_prompt: "Use $research-knowledge-publisher to promote completed research into this repository knowledge base."

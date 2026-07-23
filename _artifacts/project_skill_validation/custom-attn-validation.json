@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "repository_root": "/mnt/d/huangwei/markdown",
+  "domain": "01_ai_infra/kernel/custom_attn",
+  "status": "failed",
+  "checked_markdown": 16,
+  "referenced_assets": 36,
+  "errors": [
+    {
+      "code": "untracked-formal-asset",
+      "path": "/mnt/d/huangwei/markdown/01_ai_infra/kernel/custom_attn/evidence/venue-organization-trends-2020-2026.md",
+      "target": "01_ai_infra/kernel/custom_attn/assets/surveys/multimodal-custom-attention/venue-year-counts.png"
+    },
+    {
+      "code": "untracked-formal-asset",
+      "path": "/mnt/d/huangwei/markdown/01_ai_infra/kernel/custom_attn/evidence/venue-organization-trends-2020-2026.md",
+      "target": "01_ai_infra/kernel/custom_attn/assets/surveys/multimodal-custom-attention/organization-method-distribution.png"
+    },
+    {
+      "code": "untracked-formal-asset",
+      "path": "/mnt/d/huangwei/markdown/01_ai_infra/kernel/custom_attn/surveys/multimodal-custom-attention.md",
+      "target": "01_ai_infra/kernel/custom_attn/assets/surveys/multimodal-custom-attention/venue-year-counts.png"
+    }
+  ],
+  "warnings": []
+}

@@ -6,15 +6,16 @@
 
 1. [Multimodal custom attention](surveys/multimodal-custom-attention.md)：先看跨论文路线、kernel 设计判断和验证计划。
 2. [Selection](evidence/selection.md)：核对十篇入选工作和排除边界。
-3. 按 Survey 章节下钻到对应 Paper；图表来源与 QA 见 [Figure inventory](evidence/figure-inventory.md)。
-4. [LazyLLM background](topics/lazyllm-background.md) 仅作 token pruning 背景，不属于十篇核心工作。
+3. [Venue and organization trends](evidence/venue-organization-trends-2020-2026.md)：核对 2020–2026 顶会论文计数、组织归属口径和趋势图。
+4. 按 Survey 章节下钻到对应 Paper；图表来源与 QA 见 [Figure inventory](evidence/figure-inventory.md)。
+5. [LazyLLM background](topics/lazyllm-background.md) 仅作 token pruning 背景，不属于十篇核心工作。
 
 ## 文档索引
 
 - Survey：[Multimodal custom attention](surveys/multimodal-custom-attention.md)
 - Papers：[FlexAttention VLM](papers/flexattention-vlm.md)，[MInference](papers/minference.md)，[Sparse VideoGen](papers/sparse-videogen.md)，[VMoBA](papers/vmoba.md)，[Token Sparse Attention](papers/token-sparse-attention.md)，[FrameDiT](papers/framedit.md)，[HASTE](papers/haste.md)，[LVSA](papers/lvsa.md)，[Causal-rCM](papers/causal-rcm.md)，[Cosmos 3](papers/cosmos-3.md)
 - Topic：[LazyLLM background](topics/lazyllm-background.md)
-- Evidence：[Selection](evidence/selection.md)，[Figure inventory](evidence/figure-inventory.md)
+- Evidence：[Selection](evidence/selection.md)，[Venue and organization trends](evidence/venue-organization-trends-2020-2026.md)，[Figure inventory](evidence/figure-inventory.md)
 - Supplement：[Editable PPT](supplements/multimodal-custom-attention.pptx)
 
 ## 资产说明

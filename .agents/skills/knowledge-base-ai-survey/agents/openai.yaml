@@ -1,0 +1,4 @@
+interface:
+  display_name: "Knowledge Base AI Survey"
+  short_description: "Run AI surveys and publish canonical knowledge nodes"
+  default_prompt: "Use $knowledge-base-ai-survey to research this topic and integrate the results into the project knowledge base."

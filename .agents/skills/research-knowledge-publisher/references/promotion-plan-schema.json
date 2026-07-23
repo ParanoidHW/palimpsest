@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Research Knowledge Promotion Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "task", "repository_root", "domains", "items", "required_links", "validation"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "task": {"type": "string", "minLength": 1},
+    "repository_root": {"type": "string", "minLength": 1},
+    "domains": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["canonical_id", "domain", "doc_type", "slug", "canonical_path", "operation", "source_artifacts", "owner"],
+        "properties": {
+          "canonical_id": {"type": "string", "minLength": 1},
+          "domain": {"type": "string", "minLength": 1},
+          "doc_type": {"enum": ["survey", "paper", "topic", "evidence", "supplement", "asset"]},
+          "slug": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+          "canonical_path": {"type": "string", "pattern": "^(?!/)(?!.*_artifacts).+"},
+          "operation": {"enum": ["create", "update", "link-only", "no-promotion"]},
+          "source_artifacts": {"type": "array", "items": {"type": "string"}},
+          "owner": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "required_links": {"type": "array", "items": {"type": "object"}},
+    "validation": {"type": "array", "items": {"type": "string"}}
+  }
+}

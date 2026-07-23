@@ -118,7 +118,7 @@ H_l=\operatorname{Attn}([H_{\text{low}},H_{\text{text}},\operatorname{Gather}(H_
 \quad S_{l+1}=\operatorname{Select}(\operatorname{Map}(H_l)).
 $$
 
-**kernel 含义**：这是 `selected indices -> gather -> compact rectangular attention`，不是先构造高分辨率 token 对的 dense mask。其数学对象、batch varlen 映射与控制面成本见 [Paper 的 kernel mapping](../papers/flexattention-vlm.md#8-compactvarlen-kernel-映射)；论文没有声称使用 PyTorch FlexAttention、Triton sparse kernel 或 FlashAttention varlen。主结果与 selection/resolution 消融分别见 [主结果](../papers/flexattention-vlm.md#4-主结果) 和 [证据矩阵](../papers/flexattention-vlm.md#5-消融与技术主张证据矩阵)。
+**kernel 含义**：这是 `selected indices -> gather -> compact rectangular attention`，不是先构造高分辨率 token 对的 dense mask。其数学对象、batch varlen 映射与控制面成本见 [Paper 的 kernel mapping](../papers/flexattention-vlm.md)；论文没有声称使用 PyTorch FlexAttention、Triton sparse kernel 或 FlashAttention varlen。主结果与 selection/resolution 消融见 [主结果与证据矩阵](../papers/flexattention-vlm.md)。
 
 ---
 
@@ -315,7 +315,7 @@ Matrix Attention 将一帧视为矩阵，沿 frame-level 计算 Q/K/V 和 attent
 
 **优点**：适合静态或可预先知道的异构 mask、varlen block-causal mask、超长 packed context 和多卡训练；能同时优化计算负载、通信 volume 和 overlap。**代价**：planner/metadata 复杂度显著高于单卡 sparse kernel；AlltoAll-v 原型有重排和复制开销；overlap degree 依赖负载与通信比，常需手工调参；当前 static solver 对“全局 mask 在一个 microbatch 内已知且跨层稳定”有较强假设，dynamic solver 的泛化性仍需单独验证。
 
-它因此应被归入“**分布式异构 mask 执行层**”，不能和 VMoBA 的“学习式 block 选择”、LVSA 的“结构化邻接”、或 FrameDiT 的“架构级绕开”混为同一类稀疏算法。MAGI-1 的具体 chunk/frame/token 核算和训练/serving 边界见 [MAGI-1 Paper](../../../../02_model_systems/multimodal_generation/papers/magi-1.md#2-chunkwise-ar-参数核算)。
+它因此应被归入“**分布式异构 mask 执行层**”，不能和 VMoBA 的“学习式 block 选择”、LVSA 的“结构化邻接”、或 FrameDiT 的“架构级绕开”混为同一类稀疏算法。MAGI-1 的具体 chunk/frame/token 核算和训练/serving 边界见 [MAGI-1 Paper](../../../../02_model_systems/multimodal_generation/papers/magi-1.md)。
 
 ---
 
@@ -668,7 +668,17 @@ $$
 
 ---
 
-## 6. 证据边界与后续阅读
+## 6. 顶会趋势与组织分布（2020–2026）
+
+针对“多模态任务 + 稀疏 attention/token 选择是核心贡献”的严格口径，当前审计集在 2023、2024、2025、2026 分别确认 3、7、16、12 篇正式论文；2020–2022 尚未确认到符合边界的正式论文。该统计覆盖 CVPR、ICCV、ECCV、NeurIPS、ICML、ICLR、AAAI，并将 CVPR Findings 单列；它是可复核下界，不是把搜索引擎命中数当作全量。
+
+![顶会年度与会场分布](../assets/surveys/multimodal-custom-attention/venue-year-counts.png)
+
+趋势上，2023 年以视频-文本稀疏预训练和渐进 pruning 为主；2024 年出现 instruction/importance-guided selector 与可编程 mask lowering；2025–2026 年集中到动态视频 token budget、层级/对象中心压缩、attention-sparsity compression、RL selector 和非均匀 learned sparse attention。对 kernel 的直接含义是：固定 block mask 已不足以覆盖主流工作，需要 ragged index、动态预算、跨帧复用和 KV-cache 生命周期管理；selector/compression 与 mask/kernel lowering 仍应作为两个可替换层分别评测。
+
+组织归属采用论文级 full counting，但目前只有 6 篇论文的首页 affiliation 完成直接核验，因此只报告结构性信号，不给出机构排名。UC San Diego 在 SViTT 与 VideoNSA 中重复出现；其余已核验机构包括 Intel Labs、Huawei Technologies Canada、Li Auto、Pusan National University、LG Electronics、Princeton、NYU、Lambda、University of Adelaide、Zhejiang University、University of Sydney 和 Monash University。详细口径、代表性论文入口和限制见 [顶会趋势与组织分布](../evidence/venue-organization-trends-2020-2026.md)。
+
+## 7. 证据边界与后续阅读
 
 - **源码已核验**：Causal-rCM、LVSA、VMoBA、FrameDiT；所有路径、commit、已知不一致和实现限制在各 `analysis.md`。
 - **论文图与 PDF 已核验**：FlexAttention VLM、HASTE、Sparse VideoGen、Token Sparse Attention、MInference；若无官方代码，本文不把具体 CSR/Triton/host-device 细节说成已证实事实。
