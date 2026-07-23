@@ -1,6 +1,6 @@
 ---
 name: knowledge-base-ai-survey
-description: Run AI algorithm, model-system, infrastructure, or adoption-trend surveys and integrate the results into this repository's continuously maintained research knowledge base. Use for surveys that need method-first and system-first discovery, incremental updates, canonical ownership, cross-domain links, formal Markdown/assets, and process isolation under _artifacts. This project workflow composes the installed ai-algorithm-survey and research-knowledge-publisher skills.
+description: Run AI algorithm, model-system, infrastructure, or adoption-trend surveys and integrate results into a continuously maintained research knowledge base. Use for surveys that need method-first and system-first discovery, incremental updates, canonical ownership, cross-domain links, formal deliverables, and process isolation through the organization resolved by research-knowledge-publisher.
 ---
 
 # Knowledge Base AI Survey
@@ -11,7 +11,7 @@ Compose research execution with governed knowledge publication.
 
 1. Load and follow the available `$ai-algorithm-survey` skill for search, selection, review isolation, synthesis, evidence, and its manifest.
 2. Load and follow the project `$research-knowledge-publisher` skill for canonical ownership, promotion, links, assets, and validation.
-3. Repository `AGENTS.md` and `00_meta/research-knowledge-organization.md` override generic output-layout defaults.
+3. Resolve the publisher's skill-owned organization schema with any discovered repository profile and scoped governance. Do not require a repository-specific policy path.
 
 Read [references/survey-kb-workflow.md](references/survey-kb-workflow.md) before creating the survey workspace.
 
@@ -27,8 +27,8 @@ Never mix peer-reviewed method-paper counts with technical-report, native-system
 
 ## Integrated Workflow
 
-1. Discover repository governance, target domain, existing canonical nodes, and last survey snapshot.
-2. Create `_artifacts/<task>/` and the survey execution checklist.
+1. Resolve the organization, repository profile, scoped governance, target domain, existing canonical nodes, and last survey snapshot.
+2. Create `<process-root>/<task>/` and the survey execution checklist.
 3. Create `knowledge-promotion-plan.json` before formal files.
 4. Run method-first discovery. For `system-adoption` or `hybrid`, also run entity-first discovery over official reports, model cards, repositories, configs, kernels, and dependencies.
 5. Normalize papers and system entities separately; connect them with stable IDs and evidence-classified relationships.
@@ -59,5 +59,4 @@ system_db.jsonl              # required for system-adoption/hybrid
 source_registry.jsonl        # stable IDs and last-checked sources
 ```
 
-Formal documents must never link these process files.
-
+Formal documents must never link these process files or depend on their local paths.

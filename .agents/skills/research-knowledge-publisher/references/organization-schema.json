@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://research-kb.local/schema/organization-1.0.0.json",
+  "title": "Resolved Research Knowledge Organization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "process_root",
+    "domain_entry",
+    "document_paths",
+    "asset_paths",
+    "process_only_kinds",
+    "relationships",
+    "formal_forbidden_patterns",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "process_root": {"type": "string", "minLength": 1, "pattern": "^(?!/).+"},
+    "domain_entry": {"type": "string", "minLength": 1, "pattern": "^(?!/).+\\.md$"},
+    "document_paths": {
+      "type": "object",
+      "minProperties": 4,
+      "additionalProperties": {"type": "string", "minLength": 1, "pattern": "^(?!/).+"},
+      "required": ["survey", "paper", "topic", "evidence"]
+    },
+    "asset_paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "survey_template", "paper_template"],
+      "properties": {
+        "root": {"type": "string", "minLength": 1, "pattern": "^(?!/).+"},
+        "survey_template": {"type": "string", "pattern": "^(?!/).+\\{slug\\}.+|^(?!/).*\\{slug\\}.*"},
+        "paper_template": {"type": "string", "pattern": "^(?!/).+\\{slug\\}.+|^(?!/).*\\{slug\\}.*"}
+      }
+    },
+    "process_only_kinds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "relationships": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain_entry_indexes", "survey_links_to", "paper_backlinks_to_any", "paper_backlinks_to_all"],
+      "properties": {
+        "domain_entry_indexes": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "survey_links_to": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "paper_backlinks_to_any": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+        "paper_backlinks_to_all": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "formal_forbidden_patterns": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["require_relative_links", "require_git_tracked_assets", "check_orphan_documents", "check_orphan_assets", "relationship_block_style"],
+      "properties": {
+        "require_relative_links": {"type": "boolean"},
+        "require_git_tracked_assets": {"type": "boolean"},
+        "check_orphan_documents": {"type": "boolean"},
+        "check_orphan_assets": {"type": "boolean"},
+        "relationship_block_style": {"enum": ["none", "markdown", "obsidian-callout", "repository-policy"]}
+      }
+    }
+  }
+}

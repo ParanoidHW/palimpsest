@@ -2,7 +2,7 @@
 
 ## 1. Establish Baseline
 
-Read governance and existing domain documents. Record:
+Resolve the publisher's built-in organization plus optional repository profile, then read scoped governance and existing domain documents. Record:
 
 - target domain and parent README;
 - canonical Survey path and current revision/search date;
@@ -12,7 +12,7 @@ Read governance and existing domain documents. Record:
 
 ## 2. Create Process Workspace
 
-Create `_artifacts/<task>/` for all search, review, source, render, code, QA, and manifest files. Initialize the `$ai-algorithm-survey` checklist plus knowledge-publication items.
+Create `<process-root>/<task>/` for all search, review, source, render, code, QA, and manifest files. Initialize the `$ai-algorithm-survey` checklist plus knowledge-publication items. Preserve the resolved schema/profile hashes.
 
 ## 3. Run Dual-Lane Discovery
 
@@ -59,7 +59,7 @@ Use the change set to constrain formal edits.
 
 ## 6. Promote
 
-Map stable content into Survey, Paper, Topic, Evidence, Supplement, and owned Asset nodes. Preserve the README -> Survey -> Paper -> Asset forward chain and Paper -> Survey/README backlinks. Use cross-domain relative links instead of copies.
+Map stable content into the resolved semantic document and asset paths. Preserve the organization-defined forward chain and backlinks. Use cross-domain relative links instead of copies.
 
 ## 7. Validate Independently
 
@@ -69,4 +69,3 @@ Run both validation layers:
 2. `$research-knowledge-publisher` checks for repository integration.
 
 A research survey may be complete while knowledge promotion is blocked, or vice versa. Report both states separately.
-

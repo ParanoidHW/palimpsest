@@ -1,5 +1,8 @@
 # 调研知识组织规范
 
+> [!info] 规范层级
+> 本文件是当前仓库的补充 policy，由根目录 `research-knowledge.profile.json` 绑定。可移植的节点类型、默认目录、关系、owner、promotion 和验证语义由项目 skill `research-knowledge-publisher` 内建的 organization schema 定义；本文件负责本仓库的具体约束、解释和示例。仓库没有本文件时，skill 仍可使用内建默认 organization；本文件不得静默放宽内建的可追溯与过程隔离约束。
+
 本规范适用于 literature survey、paper deep review、research synthesis、论文图表提取，以及相应 Markdown、PPT、HTML 和资产的新增、迁移与维护。目标是让每条汇总结论都能沿着“领域入口 -> 汇总调研 -> 单篇精读 -> 图表证据”追溯，同时把检索和渲染过程与正式知识库分开。
 
 ## 1. 标准目录与职责

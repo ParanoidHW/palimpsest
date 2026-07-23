@@ -1,0 +1,19 @@
+{
+  "profile_version": "1.0.0",
+  "profile_id": "huangwei-research-vault",
+  "compatible_organization_schema_major": 1,
+  "policy_documents": [
+    "AGENTS.md",
+    "00_meta/research-knowledge-organization.md"
+  ],
+  "domain_patterns": [
+    "01_ai_infra/**",
+    "02_model_systems/**"
+  ],
+  "overrides": {
+    "validation": {
+      "require_git_tracked_assets": true,
+      "relationship_block_style": "obsidian-callout"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "research-knowledge-default",
+  "process_root": "_artifacts",
+  "domain_entry": "README.md",
+  "document_paths": {
+    "survey": "surveys",
+    "paper": "papers",
+    "topic": "topics",
+    "evidence": "evidence",
+    "supplement": "supplements"
+  },
+  "asset_paths": {
+    "root": "assets",
+    "survey_template": "assets/surveys/{slug}",
+    "paper_template": "assets/papers/{slug}"
+  },
+  "process_only_kinds": [
+    "pdf",
+    "source-snapshot",
+    "page-render",
+    "crop-in-progress",
+    "contact-sheet",
+    "search-cache",
+    "build-script",
+    "manifest",
+    "log",
+    "qa-output"
+  ],
+  "relationships": {
+    "domain_entry_indexes": ["survey", "paper", "topic", "evidence"],
+    "survey_links_to": ["paper", "evidence"],
+    "paper_backlinks_to_any": ["survey", "evidence"],
+    "paper_backlinks_to_all": ["domain-entry"]
+  },
+  "formal_forbidden_patterns": [
+    "_artifacts",
+    "file://",
+    "page_png",
+    "page-render",
+    "page_render"
+  ],
+  "validation": {
+    "require_relative_links": true,
+    "require_git_tracked_assets": true,
+    "check_orphan_documents": true,
+    "check_orphan_assets": true,
+    "relationship_block_style": "repository-policy"
+  }
+}
