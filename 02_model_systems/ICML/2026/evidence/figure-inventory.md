@@ -7,7 +7,21 @@
 > - 证据资产：[`../assets/papers/`](../assets/papers/)
 > - 相关文档：[Paper index](paper-index.md)
 
-本清单只记录正式目录中的 26 个资产。caption 列为原 caption 的完整中文转述；bbox 坐标系均以渲染页左上角为原点，格式 `(x,y,width,height)`。所有资产在子任务 contact sheet 初筛后，由父级再次以原始分辨率逐图打开；父级发现并修正/排除了 SelfJudge、OnlineSpec、MTP 和 ECHO 的边界问题。
+本清单只记录正式目录中的 31 个资产。caption 列保留原 caption 或其完整中文转述；bbox 坐标系均以渲染页左上角为原点，格式 `(x,y,width,height)`。所有资产在子任务 contact sheet 初筛后，由父级再次以原始分辨率逐图打开；父级发现并修正/排除了 SplAttN、Flex-Forcing、SelfJudge、OnlineSpec、MTP 和 ECHO 的边界问题。
+
+## splattn
+
+| Object | Source | Crop | Caption（完整原文） | Usage | QA |
+|---|---|---|---|---|---|
+| Figure 1 | arXiv:2605.01466v2，PDF p2，2550×3300，300 DPI | `(216,278,2048,900)`；[asset](../assets/papers/splattn/fig1-overall-architecture.png) | **The overall architecture of our proposed SplAttN.** The pipeline consists of two integral stages. **(a) Dual-Branch Feature Extraction.** The GS-Bridge branch extracts comprehensive global representations by using geometric tokens \(\mathcal{F}_{geo}\) to actively query visual features \(\mathcal{F}_{vis}\) derived from Gaussian Soft Splatting. In parallel, the Local Encoder captures topology-aware local details \(\mathcal{F}_l\) through an EdgeConv module followed by Multi-Head Self-Attention and projection. **(b) Global-Local Decoder.** This module unifies the generation process. It first predicts a sparse skeleton \(\mathcal{P}_0\) from the global feature \(\mathcal{F}_g\) via an MLP, incorporating input priors through the \(\mathcal{P}_{in}\)-Merge module. Subsequently, it hierarchically upsamples the point cloud \((\mathcal{P}_0 \to \mathcal{P}_2)\). As detailed in the decoding block, each upsampling stage integrates Structure Self-Attention to model geometric consistency and Cross-Attention to inject the extracted local features \(\mathcal{F}_l\) (as \(\mathcal{K},\mathcal{V}\)) for fine-grained refinement. | [SplAttN](../papers/splattn.md#33-模型系统架构) | 2026-07-24 contact sheet 初筛与父级原分辨率逐图 QA 均通过；单一 Figure 1、caption 完整、边界紧。 |
+| Figure 8 | 同上，PDF p8，2550×3300 | `(1265,260,1000,875)`；[asset](../assets/papers/splattn/fig8-multimodal-dependency.png) | **Verification of Multi-Modal Dependency.** We compare SCS sensitivity against Cross-Modal Information Throughput (CMIT). Unlike baselines with low CMIT showing negligible sensitivity, SplAttN achieves a dominant CMIT of **200.5**. This high throughput strictly correlates with a substantial consistency drop upon visual removal, confirming a valid cross-modal dependency rather than template retrieval. | [SplAttN](../papers/splattn.md#41-scscmit-结果与证据边界) | 初裁混入页眉后被拒绝并重裁；最终 crop 通过 contact sheet 与父级原分辨率 QA，单一 Figure 8、caption 完整。 |
+
+## flex-forcing
+
+| Object | Source | Crop | Caption（完整原文） | Usage | QA |
+|---|---|---|---|---|---|
+| Figure 3 | arXiv:2607.03509v1，PDF p3，1700×2200，200 DPI | `(140,190,1420,470)`；[asset](../assets/papers/flex-forcing/fig3-flexible-chunking-mechanism.png) | **Figure 3.** (Left) Flexible chunking for bridging the autoregressive and bidirectional video generation. Flex-Forcing adjusts chunk granularity across noise levels while a unified self-attention mechanism supports both causal and bidirectional inference. (Right) The mixed attention with causal tokens and non-causal tokens. We add a timestep dependent K-Projection at the clean cache from past frames. | [Flex-Forcing](../papers/flex-forcing.md#32-模型与系统架构) | 2026-07-24 contact sheet 与父级原分辨率 QA 通过；单一 Figure 3、caption 完整、标签可读。 |
+| Table 2 | 同上，PDF p6，1700×2200 | `(835,755,675,695)`；[asset](../assets/papers/flex-forcing/table2-five-second-performance.png) | **Table 2.** Comparisons of performance for 5s videos. *: We sample videos from the official checkpoint and test its performance. Here, the NFE of the causal distillation method contains N steps for denoising and 1 step for caching. | [Flex-Forcing](../papers/flex-forcing.md#41-5-秒主结果质量与速度分开看) | 初裁截断 caption 后被拒绝并重裁；最终单一 Table 2、caption 完整，contact sheet 与父级原分辨率 QA 通过。 |
 
 ## xdlm
 
@@ -57,7 +71,8 @@
 | Figure 1 | arXiv:2602.06019v2，PDF p1，1530×1980 | `(250,1240,1030,530)`；[asset](../assets/papers/multi-token-self-distillation/fig1-gsm8k-chunks.png) | Qwen3-4B MTP 的 GSM8K 示例：90% confidence-adaptive、无二次验证，每个色块是一轮 forward 生成的 1–7 token chunk，平均 chunk 3.04。 | [MTP](../papers/multi-token-self-distillation.md#4-关键结论) | 2026-07-17 父级原分辨率通过。 |
 | Figure 2 | 同上，PDF p6，1530×1980 | `(250,165,1030,470)`；[asset](../assets/papers/multi-token-self-distillation/fig2-tokenization-masking.png) | 展示 sequence tokenization/masking、多个 MTP region、target replication 与 position adjustment；online objective 的 target 来自 teacher feedback，可在单序列并行物化多个 MTP 问题。 | [MTP](../papers/multi-token-self-distillation.md#3-研究方法) | 通过。 |
 | Figure 3 | 同上，PDF p7，1530×1980 | `(250,175,1030,435)`；[asset](../assets/papers/multi-token-self-distillation/fig3-attention-masks.png) | rolling offset 与 variable `k` attention masks，使同一训练覆盖不同 prefix length 与 MTP window。 | [MTP](../papers/multi-token-self-distillation.md#3-研究方法) | 通过。 |
-| Figure 4 | 同上，PDF p8，1530×1980 | `(250,175,1040,675)`；[asset](../assets/papers/multi-token-self-distillation/fig4-accuracy-acceleration.png) | 两个 MTP LM 在 GSM8K 上约 100k steps 后的 acceleration factor–accuracy Pareto；adaptive decoding 呈 Pareto-optimal trade-off。 | [MTP](../papers/multi-token-self-distillation.md#4-关键结论) | 通过；Figure 12 因混入前文且 caption 截断未提升。 |
+| Figure 4 | 同上，PDF p8，1530×1980 | `(250,175,1040,675)`；[asset](../assets/papers/multi-token-self-distillation/fig4-accuracy-acceleration.png) | 两个 MTP LM 在 GSM8K 上约 100k steps 后的 acceleration factor–accuracy Pareto；adaptive decoding 呈 Pareto-optimal trade-off。 | [MTP](../papers/multi-token-self-distillation.md#4-关键结论) | 通过。 |
+| Figure 12 | 同上，PDF p23，1530×1980 | 父级重裁 `(250,420,1030,760)`；[asset](../assets/papers/multi-token-self-distillation/fig12-throughput-latency.png) | 比较 L3.1-8B-Magpie（单 GPU）与 Qwen 32B（4 GPU tensor parallel）的吞吐—单请求 latency；static MTP 平滑交换二者，而 ConfAdapt 的逐 token 开销在原型实现中限制并发扩展。 | [MTP](../papers/multi-token-self-distillation.md#76-调度serving自定义算子) | 2026-07-24 contact sheet 和父级原分辨率 QA 通过；单一 Figure 12、caption 完整、无邻接正文。 |
 
 ## dodo
 
@@ -77,8 +92,10 @@
 
 ## 排除记录
 
-- SplAttN、Flex-Forcing、Dual-Latent、OmniFit：没有可满足单一编号对象 + 完整 caption + 原分辨率 QA 的正式图表。
+- Dual-Latent、OmniFit：当前没有可满足单一编号对象 + 完整 caption + 原分辨率 QA 的正式图表。
+- SplAttN Figure 8 初裁：混入页眉，已重裁后提升。
+- Flex-Forcing Table 2 初裁：caption 最后一行截断，已重裁后提升。
 - SelfJudge 初始 Figure 1/2/4：含页眉或后续正文，已重裁后提升。
 - OnlineSpec Figure 2：caption 被截断，未提升；Figure 3 去掉下一节标题后提升。
-- MTP Figure 12：顶部混入前文且底部 caption 截断，未提升。
+- MTP Figure 12 初裁：顶部混入前文且底部 caption 截断；本轮重裁后提升。
 - ECHO Figure 3：初始 crop caption 最后一行截断，已从 page render 扩展 bbox 后提升。

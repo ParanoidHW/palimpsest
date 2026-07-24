@@ -1,0 +1,431 @@
+{
+  "schema_version": "1.3.0",
+  "deliverable_type": "paper-deep-review",
+  "invocation_mode": "delegated",
+  "paper": {
+    "paper_key": "2026_splattn",
+    "title": "SplAttN: Bridging 2D and 3D with Gaussian Soft Splatting and Attention for Point Cloud Completion",
+    "venue_and_year": "ICML 2026 Spotlight",
+    "paper_url": "https://arxiv.org/abs/2605.01466"
+  },
+  "completion_status": "complete",
+  "revision_info": {
+    "document_path": "analysis.md",
+    "section_heading": "修订信息",
+    "current_version": "1.1.0",
+    "current_revision_id": "rev-splattn-refresh-20260724",
+    "history": [
+      {
+        "revision_id": "rev-splattn-initial",
+        "version": "1.0.0",
+        "revised_at": "2026-07-16T12:00:00+08:00",
+        "revised_by": "review_splattn",
+        "revision_type": "initial",
+        "supersedes": null,
+        "migration_resolution": null,
+        "summary": "首次审阅",
+        "reason": "用户指定的单篇 paper-deep-review 任务",
+        "affected_locations": ["analysis.md", "figure_inventory.md", "review_checklist.md"],
+        "evidence": ["extracted_text/ar5iv.html", "code/SplAttN/"],
+        "impact_on_conclusions": "minor"
+      },
+      {
+        "revision_id": "rev-splattn-refresh-20260724",
+        "version": "1.1.0",
+        "revised_at": "2026-07-24T18:21:12+08:00",
+        "revised_by": "splattn_refresh",
+        "revision_type": "mixed",
+        "supersedes": {
+          "kind": "tracked",
+          "revision_id": "rev-splattn-initial",
+          "version": "1.0.0",
+          "deliverable_manifest_sha256": "1006a623b3473b4129ba2f3fd8ecb08fd7c299846678d0636e1b1438fef2650c"
+        },
+        "migration_resolution": null,
+        "summary": "恢复完整 PDF/source，新增机制与结果视觉证据，提升 venue 状态并刷新代码/checkpoint 核验",
+        "reason": "任务包要求修订上一版因截断 PDF/source、零视觉证据与 venue 未核验造成的 blocked delivery",
+        "affected_locations": [
+          "analysis.md",
+          "figure_inventory.md",
+          "figures/crops/fig1-overall-architecture-caption.png",
+          "figures/crops/fig8-multimodal-dependency-caption.png",
+          "figures/contact-sheet.png",
+          "paper.pdf",
+          "source.tar.gz",
+          "source",
+          "code/SplAttN",
+          "checkpoint_metadata",
+          "venue"
+        ],
+        "evidence": [
+          "paper.pdf arXiv:2605.01466v2",
+          "source/example_paper.tex",
+          "venue/icml-poster-60900.html",
+          "code commit 0c279dd11ca13a70b676cd60ca9673e093526b9a",
+          "checkpoint_metadata/hf-pcn.json",
+          "checkpoint_metadata/hf-shapenet55.json",
+          "checkpoint_metadata/hf-shapenet34.json"
+        ],
+        "impact_on_conclusions": "material"
+      }
+    ]
+  },
+  "schema_validation": {
+    "status": "passed",
+    "validator": "python jsonschema Draft 2020-12",
+    "errors": []
+  },
+  "semantic_validation": {
+    "status": "passed",
+    "validator": "paper-deep-review semantic checks plus frozen artifact verification",
+    "checks": {
+      "artifact_paths_and_hashes": true,
+      "revision_section_matches_manifest": true,
+      "revision_history_consistency": true,
+      "current_revision_is_latest": true,
+      "unresolved_migrations_resolved": true,
+      "terminology_symbol_section_consistency": true,
+      "key_term_symbol_coverage": true,
+      "design_rationale_evidence_consistency": true,
+      "design_rationale_core_design_coverage": true,
+      "visual_count_sum": true,
+      "missing_visual_types": true,
+      "provenance_hash_equality": true,
+      "checklist_manifest_consistency": true
+    },
+    "errors": []
+  },
+  "artifacts": {
+    "paper_pdf": {
+      "status": "present",
+      "path": "paper.pdf",
+      "sha256": "d8f9751b909a6958d62cd6aa7aa6a61c282a2bd20cc251ddb7a2dcbdb54e15c4",
+      "reason": null
+    },
+    "analysis": {
+      "status": "present",
+      "path": "analysis.md",
+      "sha256": "d1aa17817c7dcdf34f60ae9f9c2f31f0b5f0268a4af381062c27bf167ea8d455",
+      "reason": null
+    },
+    "review_checklist": {
+      "status": "present",
+      "path": "review_checklist.md",
+      "sha256": "25fecb79f37eef1dc771e49378e75a53831a4ae8cace7b18ea05c93053285a33",
+      "reason": null
+    },
+    "figure_inventory": {
+      "status": "present",
+      "path": "figure_inventory.md",
+      "sha256": "cd5af8392a7b5c58e44151892edb8ab0a48e2122e186add30c2207efab98859d",
+      "reason": null
+    },
+    "contact_sheet": {
+      "status": "present",
+      "path": "figures/contact-sheet.png",
+      "sha256": "8606ec0f7377ac7d1a87ee6e117fe07ed7b04db2b7bce103626080f19264211e",
+      "reason": null
+    },
+    "source_archive": {
+      "status": "present",
+      "path": "source.tar.gz",
+      "sha256": "dafa78ad106ec1605c249beb831f487d5db6416dc88a5f64ac52f4c8b01ae931",
+      "reason": null
+    },
+    "code_snapshot": {
+      "status": "present",
+      "path": "code/SplAttN",
+      "sha256": "d127ab62d2fd4de4507a73d9b9c47df4f25634ae1c3e91883d2b4619ca9acdb0",
+      "reason": null
+    },
+    "openreview_reviews": {
+      "status": "present",
+      "path": "openreview_reviews.md",
+      "sha256": "c28ac0b671499bea92e984516c6d38b037f25f7e2eafc14187c3971b94e2dd4d",
+      "reason": null
+    },
+    "generated_diagram": {
+      "status": "skipped-with-reason",
+      "path": null,
+      "sha256": null,
+      "reason": "Installed OpenRouter ICU CLI exposes only generate/edit and lacks the required responses-doc --input-file analysis.md document-input path; no prompt-only substitute was used."
+    },
+    "task_packet": {
+      "status": "present",
+      "path": "task_packet.yaml",
+      "sha256": "c360805cfc20ff1495f77a865f6cc13aaf75ba662ff590395a845e27d8865779",
+      "reason": null
+    },
+    "agent_handoff": {
+      "status": "present",
+      "path": "agent_handoff.md",
+      "sha256": "d41a9059c75fae94be8b3562b30c2a69b83e2ab1d2bc71adce87d98b7669837c",
+      "reason": null
+    },
+    "artifact_manifest_path": "artifact_manifest.sha256"
+  },
+  "visual_evidence": {
+    "mechanism_count": 1,
+    "result_or_system_count": 1,
+    "counted_total": 2,
+    "missing_types": [],
+    "inventory_fields_complete": true,
+    "contact_sheet_qa": "passed",
+    "individual_crop_qa": "passed"
+  },
+  "terminology_and_symbols": {
+    "document_path": "analysis.md",
+    "section_heading": "0.1 术语与符号解释",
+    "terms": [
+      {
+        "term": "Cross-Modal Entropy Collapse",
+        "definition": "硬投影稀疏支持导致视觉信息支持、熵与跨模态可学习性退化的论文特定表述。",
+        "aliases": ["entropy collapse"],
+        "sources": ["analysis.md §0.1.1", "paper §3.1 Eq.1-4"],
+        "ambiguity_notes": "不是标准定理名称；论文把支持测度、熵和梯度连接起来，其中部分推论依赖理想化模型。"
+      },
+      {
+        "term": "Gaussian Soft Splatting",
+        "definition": "以 Gaussian 邻域和逆深度权重将点的 CCM/深度贡献散射到图像平面。",
+        "aliases": ["soft splat", "differentiable Gaussian splatting"],
+        "sources": ["analysis.md §0.1.1", "paper §3.2 Eq.6-7", "code/SplAttN/models/model_utils.py"],
+        "ambiguity_notes": "不是完整 3DGS；当前代码是固定有限窗口和离散 scatter indices。"
+      },
+      {
+        "term": "GS-Bridge",
+        "definition": "hybrid geometric tokenizer、soft-splatted visual representation、TinyViT 与 3D-to-2D cross-attention 的组合。",
+        "aliases": ["Gaussian Splatting Bridge"],
+        "sources": ["analysis.md §0.1.1", "paper Figure 1 and §3.2", "code/SplAttN/models/SplAttN.py"],
+        "ambiguity_notes": "不只是 renderer，也不包含后续 global-local decoder。"
+      },
+      {
+        "term": "SCS",
+        "definition": "预训练 DGCNN 对完成点云真实类别给出的置信度。",
+        "aliases": ["Semantic Consistency Score"],
+        "sources": ["analysis.md §0.1.1", "paper Appendix D Eq.16", "paper Figure 8"],
+        "ambiguity_notes": "不是几何距离或人工感知评分，受 oracle calibration 与域偏移影响。"
+      },
+      {
+        "term": "SCS*",
+        "definition": "推理时切断或置零 2D branch 后的 SCS counterfactual。",
+        "aliases": ["visual-removal SCS"],
+        "sources": ["analysis.md §0.1.1", "paper §4.2", "paper Figure 8"],
+        "ambiguity_notes": "星号表示视觉移除 intervention，不是统计显著性。"
+      },
+      {
+        "term": "CMIT",
+        "definition": "channel-aware entropy 与空间 coverage 的乘积，作为 total information yield proxy。",
+        "aliases": ["Cross-Modal Information Throughput"],
+        "sources": ["analysis.md §0.1.1", "paper Appendix C Eq.15", "paper Figure 8"],
+        "ambiguity_notes": "不是通信吞吐 bit/s，数值依赖 feature scaling、binning 与 coverage 定义。"
+      },
+      {
+        "term": "CCM",
+        "definition": "由归一化三维坐标形成的三通道 pseudo-color map。",
+        "aliases": ["coordinate color map"],
+        "sources": ["analysis.md §0.1.1", "paper §3.2 Eq.6 text", "code/SplAttN/models/model_utils.py"],
+        "ambiguity_notes": "不是 RGB 相机图像。"
+      }
+    ],
+    "symbol_applicability": "applicable",
+    "symbols": [
+      {
+        "symbol": "P_soft(v|P_in)",
+        "meaning": "给定输入点云的软视觉查询密度。",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per visual query and sample",
+        "units_or_values": "normalized density interpretation",
+        "sources": ["analysis.md §0.1.2", "paper Eq.3"],
+        "ambiguity_notes": "代码没有显式实现论文全域概率密度归一化。"
+      },
+      {
+        "symbol": "sigma",
+        "meaning": "Gaussian bandwidth。",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per splat kernel",
+        "units_or_values": "paper numeric value absent; PCN code 1.5 pixel",
+        "sources": ["analysis.md §0.1.2", "paper Eq.3/7", "code/SplAttN/config_pcn.py"],
+        "ambiguity_notes": "kernel size 4 不等于 sigma=4，且论文没有 sensitivity。"
+      },
+      {
+        "symbol": "w_k(q)",
+        "meaning": "第 k 个 projected primitive 对查询 q 的 Gaussian × inverse-depth 权重。",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per query and contributing point",
+        "units_or_values": "dimensionless relative weight",
+        "sources": ["analysis.md §0.1.2", "paper Eq.7", "code/SplAttN/models/model_utils.py"],
+        "ambiguity_notes": "code 使用 fixed offsets 与 integer scatter indices。"
+      },
+      {
+        "symbol": "F_geo/F_vis/F_l/F_g",
+        "meaning": "几何 token、视觉 token、局部特征和融合全局特征。",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per sample/token/channel",
+        "units_or_values": "code mostly 256/512 channels",
+        "sources": ["analysis.md §0.1.2", "paper Figure 1/Eq.8", "code/SplAttN/models/SplAttN.py"],
+        "ambiguity_notes": "code 的 visual K/V 最终只有 3 个 view vectors，不是逐像素 token。"
+      },
+      {
+        "symbol": "H(V), C(V), CMIT",
+        "meaning": "channel entropy、active coverage 与二者乘积。",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per feature representation",
+        "units_or_values": "proxy; Figure 8 gives 7.8 × 25.7 ≈ 200.5",
+        "sources": ["analysis.md §0.1.2", "paper Appendix C Eq.15", "paper Figure 8"],
+        "ambiguity_notes": "不可作为跨实现可直接比较的 bit/s。"
+      },
+      {
+        "symbol": "SCS, SCS*",
+        "meaning": "原视觉与视觉移除条件下的 oracle semantic confidence。",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per completed cloud, then aggregated",
+        "units_or_values": "[0,1] confidence",
+        "sources": ["analysis.md §0.1.2", "paper Appendix D Eq.16", "paper Figure 8"],
+        "ambiguity_notes": "SCS* 是 intervention，不是独立重训模型。"
+      },
+      {
+        "symbol": "Delta_rel",
+        "meaning": "本分析使用的相对变化。",
+        "provenance": "analysis-derived",
+        "scope_or_indexing": "pairwise metric comparison",
+        "units_or_values": "percent",
+        "sources": ["analysis.md §0.1.2", "analysis.md §4.1"],
+        "ambiguity_notes": "不是论文符号，定义为 (new-old)/old。"
+      }
+    ],
+    "coverage": {
+      "key_terms": "passed",
+      "key_symbols": "passed",
+      "ambiguities": "passed"
+    }
+  },
+  "design_rationales": [
+    {
+      "design": "Gaussian soft splat with inverse-depth weighting",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["paper §3.1-3.2 Eq.3/6/7", "analysis.md §3.2"],
+      "concrete_problem": "Hard projection yields sparse support, quantization misalignment, and hard occlusion handling.",
+      "causal_mechanism": "A finite Gaussian neighborhood expands pixel coverage while inverse depth favors foreground contributions.",
+      "analysis_basis": ["analysis.md §3.2", "analysis.md §3.4", "code/SplAttN/models/model_utils.py"],
+      "alternatives_tradeoffs": "Bilinear/differentiable rasterizers or learned kernels may preserve coordinate gradients; larger windows cost more and can oversmooth.",
+      "validation_evidence": {
+        "type": "direct-ablation",
+        "sources": ["paper Table 4", "analysis.md §4.2-4.3"],
+        "judgment": "partially-supported"
+      }
+    },
+    {
+      "design": "Hybrid EdgeConv and Transformer geometric tokenizer",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["paper §3.2", "paper Figure 1", "analysis.md §3.2"],
+      "concrete_problem": "A single operator struggles to preserve both local curvature and global topology.",
+      "causal_mechanism": "EdgeConv extracts neighborhoods while self-attention propagates long-range token context.",
+      "analysis_basis": ["analysis.md §3.2-3.3", "code/SplAttN/models/SplAttN.py"],
+      "alternatives_tradeoffs": "Pure convolution is cheaper; pure attention has weaker local inductive bias; bundled components hinder attribution.",
+      "validation_evidence": {
+        "type": "replacement-baseline",
+        "sources": ["paper Table 4", "analysis.md §4.3"],
+        "judgment": "partially-supported"
+      }
+    },
+    {
+      "design": "Geometric-query visual cross-attention",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["paper §3.2 Eq.8", "analysis.md §3.2"],
+      "concrete_problem": "Passive concatenation does not force geometry-conditioned use of visual cues.",
+      "causal_mechanism": "Geometry tokens query visual keys and values to select view context.",
+      "analysis_basis": ["analysis.md §3.3-3.4", "code/SplAttN/models/SplAttN.py"],
+      "alternatives_tradeoffs": "Concatenation or gating is cheaper; current three-token visual compression may lose spatial detail.",
+      "validation_evidence": {
+        "type": "indirect",
+        "sources": ["paper Figure 8", "analysis.md §4.1-4.2"],
+        "judgment": "plausible"
+      }
+    },
+    {
+      "design": "Pretrained TinyViT-5M visual encoder",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["paper Table 5 and §4.3", "analysis.md §3.2"],
+      "concrete_problem": "Visual prior strength must be balanced against overcapacity on PCN.",
+      "causal_mechanism": "Compact pretraining supplies transferable view features without the reported degradation of 21M.",
+      "analysis_basis": ["analysis.md §3.2", "analysis.md §4.2-4.3"],
+      "alternatives_tradeoffs": "ResNet or larger TinyViT variants change capacity and latency; the overfitting mechanism lacks train/validation evidence.",
+      "validation_evidence": {
+        "type": "sensitivity",
+        "sources": ["paper Table 5", "analysis.md §4.3"],
+        "judgment": "supported"
+      }
+    },
+    {
+      "design": "Two-stage global-local SDG decoder",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["paper §3.3 and Figure 1/4", "analysis.md §3.2"],
+      "concrete_problem": "One-shot decoding has difficulty balancing coarse skeleton recovery and fine detail.",
+      "causal_mechanism": "The decoder merges input/coarse points and refines them through structure self-attention and local cross-attention at two scales.",
+      "analysis_basis": ["analysis.md §3.3", "code/SplAttN/models/SplAttN.py"],
+      "alternatives_tradeoffs": "One-stage, folding, or diffusion decoders may trade quality for memory and latency.",
+      "validation_evidence": {
+        "type": "code",
+        "sources": ["code/SplAttN/models/SplAttN.py", "analysis.md §3.3"],
+        "judgment": "plausible"
+      }
+    },
+    {
+      "design": "SCS/SCS* counterfactual paired with CMIT",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["paper §4.2 and Appendix C-D", "analysis.md §3.2"],
+      "concrete_problem": "Standard geometry metrics cannot establish whether a multimodal model uses visual input.",
+      "causal_mechanism": "Visual removal measures output semantic sensitivity while entropy-times-coverage summarizes representation yield.",
+      "analysis_basis": ["analysis.md §4.1-4.2", "paper Figure 8"],
+      "alternatives_tradeoffs": "Multiple intervention strengths, geometry metrics, alternative oracles, and causal mediation would reduce oracle/OOD confounds.",
+      "validation_evidence": {
+        "type": "mechanism-visualization",
+        "sources": ["paper Figure 8", "analysis.md §4.1"],
+        "judgment": "partially-supported"
+      }
+    }
+  ],
+  "evidence_checks": {
+    "claim_matrix": "passed",
+    "design_rationale_analysis": "passed",
+    "symbol_table": "passed",
+    "evidence_loop": "passed",
+    "code_cross_check": "passed",
+    "openreview_cross_check": "not-applicable",
+    "infrastructure_analysis": "passed",
+    "gain_attribution": "passed"
+  },
+  "delegated_provenance": {
+    "dispatch_id": "dispatch-splattn-refresh-20260724",
+    "agent_task_name": "splattn_refresh",
+    "task_packet_sha256": "c360805cfc20ff1495f77a865f6cc13aaf75ba662ff590395a845e27d8865779",
+    "skill_tree_sha256": "a338c821d6c79aff1aac224cc8713081d3b7462d46ea504771e5208dcdca96cd",
+    "agent_contract_sha256": "4dc80bfb1d508898c25f3f3775a4d2ebc596c4944291cc0dded6f586fcc74c32"
+  },
+  "limitations": [
+    {
+      "requirement": "Independent empirical gradient reproduction beyond paper/code cross-check",
+      "status": "skipped-with-reason",
+      "reason": "Current code uses fixed finite offsets and integer scatter indices; no gradient-norm experiment establishes the claimed continuous x/y geometry gradient.",
+      "effect_on_conclusions": "The PCN replacement gain remains supported, but the stronger continuous-gradient/PMI mechanism claim is unverified."
+    },
+    {
+      "requirement": "Public OpenReview cross-check",
+      "status": "skipped-with-reason",
+      "reason": "The packet has no URL, the official ICML page has no forum link, and exact-title searches returned no matching public record.",
+      "effect_on_conclusions": "Review-stage concerns and rebuttal cannot be assessed; official venue verification is unaffected."
+    },
+    {
+      "requirement": "Checkpoint payload/config internals",
+      "status": "skipped-with-reason",
+      "reason": "Three public HF repositories, revisions, and checkpoint filenames were inspected, but large .pth payloads were not downloaded or deserialized.",
+      "effect_on_conclusions": "Availability is verified; exact state-dict/config/optimizer provenance remains unverified."
+    },
+    {
+      "requirement": "AI-generated analysis diagram",
+      "status": "skipped-with-reason",
+      "reason": "Installed ICU CLI lacks the mandatory responses-doc --input-file analysis.md path.",
+      "effect_on_conclusions": "No effect on paper-derived factual or visual evidence."
+    }
+  ]
+}

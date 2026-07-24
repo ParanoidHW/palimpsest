@@ -1,0 +1,31 @@
+task: deep-review-one-paper
+dispatch_id: dispatch-dual-latent-refresh-r2-20260724
+agent_task_name: dual_latent_refresh_r2
+paper_key: 2026_dual-latent-memory-routing
+title: Dual-Latent Memory Routing for Vision-Language Reasoning
+role_in_survey: core
+selection_reason: The existing canonical review is blocked at abstract level; a newly discoverable ICML 2026 Spotlight OpenReview paper and official code repository can materially close method, experiment, visual, implementation, and public-review gaps.
+venue_and_year: ICML 2026 Spotlight
+paper_url: https://openreview.net/forum?id=SFWWUr9V7c
+pdf_url_or_path: https://openreview.net/pdf?id=SFWWUr9V7c
+source_url_or_path: unknown
+code_url_or_path: https://github.com/Hunter-Wrynn/DLMR
+openreview_url: https://openreview.net/forum?id=SFWWUr9V7c
+verification_questions:
+  - Verify the exact final revision, decision, reviews, rebuttal, and whether the public PDF differs materially from the original submission.
+  - Trace visual-memory, reasoning-memory, and router implementations to concrete code paths and a pinned commit.
+  - Verify token-efficiency claims and distinguish quality gains from shorter decoding or system/runtime effects.
+revision_mode: revise-existing
+previous_document_version: 1.0.0
+previous_revision_id: rev-initial-20260716
+previous_deliverable_manifest_path: /mnt/d/huangwei/markdown/_artifacts/icml_2026/reviews/dual-latent-memory-routing/deliverable_manifest.json
+previous_deliverable_manifest_sha256: 4371334aa259856f2ddafec22e9bead4ef3eb1bda1f1f8733c7887e2d7469c31
+revision_request: Revise the prior blocked abstract-only delivery because the ICML 2026 Spotlight OpenReview PDF, public review record, and official code repository are now discoverable; preserve its revision history and bind this update to its manifest.
+task_packet_path: /mnt/d/huangwei/markdown/_artifacts/icml-2026-selected-papers-refresh/papers/2026_dual-latent-memory-routing/task_packet.yaml
+output_folder: /mnt/d/huangwei/markdown/_artifacts/icml-2026-selected-papers-refresh/papers/2026_dual-latent-memory-routing
+allowed_write_root: /mnt/d/huangwei/markdown/_artifacts/icml-2026-selected-papers-refresh/papers/2026_dual-latent-memory-routing
+agent_contract: /mnt/d/huangwei/markdown/.agents/skills/ai-algorithm-survey/references/paper-review-agent-contract.md
+agent_contract_sha256: 4dc80bfb1d508898c25f3f3775a4d2ebc596c4944291cc0dded6f586fcc74c32
+required_skill: paper-deep-review
+required_skill_dir: /mnt/d/huangwei/markdown/.agents/skills/paper-deep-review
+required_skill_tree_sha256: a338c821d6c79aff1aac224cc8713081d3b7462d46ea504771e5208dcdca96cd

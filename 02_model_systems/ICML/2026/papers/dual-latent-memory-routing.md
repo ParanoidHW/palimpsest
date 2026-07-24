@@ -7,27 +7,28 @@
 > - 证据资产：无（本次无合格图表资产）
 > - 相关文档：[Paper index](../evidence/paper-index.md)
 
-> 资料状态：ICML 2026 官方页面已确认论文身份、作者和摘要，但未提供 PDF、LaTeX/source、OpenReview、项目页或代码链接。本文仅做官方摘要级核验，不构成完整 paper deep review；图表、公式、实验数字、实现和公开评审均不可验证。
+> 资料状态：ICML 2026 官方页面与 OpenReview 条目 `SFWWUr9V7c` 已确认论文身份、作者、摘要和 Spotlight 状态；但直接 PDF/API/attachment 在 2026-07-24 仍被站点 challenge 拦截，声称的 GitHub 仓库返回 404。本文仍只做摘要级核验，不构成完整 paper deep review；图表、公式、实验数字、实现和公开评审均不可验证。
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-initial-20260716`
-- 当前修订时间：`2026-07-16T19:16:43+08:00`
-- 替代版本：无（initial）
+- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-source-recovery-20260724`
+- 当前修订时间：`2026-07-24T22:45:00+08:00`
+- 替代版本：`rev-initial-20260716` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-initial-20260716` | `1.0.0` | `2026-07-16T19:16:43+08:00` | `review_dual_latent` | `initial` | 无 | 无 | 建立官方摘要级 blocked 交付 | 精确 PDF 在受控恢复后仍不可得 | 本文证据边界各节 | ICML poster 63955 | material：不能验证论文技术与实验结论 |
+| `rev-source-recovery-20260724` | `1.0.1` | `2026-07-24T22:45:00+08:00` | `/root` | `evidence-update` | `rev-initial-20260716` / `1.0.0` | 无 | 定位精确 OpenReview 身份并重试 PDF/API/代码 | 刷新上次缺失源文件 | 来源与阻塞边界 | OpenReview `SFWWUr9V7c`；ICML poster `63955`；GitHub API | minor：身份/venue 更强，技术结论仍 blocked |
 
 ## 0. 资料与配图索引
 
 - 官方论文页：<https://icml.cc/virtual/2026/poster/63955>
 - 官方页面：[ICML 2026 poster 63955](https://icml.cc/virtual/2026/poster/63955)。
-- PDF：不可得。
+- OpenReview：[forum `SFWWUr9V7c`](https://openreview.net/forum?id=SFWWUr9V7c)；搜索索引与 ICML 页面身份一致。
+- PDF：直接 forum PDF、API 与 attachment 重试均返回 challenge/403，未取得可验证文件。
 - LaTeX/source：不可得。
-- 开源代码：未发现官方仓库。
-- OpenReview：官方页无链接；exact-title API challenge 403。
+- 开源代码：声称的 `https://github.com/Hunter-Wrynn/DLMR` 在 2026-07-24 返回 404/API Not Found，不能作为实现证据。
 - 图表：0；未创建空白占位资产。
 - AI 生成分析示意图：跳过。父契约确认已安装 CLI 只有 `generate`/`edit`，不具备技能强制要求的 required document-input path 文档输入路径。
 
@@ -106,7 +107,7 @@
 
 ## 6. OpenReview 公开评审 × 论文内容交叉核验
 
-官方页没有 OpenReview 链接或 forum ID；OpenReview v1/v2 exact-title API 均返回 challenge 403。reviews、meta-review、decision、rebuttal 和 discussion 均不可得，因此不能进行评审交叉核验。
+已定位精确 forum `SFWWUr9V7c`，但 OpenReview 页面/API/attachment 在本轮环境均返回 challenge 403。reviews、meta-review、decision、rebuttal 和 discussion 仍不可得，因此不能进行评审交叉核验。
 
 ## 7. Infra 需求分析
 
@@ -128,7 +129,7 @@
 
 ## 8. 开源代码与配置对照
 
-官方 ICML 页没有项目或代码链接；GitHub exact-title 和 author-plus-DLMR repository 搜索为零结果。没有可核验的 commit、架构、loss、data pipeline、evaluation、serving、checkpoint 或 config。任何实现级解释均应标记为未验证。
+官方 ICML 页没有可访问的代码快照；搜索结果所指向的 `Hunter-Wrynn/DLMR` 当前返回 404/API Not Found。没有可核验的 commit、架构、loss、data pipeline、evaluation、serving、checkpoint 或 config。任何实现级解释均应标记为未验证。
 
 ## 9. 优点、局限与可改进之处
 

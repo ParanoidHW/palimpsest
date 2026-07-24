@@ -1,31 +1,34 @@
 # OmniFit: Bridging Modalities via Layer-Adaptive Token Compression for Omnimodal Large Language Models 精读分析
 
 > [!info] 文档关系
-> - 文档类型：Paper（blocked：精确论文资料不可得）
+> - 文档类型：Paper（blocked：正文/source/code 不可得）
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[ICML 2026 selected papers](../surveys/icml-2026-selected-papers.md)
 > - 证据资产：无（本次无合格图表资产）
 > - 相关文档：[Paper index](../evidence/paper-index.md)
 
-> 资料状态：blocked。任务包没有提供 PDF、源码、官方页面或 OpenReview URL；本次恢复按父任务要求不进行网络调用。为避免误认，未使用 arXiv:2604.21575（其为 3D Body Fitting、标题和研究范围均不同）。因此以下仅记录证据边界，不对方法、公式、实验或系统作无来源推断。
+> 资料状态：blocked。本轮已把精确身份恢复为 OpenReview `8RY20mLzup`、ICML 2026 poster `65962` / Spotlight `84897`，但 PDF、API、source、reviews 与 code 仍不可得。为避免误认，未使用 arXiv:2604.21575（其为 3D Body Fitting、标题和研究范围均不同）。以下技术描述仍以证据边界为主，不把摘要数字当成已复核实验事实。
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-omnifit-initial`
-- 当前修订时间：`2026-07-17T00:00:00+08:00`
-- 替代版本：无（initial）
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-omnifit-openreview-refresh`
+- 当前修订时间：`2026-07-24T23:30:00+08:00`
+- 替代版本：`rev-omnifit-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | rev-omnifit-initial | 1.0.0 | 2026-07-17T00:00:00+08:00 | review_omnifit | initial | none | none | 建立 blocked 交付并记录恢复边界 | 精确论文资料不可用 | 全文 | task_packet.yaml recovery_attempts_already_made | material |
+| rev-omnifit-openreview-refresh | 1.1.0 | 2026-07-24T23:30:00+08:00 | `/root` | evidence-update | rev-omnifit-initial / 1.0.0 | none | 恢复精确 OpenReview/ICML 身份并记录访问阻塞 | 刷新上次未取得源文件的论文 | 来源、身份与阻塞边界 | OpenReview `8RY20mLzup`；ICML poster `65962` / Spotlight `84897` | material：身份/venue 已确认，技术结论仍 blocked |
 
 ## 0. 资料与配图索引
 
-- 论文：不可用（task packet `paper_url: null`, `pdf_url: null`）
+- 论文身份：[OpenReview `8RY20mLzup`](https://openreview.net/forum?id=8RY20mLzup)；[ICML poster `65962`](https://icml.cc/virtual/2026/poster/65962)，关联 Spotlight `84897`。
+- 作者：Zining Wang、Zhihang Yuan、Yingjie Zhai、Wenshuo Li、Han Shu、Ruihao Gong、Jinyang Guo、Xianglong Liu。
+- PDF：直接 OpenReview PDF/API 重试为 403/browser challenge，未取得可验证正文。
 - 源码/LaTeX：不可用；未发现本地文件
-- 开源代码：不可用；任务包记录 GitHub 精确标题检索为零结果
-- OpenReview：不可用；任务包记录 exact-title API 返回 ChallengeRequiredError 403
+- 开源代码：官方 ICML/OpenReview 可访问元数据未给出 code link；无 commit/config/checkpoint
+- OpenReview：身份已定位，reviews/meta-review/rebuttal 仍因 403/challenge 不可读
 - 提取文本：未生成，因无 PDF
 - 图表：无。无 PDF 即无法获得含完整 caption 的机制图或结果/系统图
 - AI 生成分析示意图：跳过。父契约规定 CLI 不支持所需 required document-input path 路径
@@ -46,7 +49,8 @@
 
 ## 1. 论文基本信息
 
-- 研究领域：据标题推测为多模态大语言模型 token 压缩；该归类未由正文验证。
+- Venue：ICML 2026 Spotlight；身份由官方 poster 与 OpenReview 元数据交叉确认。
+- 研究领域：据标题和官方摘要为 omnimodal large language model 的 training-free layer-adaptive token compression；正文实现未核验。
 - 核心问题、研究目标、关键约束/假设：不可判定。任何具体描述都可能把标题误读为方法事实。
 
 ## 2. 核心贡献与创新点

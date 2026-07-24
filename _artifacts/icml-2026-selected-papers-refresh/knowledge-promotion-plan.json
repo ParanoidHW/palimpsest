@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.1.0",
+  "task": "Refresh and complete the existing ICML 2026 selected-paper survey, prioritizing papers whose PDF or source was previously unavailable",
+  "repository_root": "/mnt/d/huangwei/markdown",
+  "organization_binding": {
+    "organization_schema_version": "1.0.0",
+    "organization_schema_sha256": "c182904b3083e912117e109dcf97f6f73e93119666908ef14fedb6deb8f961dd",
+    "default_profile_sha256": "574617743d18fac813cd4c311e45b68a6e6570f65772baebefbbdd796ea48a2e",
+    "resolved_profile_id": "huangwei-research-vault",
+    "repository_profile": "research-knowledge.profile.json",
+    "repository_profile_sha256": "3db4cfbe7978675b5b8fbb4675c65942cef6d8aa44cb29cc2335e1d4969c3a2c",
+    "process_root": "_artifacts"
+  },
+  "domains": [
+    "02_model_systems/ICML/2026"
+  ],
+  "items": [
+    {
+      "canonical_id": "survey:02-model-systems:icml-2026-selected-papers",
+      "domain": "02_model_systems/ICML/2026",
+      "doc_type": "survey",
+      "slug": "icml-2026-selected-papers",
+      "canonical_path": "02_model_systems/ICML/2026/surveys/icml-2026-selected-papers.md",
+      "operation": "update",
+      "source_artifacts": [
+        "_artifacts/icml-2026-selected-papers-refresh/synthesis.md"
+      ],
+      "owner": "survey:02-model-systems:icml-2026-selected-papers"
+    },
+    {
+      "canonical_id": "evidence:02-model-systems:icml-2026-paper-index",
+      "domain": "02_model_systems/ICML/2026",
+      "doc_type": "evidence",
+      "slug": "paper-index",
+      "canonical_path": "02_model_systems/ICML/2026/evidence/paper-index.md",
+      "operation": "update",
+      "source_artifacts": [
+        "_artifacts/icml-2026-selected-papers-refresh/paper_db.jsonl",
+        "_artifacts/icml-2026-selected-papers-refresh/selection.md"
+      ],
+      "owner": "survey:02-model-systems:icml-2026-selected-papers"
+    },
+    {
+      "canonical_id": "evidence:02-model-systems:icml-2026-figure-inventory",
+      "domain": "02_model_systems/ICML/2026",
+      "doc_type": "evidence",
+      "slug": "figure-inventory",
+      "canonical_path": "02_model_systems/ICML/2026/evidence/figure-inventory.md",
+      "operation": "update",
+      "source_artifacts": [
+        "_artifacts/icml-2026-selected-papers-refresh/figure_inventory.md"
+      ],
+      "owner": "survey:02-model-systems:icml-2026-selected-papers"
+    },
+    {
+      "canonical_id": "paper:02-model-systems:splattn",
+      "domain": "02_model_systems/ICML/2026",
+      "doc_type": "paper",
+      "slug": "splattn",
+      "canonical_path": "02_model_systems/ICML/2026/papers/splattn.md",
+      "operation": "update",
+      "source_artifacts": [
+        "_artifacts/icml-2026-selected-papers-refresh/papers/2026_splattn/analysis.md"
+      ],
+      "owner": "paper:02-model-systems:splattn"
+    },
+    {
+      "canonical_id": "paper:02-model-systems:dual-latent-memory-routing",
+      "domain": "02_model_systems/ICML/2026",
+      "doc_type": "paper",
+      "slug": "dual-latent-memory-routing",
+      "canonical_path": "02_model_systems/ICML/2026/papers/dual-latent-memory-routing.md",
+      "operation": "update",
+      "source_artifacts": [
+        "_artifacts/icml-2026-selected-papers-refresh/papers/2026_dual-latent-memory-routing/analysis.md"
+      ],
+      "owner": "paper:02-model-systems:dual-latent-memory-routing"
+    },
+    {
+      "canonical_id": "paper:02-model-systems:flex-forcing",
+      "domain": "02_model_systems/ICML/2026",
+      "doc_type": "paper",
+      "slug": "flex-forcing",
+      "canonical_path": "02_model_systems/ICML/2026/papers/flex-forcing.md",
+      "operation": "update",
+      "source_artifacts": [
+        "_artifacts/icml-2026-selected-papers-refresh/papers/2026_flex-forcing/analysis.md"
+      ],
+      "owner": "paper:02-model-systems:flex-forcing"
+    },
+    {
+      "canonical_id": "paper:02-model-systems:omnifit-layer-compression",
+      "domain": "02_model_systems/ICML/2026",
+      "doc_type": "paper",
+      "slug": "omnifit-layer-compression",
+      "canonical_path": "02_model_systems/ICML/2026/papers/omnifit-layer-compression.md",
+      "operation": "update",
+      "source_artifacts": [
+        "_artifacts/icml-2026-selected-papers-refresh/papers/2026_omnifit-layer-compression/analysis.md"
+      ],
+      "owner": "paper:02-model-systems:omnifit-layer-compression"
+    },
+    {
+      "canonical_id": "paper:02-model-systems:multi-token-self-distillation",
+      "domain": "02_model_systems/ICML/2026",
+      "doc_type": "paper",
+      "slug": "multi-token-self-distillation",
+      "canonical_path": "02_model_systems/ICML/2026/papers/multi-token-self-distillation.md",
+      "operation": "update",
+      "source_artifacts": [
+        "_artifacts/icml-2026-selected-papers-refresh/papers/2026_multi-token-self-distillation/analysis.md"
+      ],
+      "owner": "paper:02-model-systems:multi-token-self-distillation"
+    }
+  ],
+  "required_links": [
+    {
+      "from": "02_model_systems/ICML/2026/README.md",
+      "to": "02_model_systems/ICML/2026/surveys/icml-2026-selected-papers.md",
+      "relation": "indexes"
+    },
+    {
+      "from": "02_model_systems/ICML/2026/surveys/icml-2026-selected-papers.md",
+      "to": "each refreshed canonical Paper and Evidence document",
+      "relation": "surveys/evidence-for"
+    },
+    {
+      "from": "each refreshed canonical Paper",
+      "to": "02_model_systems/ICML/2026/README.md and surveys/icml-2026-selected-papers.md",
+      "relation": "backlink"
+    }
+  ],
+  "validation": [
+    "Draft 2020-12 promotion-plan schema",
+    "README-Survey-Paper-Asset and Paper-Survey/README link graph",
+    "relative link and anchor resolution",
+    "formal asset existence and Git tracking",
+    "no formal _artifacts/absolute/page-render references",
+    "orphan document and asset checks",
+    "domain-isolated diff review"
+  ]
+}

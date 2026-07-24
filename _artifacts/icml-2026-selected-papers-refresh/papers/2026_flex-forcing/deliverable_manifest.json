@@ -1,0 +1,526 @@
+{
+  "schema_version": "1.3.0",
+  "deliverable_type": "paper-deep-review",
+  "invocation_mode": "delegated",
+  "paper": {
+    "paper_key": "2026_flex-forcing",
+    "title": "Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model",
+    "venue_and_year": "ICML 2026 Spotlight",
+    "paper_url": "https://arxiv.org/abs/2607.03509"
+  },
+  "completion_status": "complete",
+  "revision_info": {
+    "document_path": "analysis.md",
+    "section_heading": "修订信息",
+    "current_version": "1.0.0",
+    "current_revision_id": "rev-source-complete-20260724",
+    "history": [
+      {
+        "revision_id": "rev-initial",
+        "version": "0.1.0",
+        "revised_at": "2026-07-17T00:00:00+08:00",
+        "revised_by": "review_flex_forcing",
+        "revision_type": "initial",
+        "supersedes": null,
+        "migration_resolution": null,
+        "summary": "首次建立 blocked 单篇审阅包",
+        "reason": "主 PDF 下载不完整且无法解析",
+        "affected_locations": ["analysis.md", "figure_inventory.md", "review_checklist.md"],
+        "evidence": ["paper.pdf", "extracted_text/error.log"],
+        "impact_on_conclusions": "material"
+      },
+      {
+        "revision_id": "rev-source-complete-20260724",
+        "version": "1.0.0",
+        "revised_at": "2026-07-24T20:20:34+08:00",
+        "revised_by": "flex_forcing_refresh",
+        "revision_type": "mixed",
+        "supersedes": {
+          "kind": "tracked",
+          "revision_id": "rev-initial",
+          "version": "0.1.0",
+          "deliverable_manifest_sha256": "075d43a87072c1b36cf647ac3a6ca1513c68dd44bdf23e86982108de8e32310d"
+        },
+        "migration_resolution": null,
+        "summary": "用完整 PDF/source 重做方法、实验、视觉、venue、项目页与系统分析并补全审计产物",
+        "reason": "刷新任务要求替换不可读 PDF 的 blocked 交付",
+        "affected_locations": [
+          "analysis.md",
+          "figure_inventory.md",
+          "openreview_reviews.md",
+          "source_verification.md",
+          "figures/crops"
+        ],
+        "evidence": [
+          "arXiv v1 PDF/source",
+          "official NVIDIA project page",
+          "ICML Downloads",
+          "indexed OpenReview metadata",
+          "task_packet.yaml"
+        ],
+        "impact_on_conclusions": "material"
+      }
+    ]
+  },
+  "schema_validation": {
+    "status": "passed",
+    "validator": "jsonschema Draft 2020-12",
+    "errors": []
+  },
+  "semantic_validation": {
+    "status": "passed",
+    "validator": "paper-deep-review semantic checks",
+    "checks": {
+      "artifact_paths_and_hashes": true,
+      "revision_section_matches_manifest": true,
+      "revision_history_consistency": true,
+      "current_revision_is_latest": true,
+      "unresolved_migrations_resolved": true,
+      "terminology_symbol_section_consistency": true,
+      "key_term_symbol_coverage": true,
+      "design_rationale_evidence_consistency": true,
+      "design_rationale_core_design_coverage": true,
+      "visual_count_sum": true,
+      "missing_visual_types": true,
+      "provenance_hash_equality": true,
+      "checklist_manifest_consistency": true
+    },
+    "errors": []
+  },
+  "artifacts": {
+    "paper_pdf": {
+      "status": "present",
+      "path": "paper.pdf",
+      "sha256": "13fccfcd816bf108507a1ff8091c659f2009b6e964378853ec29aaf0613e6039",
+      "reason": null
+    },
+    "analysis": {
+      "status": "present",
+      "path": "analysis.md",
+      "sha256": "86e9272375b630e4a65af0507801eaa1e2b9691ed1beca8e9cf1486e105aba96",
+      "reason": null
+    },
+    "review_checklist": {
+      "status": "present",
+      "path": "review_checklist.md",
+      "sha256": "4394ba35c2652481b0914d2548d6501cd99e031ad32eb38db770d417a933d36c",
+      "reason": null
+    },
+    "figure_inventory": {
+      "status": "present",
+      "path": "figure_inventory.md",
+      "sha256": "13b2cafdae1944d676f74493a8fe6133c74e75fe2e3fb62e24acaa6991fb926a",
+      "reason": null
+    },
+    "contact_sheet": {
+      "status": "present",
+      "path": "figures/contact-sheet.png",
+      "sha256": "ea316011ad2366480a6139a6bdd14607d23c60dcfb2a131651776a3d776cdc16",
+      "reason": null
+    },
+    "source_archive": {
+      "status": "present",
+      "path": "source/arxiv-source.tar",
+      "sha256": "44e8beac1e0d97496beebbffd5f60ffc1aa5ab87fc19d452bc79ef913d537fde",
+      "reason": null
+    },
+    "code_snapshot": {
+      "status": "not-applicable",
+      "path": null,
+      "sha256": null,
+      "reason": "The paper and official NVIDIA project page do not claim or link an official code repository or Flex checkpoint; exact GitHub repository search returned only unrelated projects."
+    },
+    "openreview_reviews": {
+      "status": "present",
+      "path": "openreview_reviews.md",
+      "sha256": "17dc27ed441f8d299672460cb4aa37adef153391dc61c569642744d30f576d46",
+      "reason": null
+    },
+    "generated_diagram": {
+      "status": "skipped-with-reason",
+      "path": null,
+      "sha256": null,
+      "reason": "OPENROUTER_ICU_API_KEY is present, but the installed skill and CLI lack the mandatory responses-doc --input-file analysis.md document-input path; prompt-only generation is forbidden."
+    },
+    "task_packet": {
+      "status": "present",
+      "path": "task_packet.yaml",
+      "sha256": "23b8b44214240a7a6b5156da50e93136b2065219f3b829dcaad2bf68f1034409",
+      "reason": null
+    },
+    "agent_handoff": {
+      "status": "present",
+      "path": "agent_handoff.md",
+      "sha256": "23d92a1d9fd0197dc8128e9cc4df86f83421d1d5cf0ebf62a77d1d176f8e3dc5",
+      "reason": null
+    },
+    "artifact_manifest_path": "artifact_manifest.sha256"
+  },
+  "visual_evidence": {
+    "mechanism_count": 1,
+    "result_or_system_count": 1,
+    "counted_total": 2,
+    "missing_types": [],
+    "inventory_fields_complete": true,
+    "contact_sheet_qa": "passed",
+    "individual_crop_qa": "passed"
+  },
+  "terminology_and_symbols": {
+    "document_path": "analysis.md",
+    "section_heading": "0.1 术语与符号解释",
+    "terms": [
+      {
+        "term": "Flex-Forcing",
+        "definition": "在同一后训练视频扩散模型中用可变 chunk 配置覆盖双向、混合和自回归推理的框架",
+        "aliases": ["flexible inference framework"],
+        "sources": ["Abstract", "Section 3 Overview", "Figure 3"],
+        "ambiguity_notes": "不是两个模型的路由，也不是纯运行时免训练插件"
+      },
+      {
+        "term": "flexible chunking",
+        "definition": "同时沿视频帧轴和去噪 timestep 轴定义的连续分块，chunk 内双向且 chunk 间自回归",
+        "aliases": ["frame/timestep chunking"],
+        "sources": ["Sections 3.1-3.2", "Equations 1-3", "Table 1"],
+        "ambiguity_notes": "会改变注意力可见性和执行依赖，不等于仅改变 batch size"
+      },
+      {
+        "term": "nested flexibility",
+        "definition": "随去噪推进只插入新边界并递归细分原 chunk 的约束",
+        "aliases": ["pyramid chunking"],
+        "sources": ["Section 3.2", "Equation 3", "Appendix Figure 13"],
+        "ambiguity_notes": "不是任意无约束合并或重排 chunk"
+      },
+      {
+        "term": "clean KV cache",
+        "definition": "已生成历史帧的干净 key/value 状态，存储一次并在每个 timestep 使用",
+        "aliases": ["past-frame cache"],
+        "sources": ["Section 3.1", "Section 3.3", "Figure 3"],
+        "ambiguity_notes": "与当前 noisy chunk 的在线 K/V 不同；论文只明确投影 clean key"
+      },
+      {
+        "term": "K-Projection",
+        "definition": "将 clean cached key 按当前 diffusion timestep 投影到噪声一致表示空间的轻量线性投影",
+        "aliases": ["noise-aligned projection"],
+        "sources": ["Section 3.3", "Equations 5-6", "Figure 8"],
+        "ambiguity_notes": "不是更新整个 cache；参数共享与 value 处理未说明"
+      },
+      {
+        "term": "asymmetric distillation",
+        "definition": "ODE causal initialization 后使用 self-rollout 与 VSD/DMD 训练 few-step generator 的流程",
+        "aliases": ["causal distillation"],
+        "sources": ["Section 3.3"],
+        "ambiguity_notes": "Flex-Forcing 继承前作骨架并新增随机 chunks 与 K-Projection"
+      },
+      {
+        "term": "NFE",
+        "definition": "去噪函数评估次数；Table 2 causal distillation 另有一次 caching step",
+        "aliases": ["number of function evaluations"],
+        "sources": ["Table 2 caption", "Appendix speed analysis"],
+        "ambiguity_notes": "不能单独线性预测速度，chunk rollout 次数也重要"
+      },
+      {
+        "term": "any-timestep editing",
+        "definition": "仅在后期 refinement timesteps 修改 conditioning 并保持早期 global planning",
+        "aliases": ["any-step editing"],
+        "sources": ["Section 4.2", "Figure 6"],
+        "ambiguity_notes": "作者实际策略限制在后期 timestep，并非所有 timestep 等价"
+      },
+      {
+        "term": "any-order editing",
+        "definition": "对中间 chunk 同时条件化于前后 clean chunks 的后生成重编辑",
+        "aliases": ["order-agnostic editing"],
+        "sources": ["Section 4.2", "Equation 7", "Figure 5"],
+        "ambiguity_notes": "显式使用 future clean context，因此不是严格左到右 causal generation"
+      },
+      {
+        "term": "sink/window",
+        "definition": "30 秒推理保留 3 latent-frame sink 和 21 latent-frame attention window",
+        "aliases": ["attention sink/window"],
+        "sources": ["Section 5 Implementations"],
+        "ambiguity_notes": "不是全文上下文，论文没有窗口敏感性实验"
+      }
+    ],
+    "symbol_applicability": "applicable",
+    "symbols": [
+      {
+        "symbol": "F",
+        "meaning": "视频 latent 帧数",
+        "provenance": "author-defined",
+        "scope_or_indexing": "global video",
+        "units_or_values": "frames; experiments use 21 latent frames for 81 output frames",
+        "sources": ["Section 3.1", "Table 1", "Section 5"],
+        "ambiguity_notes": "latent frames 与 output frames 不是同一计数"
+      },
+      {
+        "symbol": "T,t",
+        "meaning": "总去噪步数与当前 timestep",
+        "provenance": "author-defined",
+        "scope_or_indexing": "t=1,...,T",
+        "units_or_values": "denoising steps; NFE 2-5 in experiments",
+        "sources": ["Section 3.1", "Equations 1-6"],
+        "ambiguity_notes": "high-noise early step 的数值方向依 sampler 约定"
+      },
+      {
+        "symbol": "K_t,k",
+        "meaning": "timestep t 的 chunk 数与 chunk 索引",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per timestep/chunk",
+        "units_or_values": "positive integers",
+        "sources": ["Section 3.1"],
+        "ambiguity_notes": "K_t 随 timestep 变化"
+      },
+      {
+        "symbol": "\\mathbf a_t",
+        "meaning": "timestep t 的有序 chunk boundary 向量",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per timestep",
+        "units_or_values": "1=a_{t,0}<...<a_{t,K_t}=F+1",
+        "sources": ["Section 3.1", "Table 1"],
+        "ambiguity_notes": "实验配置数组写 chunk sizes 而不是 boundary values"
+      },
+      {
+        "symbol": "\\mathcal F_{t,k}",
+        "meaning": "第 k 个 chunk 覆盖的帧索引集合",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per timestep/chunk",
+        "units_or_values": "[a_{t,k-1},a_{t,k})",
+        "sources": ["Equation 1"],
+        "ambiguity_notes": "是 index set，不是 latent tensor"
+      },
+      {
+        "symbol": "x_t^{\\mathcal F}",
+        "meaning": "timestep t 上 chunk F 的 noisy latent",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per timestep/chunk",
+        "units_or_values": "latent tensor",
+        "sources": ["Equation 2"],
+        "ambiguity_notes": "x_0 history 表示已生成 clean frames"
+      },
+      {
+        "symbol": "q_\\theta",
+        "meaning": "conditional reverse denoising transition",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per chunk/step",
+        "units_or_values": "probability transition",
+        "sources": ["Equation 2", "Table 1", "Equation 7"],
+        "ambiguity_notes": "论文也用 G_theta 表示蒸馏 generator，叙述层次未严格统一"
+      },
+      {
+        "symbol": "\\mathcal S_{t,k}",
+        "meaning": "旧 chunk 内插入的新 split points",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per timestep/chunk",
+        "units_or_values": "frame-boundary index set",
+        "sources": ["Section 3.2", "Equation 3"],
+        "ambiguity_notes": "源公式用 union 混合标量与集合，类型记法略不严谨"
+      },
+      {
+        "symbol": "G_\\theta,\\mathbf z",
+        "meaning": "few-step generator 与标准高斯噪声",
+        "provenance": "author-defined",
+        "scope_or_indexing": "training sample",
+        "units_or_values": "z~N(0,I)",
+        "sources": ["Section 3.3 DMD gradient equation"],
+        "ambiguity_notes": "G_theta 与 q_theta 的关系未形式化统一"
+      },
+      {
+        "symbol": "s_{real},s_{fake}",
+        "meaning": "DMD/VSD 中真实与生成分布的 scores",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per noisy sample",
+        "units_or_values": "score vectors",
+        "sources": ["Section 3.3 DMD gradient equation"],
+        "ambiguity_notes": "estimator 细节主要引用前作"
+      },
+      {
+        "symbol": "\\Pi_{t\\leftarrow0}",
+        "meaning": "clean-key space 到 timestep-t noisy-key space 的条件线性投影",
+        "provenance": "author-defined",
+        "scope_or_indexing": "per layer/timestep",
+        "units_or_values": "R^d to R^d",
+        "sources": ["Equations 5-6"],
+        "ambiguity_notes": "是否每层独立、参数量多少未报告"
+      },
+      {
+        "symbol": "Q_t,K_0,\\tilde K_t,V_t,d",
+        "meaning": "当前 query、clean cached key、对齐 key、value 与 key dimension",
+        "provenance": "author-defined",
+        "scope_or_indexing": "attention layer/timestep",
+        "units_or_values": "tensors and dimension",
+        "sources": ["Equations 5-6"],
+        "ambiguity_notes": "只明确投影 clean past key；current-chunk key 记法略含混"
+      },
+      {
+        "symbol": "B_{KV}",
+        "meaning": "本分析用于 KV-cache 容量的字节估计",
+        "provenance": "analysis-derived",
+        "scope_or_indexing": "per model/sequence",
+        "units_or_values": "bytes",
+        "sources": ["analysis.md Section 7.2 derivation"],
+        "ambiguity_notes": "缺少 layers/tokens/heads/dtype，不能代入数值"
+      }
+    ],
+    "coverage": {
+      "key_terms": "passed",
+      "key_symbols": "passed",
+      "ambiguities": "passed"
+    }
+  },
+  "design_rationales": [
+    {
+      "design": "Frame-axis variable chunks",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 3.1", "Table 1"],
+      "concrete_problem": "Bidirectional coherence and autoregressive efficiency are otherwise fixed competing regimes, while strict AR accumulates long-range error.",
+      "causal_mechanism": "Bidirectional intra-chunk attention widens context while causal inter-chunk generation reuses clean-history KV cache.",
+      "analysis_basis": ["analysis.md Section 3.4", "Figure 4", "Table 2"],
+      "alternatives_tradeoffs": "Uniform fixed chunks are simpler; one full chunk gives maximum context but less streaming and potentially more repeated computation.",
+      "validation_evidence": {
+        "type": "direct-ablation",
+        "sources": ["Figure 4", "Table 2"],
+        "judgment": "supported"
+      }
+    },
+    {
+      "design": "Timestep-axis nested chunks",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 3.2", "Figure 3"],
+      "concrete_problem": "High-noise structure planning and low-noise local refinement need different temporal context ranges.",
+      "causal_mechanism": "Large early chunks provide global planning, then inserted boundaries create finer later chunks for efficient detail refinement.",
+      "analysis_basis": ["analysis.md Section 3.4", "Figure 7", "Appendix Figure 13"],
+      "alternatives_tradeoffs": "A fixed schedule avoids buffer/synchronization complexity; nested constraints also restrict the full schedule search space.",
+      "validation_evidence": {
+        "type": "direct-ablation",
+        "sources": ["Figure 7"],
+        "judgment": "partially-supported"
+      }
+    },
+    {
+      "design": "Random flexible-chunk training",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 3.3"],
+      "concrete_problem": "One model must remain valid under causal, non-causal, and hybrid attention masks at inference.",
+      "causal_mechanism": "Stochastic partitions expose the generator to heterogeneous causal and bidirectional contexts during self-rollout.",
+      "analysis_basis": ["analysis.md Section 3.4", "multi-configuration inference results"],
+      "alternatives_tradeoffs": "A curriculum or separate specialized models could be used; the chosen chunk-size sampling range lacks sensitivity analysis.",
+      "validation_evidence": {
+        "type": "indirect",
+        "sources": ["Table 2", "Figure 4"],
+        "judgment": "plausible"
+      }
+    },
+    {
+      "design": "DMD/VSD asymmetric distillation with self-rollout",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 3.3"],
+      "concrete_problem": "Few-step causal generation suffers a train-test exposure mismatch.",
+      "causal_mechanism": "Self-generated rollout states and distribution matching train a few-step generator under its own inference distribution.",
+      "analysis_basis": ["analysis.md Section 3.4", "causal-distillation comparisons"],
+      "alternatives_tradeoffs": "Native AR training or teacher forcing are simpler but address exposure differently; most of this pipeline is inherited from prior work.",
+      "validation_evidence": {
+        "type": "indirect",
+        "sources": ["Table 2", "Section 3.3"],
+        "judgment": "partially-supported"
+      }
+    },
+    {
+      "design": "K-Projection",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 3.3", "Equations 5-6"],
+      "concrete_problem": "Clean past keys and noisy current/future keys have mismatched signal-to-noise ratios within one attention computation.",
+      "causal_mechanism": "A timestep-conditioned linear map expresses clean cached keys in the current noisy representation space without rewriting the cache.",
+      "analysis_basis": ["analysis.md Section 3.4", "Figure 8"],
+      "alternatives_tradeoffs": "Recomputing cache, separate normalization, or projecting both K and V are alternatives; their accuracy and runtime trade-offs are not compared.",
+      "validation_evidence": {
+        "type": "direct-ablation",
+        "sources": ["Figure 8"],
+        "judgment": "supported"
+      }
+    },
+    {
+      "design": "Buffering and dependency-aware resume",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 3.2", "Appendix Figure 13"],
+      "concrete_problem": "When a parent chunk is split at the next timestep, a later sub-chunk cannot proceed before prior-subchunk KV cache exists.",
+      "causal_mechanism": "The runtime buffers the parent result and resumes each child in temporal order after causal dependencies become available.",
+      "analysis_basis": ["analysis.md Section 3.2", "Appendix Figure 13"],
+      "alternatives_tradeoffs": "Fixed partitions or recomputation avoid some scheduler state but lose flexibility or add compute; buffering may increase peak memory.",
+      "validation_evidence": {
+        "type": "mechanism-visualization",
+        "sources": ["Appendix Figure 13"],
+        "judgment": "plausible"
+      }
+    },
+    {
+      "design": "Late-timestep editing",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 4.2", "Figure 6"],
+      "concrete_problem": "Small local edits in an autoregressive generator can propagate and alter later global structure.",
+      "causal_mechanism": "Keeping early planning fixed and changing only late refinement conditioning confines the edit to lower-level details.",
+      "analysis_basis": ["analysis.md Section 3.4", "Figure 6"],
+      "alternatives_tradeoffs": "Inversion or masked editing may allow larger structural changes; late-only editing restricts edit scope.",
+      "validation_evidence": {
+        "type": "mechanism-visualization",
+        "sources": ["Figure 6"],
+        "judgment": "partially-supported"
+      }
+    },
+    {
+      "design": "Bilateral clean-context any-order editing",
+      "rationale_status": "author-stated",
+      "rationale_sources": ["Section 4.2", "Equation 7", "Figure 5"],
+      "concrete_problem": "Strict left-to-right causal generation cannot independently revise a middle segment without regenerating the suffix.",
+      "causal_mechanism": "The target chunk attends both preceding and following clean chunks, relaxing temporal order during editing.",
+      "analysis_basis": ["analysis.md Section 3.4", "Equation 7", "Figure 5"],
+      "alternatives_tradeoffs": "Regenerating the suffix preserves strict causality but costs more and risks drift; bilateral context needs full-video cache.",
+      "validation_evidence": {
+        "type": "mechanism-visualization",
+        "sources": ["Figure 5"],
+        "judgment": "plausible"
+      }
+    }
+  ],
+  "evidence_checks": {
+    "claim_matrix": "passed",
+    "design_rationale_analysis": "passed",
+    "symbol_table": "passed",
+    "evidence_loop": "passed",
+    "code_cross_check": "not-applicable",
+    "openreview_cross_check": "blocked",
+    "infrastructure_analysis": "passed",
+    "gain_attribution": "passed"
+  },
+  "delegated_provenance": {
+    "dispatch_id": "dispatch-flex-forcing-refresh-20260724",
+    "agent_task_name": "flex_forcing_refresh",
+    "task_packet_sha256": "23b8b44214240a7a6b5156da50e93136b2065219f3b829dcaad2bf68f1034409",
+    "skill_tree_sha256": "a338c821d6c79aff1aac224cc8713081d3b7462d46ea504771e5208dcdca96cd",
+    "agent_contract_sha256": "4dc80bfb1d508898c25f3f3775a4d2ebc596c4944291cc0dded6f586fcc74c32"
+  },
+  "limitations": [
+    {
+      "requirement": "OpenReview public reviews, decision, rebuttal, and full revision history",
+      "status": "blocked",
+      "reason": "Forum/PDF browser challenge and API v1/v2 HTTP 403 prevented note retrieval; only indexed venue/front-matter metadata was available.",
+      "effect_on_conclusions": "Venue identity is triangulated, but reviewer concerns and initial-submission-to-camera-ready changes cannot be assessed."
+    },
+    {
+      "requirement": "Official implementation and checkpoint",
+      "status": "skipped-with-reason",
+      "reason": "The paper and official project page do not claim or link code/weights; exact GitHub repository search found only unrelated repositories.",
+      "effect_on_conclusions": "Cache, scheduler, dtype, kernel, and configuration behavior remain paper-reported rather than implementation-verified."
+    },
+    {
+      "requirement": "Generated analysis diagram",
+      "status": "skipped-with-reason",
+      "reason": "Installed image skill lacks the required responses-doc --input-file analysis.md path, so prompt-only generation was not used.",
+      "effect_on_conclusions": "No impact on original-paper evidence; the optional explanatory visual is absent."
+    },
+    {
+      "requirement": "Memory, bandwidth, and fixed device-budget validation",
+      "status": "blocked",
+      "reason": "The paper reports FPS on GB200/A100 but no GPU count, peak memory, dtype, bytes moved, kernel trace, interconnect, or fixed-memory-budget experiment.",
+      "effect_on_conclusions": "Flexible scheduling is validated as a speed-quality knob, not as a quantified memory-budget guarantee."
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+Checked 2026-07-24:
+
+- OPENROUTER_ICU_API_KEY: present (value not recorded).
+- `/home/hw/.codex/skills/openrouter-icu-image` recursive search for
+  `responses-doc`, `input-file`, and `input_file`: no matches.
+- CLI top-level help exposes only `generate` and `edit`.
+
+The paper-deep-review workflow permits generation only through
+`responses-doc --input-file analysis.md`; prompt-only generation is forbidden.
+Therefore no generated diagram was requested and no placeholder was created.

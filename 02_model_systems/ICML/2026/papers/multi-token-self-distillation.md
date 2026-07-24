@@ -1,32 +1,34 @@
 # Multi-Token Prediction via Self-Distillation 精读分析
 
 > [!info] 文档关系
-> - 文档类型：Paper（venue 未核验：正文为 Preprint. Under review）
+> - 文档类型：Paper（complete with limitations）
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[ICML 2026 selected papers](../surveys/icml-2026-selected-papers.md)
-> - 证据资产：[`../assets/papers/multi-token-self-distillation/`](../assets/papers/multi-token-self-distillation/)
-> - 相关文档：[Figure inventory](../evidence/figure-inventory.md#multi-token-self-distillation)
+> - 证据资产：[Figure 1](../assets/papers/multi-token-self-distillation/fig1-gsm8k-chunks.png)，[Figure 2](../assets/papers/multi-token-self-distillation/fig2-tokenization-masking.png)，[Figure 3](../assets/papers/multi-token-self-distillation/fig3-attention-masks.png)，[Figure 4](../assets/papers/multi-token-self-distillation/fig4-accuracy-acceleration.png)，[Figure 12](../assets/papers/multi-token-self-distillation/fig12-throughput-latency.png)
+> - 相关文档：[Paper index](../evidence/paper-index.md)，[Figure inventory](../evidence/figure-inventory.md)
 
-> 资料状态：主证据为 arXiv:2602.06019v2 PDF（35 页，2026-04-23 更新）及其 PDF 渲染裁剪；arXiv 源码压缩包下载在断点续传时返回截断流，未使用。作者声称的代码仓库 clone 受 DNS 失败影响，未把 README 当实现证据。论文正文页眉仍写 “Preprint. Under review.”。
+> 资料状态：主证据为 arXiv:2602.06019v2 PDF（35 页）、完整 e-print 源码 archive（SHA-256 `0cc85be0422b5bca0adcd691cd437314961c07ba2a29684d16ea3cd73ddbd0f7`，主入口 `colm2026_conference.tex`）及官方仓库 commit `167413ea3c0113a51c6f7f3f281f60324169c608`。论文正文仍写 “Preprint. Under review.”；任务中的 ICML 2026 candidate 身份未独立验证。
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-mtp-initial`
-- 当前修订时间：`2026-07-17T10:00:00+08:00`
-- 替代版本：`none (initial)`
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-mtp-source-code-refresh`
+- 当前修订时间：`2026-07-24T23:40:00+08:00`
+- 替代版本：`rev-mtp-initial` / `1.0.0` / manifest `f8e8b9b439ca7db62ff8c98df1f630f94cd617ef8a12963b689a899a1420e1c6`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-mtp-initial` | `1.0.0` | 2026-07-17T10:00:00+08:00 | `review_mtp` | `initial` | `none` | `none` | 首次完成单篇精读及证据整理 | 用户 ICML 2026 精读任务 | PDF v2、arXiv metadata、图表裁剪与 QA | `none` |
+| `rev-mtp-source-code-refresh` | `1.1.0` | 2026-07-24T23:40:00+08:00 | `mtp_self_distillation_refresh` | `evidence-update` | `rev-mtp-initial` / `1.0.0` / `f8e8b9b439ca7db62ff8c98df1f630f94cd617ef8a12963b689a899a1420e1c6` | `none` | 恢复完整 arXiv v2 源码并固定、审计官方实现；刷新复现与系统结论 | 关闭上一版 source/code blocker | §0、§3、§7–§12；`source/`、`code/mtp-lm/` | e-print `00README.json`；Git commit `167413e`；实现/配置路径 | `material`：核心算法和 cache 行为获代码确认；全量 checkpoint metadata 仍未独立冻结 |
 
 ## 0. 资料与配图索引
 
-- 论文：[arXiv:2602.06019v2](https://arxiv.org/abs/2602.06019v2)。LaTeX source 下载截断并报 EOF，故不可用。
-- 作者代码链接：[jwkirchenbauer/mtp-lm](https://github.com/jwkirchenbauer/mtp-lm)；clone 因 DNS 失败，commit 未验证。
-- 未发现公开 OpenReview forum。
-- 正式图表：Figure 1–4；Figure 12 因父级发现混入前文且 caption 截断未提升，详见[Figure inventory](../evidence/figure-inventory.md#multi-token-self-distillation)。
-- AI 生成分析示意图：跳过。父契约明确指出本环境的 ICU CLI 没有 required document-input path 能力。
+- 论文：`paper.pdf`；全文提取：`extracted_text/paper.txt`。
+- 源码/LaTeX：`source/arxiv-2602.06019v2.tar`（SHA-256 `0cc85be...bd0f7`）完整解包到 `source/extracted/`；`source/extracted/00README.json` 指定唯一顶层入口 `colm2026_conference.tex`、`pdflatex`、TeX Live 2025。
+- 开源代码：`code/mtp-lm/`，remote `https://github.com/jwkirchenbauer/mtp-lm.git`，固定 commit `167413ea3c0113a51c6f7f3f281f60324169c608`（initial public release，2026-02-21）。
+- OpenReview：未发现公开 forum；核验记录见 `openreview_reviews.md`。
+- 正式图表：[Figure 1](../assets/papers/multi-token-self-distillation/fig1-gsm8k-chunks.png)、[Figure 2](../assets/papers/multi-token-self-distillation/fig2-tokenization-masking.png)、[Figure 3](../assets/papers/multi-token-self-distillation/fig3-attention-masks.png)、[Figure 4](../assets/papers/multi-token-self-distillation/fig4-accuracy-acceleration.png)、[Figure 12](../assets/papers/multi-token-self-distillation/fig12-throughput-latency.png)；均来自 1530×1980 PDF 页面渲染并通过逐图原分辨率复核。页码、bbox 与完整 caption 见 [Figure inventory](../evidence/figure-inventory.md#multi-token-self-distillation)。
+- AI 生成分析示意图：跳过。父契约明确指出本环境的 ICU CLI 没有 `responses-doc --input-file analysis.md` 能力。
 
 ## 0.1 术语与符号解释
 
@@ -64,7 +66,7 @@
 
 ## 0.2 AI 生成算法分析示意图
 
-跳过：父契约指定 ICU CLI 只提供 `generate`/`edit`，不能以 required document-input path 上传文档，因此不生成 prompt-only 图。
+跳过：父契约指定 ICU CLI 只提供 `generate`/`edit`，不能以 `responses-doc --input-file analysis.md` 上传文档，因此不生成 prompt-only 图。
 
 ## 1. 论文基本信息
 
@@ -98,12 +100,12 @@ NTP 单 token 延迟 -> 多 token 独立采样会组合出不相容序列 -> 用
 | 随机 offset 与 k∈[2,16] | author-stated | Sec.4.1–4.2, Fig.3 | 固定 span 只覆盖少数 prefix/window | 一个 batch 暴露多个位置和窗口，增强泛化 | curriculum 或固定 k 更易编译 | Table4–5、Fig.3 | partially-supported |
 | causal blocked mask | author-stated | Sec.4.2, Fig.3 | bidirectional mask 造成 train/inference shift | 保留 pretrained causal inductive bias，并跳过 MTP span | full/bidirectional 可能略高准确但 runtime/shift 更差 | Appendix Table4 | supported but small lift |
 | ConfAdapt | author-stated/inferred | Sec.4.3, Fig.6 | 固定 k 的质量/速度折中粗糙 | 仅保留连续高置信 token，把 hard token 留给单步 forward | verifier 可 lossless 但复杂；ConfAdapt 无 lossless 保证 | Fig.4, Tables1–2 | partially-supported |
-| KV cache pop/append | author-stated | App.B | mask token 不应污染 cache、需标准 causal inference | 删除 mask KV，再追加生成 token+新 mask | verifier cache 更复杂但可校正 | code unavailable; prose only | plausible |
+| KV cache crop/rewrite | author-stated | App.B；`transformers_local/{llama,qwen3}/modeling_*.py` | mask token 不应污染 cache、需标准 causal inference | HF 路径以 `past_key_values.crop(cache_position[0])` 删除 stale mask KV，再按新 cache positions 写入生成 token 与新 mask | verifier cache 更复杂但可校正；动态 k 会重算位置 | commit `167413e` 直接代码证据 | supported |
 | SGLang homogeneous query-length batching | author-stated | App.C.3 | 动态 k 产生 query length 组合爆炸 | 只编译 query length×batch size 交叉并同长度调度 | 异构 batch 提升利用率但需更多 CUDA graphs | Fig.12, App.C.3 | supported for prototype limitation |
 
 ### 3.3 模型/系统架构
 
-训练时在 prefix 后插入 (k-1) 个 `<MTP>` mask；通过 position-id 回填和 blocked causal mask，在一个序列中并行形成 (R) 个 region（Fig.2–3）。student 输出 (k) 组 logits，argmax 得到 (y')，teacher 用已生成前缀逐 token 计算概率。推理时恢复标准 causal mask：删掉 mask KV，追加 (k) 个生成 token 与 (k-1) 个新 mask；因此是同一主模型、同一 transformer 实现，而不是外接 verifier。
+训练时在 prefix 后插入 (k-1) 个 `<MTP>` mask；`litgpt/mtp.py:7-92` 以 prefix/window block index、offset 和 causal relation 构造 blocked mask，`litgpt/pretrain.py:1146-1248` 随机化每 rank 的 k/offset 并完成 token 重排。`pretrain.py:1315-1430` 先取 student argmax rollout，把预测写回 mask 位，再用 frozen teacher 生成 hard/soft targets。推理时，`transformers_local/qwen3/modeling_qwen3.py:608-764` 与 Llama 对应路径实现 ConfAdapt、cache position 重建和 `DynamicCache.crop`，与 Appendix B 的 pop/append 语义一致。
 
 ### 3.4 关键公式
 
@@ -135,7 +137,7 @@ student/teacher 均从 Llama-3.1-8B-MagpieAlign-SFT-v0.1 或 Qwen3-4B-Instruct-2
 
 Fig.4 的 Llama 模型在 ConfAdapt (	au=0.9) 附近约 3.3×、准确率约 64.1%，相对其 MTP Static k=1 的 66.0% 下降约 1.9 个百分点；Qwen3 在 (	au=0.9) 约 3.1×、83.6%，相对 Static k=1 的 89.1% 下降约 5.5 个百分点。相对“原始 checkpoint step 0”则分别是 69.5% 和 75.4%，所以摘要中的“相对同 checkpoint”不能与 step-0 baseline 混同。Tables 1–2 显示迁移到 BBH、IFEval、CNN DailyMail 时 Eff.k 和质量更不稳定；开放式 CNN 的 Eff.k 通常仅 1.2–3.1。
 
-Figure 12 的 serving 结论仅保留文字证据；该 crop 未通过父级正式资产 QA，不在此嵌入。
+![Figure 12: SGLang throughput/latency](../assets/papers/multi-token-self-distillation/fig12-throughput-latency.png)
 
 Fig.12/Appendix C.3 报告 static k=3 在 c=1 下与 EAGLE-3 竞争；ConfAdapt 单请求有效，但高并发因预测 16、实际接受约 3，浪费计算/带宽且要求同 query length batch，吞吐优势下降。该结果是 prototype serving 的系统性证据，不是算法本身“无损”。
 
@@ -179,7 +181,7 @@ Fig.12/Appendix C.3 报告 static k=3 在 c=1 下与 EAGLE-3 竞争；ConfAdapt 
 
 ## 6. OpenReview 公开评审 × 论文内容交叉核验
 
-未发现公开 OpenReview forum；没有可核验的 reviewer claim、decision、rebuttal 或 meta-review。venue 结论保持“candidate/unverified”。因此不能声称 reviewer 已认可其 standalone novelty。
+未发现公开 OpenReview forum；没有可核验的 reviewer claim、decision、rebuttal 或 meta-review。venue 结论保持“candidate/unverified”，见 `openreview_reviews.md`。因此不能声称 reviewer 已认可其 standalone novelty。
 
 ## 7. Infra 需求分析
 
@@ -213,9 +215,20 @@ SGLang commit `7b0bf43`（论文文字记录）提供 continuous batching、comp
 
 ## 8. 开源代码对照
 
-- 仓库：`https://github.com/jwkirchenbauer/mtp-lm`；本地 clone 因 `Could not resolve host: github.com` 失败，无法取得 commit、代码路径或配置。
-- 论文可确认的实现细节仅来自 App.B/C.3：`<MTP>` embedding/unembedding 随机初始化；KV cache 删除 mask；SGLang commit `7b0bf43`；BF16；CUDA graph 与 homogeneous query-length batching。
-- 因代码快照不可用，不把 README 的“code available”当作实现事实，也不声称训练脚本/模型权重可复现。
+- 仓库：`code/mtp-lm/`；commit `167413ea3c0113a51c6f7f3f281f60324169c608`。
+
+| 论文机制 | 本地路径（均为 commit `167413e`） | 一致性判断 |
+|---|---|---|
+| student-forced online objective | `litgpt/pretrain.py:1315-1430` | 一致：student argmax 写回 mask 位，冻结 teacher 对该序列出 targets；hard/GT/soft 分支均在代码中 |
+| 随机 k 与 offset | `litgpt/pretrain.py:1146-1248`；`litgpt/mtp.py:7-92` | 一致：按 rank/step seeded randomization，重建 causal blocked mask |
+| ConfAdapt | `litgpt/generate/base_mtp.py:49-111`；`transformers_local/qwen3/modeling_qwen3.py:608-764` | 一致：选择首个低于阈值前的连续 prefix，至少保留首 token |
+| KV cache 更新 | `transformers_local/qwen3/modeling_qwen3.py:713-764`；Llama 对应 `:696-747` | 一致：重建 cache positions 后 crop stale mask cache；不是 verifier acceptance |
+| 训练 recipe | `README.md:20-175`；`config_hub/pretrain/ss.yaml` | 已发布代表性 4×GH200 命令、数据准备、主超参；README 把关键覆盖参数显式列为 CLI |
+| evaluation | `README.md:177-249`；`config_hub/lm_eval/gsm8k_mtp8_ca90.yaml` | 仅代表性 GSM8K command 完整；论文全量数千次评测依赖定制 lm-eval fork、W&B 与 cluster-specific automation，未形成一键复现 |
+
+### 8.1 Checkpoint 与发布完整性
+
+README 明确链接 Hugging Face collection，并给出公开 push 命令与 `trust_remote_code=True` 使用方式；仓库同时包含 Llama/Qwen remote-code generation 实现。因此“代码、代表性训练 recipe、代表性 eval command 已释放”可确认。仓库本身不含 `.safetensors`/`.bin` 权重；本次在停止扩展检索前未完成 collection 中每个 checkpoint 的 revision/config 文件冻结，故“全部论文 checkpoints 及其精确 metadata 均已独立验证”仍为 blocked，而非否认 README 所述公开 collection。
 
 ## 9. 优点与局限
 
@@ -232,7 +245,7 @@ SGLang commit `7b0bf43`（论文文字记录）提供 continuous batching、comp
 - ConfAdapt 是有损 heuristic，不提供 speculative 的 lossless acceptance 保证；置信度-正确性相关仅间接证据。
 - 对“standalone 比 verifier 更简单”的工程量未做 matched end-to-end 成本分解；SGLang 仍需要专用动态 shape/scheduler 改造。
 - 训练数据、chat template、step-0 vs post-finetune baseline 变化影响公平比较；Qwen 的 template off 尤其需复现实验。
-- 源码、checkpoint metadata 和确切硬件 telemetry 无法独立复核；论文承诺 publication 后 release，当前复现受阻。
+- 完整源码和核心代码已复核，但全量 checkpoint revision/config、全量评测自动化及 W&B 原始数据未冻结；复现完整论文曲线仍需 cluster-specific orchestration。
 
 ## 10. 研究启发
 
@@ -249,10 +262,10 @@ SGLang commit `7b0bf43`（论文文字记录）提供 continuous batching、comp
 4. Qwen chat template off 带来的 89.1% Static k=1 是否把 MTP 收益与模板差异混在一起？
 5. “3× acceleration”是有效 k、单请求 latency 还是端到端 tok/s；三者在不同并发下如何对应？
 6. 训练时 500M supervised tokens、约 35 epochs 是否会导致特定数据域过拟合？
-7. 公开代码和 checkpoint 是否包含 `<MTP>` token 初始化、KV pop、EOS trimming 的完整实现？
+7. 已确认代码包含 `<MTP>` token、KV crop/rewrite 与 EOS/stop 处理；仍需逐 checkpoint 验证 remote-code revision 是否与 commit `167413e` 完全一致。
 8. 在 NPU 或非 GH200 上，BF16、RoPE position-id 重排、dynamic causal mask 是否有等价高效 kernel？
 9. 是否能用 lossless verifier 只校验低置信 span，使 standalone 的大部分延迟收益与 speculative 的质量保证同时成立？
 
 ## 12. 一句话总结
 
-本文用 student-forced online self-distillation 把预训练 NTP LM 改造成无需二次 verifier 的 standalone MTP LM，GSM8K 上展示约 3× 有损加速并揭示了真实 serving 的动态调度瓶颈；最大不确定性是代码/权重尚未可复核、venue 仍未确认，且 ConfAdapt 的跨域质量与高并发收益明显依赖任务和 runtime。
+本文用 student-forced online self-distillation 把预训练 NTP LM 改造成无需二次 verifier 的 standalone MTP LM；完整源码与 commit `167413e` 已确认 objective、随机 mask、ConfAdapt 和 KV crop/rewrite，GSM8K 上约 3× 有损加速的最大剩余不确定性转为全量 checkpoint/eval provenance、跨域质量、高并发 runtime 和未确认 venue。

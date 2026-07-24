@@ -1,0 +1,50 @@
+{
+  "new": [
+    "_artifacts/icml-2026-selected-papers-refresh process workspace"
+  ],
+  "updated": [
+    "SplAttN: source-complete paper review and two formal assets",
+    "Flex-Forcing: source-complete paper review and two formal assets",
+    "Multi-Token Self-Distillation: complete source/code refresh and Figure 12 asset",
+    "Dual-Latent Memory Routing: identity/OpenReview/access-blocker metadata only",
+    "OmniFit: identity/venue/access-blocker metadata only",
+    "ICML 2026 selected-papers Survey, README, paper index and figure inventory"
+  ],
+  "venue_promoted": [
+    "SplAttN: ICML 2026 Spotlight",
+    "Dual-Latent Memory Routing: ICML 2026 Spotlight",
+    "Flex-Forcing: ICML 2026 Spotlight",
+    "OmniFit: ICML 2026 Spotlight"
+  ],
+  "evidence_upgraded": [
+    "SplAttN: complete arXiv PDF/source, official code/checkpoint metadata and two QA-passed visuals",
+    "Flex-Forcing: complete camera-ready PDF/source and two QA-passed visuals",
+    "Multi-Token Self-Distillation: complete e-print source, official code commit and newly accepted Figure 12"
+  ],
+  "reclassified": [
+    "SplAttN: blocked -> complete",
+    "Flex-Forcing: blocked -> complete-with-limitations",
+    "Multi-Token Self-Distillation: manifest-blocked -> complete-with-limitations",
+    "OmniFit: identity unresolved -> identity resolved but source-blocked"
+  ],
+  "unchanged": [
+    "Dual-Latent Memory Routing remains technically blocked",
+    "OmniFit remains technically blocked"
+  ],
+  "stale_claims": [
+    "Dual-Latent PDF/source unavailable",
+    "OmniFit identity and source unresolved",
+    "Flex-Forcing PDF unreadable",
+    "SplAttN PDF/source unavailable"
+  ],
+  "affected_documents": [
+    "02_model_systems/ICML/2026/README.md",
+    "02_model_systems/ICML/2026/surveys/icml-2026-selected-papers.md",
+    "02_model_systems/ICML/2026/evidence/paper-index.md",
+    "02_model_systems/ICML/2026/evidence/figure-inventory.md",
+    "02_model_systems/ICML/2026/papers/splattn.md",
+    "02_model_systems/ICML/2026/papers/dual-latent-memory-routing.md",
+    "02_model_systems/ICML/2026/papers/flex-forcing.md",
+    "02_model_systems/ICML/2026/papers/omnifit-layer-compression.md"
+  ]
+}

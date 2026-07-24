@@ -1,0 +1,1134 @@
+                                                  Flex-Forcing: Towards a Unified Autoregressive and Bidirectional
+                                                                      Video Diffusion Model
+
+
+                                                     Xinyin Ma 1 2 Julius Berner 2 Chao Liu 2 Arash Vahdat 2 Weili Nie 2 * Xinchao Wang 1 *
+
+                                                                                                                                   85.2
+                                                                Abstract                                                                         18-3 (NFE=5)                                           NFE=5
+                                                                                                                                                                                                        NFE=4
+                                             Recent progress in large-scale generative mod-                                        85.0
+                                                                                                                                                                                                        NFE=3
+                                                                                                                                                                      15-3-3 (NFE=4)
+                                             els has substantially advanced video generation,                                      84.8
+arXiv:2607.03509v1 [cs.CV] 3 Jul 2026
+
+
+
+
+                                                                                                                VBench Score (↑)
+                                             yet existing methods remain constrained by a                                                                                       7-7-7 (NFE=4)
+
+
+                                             rigid inference paradigm. Bidirectional diffusion                                     84.6
+
+
+
+                                             models excel at global coherence and visual fi-                                       84.4
+                                                                                                                                                                                                     9-9-3 (NFE=3)
+                                             delity but suffer from slow inference, while au-                                                  Self Forcing (NFE=5)
+                                             toregressive models offer efficient and streaming                                     84.2
+                                                                                                                                                                                                     10-11 (NFE=3)
+
+                                             generation at the cost of long-range consistency                                      84.0
+
+                                             and exposure bias. We introduce Flex-Forcing,
+                                             a unified training and inference framework that                                       83.8
+                                                                                                                                          25                30             35            40     45              50
+
+                                                                                                                                                                        FPS on GB200 (↑)
+                                             enables a video diffusion model to seamlessly
+                                             operate under both bidirectional and autoregres-                Figure 1. In various configurations, our method exhibits superior
+                                             sive generation regimes. The core idea is a flex-               efficiency and performance compared to self-forcing, measured by
+                                             ible chunking mechanism jointly defined over                    FPS (frames per second) and VBench score.
+                                             the temporal axis and denoising steps. This de-
+                                             sign allows the model to (1) perform flexible                   Kuaishou, 2024; Runway, 2024; Google, 2024), leading to
+                                             chunking according to different device budgets,                 substantial improvements in visual realism, temporal co-
+                                             (2) perform bidirectional inference across chunks               herence and semantic consistency (Yang et al., 2024; Wan
+                                             for global structure planning, while generating                 et al., 2025; Wu et al., 2025; Chen et al., 2025b; HaCohen
+                                             frames autoregressively within each chunk for ef-               et al., 2026). These advances have enabled a wide range
+                                             ficient and fine-grained synthesis, and (3) perform             of emerging applications, including long-form video syn-
+                                             any-order, any-timestep autoregressive generation               thesis (Chen et al., 2025a; Yang et al., 2025), interactive
+                                             without the strict causal constraint. Extensive ex-             world modeling (He et al., 2025; Hong et al., 2025), and
+                                             periments on multiple video generation bench-                   creative intelligence systems (Hu, 2024; Jiang et al., 2025),
+                                             marks demonstrate that Flex-Forcing achieves                    where models are required to generate temporally extended,
+                                             consistently better video quality, long-video sta-              content-rich sequences with fine-grained control. As video
+                                             bility than strong baselines with a rigid inference             models continue to scale in both capacity and context length,
+                                             schedule, while offering faster inference. Project              the efficiency and flexibility of their generative mechanisms
+                                             page: https://research.nvidia.com/                              have become increasingly critical, particularly for scenar-
+                                             labs/genair/flex-forcing/                                       ios that demand customized and flexible trade-offs between
+                                                                                                             quality, latency, and computational cost.
+                                        1. Introduction                                                      Among existing video generation approaches, two domi-
+                                                                                                             nant paradigms have emerged: the bidirectional diffusion
+                                        Video generation has recently witnessed rapid progress
+                                                                                                             paradigm, widely adopted in pretrained video diffusion
+                                        driven by large-scale generative models (OpenAI, 2024;
+                                                                                                             models (Ho et al., 2022b; Hong et al., 2022; Chen et al.,
+                                           *
+                                             Equal Advising 1 Electrical and Computer Engineering, Na-       2024b), and the autoregressive paradigm, which has recently
+                                        tional University of Singapore, Singapore 2 NVIDIA Research,         emerged as an efficient alternative (Deng et al., 2024; Wang
+                                        California, USA. Correspondence to: Xinchao Wang <xin-               et al., 2024; Teng et al., 2025; Yin et al., 2025; Huang et al.,
+                                        chao@nus.edu.sg>, Arash Vahdat <avahdat@nvidia.com>.                 2025a), each offering complementary advantages. The bidi-
+                                        Proceedings of the 43 rd International Conference on Machine         rectional paradigm leverages full-context attention to jointly
+                                        Learning, Seoul, South Korea. PMLR 306, 2026. Copyright 2026         model all frames, resulting in strong temporal coherence
+                                        by the author(s).                                                    and high visual fidelity (Ho et al., 2022b), and is there-
+
+                                                                                                         1
+                   Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+           0s                   5s                  30s                      0s                   5s                  30s
+
+
+
+
+    Figure 2. Generated examples from Flex-Forcing. We show three frames from the 30s 480p video under six different prompts.
+
+fore well-suited for capturing long-range dependencies such           capabilities. This allows the model to operate in intermedi-
+as camera motion, scene transitions, and complex interac-             ate regimes between strictly causal and fully bidirectional
+tions (Yin et al., 2023; Singer et al., 2022). However, the           inference. We address this challenge by introducing Flexi-
+bidirectional paradigm involves substantial computational             ble Chunking, defined along two orthogonal axes, temporal
+overhead, leading to high inference costs, which limits its           frames and denoising steps, under which autoregressive and
+applicability to real-time settings and its scalability to long       bidirectional inference emerge as two extreme cases. This
+video generation (Yin et al., 2025; Yu et al., 2023). In con-         formulation is consistently applied into both training and
+trast, autoregressive video generation models operate under           inference, which exposes the model to mixed causal and
+causal conditioning, generating frames sequentially while             non-causal conditioning contexts. The same query token
+reusing past key–value states via KV caching. This enables            may attend to key-value pairs of different noise levels, where
+real-time inference and naturally supports arbitrary-length           causal past tokens are typically more denoised, while non-
+video generation without reprocessing earlier frames (Hong            causal future tokens are noisier. To reconcile this noise-level
+et al., 2022; Villegas et al., 2022). Nevertheless, the lack          discrepancy, we introduce an alignment mechanism that ex-
+of global context during generation makes autoregressive              plicitly enforces representation consistency between causal
+models susceptible to error accumulation over time, result-           and non-causal attention contexts.
+ing in drift in object appearance, motion, or scene structure,
+                                                                      Our results demonstrate that bidirectional and autoregres-
+as well as weaker global temporal consistency and limited
+                                                                      sive inference can be unified within a single Flex-Forcing
+long-horizon planning ability (Liu et al., 2025).
+                                                                      model, rather than treated as mutually exclusive paradigms.
+Despite their complementary strengths, existing work lacks            The resulting flexible inference mode achieves a strong
+an effective mechanism to jointly realize the advantages of           quality–efficiency trade-off, yielding a markedly improved
+bidirectional and autoregressive video generation paradigms           Pareto frontier (Figure 1) and substantially outperforming
+within a unified framework, and consequently optimizes                Self-Forcing (Huang et al., 2025a) across both short- and
+for one paradigm while compromising the other (Yin et al.,            long-video benchmarks. Beyond generation, this flexible
+2025; Huang et al., 2025a). We therefore seek to unify both           paradigm enables downstream applications with adaptive
+paradigms within a single model, enabling coherent video              causal constraints, such as any-order, any-step autoregres-
+generation while supporting efficient long-video inference            sive editing, which supports localized temporal edits while
+without increasing exposure bias or computational cost. To            preserving global video coherence with the original video.
+this end, we propose Flex-Forcing, a unified framework that
+                                                                      To summarize, our contributions are:
+enables test-time control over the inference paradigm. A sin-
+gle trained model can flexibly operate in (1) a bidirectional
+                                                                         • We propose Flex-Forcing, a unified framework that
+mode for globally consistent generation, (2) an autoregres-
+                                                                           supports both bidirectional and autoregressive video
+sive mode for scalable long-video or streaming synthesis,
+                                                                           generation within a single model.
+or (3) a semi-autoregressive hybrid mode that provides in-
+termediate trade-offs between quality and efficiency under               • We introduce flexible chunking along the temporal and
+different deployment constraints.                                          denoising axes, together with a train–test consistent
+To enable such a flexible inference behavior, the core chal-               objective, and an aligned conditioning mechanism to
+lenge in training is to equip a single model with both causal              bridge different causal contexts.
+(autoregressive) and non-causal (bidirectional) generation               • Extensive experiments show that Flex-Forcing substan-
+
+                                                                  2
+                              Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+                                                                                                                                                     Self-Attention
+                       Chunks (Noise level: High)          Chunks (Noise level: Medium)         Chunks (Noise level: Low)
+                                                                                                                                          Causal                   Non-Causal
+  Efficiency             Quality             Efficiency                           Quality                    Efficiency     Quality             "                      "
+                                                                                                                                       Key for !! !,#$     Key for !# !,$ (arbitrary length)
+                                                                                              Flexible
+                                                                                             Chunking
+                                                                                                Over
+                                                                                             Timesteps                                                                              Query
+                                                                                                                                                                                     for
+   1    2      3   4      5    6               Frame 1-7        8        Frame 9-16                                 Frame 1-16                                                         "
+                                                                                                                                                                                     !# !,$
+                              Fine-grained                                                  Coarse-grained
+                                 Chunks               Flexible Chunking over Frames
+                                                                                               Chunks
+  Autoregressive Generation                                    FlexForcing                               Bidirectional Generation
+
+
+Figure 3. (Left) Flexible chunking for bridging the autoregressive and bidirectional video generation. Flex-Forcing adjusts chunk
+granularity across noise levels while a unified self-attention mechanism supports both causal and bidirectional inference. (Right) The
+mixed attention with causal tokens and non-causal tokens. We add a timestep dependent K-Projection at the clean cache from past frames.
+
+       tially outperforms causal models on the performance-                                      diffusion forcing (Chen et al., 2024a) and causal attention
+       efficiency trade-off while achieving competitive perfor-                                  mask to initialize the model and then use DMD (Yin et al.,
+       mance with bidirectional models.                                                          2024b;a) and self-rollout (Huang et al., 2025a) in training.
+   • We further introduce any-order, any-step autoregres-
+     sive editing based on Flex-Forcing, which enables con-                                      3. Flex-Forcing
+     trollable autoregressive editing of videos.                                                 Overview. We propose a unified generative framework
+                                                                                                 that supports both bidirectional and autoregressive infer-
+2. Related Work                                                                                  ence. To the best of our knowledge, this is the first approach
+                                                                                                 to demonstrate that these two paradigms can inherently co-
+Bidirectional models for video generation. Early                                                 exist within a single trained model. The core idea is a
+diffusion-based video generation models extend image dif-                                        flexible chunking strategy that composes chunks of varying
+fusion models (Dhariwal & Nichol, 2021; Rombach et al.,                                          granularity. Flexible chunking is learned by post-training
+2022; Karras et al., 2022; Black Forest Labs, 2024; Esser                                        a bidirectional video diffusion model and is defined along
+et al., 2024) to the spatio-temporal domain by jointly de-                                       two orthogonal axes: (i) the video-frame axis, which al-
+noising all frames with full temporal context (Ho et al.,                                        lows heterogeneous chunk sizes across different temporal
+2022b; Bar-Tal et al., 2024; Luo et al., 2023). These models                                     regions; and (ii) the denoising-timestep axis, which allows
+typically adopt bidirectional self-attention over the tempo-                                     the chunk granularity to change throughout the denoising
+ral axis, allowing each frame to attend to both past and                                         trajectory. Together, they induce a rich configuration space
+future frames during denoising (Ho et al., 2022a). Subse-                                        and enable the model to seamlessly operate in bidirectional
+quent works scale this paradigm using transformer-based                                          or autoregressive modes for quality–efficiency trade-offs.
+backbones and large-scale video–text datasets, establishing
+bidirectional diffusion models as foundation architectures
+                                                                                                 3.1. Flexible Chunking over Video Frames
+for general-purpose text-to-video generation (Yang et al.,
+2024; Blattmann et al., 2023b;a; Gupta et al., 2024).                                            We represent a video as a sequence of F frames x =
+                                                                                                 (x(1) , x(2) , . . . , x(F ) ). Diffusion sampling performs T de-
+Autoregressive models for video generation. Autore-                                              noising steps with {xt }Tt=1 . A chunk consists of a consec-
+gressive video generation models generate videos by se-                                          utive sequence of frames and we make those chunks to be
+quentially predicting frames, enabling real-time generation,                                     flexible in size. In this way, we obtain a hybrid factorization
+prompt control and long video generation (Teng et al., 2025).                                    in which intra-chunk dependencies are modeled bidirection-
+VideoGPT (Yan et al., 2021) uses a GPT-like model to au-                                         ally, while inter-chunk generation remains autoregressive.
+toregressively model discrete latents using spatio-temporal                                      The partition is allowed to vary across denoising timesteps,
+position encodings. Pyramidal flow (Jin et al., 2024) crafts                                     enabling the factorization to adapt to the uncertainty of the
+autoregressive video generation with a temporal pyramid to                                       generation process. Specifically, at each denoising step t, we
+compress the full-resolution history . Lumos-1 (Yuan et al.,                                     define a contiguous partition of frame indices {1, . . . , F } by
+2025) introduces autoregressive discrete diffusion forcing                                       chunk boundary indices at = (at,0 , at,1 , . . . , at,Kt ), where
+to mitigate the frame-wise imbalance loss. Besides training                                      1 = at,0 < · · · < at,Kt = F + 1. The k-th chunk at
+native autoregressive video generation models, another line                                      timestep t covers the frame index set:
+of work explores causal distillation (Yin et al., 2025; Huang
+et al., 2025a; Cui et al., 2025; Liu et al., 2025), which use                                                         Ft,k ≜ { f | at,k−1 ≤ f < at,k },                                    (1)
+
+                                                                                            3
+                         Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+At each denoising step t, given a partition at , the chunk-wise                                    This speratability can be applied recursively and the result-
+causal sampling now is defined as:                                                                 ing sub-chunks can be further split by inserting additional
+                                                                                                 boundaries in the next denoising step.
+           Ft,k         Ft,k     F        F
+          xt−1  ∼ qθ xt−1      x0 t,<k , xt t,k ; at ,      (2)                                    During inference, frames are processed in temporal order.
+                   S                                                                               However, under the pyramid chunking strategy, a synchro-
+where Ft,<k ≜ u<k Ft,u denotes all frame indices be-                                               nization challenge arises when a large chunk at denoising
+fore current chunk, and xF denotes the frames in chunk                                             step t is partitioned into smaller sub-chunks at step t − 1.
+                                                    F
+F. Following self-forcing (Huang et al., 2025a), x0 t,<k is                                        In these instances, we temporarily buffer the denoising re-
+represented by the KV cache of previously predicted frames                                         sults for all frames within the original bidirectional chunk at
+in the diffusion transformer (Peebles & Xie, 2023).                                                step t. We then autoregressively resume denoising for each
+                                                                                                   sub-chunk at step t − 1 once the required KV caches from
+Eq. 2 formalizes that later chunks are generated via denois-
+                                                                                                   preceding sub-chunks become available. This execution
+ing conditioned on earlier chunks. The above formulation
+                                                                                                   order ensures that causal dependencies are satisfied across
+implies a flexible chunking strategy along the video’s frame
+                                                                                                   varying granularities (see Figure 13 in Appendix).
+axis. By setting the frame-selection parameter at , our frame-
+work defines a variable subset of frames that can act as the
+history under the causal constraint and the context that inter-                                    3.3. Flexible-chunk Training
+acts in the bidirectinal attention. Table 1 provides a unified                                     With the unified formulation in place, we next incorporate it
+view of auoregressive and bidirectional inference as specific                                      into the training objective. The training consists of two parts:
+cases of our hybrid inference.                                                                     (1) introducing causality constraints into a bidirectional
+                                                                                                   diffusion model while preserving its non-causality ability to
+     Mode                      at                             qθ (xt−1 | xt )                      attend to future chunks, and (2) enabling the model to attend
+                                                      QF           k      <k k                     to key states derived from inputs at different noise levels.
+                                                                                    
+ Autoregressive   (1, 2, 3, . . . , F, F + 1)            k=1 qθ xt−1 x0 , xt
+                                                                 1:F    1:F
+  Bidirectional          (1, F + 1)                        qθ (xt−1 | xt )                
+                                                   QKt        Ft,k    F         F
+     Hybrid       (at,0 , at,1 , . . . , at,Kt )    k=1 qθ   xt−1  x0 t,<k , xt t,k ; at           Injecting the causality when maintaining the non-
+Table 1. Unified view of autoregressive, bidirectional, and hybrid                                 casuality We largely follow the training paradigm intro-
+inference as specific cases of the boundary configuration at .                                     duced in CausVid (Yin et al., 2025) and Self-Forcing (Huang
+                                                                                                   et al., 2025a), which transfers a bidirectional diffusion
+                                                                                                   model into a causal one. This training pipeline consists
+3.2. Flexible Chunking over Denoising Timesteps.                                                   of two stages. (1) ODE initialization, where a causal atten-
+                                                                                                   tion mask is applied to inject causality into the model. (2)
+As defined in Eq. 2, the t-dependent chunk partition at                                            Asymmetric distillation with DMD training, which further
+allows the chunking strategy to vary across denoising                                              strengthens causality through self-rollout and applies the
+timesteps. Intuitively, early denoising steps, characterized                                       VSD loss (Yin et al., 2024b) to distill a multi-step diffusion
+by high noise levels, focus on global structure and benefit                                        model into a few-step one. We find that injecting causal-
+from larger temporal chunks. Conversely, later refinement                                          ity while preserving non-causal modeling capacity can be
+steps prioritize local details, which can be effectively mod-                                      naturally achieved during the asymmetric distillation stage.
+eled with smaller chunks that require less long-range context.
+This results in a hierarchical, pyramid-like structure where                                       In the asymmetric distillation stage, we introduce a stochas-
+chunk size decreases as noise levels drop (Figure 3).                                              tic chunking strategy that dynamically varies the attention
+                                                                                                   pattern within each rollout. Recall that we define a contigu-
+Formally, recall that at = (at,0 , at,1 , . . . , at,Kt ) denotes the                              ous partition of the frame index set via a boundary config-
+frame partition at denoising timestep t. We impose a nested                                        uration, we randomly sample a chunk partition at during
+flexibility that allows each chunk to be further subdivided                                        training, and apply rollout to these flexible chunks in a dy-
+as denoising proceeds. Specifically, after completing the                                          namic way. After the latents of all frames x0 = {xi0 }F     i=1
+denoising at step t+1 (i.e., xt+1 → xt ), we split the partition                                   has been rolled out under each at , we train the generator Gθ
+for t by inserting additional boundaries while preserving all                                      by taking the gradient from (Yin et al., 2024b):
+existing ones. Timestep t inherits the same configuration                                                                                                     
+of t + 1: Ft,k = [at,k−1 , at,k ) = [at+1,k−1 , at+1,k ), and                                                                                              ∂Gθ
+                                                                                                      ∇θ DKL =       E       − (sreal (xt ) − sfake (xt ))
+we introduce a sequence of new split points St,k with the                                                         z∼N (0;I)                                 ∂θ
+number of sub-chunk boundaries nt,k ≥ 0. Simply merging                                                                                                         (4)
+the original endpoints and the split points gives the new                                          where sreal and sfake denote the real and fake scores, respec-
+chunking patterns:                                                                                 tively, and xt = I(Gθ (z), t) with I(x0 , t) representing a
+                                                                                                   forward process in diffusion models. By randomly sampling
+                  a′t,k = at,k−1 ∪ St,k ∪ at,k ,                                        (3)        the chunk size, the model is exposed to attention configu-
+
+                                                                                               4
+                   Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+rations that range from strictly causal to fully non-causal.                          85.0
+                                                                                             High FPS, Low Quality: 3.3%                     High FPS, High Quality: 69.9%
+
+As a result, the training implicitly contains a heterogeneous                                                                                              Pareto-optimal point:
+                                                                                                                                                           [9, 6, 6]
+
+mixture of causal and bidirectinal dependencies.
+                                                                                      84.5
+
+
+Noise-level alignment across causal and non-causal at-
+
+
+
+
+                                                                       VBench Score
+                                                                                                              Self-Forcing:
+tention. Since our model supports both causal and bidi-                                                       [3, 3, 3, 3, 3, 3, 3]
+
+
+rectional inference, the same query token may attend to                               84.0
+
+
+contexts produced under different generative regimes. At a
+given self-attention layer, this implies that a query can attend                                                                                                   Uniform:
+                                                                                                                                                                   [7, 7, 7]
+                                                                                      83.5
+to key–value states derived from more denoised representa-
+tions (causal past tokens) as well as states generated from
+noisier latents at higher diffusion timesteps (non-causal fu-                         83.0
+
+ture tokens). As a result, the attended KV states exhibit                                    Low FPS, Low Quality: 3.3%                      High FPS, Low Quality: 22.9%
+
+substantially different signal-to-noise ratios. Standard self-                                   23          24                25       26
+                                                                                                                                      FPS
+                                                                                                                                               27          28              29
+
+
+
+attention treats all key–value pairs uniformly, which intro-
+duces a noise-level mismatch in context aggregation and                Figure 4. We test the FPS and VBench Score that split 5s videos
+degrades performance in flexible inference settings.                   into 3 chunks. Point color indicates the average temporal starting
+                                                                       position of chunks, from earlier (blue) to later (yellow).
+To address this issue, we propose a noise-aligned projec-
+tion for the key states, termed K-Projection. Concretely,
+it projects the cache for key states generated from clean              configurations that can be tailored to diverse compute bud-
+inputs into the “noisy” latent space corresponding to the              gets and videos of different lengths, and offers a more favor-
+current diffusion timestep. After projection, all key states           able trade-off between quality and efficiency.
+are expressed in a noise-consistent representation space, en-          We perform a brute-force search to identify the optimal
+abling standard self-attention to be applied. Formally, the            chunk configuration for a 5-second video under a fixed
+timestep-dependent projection is defined as:                           constraint of three chunks. Concretely, we enumerate all
+        Πt←0 : Rd → Rd ,          K̃t = Πt←0 (K0 ) .        (5)        valid partitions of the 21 latent frames into three chunks,
+                                                                       excluding cases that a chunk only contain one frame. The
+where Πt←0 is a lightweight, timestep-conditioned linear               results are shown in Figure 4, from which we draw the
+projection and is intialized as identity mappings. For each            following key observations.
+denoising step t, the self-attention computation is then per-
+formed as:                                                                            • Uniform chunking is not optimal. Evenly partition-
+                                                !                                       ing frames can lead to markedly inferior performance
+                                        Qt K̃tT                                         compared to asymmetric alternatives.
+      Attn(Qt , K̃t , Vt ) = softmax      √       Vt
+                                            d
+                                                                                  • Chunk layout matters beyond exposure bias. Under
+                                       <F         F
+     where K̃t = concat Πt←0 K0 t,k , K̃t t,k             (6)                           the same number of exposure rounds, different chunk
+                                                                                        configurations exhibit large performance disparities.
+The projection is applied on-the-fly during attention compu-
+tation, without modifying the cached KV tensors or gradient                           • Performance favors temporally front-loaded chunking.
+propogation on the KV cache. During inference, clean KV                                 Allocating larger chunks to early frames and smaller
+states are stored once and dynamically projected according                              chunks to later frames yields the strongest results, oc-
+to the diffusion timestep. This design preserves the effi-                              casionally surpassing bidirectional inference.
+ciency benefits of KV caching while enabling stable flexible
+inference across causal and non-causal regimes.                        4.2. Autoregressive Any-timestep, Any-order Editing
+                                                                       Under Flex-Forcing, we unlock two new forms of edit-
+4. Applications of Flex-Forcing                                        ing that are difficult under conventional autoregressive
+                                                                       paradigm. Specifically, we explore two directions: autore-
+4.1. Inference Flexibility: Better Speed, Better Quality
+                                                                       gressive any-timestep and any-order editing.
+We begin by presenting the most straightforward applica-
+tion of Flex-Forcing, which enables a hybrid and flexible              Autoregressive any-timestep editing. To maintain global
+inference paradigm that combines autoregressive and bidi-              coherence, we adopt a structure-preserving editing strategy
+rectional inference at test time. By allowing variable chunk           that restricts editing to low-level refinement timesteps while
+sizes, Flex-Forcing supports adaptive and searchable chunk             keeping high-level planning timesteps unchanged. This
+
+                                                                   5
+                                            Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+                                                                                                                          Appearance stylization:      New Object:          Environment Interaction:               New Action:
+                                                                                                       No editing                                                           A dust rises beneath its paws   leaps upward in a playful jump
+                                                                                                                             wear an sunglasses       A cat runs across
+
+
+
+
+  (a) Flex-
+   Forcing
+
+                                       Frame 1                            Frame 81                                                                     Frame 37
+
+
+
+  (b) Self-
+   Forcing
+
+
+                                       Frame 1                             Frame 81                                                                    Frame 37
+
+
+
+
+                                                       Frame 49                                     Frame 50                                                                               Frame 50
+                                                                                                                                       Frame 49
+
+
+
+Figure 5. Autoregressive any-order generation under the Flex-Forcing paradigm. We first generate the full sequence of 81 frames and then
+re-edit an arbitrary temporal segment (frames 26 – 49). Our method achieves a high success rate for editing while preserving significantly
+better consistency with the unedited subsequent chunks (see the transition between Frame 49 and Frame 50).
+
+
+                                                                    His mouth opens in a full
+ Scenario 1: Any-Layer Editing                                       and spontaneous laugh
+                                                                                                No editing                Model                                   #Params    FPS        NFE              Evaluation Scores
+                                                 (a) Flex-Forcing
+
+                                                                                                                                                                                                    Total Quality Semantic
+ Step    Step            Step   Step
+   3       3               3      3
+                                                                                                                          Pre-trained Autoregressive / Diffusion Video Generation Models
+ Step    Step            Step   Step                                                                                      SkyReels-V2 (Chen et al., 2025a)       1.3B     2.2 30×2 82.67                         84.70           74.53
+   2       2               2      2
+                                                 (b) Self-Forcing
+                                                                                                                          MAGI-1 (Teng et al., 2025)             4.5B     0.5 64×3 79.18                         82.04           67.74
+                                                                                                                          NOVA (Deng et al., 2024)               0.6B     0.9 25×2 80.12                         80.39           79.05
+                Step 1
+                                                                                                                          Pyramid Flow (Jin et al., 2024)         2B      0.9 20×2 81.72                         84.74           69.62
+                                                                                                                          Wan2.1 (Wan et al., 2025)              1.3B     1.3 50×2 84.26                         85.30           80.09
+                                                     Frame 1                Frame 81             Frame 81
+                                             First Round                                                                  Autoregressive Model    Distilled from Diffusion Models
+                                         (Frame 1 – Frame 81)                                                                               Second Round
+Figure 6. Autoregressive any-timestep editing. We modify the                                                              CausVid (Yin(Frame
+                                                                                                                                         et al., 37 – Frame 49) 1.3B
+                                                                                                                                                 2025)                      24.9          5        81.20         84.05           69.80
+                                                                                                                          Self Forcing (Chunk-wise)               1.3B      24.9          5        84.31         85.07           81.28
+conditioning starting from the 6th frame during the last three of
+                                                                                                                          Self Forcing (Chunk-wise)*              1.3B      24.9          5        83.89         84.45           81.63
+four denoising steps. For a fair comparison, the baseline applies the                                                     Self Forcing (Frame-wise)               1.3B      24.9          5        84.26         85.25           80.30
+same conditioning updates at the identical frames and timesteps.                                                          Self-Forcing++ (Cui et al., 2025)       1.3B      24.9          5        83.11         83.79           80.37
+                                                                                                                          Ours (15-3-3) - Best Performance           1.3B    25.8         5        85.07         86.33           80.02
+                                                                                                                          Ours - (7-7-7) - Fastest                   1.3B    29.4         5        84.63         85.89           79.59
+separation explicitly decouples global structure formation                                                                Ours (3-3-3-3-3-3-3)                       1.3B    24.9         5        84.03         84.91           79.95
+
+from local detail modification, resulting in substantially                                                                Ours (12-6-3) - Best Performance           1.3B    45.6         3        84.29         85.33           80.12
+                                                                                                                          Ours - (7-7-7) - Fastest                   1.3B    48.9         3        83.92         84.96           79.78
+improved consistency over baseline autoregressive editing                                                                 Ours (3-3-3-3-3-3-3)                       1.3B    41.5         3        83.91         84.85           80.16
+methods (Figure 6). Under the Self-Forcing paradigm, the                                                                 Table 2. Comparisons of performance for 5s videos. *: We sample
+globally coupled generation dynamics cause even small                                                                    videos from the official checkpoint and test its performance. Here,
+local edits to propagate across frames, often leading to large                                                           the NFE of the causal distillation method contains N steps for
+deviations in the final outputs.                                                                                         denoising and 1 step for caching.
+
+
+Autoregressive any-order editing. Leveraging the ability
+to attend to both past and future tokens, our model enables
+any-order editing while still operating within an autoregres-
+                                                                                                                         5. Experiments
+sive generation framework. Editing a target chunk can thus                                                               Benchmark and baselines We build our baseline on
+be performed independently of its temporal order. Formally,                                                              Wan2.1-T2V-1.3B (Wan et al., 2025), which generates 5-
+editing at timestep t and chunk k is defined as:                                                                         second videos at 832×432 resolution. We evaluate inference
+                                                                                                                       efficiency and generation quality. Efficiency is measured in
+                    Ft,k       Ft,k    <F       >F       F                                                               FPS for 81-frame generation on GB200. Quality is assessed
+                   xt−1  ∼ qθ xt−1  | x0 t,k , x0 t,k , xt t,k                                                 (7)
+                                                                                                                         using VBench (Huang et al., 2024) for 5-second videos
+                                                                                                                         and VBench-Long (Huang et al., 2025b) for 30-second
+where < Ft,k and > Ft,k represents clean tokens belong-
+                                                                                                                         videos. For fair comparison, we use the same prompts
+ing to chunks before and after Ft,k . Conditioning on both
+                                                                                                                         as Self-Forcing and fix random seeds across all experiments.
+sides allows arbitrary temporal segments to be re-edited
+                                                                                                                         We generate 5 samples per prompt for 5-second videos and
+after full-video generation without re-generating the entire
+                                                                                                                         one sample per prompt for 30-second videos.
+sequence, relaxing the strict causal constraint of standard
+autoregressive models (Figure 5).                                                                                        We consider two groups of baselines. For the 5-second set-
+
+                                                                                                                     6
+                         Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+                            Yellow flowers swing in the wind (Baseline: Hallucinated Flower)                           A person is driving car (Basline: unnatural vehicle motion)
+
+
+ Self-Forcing
+  (FPS=24.9)
+
+
+
+
+ Flex-Forcing
+  (FPS=24.9)
+
+
+
+
+                                    A person is shaking head (Baseline: No Head Motion)                    An artist brush painting on a canvas close up (Baseline: Shape Misrepresentation)
+
+
+
+ Self-Forcing
+  (FPS=24.9)
+
+
+
+
+ Flex-Forcing
+  (FPS=24.9)
+
+
+
+
+Figure 7. Visual comparison between Self-Forcing and Flex-Forcing in generating 5s videos. We show three frames at 0 s, 2.5 s, and 5 s.
+Flex-Forcing produces more coherent long-range motion and better alignment with the given instruction.
+
+                Model                  Steps             Evaluation Scores
+                                                    Total Quality Semantic
+                Wan2.1                 50×2         84.26        85.30           80.09
+  DOLLAR (Ding et al., 2025)              4         82.57        83.83           77.51
+ T2V-Turbo-v2 (Li et al., 2024)           4         82.34        83.93           75.97
+   rCM (Zheng et al., 2025)               4         84.43        85.38           80.63
+   DMD-v (Nie et al., 2026)               4         84.60        86.03           79.87
+        Flex-Forcing                      4         85.13        86.50           79.65
+      TMD (Nie et al., 2026)            2.33        84.68        85.71           80.55
+     APT (Lin et al., 2025)               2         81.85        84.39           71.70             Figure 8. Results for hybrid chunking over denoising time. The
+    rCM (Zheng et al., 2025)              2         84.09        84.90           80.86             points with lighter color represents those with those have more
+                                                                                                   fine-grained splits.
+    DMD-v (Nie et al., 2026)              2         84.39        85.65           79.32
+         Flex-Forcing                     2         84.20        85.27           79.92             is 21 latent frames.
+ Table 3. Comparisons with few-step distilled diffusion models.
+                                                                                                   Performance on 5s videos Results on 5-second videos
+                                                                                                   are summarized in Tables 2 and 3. For Flex-Forcing, we re-
+ting, we compare against Self-Forcing (Huang et al., 2025a)
+                                                                                                   port three representative configurations: the best-performing
+as well as recently proposed improvements built upon it
+                                                                                                   setting, the speed-optimized setting, and the configuration
+(Cui et al., 2025). Moreover, since our model also supports
+                                                                                                   matched to the baseline. Flex-Forcing consistently outper-
+bidirectional diffusion inference, we additionally compare
+                                                                                                   forms the baselines in both inference efficiency and video
+with few-step distillation methods for video diffusion mod-
+                                                                                                   quality. We further compare Flex-Forcing with few-step dis-
+els. For long-video evaluation, we compare our method
+                                                                                                   tilled diffusion methods. Even in this regime, Flex-Forcing
+with approaches that are train-short-evaluate-long (Huang
+                                                                                                   achieves comparable or superior video quality, indicating
+et al., 2025a; Yesiltepe et al., 2025).
+                                                                                                   that the proposed framework preserves strong performance
+                                                                                                   under fully bidirectional operation. Qualitative case studies
+Implementations We follow Self-Forcing to use Wan2.1-                                              are presented in Figure 7. The primary improvements arise
+T2V-1.3B as our base model and Wan2.1-T2V-14B as the                                               in temporal dynamics: long-horizon planning enables coher-
+teacher model to train Flex-Forcing. Training uses extended                                        ent long-range motion, mitigates error accumulation, and
+prompts from VidProM (Wang & Yang, 2024) for 600 itera-                                            yields smoother and more temporally consistent generation.
+tions with a batch size of 64. We randomly pick the chunk
+size in training from 2 to 10. For the K-projection, we use                                        Performance of hybrid chunking over timesteps We
+a learning rate of 2e-6. For the 2-step model, we set the                                          further analyze the effect of hybrid chunking on denois-
+denoising steps set to [1000, 500]. The sink size for the long                                     ing timesteps through an ablation study. Specifically, we
+video is set to 3 latent frames, and the total attention window                                    consider three chunking configurations, [21], [14, 7] and
+
+                                                                                               7
+                              Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+                   Subject C.       Human Action     Aesthetic Quality   Temporal Style       Overall C.                    Background C.        Appearance Style                     Scene          Quality Score      Semantic Score
+  LongLive∗          98.36              97.15              63.77             24.15              26.49                           96.25                 20.52                            58.62               83.21                81.17
+  Self-Forcing       97.76              96.86             61.72              23.56              25.68                           95.00                 21.15                51.05                           82.67                76.77
+ Infinity-RoPE       97.68              96.99             62.33              23.74              26.26                           96.00                 20.91                53.47                           83.77                79.11
+      Ours       98.00 (0.40↑)      97.07 (0.08↑)     63.31 (0.98↑)      24.26 (0.48↑)      25.92 (0.34↓)                   95.50 (0.50↓)         20.32 (0.59↓)        52.20 (1.27↓)                       85.30                78.86
+                 Imaging Quality        Color          Object Class        Flickering     Motion Smoothness             Dynamic Degree           Multiple Objects                  Spatial               Total Score            FPS
+  LongLive∗          68.35              90.07              94.08             99.36              98.81                           38.89                 85.86                            82.06               82.80                25.07
+  Self-Forcing       67.70              71.55             92.83              99.10              98.67                            41.93                83.65                76.55                           81.49                19.10
+ Infinity-RoPE       69.30              82.52             91.90              99.28              98.72                            50.26                83.55                82.48                           82.84                19.10
+      Ours       66.24 (3.06↓)      84.92 (2.40↑)     93.62 (1.72↑)      99.70 (0.42↑)      98.70 (0.02↓)                   71.27 (21.01↑)        85.15 (1.60↑)        78.11 (4.37↓)                       84.01                24.96
+
+  Table 4. VBench-Long comparison on 30-second videos. ∗ Except for LongLive, all other methods are trained only on short videos.
+
+                                     A rally car taking a fast turn on a track                                     100                                                                       85.25
+                                                                                                                                Visual Quality      Prompt Alignment
+                                                                                                                       80                                                                    85.00
+
+
+
+
+                                                                                                        Win Rate (%)
+                                                                                                                                                                                                                                   = 0.4
+
+
+
+
+                                                                                                                                                                        VBench Total Score
+                                                                                                                                                                                             84.75
+ Infinity-ROPE                                                                                                         60     55.4 53.3               53.9 50.6
+                                                                                                                                                                                             84.50
+                                                                                                                       40                                                                    84.25
+                                                                                                                                                                                             84.00
+                                                                                                                       20                                                                                                  No Projection
+                                                                                                                                                                                             83.75                         K Projection
+ Flex-Forcing                                                                                                           0
+                                                                                                                             5s Video               30s Video                                        5          10       15
+                                                                                                                                                                                                           Maximum Chunk Size
+                                                                                                                                                                                                                                      20
+
+
+                                   Dew on blue rose petals, HD, close up, detail
+                                                                                                        Figure 10. (Left) User study: We compare Flex-Forcing with
+                                                                                                        Self-Forcing under 5s and 30s settings. (Right) Ablation of K-
+ Infinity-ROPE
+                                                                                                        projection and its impact on different chunk configurations.
+
+
+
+ Flex-Forcing                                                                                           tepe et al., 2025). We observe that our method outperforms
+                                                                                                        Infinity-RoPE across the majority of evaluation metrics,
+                             A close-up shot of a steaming cappuccino in a ceramic cup,                 while also achieving faster inference speed. Compared to
+                                           with a rich brown foam on top
+                                                                                                        Infinity RoPE, our improvements primarily stem from en-
+ Infinity-ROPE
+                                                                                                        hanced video quality rather than semantic alignment, as our
+                                                                                                        method does not explicitly optimize for alignment objec-
+                                                                                                        tives. Notably, the most significant gains are observed in
+  Flex-Forcing
+                                                                                                        the dynamic degree, where our approach demonstrates a
+                                                                                                        clear advantage. We further provide qualitative comparisons
+                                                                                                        in the appendix to illustrate these improvements, showing
+Figure 9. Comparisons between Flex-Forcing and Infinity-RoPE.                                           substantially richer and more expressive motion dynamics,
+Our method produces long video with improved semantic consis-                                           where the baseline tends to generate repetitive motions, re-
+tency, better aesthetic quality and mothion smoothness.                                                 sulting in reduced dynamic diversity.
+
+[7, 7, 7], where each configuration specifies the chunk sizes                                           User preference study As shown in Figure 10, our
+assigned to the denoising steps. We evaluate all settings                                               method are preferred than self-forcing both on the 5s and
+under identical conditions, and the quantitative results are                                            30s setting. The advantage is more significant for the di-
+summarized in Figure 8. Overall, hybrid chunking consis-                                                mension of visual quality.
+tently achieves a more favorable trade-off between efficiency
+and quality compared to applying chunking only along tem-
+poral frame, effectively yielding a better Pareto frontier.                                             Ablation study: impact of K-projection We evaluate
+We conduct qualitative analysis and observe that even the                                               the impact of K-projection by comparing models trained
+weakest-performing configuration, where the first denoising                                             with and without it under various inference configurations
+step uses a chunk size of 21 and the remaining stages use a                                             (Figure 10). Incorporating K-projection consistently im-
+chunk size of 7, still significantly outperforms Self-Forcing                                           proves performance across all settings, with the largest gains
+(84.3), while producing video content and fine-grained de-                                              observed near the fully bidirectional regime. Without K-
+tails similar to that of fully bidirectional model.                                                     projection, performance degrades as chunk size increases;
+                                                                                                        with K-projection, performance remains stable and improves
+Performance on 30s videos Table 4 shows the evalua-                                                     smoothly. This demonstrates that K-projection stabilizes
+tion results of our method under the 30s setting. We build                                              training when approaching bidirectional supervision and
+the inference of our method upon Infinity-RoPE (Yesil-                                                  mitigates performance drops at large chunk sizes.
+
+                                                                                                  8
+                   Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+6. Conclusion                                                          Black Forest Labs. FLUX. https://github.com/
+                                                                         black-forest-labs/flux, 2024.
+In summary, Flex-Forcing reframes bidirectional and au-
+toregressive video generation not as competing paradigms,              Blattmann, A., Dockhorn, T., Kulal, S., Mendelevitch, D.,
+but a controllable inference dimension that can be smoothly              Kilian, M., Lorenz, D., Levi, Y., English, Z., Voleti, V.,
+adjusted according to requirements. By introducing the flex-             Letts, A., et al. Stable video diffusion: Scaling latent
+ible chunking along the temporal and denoising axes, and                 video diffusion models to large datasets. arXiv preprint
+bridging the different level of noise in causal and non-causal           arXiv:2311.15127, 2023a.
+contexts, the model can adapt its causal structure at test time,
+enabling better globally coherent generation, efficient and            Blattmann, A., Rombach, R., Ling, H., Dockhorn, T., Kim,
+better long-video synthesis and better trade-offs between                S. W., Fidler, S., and Kreis, K. Align your latents: High-
+quality and speed.                                                       resolution video synthesis with latent diffusion models.
+                                                                         In Proceedings of the IEEE/CVF conference on computer
+                                                                         vision and pattern recognition, pp. 22563–22575, 2023b.
+Limitations
+                                                                       Chen, B., Martı́ Monsó, D., Du, Y., Simchowitz, M.,
+Our method still has several limitations. Although it re-                Tedrake, R., and Sitzmann, V. Diffusion forcing: Next-
+laxes the strict left-to-right training constraint, the train-           token prediction meets full-sequence diffusion. Advances
+ing–inference mismatch is not fully resolved and can still               in Neural Information Processing Systems, 37:24081–
+accumulate errors in long video generation. In addition, the             24125, 2024a.
+effectiveness of the method appears to depend heavily on
+capabilities inherited from pre-training, especially bidirec-          Chen, G., Lin, D., Yang, J., Lin, C., Zhu, J., Fan, M.,
+tional encoding priors, which may limit its transferability to           Zhang, H., Chen, S., Chen, Z., Ma, C., et al. Skyreels-
+models where such priors are weak or absent. More broadly,               v2: Infinite-length film generative model. arXiv preprint
+as with other generative video models, the proposed method               arXiv:2504.13074, 2025a.
+may be misused in downstream applications if deployed
+without appropriate safeguards.                                        Chen, H., Zhang, Y., Cun, X., Xia, M., Wang, X., Weng, C.,
+                                                                         and Shan, Y. Videocrafter2: Overcoming data limitations
+                                                                         for high-quality video diffusion models. In Proceedings
+Impact Statement                                                         of the IEEE/CVF Conference on Computer Vision and
+Flex-Forcing unifies bidirectional and autoregressive                    Pattern Recognition, pp. 7310–7320, 2024b.
+paradigms into a single model, reducing the computa-                   Chen, S., Chen, Y., Chen, Y., Chen, Z., Cheng, F., Chi, X.,
+tional cost and environmental footprint of maintaining                   Cong, J., Cui, Q., Dong, Q., Fan, J., et al. Seedance 1.5
+separate specialized architectures. By allowing dynamic                  pro: A native audio-visual joint generation foundation
+trade-offs between speed and quality at runtime, it de-                  model. arXiv preprint arXiv:2512.13507, 2025b.
+mocratizes high-fidelity, long-form video generation for
+resource-constrained environments. Additionally, the order-            Cui, J., Wu, J., Li, M., Yang, T., Li, X., Wang, R., Bai,
+agnostic capabilities provide precise, localized editing tools           A., Ban, Y., and Hsieh, C.-J. Self-forcing++: To-
+for creative and industrial sectors, promoting more adaptive,            wards minute-scale high-quality video generation. arXiv
+resource-aware generative systems in media, simulation,                  preprint arXiv:2510.02283, 2025.
+and embodied AI.
+                                                                       Deng, H., Pan, T., Diao, H., Luo, Z., Cui, Y., Lu, H.,
+                                                                         Shan, S., Qi, Y., and Wang, X. Autoregressive video
+Acknowledgement                                                          generation without vector quantization. arXiv preprint
+This research is in part supported by the Ministry of Educa-             arXiv:2412.14169, 2024.
+tion, Singapore, under the Academic Research Fund Tier 1               Dhariwal, P. and Nichol, A. Diffusion models beat GANs
+(FY2026, WBS: A-8004345-00-00).                                          on image synthesis. pp. 8780–8794, 2021.
+
+References                                                             Ding, Z., Jin, C., Liu, D., Zheng, H., Singh, K. K., Zhang,
+                                                                         Q., Kang, Y., Lin, Z., and Liu, Y. Dollar: Few-step video
+Bar-Tal, O., Chefer, H., Tov, O., Herrmann, C., Paiss, R.,               generation via distillation and latent reward optimization.
+  Zada, S., Ephrat, A., Hur, J., Liu, G., Raj, A., et al. Lu-            In Proceedings of the IEEE/CVF International Confer-
+  miere: A space-time diffusion model for video generation.              ence on Computer Vision, pp. 17961–17971, 2025.
+  In SIGGRAPH Asia 2024 Conference Papers, pp. 1–11,
+  2024.                                                                Esser, P., Kulal, S., Blattmann, A., Entezari, R., Müller, J.,
+                                                                         Saini, H., Levi, Y., Lorenz, D., Sauer, A., Boesel, F., et al.
+
+                                                                   9
+                   Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+  Scaling rectified flow transformers for high-resolution              Huang, Z., Zhang, F., Xu, X., He, Y., Yu, J., Dong, Z., Ma,
+  image synthesis. In Forty-first international conference               Q., Chanpaisit, N., Si, C., Jiang, Y., et al. Vbench++:
+  on machine learning, 2024.                                             Comprehensive and versatile benchmark suite for video
+                                                                         generative models. IEEE Transactions on Pattern Analy-
+Google.  Veo.   https://deepmind.google/
+                                                                         sis and Machine Intelligence, 2025b.
+  technologies/veo/, 2024.
+                                                                       Jiang, Z., Han, Z., Mao, C., Zhang, J., Pan, Y., and Liu,
+Gupta, A., Yu, L., Sohn, K., Gu, X., Hahn, M., Li, F.-
+                                                                          Y. Vace: All-in-one video creation and editing. arXiv
+  F., Essa, I., Jiang, L., and Lezama, J. Photorealistic
+                                                                          preprint arXiv:2503.07598, 2025.
+ video generation with diffusion models. In European
+ Conference on Computer Vision, pp. 393–411. Springer,                 Jin, Y., Sun, Z., Li, N., Xu, K., Jiang, H., Zhuang, N.,
+  2024.                                                                   Huang, Q., Song, Y., Mu, Y., and Lin, Z. Pyramidal flow
+                                                                          matching for efficient video generative modeling. arXiv
+HaCohen, Y., Brazowski, B., Chiprut, N., Bitterman, Y.,
+                                                                          preprint arXiv:2410.05954, 2024.
+  Kvochko, A., Berkowitz, A., Shalem, D., Lifschitz,
+  D., Moshe, D., Porat, E., et al. Ltx-2: Efficient                    Karras, T., Aittala, M., Aila, T., and Laine, S. Elucidating
+  joint audio-visual foundation model. arXiv preprint                    the design space of diffusion-based generative models.
+  arXiv:2601.03233, 2026.                                                pp. 26565–26577, 2022.
+He, X., Peng, C., Liu, Z., Wang, B., Zhang, Y., Cui, Q.,               Kuaishou. Kling. https://kling.kuaishou.com,
+  Kang, F., Jiang, B., An, M., Ren, Y., et al. Matrix-game               2024.
+  2.0: An open-source real-time and streaming interactive
+  world model. arXiv preprint arXiv:2508.13009, 2025.                  Li, J., Long, Q., Zheng, J., Gao, X., Piramuthu, R., Chen, W.,
+                                                                          and Wang, W. Y. T2v-turbo-v2: Enhancing video genera-
+Ho, J., Chan, W., Saharia, C., Whang, J., Gao, R., Gritsenko,             tion model post-training through data, reward, and condi-
+  A., Kingma, D. P., Poole, B., Norouzi, M., Fleet, D. J.,                tional guidance design. arXiv preprint arXiv:2410.05677,
+  et al. Imagen video: High definition video generation                   2024.
+  with diffusion models. arXiv preprint arXiv:2210.02303,
+  2022a.                                                               Lin, S., Xia, X., Ren, Y., Yang, C., Xiao, X., and Jiang,
+                                                                         L. Diffusion adversarial post-training for one-step video
+Ho, J., Salimans, T., Gritsenko, A., Chan, W., Norouzi, M.,              generation. arXiv preprint arXiv:2501.08316, 2025.
+  and Fleet, D. J. Video diffusion models. Advances in
+  neural information processing systems, 35:8633–8646,                 Liu, K., Hu, W., Xu, J., Shan, Y., and Lu, S. Rolling forcing:
+  2022b.                                                                 Autoregressive long video diffusion in real time. arXiv
+                                                                         preprint arXiv:2509.25161, 2025.
+Hong, W., Ding, M., Zheng, W., Liu, X., and Tang, J.
+  Cogvideo: Large-scale pretraining for text-to-video gener-           Luo, Z., Chen, D., Zhang, Y., Huang, Y., Wang, L., Shen, Y.,
+  ation via transformers. arXiv preprint arXiv:2205.15868,               Zhao, D., Zhou, J., and Tan, T. Videofusion: Decomposed
+  2022.                                                                  diffusion models for high-quality video generation. arXiv
+                                                                         preprint arXiv:2303.08320, 2023.
+Hong, Y., Mei, Y., Ge, C., Xu, Y., Zhou, Y., Bi, S., Hold-
+  Geoffroy, Y., Roberts, M., Fisher, M., Shechtman, E., et al.         Nie, W., Berner, J., Ma, N., Liu, C., Xie, S., and Vahdat, A.
+  Relic: Interactive video world model with long-horizon                 Transition matching distillation for fast video generation.
+  memory. arXiv preprint arXiv:2512.04040, 2025.                         arXiv preprint arXiv:2601.09881, 2026.
+Hu, L. Animate anyone: Consistent and controllable image-              OpenAI. Sora. https://openai.com/index/sora,
+  to-video synthesis for character animation. In Proceed-                2024.
+  ings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition, pp. 8153–8163, 2024.                        Peebles, W. and Xie, S. Scalable diffusion models with
+                                                                         transformers. In Proceedings of the IEEE/CVF interna-
+Huang, X., Li, Z., He, G., Zhou, M., and Shechtman, E.                   tional conference on computer vision, pp. 4195–4205,
+  Self forcing: Bridging the train-test gap in autoregressive            2023.
+ video diffusion. arXiv preprint arXiv:2506.08009, 2025a.
+                                                                       Rombach, R., Blattmann, A., Lorenz, D., Esser, P., and
+Huang, Z., He, Y., Yu, J., Zhang, F., Si, C., Jiang, Y., Zhang,          Ommer, B. High-resolution image synthesis with latent
+ Y., Wu, T., Jin, Q., Chanpaisit, N., et al. Vbench: Compre-             diffusion models. pp. 10684–10695, 2022.
+  hensive benchmark suite for video generative models. In
+  Proceedings of the IEEE/CVF Conference on Computer                   Runway. Gen-3 alpha. https://runwayml.com/
+ Vision and Pattern Recognition, pp. 21807–21818, 2024.                  research/introducing-gen-3-alpha, 2024.
+
+                                                                  10
+                   Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+Singer, U., Polyak, A., Hayes, T., Yin, X., An, J., Zhang, S.,           for Computational Linguistics (Volume 1: Long Papers),
+  Hu, Q., Yang, H., Ashual, O., Gafni, O., et al. Make-a-                pp. 1309–1320, 2023.
+  video: Text-to-video generation without text-video data.
+  arXiv preprint arXiv:2209.14792, 2022.                               Yin, T., Gharbi, M., Park, T., Zhang, R., Shechtman, E., Du-
+                                                                         rand, F., and Freeman, B. Improved distribution matching
+Teng, H., Jia, H., Sun, L., Li, L., Li, M., Tang, M., Han,               distillation for fast image synthesis. Advances in neural
+  S., Zhang, T., Zhang, W., Luo, W., et al. Magi-1: Au-                  information processing systems, 37:47455–47487, 2024a.
+  toregressive video generation at scale. arXiv preprint
+  arXiv:2505.13211, 2025.                                              Yin, T., Gharbi, M., Zhang, R., Shechtman, E., Durand, F.,
+                                                                         Freeman, W. T., and Park, T. One-step diffusion with
+Villegas, R., Babaeizadeh, M., Kindermans, P.-J., Moraldo,               distribution matching distillation. In Proceedings of the
+  H., Zhang, H., Saffar, M. T., Castro, S., Kunze, J., and               IEEE/CVF conference on computer vision and pattern
+  Erhan, D. Phenaki: Variable length video generation                    recognition, pp. 6613–6623, 2024b.
+  from open domain textual description. arXiv preprint
+  arXiv:2210.02399, 2022.                                              Yin, T., Zhang, Q., Zhang, R., Freeman, W. T., Durand, F.,
+                                                                         Shechtman, E., and Huang, X. From slow bidirectional
+Wan, T., Wang, A., Ai, B., Wen, B., Mao, C., Xie, C.-W.,                 to fast autoregressive video diffusion models. In Pro-
+ Chen, D., Yu, F., Zhao, H., Yang, J., et al. Wan: Open                  ceedings of the Computer Vision and Pattern Recognition
+ and advanced large-scale video generative models. arXiv                 Conference, pp. 22963–22974, 2025.
+ preprint arXiv:2503.20314, 2025.
+                                                                       Yu, L., Cheng, Y., Sohn, K., Lezama, J., Zhang, H., Chang,
+Wang, W. and Yang, Y. Vidprom: A million-scale real                      H., Hauptmann, A. G., Yang, M.-H., Hao, Y., Essa, I.,
+ prompt-gallery dataset for text-to-video diffusion models.              et al. Magvit: Masked generative video transformer. In
+ Advances in Neural Information Processing Systems, 37:                  Proceedings of the IEEE/CVF Conference on Computer
+ 65618–65642, 2024.                                                      Vision and Pattern Recognition, pp. 10459–10469, 2023.
+
+Wang, Y., Xiong, T., Zhou, D., Lin, Z., Zhao, Y., Kang, B.,            Yuan, H., Chen, W., Cen, J., Yu, H., Liang, J., Chang, S.,
+ Feng, J., and Liu, X. Loong: Generating minute-level                    Lin, Z., Feng, T., Liu, P., Xing, J., et al. Lumos-1: On
+ long videos with autoregressive language models. arXiv                  autoregressive video generation from a unified model
+ preprint arXiv:2410.02757, 2024.                                        perspective. arXiv preprint arXiv:2507.08801, 2025.
+
+Wu, B., Zou, C., Li, C., Huang, D., Yang, F., Tan, H., Peng,           Zheng, K., Wang, Y., Ma, Q., Chen, H., Zhang, J., Balaji, Y.,
+ J., Wu, J., Xiong, J., Jiang, J., et al. Hunyuanvideo 1.5               Chen, J., Liu, M.-Y., Zhu, J., and Zhang, Q. Large scale
+ technical report. arXiv preprint arXiv:2511.18870, 2025.                diffusion distillation via score-regularized continuous-
+                                                                         time consistency. arXiv preprint arXiv:2510.08431, 2025.
+Yan, W., Zhang, Y., Abbeel, P., and Srinivas, A. Videogpt:
+  Video generation using vq-vae and transformers. arXiv
+  preprint arXiv:2104.10157, 2021.
+
+Yang, S., Huang, W., Chu, R., Xiao, Y., Zhao, Y., Wang, X.,
+  Li, M., Xie, E., Chen, Y., Lu, Y., et al. Longlive: Real-
+  time interactive long video generation. arXiv preprint
+  arXiv:2509.22622, 2025.
+
+Yang, Z., Teng, J., Zheng, W., Ding, M., Huang, S., Xu,
+  J., Yang, Y., Hong, W., Zhang, X., Feng, G., et al.
+  Cogvideox: Text-to-video diffusion models with an ex-
+  pert transformer. arXiv preprint arXiv:2408.06072, 2024.
+
+Yesiltepe, H., Meral, T. H. S., Akan, A. K., Oktay, K., and
+  Yanardag, P. Infinity-rope: Action-controllable infinite
+  video generation emerges from autoregressive self-rollout.
+  arXiv preprint arXiv:2511.20649, 2025.
+
+Yin, S., Wu, C., Yang, H., Wang, J., Wang, X., Ni, M., Yang,
+  Z., Li, L., Liu, S., Yang, F., et al. Nuwa-xl: Diffusion over
+  diffusion for extremely long video generation. In Pro-
+  ceedings of the 61st Annual Meeting of the Association
+
+                                                                  11
+                                Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+A. Qualitative results on flexible chunks on video frames.
+
+ Bidrectional Setting: [21]
+
+
+
+
+ Hybrid Setting: [7, 7, 7]
+
+
+
+
+ Hybrid Setting:[3, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+
+
+
+ Hybrid Setting: [3, 3, 3, 3, 3, 3, 3]
+
+
+
+
+ Hybrid Setting: [5, 4, 4, 4, 4]
+
+
+
+
+ Hybrid Setting: [6, 5, 5, 5]
+
+
+
+
+ Hybrid Setting:[9, 6, 6]
+
+
+
+
+ Hybrid Setting:[12, 6, 3]
+
+
+
+
+ Hybrid Setting: [15, 3, 3]
+
+
+
+
+Figure 11. Prompt (left): A vibrant and lively underwater scene featuring an octopus playing multiple musical instruments simultaneously
+in a colorful band. The octopus has a playful and joyful expression, its tentacles deftly manipulating a trumpet, a drum, and a guitar.
+Its body is adorned with iridescent patterns, and it appears to be having fun. The background showcases a diverse array of marine life,
+including colorful fish and coral reefs, with a gentle underwater current flowing. The scene is captured in a dynamic angle, emphasizing
+the octopus’s movements and the instruments it plays. The water has a soft, shimmering quality, enhancing the underwater atmosphere. A
+mid-shot with a dynamic camera angle. Prompt (right): A close-up shot of a drink being poured over ice, showcasing the detailed flow of
+liquid interacting with the ice cubes. The drink cascades down, creating ripples and splashes on the surface of the ice, which glistens
+under the soft lighting. The glass holds a clear, amber-colored liquid, and the ice cubes sparkle with tiny droplets of condensation. The
+background is blurred, highlighting the dynamic interaction between the drink and the ice. The photo has a crisp, natural lighting style,
+emphasizing the fluid motion and the sparkling ice. A close-up from a slightly downward angle.
+
+
+                                                                         12
+                                  Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+                                                                                                                                                                       3-2-2-2-2-2-2-2-2-2
+                                                                                                                                                                       3-3-3-3-3-3-3
+                                                                                                                                                                       6-5-5-5
+                                                                                                                                                                       9-6-6
+                                                                                                                     35                                                7-7-7
+                   85.2
+                                                                                                                                                                       8-13
+                          18-3 (NFE=5)                                             NFE=5                                                                               9-9-3
+
+                   85.0
+                                                                                   NFE=4                                                                               10-11
+                                                                                                                                                                       11-10
+                                                                                   NFE=3                                                                               12-6-3
+                                              15-3-3 (NFE=4)                                                         30
+                                                                                                                                                                       15-3-3
+
+
+
+
+                                                                                                     FPS per chunk
+                   84.8
+                                                                                                                                                                       18-3
+VBench Score (↑)
+
+
+
+
+                                                         7-7-7 (NFE=4)                                                                                                 21
+
+                   84.6
+
+                                                                                                                     25
+
+
+                   84.4
+                                                                                9-9-3 (NFE=3)
+
+
+                   84.2
+                                                                              10-11 (NFE=3)                          20
+
+
+
+                   84.0
+
+
+
+
+                   83.8
+                          10             12               14             16           18                                  0              2       4             6             8
+                                                                                                                                                 Chunk index
+                                               FPS on A100 (↑)
+
+
+
+Figure 12. (Left) The VBench score and FPS on a A100 GPU. We adopt the same configurations as on GB200. (Right) We plot the FPS in
+each chunk if we have different chunk configurations.
+
+
+In the experiment that shown in Figure 1, we use the following 14 configurations: [21], [18,3], [15,3,3], [12,6,3], [11,10],
+[10,11], [9,9,3], [8,13], [8,8,5], [7,7,7], [9,6,6], [6,5,5,5], [5,4,4,4], [3,3,3,3,3,3,3], [3,2,2,2,2,2,2,2,2,2]. We here show
+some results when we set the chunking configurations to those difference choices in Figure.11. In these experiments, we
+use the same model with an identical random seed and vary only the chunking configuration. The results reveal a clear
+and consistent trend: as the average chunk size increases, the visual quality of the generated videos improves steadily
+and progressively approaches that of full bidirectional attention. In contrast, when the chunk size is small, we observe
+pronounced exposure bias, indicating that exposure bias still remains a significant issue under fine-grained chunking.
+
+Speed Analysis We further provide a detailed speed analysis. All experiments are conducted on a single A100 GPU, and
+the results are reported in Figure 12. We then show the results if we calculate the FPS for each block. While smaller chunk
+sizes achieve higher per-chunk FPS, they require a larger number of rollout rounds, resulting in a lower overall throughput.
+In contrast, although each chunk operates at a relatively lower FPS, the total number of rollout rounds is substantially
+reduced compared to Self-Forcing, leading to higher end-to-end generation speed.
+
+B. Qualitative results on flexible chunks on denoising timesteps.
+Figure 13 illustrates the processing order when applying
+flexible chunking over denoising timesteps. The 0-th block                                                               Timestep 0
+                                                                                                                      (KV-Cache Step)        3             5       8
+is bidirectional and thus does not depend on any prior KV
+cache, allowing immediate execution. In contrast, although
+Block 4 has access to intermediate representations from                                                                   Timestep t-2       2             4       7             11
+Block 1, it cannot be computed until Block 3 finishes, since
+the required KV caches from earlier frames are unavailable.
+We further study the impact of flexible chunking across                                                                   Timestep t-1           1                 6             10
+denoising steps under multiple configurations. As shown in
+Figure 14, we evaluate three chunking schemes—[21], [14,                                                                  Timestep t                       0                      9
+7], and [7, 7, 7]. All configurations yield results highly sim-
+ilar to the unchunked bidirectional setting, with differences
+mainly in local visual details. As chunking becomes more
+fine-grained, deviations from the bidirectional baseline be-                                          Figure 13. Illustration of flexible chunking across timesteps. The
+come more evident, especially in later frames, suggesting                                             number on the block is the order they would be executed.
+reduced temporal consistency toward the end of the video.
+
+
+                                                                                                13
+                                Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+
+  Bidrectional Setting: [[21], [21], [21], [21]]
+
+
+
+
+  Hybrid Setting: [[21], [21], [21], [7, 7, 7]]
+
+
+
+
+  Hybrid Setting: [[21], [21], [7, 7, 7], [7, 7, 7]]
+
+
+
+
+  Hybrid Setting: [[21], [7, 7, 7], [7, 7, 7], [7, 7, 7]]
+
+
+
+
+  Hybrid Setting: [[21], [14, 7], [14, 7], [14, 7]]
+
+
+
+
+  Hybrid Setting: [[21], [21], [14, 7], [14, 7]]
+
+
+
+
+  Hybrid Setting: [[21], [14, 7], [14, 7], [7, 7, 7]]
+
+
+
+
+  Hybrid Setting: [[21], [21], [14, 7], [7, 7, 7]]
+
+
+
+
+  Hybrid Setting: [[21], [14, 7], [7, 7, 7], [7, 7, 7]]
+
+
+
+
+Figure 14. Prompt (left): A miniature 3D render in an octane engine style depicting adorable wool and felt monsters dancing together in
+a dreamy, bokeh-filled setting. These soft, cuddly creatures, with big expressive eyes and fluffy bodies, are illuminated by gentle, diffused
+lighting that casts a warm, ethereal glow. The background features a soft, hazy backdrop with a dreamy bokeh effect, adding a cinematic
+quality to the scene. The monsters are shown from various angles, capturing their playful movements and expressions, creating a charming
+and enchanting atmosphere. A medium shot with a dynamic camera angle, highlighting the natural and joyful dance of these woolen
+monsters. Prompt (right): A dynamic photograph capturing a little boy riding his bike through a garden that transitions through the
+changing seasons—fall leaves crunch underfoot, winter snow blankets the ground, spring flowers bloom, and summer sunshine sparkles
+through the foliage. The boy, with curly brown hair and a joyful smile, pedals energetically, his arms outstretched in excitement. The
+garden backdrop features trees with branches adorned in each season’s distinctive foliage. A series of shots taken from various angles,
+starting with a wide shot of the boy entering the garden in spring, transitioning to a mid-shot of him biking through the colorful autumn
+leaves, then a close-up of him riding through a snowy path, and finally a wide-angle view of him enjoying the warm summer sun. The
+photo has a natural, documentary style, emphasizing the boy’s natural movements and the vibrant colors of the changing seasons.
+
+
+
+                                                                         14
+                             Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+                                       Self-Forcing                                                                                         Flex-Forcing
+
+
+
+
+ Prompt: A candid moment captured in a documentary-style photo of a middle-aged man looking bewildered and slightly frustrated as he searches his pockets and coat for his missing keys. He
+ stands in a cluttered living room with books and magazines scattered on a coffee table, and a half-empty glass on the floor. His face is filled with worry, and his fingers run through his tousled
+ brown hair. The background shows a mix of shadows and bright spots from nearby lamps, creating a warm yet anxious atmosphere. A close-up shot from a low angle, emphasizing his expression.
+
+
+
+
+ Prompt: A cinematic pan right over a bustling city skyline at dusk, capturing the transition from day to night. The buildings begin to twinkle with lights as the sun sets below the horizon, casting a
+ warm golden glow over the scene. The camera gradually widens, revealing the intricate details of skyscrapers, illuminated billboards, and the busy streets below. A soft haze in the air adds depth
+ and a sense of mystery to the urban landscape. The overall style is reminiscent of a Hollywood evening promotional poster, with a blend of realistic and slightly exaggerated architectural details. A
+ sweeping medium shot with a dynamic camera movement.
+
+
+
+
+ Prompt: A close-up of steam condensing on a cold glass windowpane, with tiny droplets merging and sliding away as they gather. The glass is clear, showing the condensation forming into small
+ beads that roll down the surface. The background is dimly lit, with only the soft glow of interior lights visible, creating a misty and ethereal atmosphere. The camera angle is slightly tilted
+ downward, capturing the droplets' movement and the subtle play of light on the glass.
+
+
+
+
+  Prompt:A dynamic action shot of a turtle wearing a sleek racing suit, riding a colorful skateboard down a steep hill. The turtle has a determined expression, its small legs pumping vigorously as it
+  skates with speed and agility. The skateboard wheels spin rapidly, leaving a slight blur in the background. The hillside is lined with tall grass and wildflowers, and the sky is a bright blue with
+  fluffy clouds. The scene captures the turtle's momentum and excitement as it races down the hill, with a slight tilt to the camera angle to enhance the sense of speed and movement.
+
+
+
+
+ Prompt: A dynamic tracking shot in the style of a thrilling action movie, capturing a car navigating a winding mountain road. The camera follows the car closely, showcasing the rugged terrain and
+ scenic views. As the car twists and turns, the landscape changes dramatically, revealing lush green forests, steep cliffs, and distant peaks. The road winds through valleys and over rocky
+ outcrops, creating a sense of adventure and excitement. The car's headlights illuminate the path ahead, casting shadows on the rugged landscape. The overall scene is rendered in a high-
+ definition, cinematic style, emphasizing the movement and the breathtaking vistas.
+
+
+                                              Figure 15. Visual Comparisons between Flex-Forcing and Self-Forcing.
+
+
+C. Case Study
+we provide further comparisons between Self-Forcing and Flex-Forcing to complement the main results (See Figure 15). We
+also compare Flex-Forcing under different numbers of function evaluations with NFE=5 and NFE=3 (See Figure 16), to
+analyze the impact of denoising steps on generation quality and efficiency.
+
+D. Impact Statement
+This work advances the foundations of video generation by demonstrating that bidirectional diffusion and autoregressive
+generation, traditionally treated as mutually exclusive paradigms, can be unified within a single, flexible model. By enabling
+dynamic trade-offs between generation quality, efficiency, and controllability at inference time, the proposed framework
+reduces the need to train and maintain multiple specialized models, thereby lowering computational cost and environmental
+footprint. Beyond improving scalability for long-form video generation, this flexibility unlocks new applications such
+as localized, order-agnostic video editing and efficient refinement under constrained budgets. We anticipate that these
+capabilities will benefit a wide range of downstream domains, including content creation, simulation, and embodied AI,
+while encouraging future research toward adaptive, resource-aware generative systems that better align model capabilities
+with real-world constraints.
+
+
+                                                                                                  15
+           Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model
+
+
+
+
+                                         A baby is learning to walk with his mother
+
+
+
+Flex-Forcing
+  (NFE=5)
+
+
+
+
+Flex-Forcing
+  (NFE=3)
+
+
+
+               A close-up of paint being mixed, showing the detailed interaction of colors and textures.
+
+
+
+Flex-Forcing
+  (NFE=5)
+
+
+
+
+Flex-Forcing
+  (NFE=3)
+
+
+
+                 Figure 16. Visual Comparisons between Flex-Forcing with NFE=5 and NFE=3.
+
+
+
+
+                                                    16
+

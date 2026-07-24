@@ -1,0 +1,32 @@
+task: deep-review-one-paper
+dispatch_id: dispatch-splattn-refresh-20260724
+agent_task_name: splattn_refresh
+paper_key: 2026_splattn
+title: SplAttN: Bridging 2D and 3D with Gaussian Soft Splatting and Attention for Point Cloud Completion
+role_in_survey: core
+selection_reason: The prior delivery verified HTML text and official code but was blocked by truncated PDF/source, zero original-paper visual evidence, and unverified ICML status; current arXiv and ICML indexes may close those gaps.
+venue_and_year: ICML 2026 Spotlight
+paper_url: https://arxiv.org/abs/2605.01466
+pdf_url_or_path: https://arxiv.org/pdf/2605.01466
+source_url_or_path: https://export.arxiv.org/e-print/2605.01466
+code_url_or_path: https://github.com/zay002/SplAttN
+openreview_url: unknown
+verification_questions:
+  - Verify ICML 2026 Spotlight status against official ICML poster 60900 or equivalent primary metadata.
+  - Recover a complete PDF and LaTeX source, then extract and QA one mechanism visual and one result/system visual.
+  - Recheck the official code and released checkpoints at a pinned commit, separating continuous-paper claims from the discrete implementation.
+  - Verify SCS/CMIT, kernel bandwidth, ablation, and runtime claims from the final paper rather than HTML snippets.
+revision_mode: revise-existing
+previous_document_version: 1.0.0
+previous_revision_id: rev-splattn-initial
+previous_deliverable_manifest_path: /mnt/d/huangwei/markdown/_artifacts/icml_2026/reviews/splattn/deliverable_manifest.json
+previous_deliverable_manifest_sha256: 1006a623b3473b4129ba2f3fd8ecb08fd7c299846678d0636e1b1438fef2650c
+revision_request: Revise the prior blocked delivery by reacquiring complete PDF/source, adding original-paper visual evidence, refreshing code/checkpoints, and promoting venue status only from current primary evidence.
+task_packet_path: /tmp/icml-splattn-agent-work/_artifacts/icml-2026-selected-papers-refresh/papers/2026_splattn/task_packet.yaml
+output_folder: /tmp/icml-splattn-agent-work/_artifacts/icml-2026-selected-papers-refresh/papers/2026_splattn
+allowed_write_root: /tmp/icml-splattn-agent-work/_artifacts/icml-2026-selected-papers-refresh/papers/2026_splattn
+agent_contract: /tmp/icml-splattn-agent-work/.agents/skills/ai-algorithm-survey/references/paper-review-agent-contract.md
+agent_contract_sha256: 4dc80bfb1d508898c25f3f3775a4d2ebc596c4944291cc0dded6f586fcc74c32
+required_skill: paper-deep-review
+required_skill_dir: /tmp/icml-splattn-agent-work/.agents/skills/paper-deep-review
+required_skill_tree_sha256: a338c821d6c79aff1aac224cc8713081d3b7462d46ea504771e5208dcdca96cd
