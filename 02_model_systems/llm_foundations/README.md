@@ -11,6 +11,7 @@
 
 - Survey：[2026 H1 model scale](surveys/2026h1-model-scale.md)
 - Paper：[DeepSeek-V4](papers/deepseek-v4.md)
+- Evidence：[Figure inventory](evidence/figure-inventory.md)
 
 ## 资产说明
 
