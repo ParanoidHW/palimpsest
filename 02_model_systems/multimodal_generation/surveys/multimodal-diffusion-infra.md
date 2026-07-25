@@ -116,17 +116,17 @@ stream diffusion 又不同：chunk history、noisy context、frame deadline 与 
 
 ### 3.2 LDM：把可见细节与语义建模解耦
 
-[LDM](../papers/ldm.md) 的核心判断是：大量像素细节不应在每个 denoise step 反复计算。VAE 先做一次 perceptual compression，生成模型在更小 latent grid 上处理语义/结构，最后一次 decode。代价是 codec reconstruction ceiling、两阶段训练与 VAE runtime。
+[LDM](../papers/ldm.md#25-完整因果链与证据闭环) 的核心判断是：大量像素细节不应在每个 denoise step 反复计算。VAE 先做一次 perceptual compression，生成模型在更小 latent grid 上处理语义/结构，最后一次 decode。代价是 codec reconstruction ceiling、两阶段训练与 VAE runtime。
 
-![LDM Figure 2：感知压缩与语义压缩。原论文图，PDF p.3，完整 caption 随图保留。](../assets/papers/ldm/fig2-perceptual-semantic-compression.png)
+![LDM Figure 2：感知压缩与语义压缩。原论文图，PDF p.2，完整 caption 随图保留。](../assets/papers/ldm/fig2-perceptual-semantic-compression-caption.png)
 
 这一选择在 2022-2025 成为主流，原因不是 latent 天然更“智能”，而是当时 transformer/U-Net、显存和训练规模不足以承担高分辨率像素序列。DC-AE 又把 `f` 从常见 8 推到 32/64，进一步用 tokenizer 换 attention 成本。
 
 ### 3.3 PixelDiT：不是取消压缩，而是把压缩移入模型
 
-[PixelDiT](../papers/pixeldit.md) 回到端到端 pixel objective，理由是外部 VAE 的有损重建和两阶段冻结会累积误差、阻碍 joint optimization。但它仍用 dual-level path：全局 patch path 处理压缩序列，pixel path 做局部细化。换句话说，路线变化是：
+[PixelDiT](../papers/pixeldit.md#24-完整因果链与证据边界) 回到端到端 pixel objective，理由是外部 VAE 的有损重建和两阶段冻结会累积误差、阻碍 joint optimization。但它仍用 dual-level path：全局 patch path 处理压缩序列，pixel path 做局部细化。换句话说，路线变化是：
 
-![PixelDiT Figure 2：dual-level pixel diffusion。原论文图，PDF p.4。](../assets/papers/pixeldit/fig2-dual-level-architecture.png)
+![PixelDiT Figure 2：dual-level pixel diffusion。原论文图，PDF p.3。](../assets/papers/pixeldit/fig2-dual-level-architecture-caption.png)
 
 ```text
 独立、预训练、冻结的有损 codec
@@ -246,11 +246,11 @@ window、tile、block-sparse、head-specific pattern 和 dynamic profiling 都�
 - fallback dense 与质量阈值；
 - GPU/NPU 都有等价 kernel，而非只在论文 H100 配置有效。
 
-[Sparse VideoGen](../papers/sparse-videogen.md) 的 1.7x layout 增益说明内存连续性与算法稀疏率同等重要；[HunyuanVideo 1.5](../papers/hunyuanvideo-1-5.md) 的 SSTA 则提醒 paper/code mask 语义必须版本化核验。
+[Sparse VideoGen](../papers/sparse-videogen.md) 的 1.7x layout 增益说明内存连续性与算法稀疏率同等重要；[HunyuanVideo 1.5](../papers/hunyuanvideo-1-5.md#52-ssta-直接消融) 的 SSTA 则提醒 paper/code mask 语义必须版本化核验。
 
 ![Sparse VideoGen Figure 7：稀疏、layout、kernel 与 FP8 的端到端收益分解。原论文图，PDF p.8。](../assets/papers/sparse-videogen/fig7-end-to-end-breakdown.png)
 
-![HunyuanVideo 1.5 Table 7：SSTA 在不同序列规模上的时延。原论文表，PDF p.11。](../assets/papers/hunyuanvideo-1-5/table7-inference-speed.png)
+![HunyuanVideo 1.5 Table 7：SSTA 在不同序列规模上的时延。原论文表，PDF p.11。](../assets/papers/hunyuanvideo-1-5/table7-ssta-inference-ablation-caption.png)
 
 ### 6.5 DiT cache 与多级 offload
 

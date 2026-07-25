@@ -1,4 +1,5 @@
-# PixelDiT - Pixel Diffusion Transformers for Image Generation 精读分析
+# PixelDiT - Pixel Diffusion Transformers for Image Generation 独立精读
+
 > [!info] 文档关系
 > - 文档类型：Paper
 > - 领域入口：[README](../README.md)
@@ -6,162 +7,261 @@
 > - 证据资产：`../assets/papers/pixeldit/`
 > - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
 
-> 资料状态：arXiv v2 PDF（25 页）、完整 LaTeX 源码与官方代码均已获取；代码固定于 commit `41f73006ae532b0b41fee72b181dc22891a5a01a`。下列论文图均为 180 DPI PDF 裁剪并含完整 caption。
+> 资料状态：已核验官方 arXiv v2 PDF（25 页），并按 physical PDF page 重建两张原论文裁剪。LaTeX/source archive、代码 worktree、checkpoint metadata 与公开评审原始材料本轮未取得。因此本文严格区分“PDF 直接核验”“既有代码记录”“分析推导”和“当前不可核验”。
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-2511-pixeldit-initial`
-- 当前修订时间：`2026-07-12T12:00:00+08:00`
-- 替代版本：无（initial）
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-pixeldit-20260725-pdf-recovery`
+- 当前修订时间：`2026-07-25T21:52:59+08:00`
+- 替代版本：`rev-pixeldit-20260725-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| rev-2511-pixeldit-initial | 1.0.0 | 2026-07-12T12:00:00+08:00 | review_pixeldit | initial | 无 | 无 | 初始深度审阅、视觉与代码/infra 核验 | initial delivery | analysis.md；figure_inventory.md；code/PixelDiT | task_packet.yaml；论文与代码 | material |
+| rev-pixeldit-20260725-initial | 1.0.0 | 2026-07-25T21:38:19+08:00 | `paper-deep-review agent` | initial | 无 | 无 | 首次交付：来源边界、视觉 QA、动机闭环、组件证据与 infra | 补齐 canonical Paper 交付标准 | 本文、[Figure inventory](../evidence/figure-inventory.md) | 既有精读与资产 | material |
+| rev-pixeldit-20260725-pdf-recovery | 1.1.0 | 2026-07-25T21:52:59+08:00 | `paper-deep-review agent` | evidence-update | `rev-pixeldit-20260725-initial` / `1.0.0` | 无 | 恢复官方 PDF；纠正 Figure 2 physical page；按原页重裁 Figure 2 与 Table 5 | 补齐原始页面证据 | 资料索引、[Figure inventory](../evidence/figure-inventory.md)与来源边界 | 官方 PDF SHA-256 `72de48b4...59b8293`；180 DPI QA | minor |
 
 ## 0. 资料与配图索引
 
-- 论文与 LaTeX：[arXiv:2511.20645](https://arxiv.org/abs/2511.20645)；核验版本为 v2。
-- 代码：`code/PixelDiT/`，commit `41f73006ae532b0b41fee72b181dc22891a5a01a`
-- Figure 2：`../assets/papers/pixeldit/fig2-dual-level-architecture.png`
-- Table 5：`../assets/papers/pixeldit/table5_core_ablation_caption.png`
-- OpenReview：任务包未给出，且 CVPR 2026 公开评审入口未能从所给材料确认；不把评审意见作为证据。
-- AI 生成图：跳过；运行环境未提供 `OPENROUTER_ICU_API_KEY`，不以其他图替代。
+- 论文：[arXiv:2511.20645v2](https://arxiv.org/abs/2511.20645v2)，25 physical pages，核验 SHA-256 `72de48b44936dc51c95334b557832a39b8a3f89d4b2dd8fd3b6c25a3a59b8293`。
+- Figure 2：physical PDF page 3，bbox `(145,190,1200,485)`；`../assets/papers/pixeldit/fig2-dual-level-architecture-caption.png`。
+- Table 5：physical PDF page 8，bbox `(760,1120,600,420)`；`../assets/papers/pixeldit/table5-core-ablation-caption.png`。
+- 图表清单与 QA：[Figure inventory](../evidence/figure-inventory.md)。
+- 代码：正式记录固定 commit `41f73006ae532b0b41fee72b181dc22891a5a01a`，但本轮无 worktree，代码 claim 只作为未重新核验的既有记录。
+- OpenReview：公开评审核验记录，本地无公开评审原始证据。
+- 视觉证据边界：保留原论文 Figure 2 与 Table 5；未用生成图替代论文机制或消融证据。
 
 ## 0.1 术语与符号解释
 
 ### 0.1.1 术语表
 
-| 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
+| 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源与歧义 |
 |---|---|---|---|---|
-| dual-level DiT | patch-level DiT 先形成语义 token，pixel-level PiT 再进行逐像素更新 | 双层架构 | 不是两阶段 VAE+DiT；两条路径在同一端到端模型内 | Sec. 3.1, Fig. 2 |
-| pixel token compaction | 每个 patch 内的 $p^2$ 像素 token 线性压成一个全局注意力 token，注意力后再展开 | compress-attend-expand | 不是持久的生成表征压缩；残差仍保留像素路径 | Sec. 3.2；`pixdit_core/pixeldit_c2i.py` |
-| pixel-wise AdaLN | patch 语义 token 投影成每个像素独立的六组调制参数 | per-pixel modulation | 不同于 patch-wise 广播同一参数 | Sec. 3.2, Eq. 6, Fig. 3 |
-| VAE-free | 扩散训练和采样直接位于 RGB 像素空间 | pixel-space | 不代表模型没有任何短时降维操作 | Abstract, Sec. 1/3 |
+| dual-level DiT | 宽 patch-level DiT 负责全局语义，窄 pixel-level PiT 保留并更新像素状态 | 双层架构 | 不是外置 VAE encoder + latent DiT 两阶段系统 | PDF Sec. 3.1, physical p.3, Fig. 2 |
+| PiT block | 像素路径中的 Transformer block，包含 pixel-wise modulation、线性压缩、MHSA、展开与 FFN | pixel transformer block | “pixel-level”不表示在 $HW$ token 上直接做全局 MHSA | Fig. 2；阶段限定为 pixel refinement |
+| pixel token compaction | 每个 patch 的 $p^2$ 像素 token 暂时压成一个 token 做 patch-grid 全局注意力，再展开 | compress-attend-expand | 不是持久生成表征，也不是有损 VAE codec | PDF Sec. 3.2；Table 5 physical p.8；源码仍不可用 |
+| pixel-wise AdaLN | patch 语义产生块内每个像素独立的 scale、shift、gate 参数 | per-pixel modulation | 不同于对整个 patch 广播一组 AdaLN 参数 | 既有记录 Eq. 6；Fig. 2 图示 scale/shift/gate |
+| VAE-free | 扩散目标与采样直接位于 RGB 像素空间 | pixel-space diffusion | 不等于网络内部没有任何临时压缩 | 既有记录 Abstract/Sec. 1/3 |
+| gFID | 文中 ImageNet 生成质量主指标，越低越好 | FID under guidance | 具体 guidance 配置不能由当前两张图恢复 | Table 5 列名；配置边界来自既有记录 |
 
 ### 0.1.2 符号表
 
 | 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
-| $B,C,H,W$ | batch、通道、高、宽 | author-defined | 输入张量 | count/pixels | Sec. 3.1 | $H,W$ 是像素分辨率 |
-| $p$ | patch 边长 | author-defined | 两条路径分组 | pixels；常用 16 | Sec. 3.1/4.5 | 注意 token 缩短为 $p^2$ 倍、注意力矩阵缩小 $p^4$ 倍 |
-| $L$ | patch token 数 | author-defined | 每张图 | $(H/p)(W/p)$ | Sec. 3.1 | 不等于像素 token 数 $HW$ |
-| $D,D_{pix}$ | patch/pixel 隐藏宽度 | author-defined | 每层 | features；$D_{pix}\ll D$ | Sec. 3.1, Table 1 | 代码默认值不等于论文 XL 配置 |
-| $N,M$ | patch/PiT block 深度 | author-defined | 模型 | layers | Table 1 | 与 token 数无关 |
-| $X,\Theta$ | 像素特征与逐像素 AdaLN 参数 | author-defined | patch 内像素 | tensors | Eq. 5-6 | $\Theta$ 最后一维含六组参数 |
-| $\mathcal C,\mathcal E$ | 线性压缩/展开算子 | author-defined | 每个 PiT block | maps | Sec. 3.2 | 不是 VAE encoder/decoder |
-| $A_{pix},A_{patch}$ | 像素全局/压缩后注意力矩阵元素数 | analysis-derived | 单头每图 | elements | 本文 Sec. 7.2 推导 | 未计 batch/head/反向保存倍数 |
+| $B,C,H,W$ | batch、通道、高、宽 | author-defined | 输入图像张量 | count / pixels | 既有记录 Sec. 3.1 | $H,W$ 为像素分辨率 |
+| $p$ | 方形 patch 边长 | author-defined | patchify/compaction | pixels；示意图为 $16$ | Fig. 2 与既有记录 | token 数缩小 $p^2$，score matrix 理论缩小 $p^4$ |
+| $L$ | patch token 数 | author-defined | 每图 | $L=(H/p)(W/p)$ | 既有记录 Sec. 3.1 | 不等于 $HW$ |
+| $D,D_{\mathrm{pix}}$ | patch/pixel 隐藏宽度 | author-defined | 每层 | features | 既有记录 Table 1 | 本地缺 Table 1，具体配置不能重验 |
+| $N,M$ | patch-level DiT / PiT block 深度 | author-defined | 模型 | layers | Fig. 2 的 $\times N,\times M$ | 不代表 token 数 |
+| $X,\Theta$ | 像素特征与逐像素 AdaLN 参数 | author-defined | patch 内像素 | tensors | PDF Eq. 5–6 | $\Theta$ 最后一维含六组调制参数 |
+| $\mathcal C,\mathcal E$ | 线性压缩与展开映射 | author-defined | PiT attention 子层 | linear maps | 既有记录 Sec. 3.2 | 不是 VAE encoder/decoder |
+| $A_{\mathrm{pix}},A_{\mathrm{patch}}$ | 未压缩/压缩注意力 score 元素数 | analysis-derived | 单头单图 | elements | §8 推导 | fused SDPA 可能不显式物化 score |
+| $b$ | 每元素字节数 | analysis-derived | memory estimate | bytes | §8 推导 | bf16/fp16 常取 $2$，不代表所有状态均为 2 bytes |
 
 ## 1. 论文基本信息
 
-- 领域：端到端像素空间 diffusion transformer；CVPR 2026。
-- 核心问题：去掉 VAE 后，如何避免 $HW$ 像素全局注意力的二次复杂度，同时保留逐像素细节更新。
-- 核心假设：全局语义可在 patch 网格上学习；像素细节可由窄 PiT 路径与语义调制恢复。
+- 领域：端到端像素空间 diffusion Transformer。
+- 核心问题：去掉外置 VAE 后，如何避免 $HW$ 像素序列全局注意力的二次复杂度，同时保留块内像素差异。
+- 核心假设：全局语义可以在 patch 网格上建模，像素细节可以通过较窄的 PiT 路径、临时 compaction 和逐像素调制恢复。
+- 证据等级：架构、公式和完整实验表可由官方 PDF/提取文本复核；代码实现与 checkpoint 仍只来自既有记录，未在本轮重验。
 
-## 2. 核心贡献与证据边界
+## 2. 研究动机与问题—方案闭环
 
-1. 双层纯 Transformer 数据流（Sec. 3.1, Fig. 2），把语义计算和像素细化分开。
-2. pixel token compaction 把全局注意力序列从 $HW$ 降至 $L=HW/p^2$（Sec. 3.2, Table 6）。
-3. pixel-wise AdaLN 让同一 patch 内像素获得不同调制（Eq. 6, Table 5）。
-4. ImageNet-256 gFID 1.61、ImageNet-512 gFID 1.81；但与 latent baseline 的比较并未同时控制数据、训练 epoch、参数量、REPA 与 guidance，因此只能证明完整系统竞争力，不能单独证明“去 VAE”带来质量优势（Tables 2-3）。
+### 2.1 出发点、失败模式与根因
 
-## 3. 研究方法
+作者主张（既有记录据 Abstract、Sec. 1/3）是：latent diffusion 依赖预训练且通常冻结的 VAE，图像生成质量受到重建误差和两阶段目标不一致约束；直接 pixel diffusion 可联合优化但又把序列长度从 latent/patch grid 推回 $HW$，全局注意力的计算和内存呈二次增长。由此，论文不是简单“取消压缩”，而是把长程计算所需的临时压缩移入端到端模型，同时维持一条逐像素残差/细化路径。
 
-### 3.1 问题到方案的逻辑链
+可观察失败有两类。第一，plain patch DiT 把 patch 内像素过早汇聚，细节表达能力受限；第二，plain pixel Transformer 若直接在全部像素上做全局 MHSA 会不可承受。Table 5 的双层但“不 compaction”变体出现 OOM，直接支持第二类可行性瓶颈；本地材料没有同架构同预算的 VAE/no-VAE 桥接实验，因此“VAE 重建上限是主要质量瓶颈”仍只获间接支持。
 
-像素注意力二次爆炸 -> patch 路径承载全局语义 -> PiT 以窄通道保留逐像素状态 -> 每块先压成一个 token 做全局注意力再展开 -> pixel-wise AdaLN 把语义条件细分到各像素。
+### 2.2 目标问题与成功标准
 
-### 3.2 设计动机与具体问题映射
+- 目标：在 RGB pixel space 中训练/采样，同时把全局注意力控制在 patch-grid 序列规模。
+- 成功标准：避免 uncompacted pixel attention 的 OOM；compaction 后保留可竞争的 gFID；pixel-wise modulation 和 PiT attention 应在匹配设置下带来增益。
+- 约束：compaction 不能成为外置、冻结的重建瓶颈；局部像素状态需要持续存在。
+- 明确边界：论文材料没有隔离证明“移除 VAE”本身优于 latent baseline，也没有给出跨硬件的端到端加速比例。
+
+### 2.3 问题—方案映射
+
+| 原始问题/失败模式 | 根因或约束 | 对应设计 | 改变的变量/行为 | 因果机制 | 预期优化 | 证据 | 判断 |
+|---|---|---|---|---|---|---|---|
+| latent pipeline 存在重建误差与目标割裂 | 外置 VAE 有损且常冻结 | 直接 RGB diffusion | 优化域从 latent 改为 pixels | 生成目标可端到端作用于最终像素 | 降低重建上限、改善质量 | 既有记录 Abstract/Sec. 1；缺 matched no-VAE bridge | plausible |
+| $HW$ 全局 MHSA OOM | score 元素为 $O((HW)^2)$ | pixel token compaction | 序列 $HW\rightarrow HW/p^2$ | 每 patch 暂压一 token 做全局注意力后展开 | 降 FLOPs/显存，训练可行 | Table 5 uncompacted OOM；既有记录 Table 6 82,247→311 GFLOPs | supported for feasibility |
+| patch-only 路径弱化块内差异 | 同 patch 像素共享粗粒度语义 | pixel path + pixel-wise AdaLN | 保留逐像素状态并生成位置特定调制 | patch 语义按像素控制 scale/shift/gate | 改善细节与 gFID | Table 5 3.50→2.36 @80 epochs | supported |
+| 纯局部像素更新缺少长程一致性 | 局部 FFN/调制无全局 token mixing | PiT compressed MHSA | patch-grid 间建立全局依赖 | 压缩 token 交换全局信息后回写像素状态 | 改善全局一致性 | 既有记录 Table 6：移除 attention 退化 0.20/0.25 gFID | partially-supported（表未在本地） |
+
+### 2.4 完整因果链与证据边界
+
+需求是避开 VAE 的重建/冻结约束；直接像素建模又造成 $HW$ 全局注意力不可扩展；PixelDiT 以宽 patch DiT 承载语义、窄 PiT 保留像素状态，并在每个 PiT attention 子层执行 $HW\rightarrow HW/p^2\rightarrow HW$ 的临时压缩—注意力—展开，再用 pixel-wise AdaLN 把 patch 语义细分到块内像素。理论上这把 score matrix 元素降为原来的 $1/p^4$，Table 5 的 OOM→3.50 验证可行性，3.50→2.36 验证逐像素 AdaLN 的质量贡献。
+
+闭环只达到“部分支持”：compaction 的可行性和 pixel-wise AdaLN 的增益有 PDF 直接证据；完整系统的 1.61 gFID 显示竞争力，但训练 epoch、REPA、架构和 guidance 同时变化，不能作为取消 VAE 的因果证明。代码实现仍未在本轮独立核验。
+
+## 3. 核心贡献
+
+1. 以 dual-level Transformer 将全局语义与像素细化分工，Figure 2 直接展示两条路径。
+2. 在 PiT 内使用临时 pixel token compaction，使全局注意力落在 patch-grid 而非 $HW$ 序列。
+3. 使用 pixel-wise AdaLN 表达同 patch 内位置差异，Table 5 提供匹配 80 epoch 增量消融。
+4. 完整系统在既有记录中报告 ImageNet-256 gFID 1.61、ImageNet-512 gFID 1.81；这些是系统级结果，不是单组件或 VAE-free 的独立归因。
+
+## 4. 方法与组件级设计动机
+
+![Figure 2：PixelDiT 双层架构，原论文裁剪且含完整 caption。](../assets/papers/pixeldit/fig2-dual-level-architecture-caption.png)
+
+Figure 2 显示同一 noisy image 经过 $16\times16$ patchify 进入 DiT blocks，同时经过 $1\times1$ patchify 保留 pixel token。DiT 输出 semantic token 并条件化 PiT；PiT block 内由 pixel-wise scale/shift、linear compress、MHSA+RoPE、linear expand、pixel-wise gate、RMSNorm/FFN 组成。
+
+### 4.1 组件级设计动机矩阵
 
 | 设计项 | why 状态/来源 | 具体问题 | 因果机制 | 替代/权衡 | 验证 | 判断 |
 |---|---|---|---|---|---|---|
-| 双层路径 | author-stated, Sec. 3.1 | 单层 patch DiT 丢细节；全像素 DiT 太贵 | 宽 patch 路径做语义，窄 pixel 路径做细节 | 卷积 U-Net/层次 latent；代价是双路径复杂性 | Table 5 增量但与 compaction 捆绑 | partially supported |
-| token compaction | author-stated, Sec. 3.2 | $HW$ 全局注意力 OOM | $HW\to HW/p^2$ 后做全局注意力 | window/sparse/linear attention；线性压缩可能丢信息 | Table 6: 82,247->311 GFLOPs，uncompacted OOM | supported for feasibility |
-| pixel-wise AdaLN | author-stated, Sec. 3.2 | patch 广播无法表达块内差异 | $D\to p^2\cdot6D_{pix}$ 生成逐像素门控/缩放/偏置 | cross-attention；投影参数随 $p^2$ 增长 | Table 5: 3.50->2.36 gFID at 80 epochs | supported |
-| RMSNorm+2D RoPE | inferred from LGT, Sec. 3.1 | 稳定性与二维位置 | 归一化与旋转位置编码 | LayerNorm/absolute PE | Table 5: 9.84->8.53，两个变化捆绑 | confounded |
-| REPA objective | author-stated, Sec. 3.3 | 像素训练语义收敛慢 | 中层 token 对齐 DINOv2 | 自监督/无 teacher；增加 frozen encoder 成本 | Appendix ablation，主 latent 比较仍混杂 | partially supported |
+| dual-level patch + pixel paths | author-stated；既有记录 Sec. 3.1/Fig. 2 | patch-only 细节弱、pixel-only 全局计算贵 | 宽低序列语义路径与窄高分辨率像素路径分工 | U-Net/latent hierarchy；代价为双路径参数与调度 | Table 5 与 compaction 捆绑 | partially-supported |
+| token compaction | author-stated；既有记录 Sec. 3.2 | $HW$ MHSA OOM | 每 patch 压一 token，全局混合后展开 | window/sparse/linear attention；线性压缩有信息瓶颈 | Table 5 OOM；既有 Table 6 FLOPs | supported for feasibility |
+| pixel-wise AdaLN | author-stated；既有 Eq. 6/Fig. 2 | patch-wise 广播无法区分块内像素 | 语义映射为逐像素 scale/shift/gate | cross-attention；投影宽度随 $p^2$ 增长 | Table 5 3.50→2.36 | supported |
+| RMSNorm + 2D RoPE | inferred；既有记录 Sec. 3.1/Table 5 | 训练稳定与二维位置编码 | 归一化激活并注入相对二维位置 | LayerNorm/absolute PE | 两项捆绑 9.84→8.53 | plausible, confounded |
+| REPA objective | author-stated；PDF Sec. 3.3 | pixel training 语义收敛慢 | 中层 token 对齐 DINOv2 语义 | 无 teacher 或其他表征对齐；增加冻结 encoder 成本 | PDF Appendix Table 12 | partially-supported |
 
-### 3.3 模型/系统架构
+### 4.2 关键公式
 
-![Figure 2 dual-level architecture](../assets/papers/pixeldit/fig2-dual-level-architecture.png)
+$$
+L=\frac{H}{p}\frac{W}{p}=\frac{HW}{p^2}.
+$$
 
-输入同时经 $p\times p$ patchify 进入 $N$ 层 DiT、经 $1\times1$ pixelify 保留像素 token。语义 token 条件化 $M$ 个 PiT block；代码 `pixeldit_c2i.py:267-286` 与此一致。PiT 的注意力并非在整张像素序列上执行，而是压缩后在 patch 序列上执行。
+$$
+\Theta=\Phi(s_{\mathrm{cond}})\in\mathbb R^{(BL)\times p^2\times 6D_{\mathrm{pix}}}.
+$$
 
-### 3.4 关键公式
+$$
+\mathcal L=\mathbb E\left[\left\|f_\theta(x_t,t,y)-v_t\right\|_2^2\right]
++\lambda_{\mathrm{REPA}}\mathcal L_{\mathrm{REPA}}.
+$$
 
-$$L=\frac Hp\frac Wp,\qquad \Theta=\Phi(s_{cond})\in\mathbb R^{(BL)\times p^2\times6D_{pix}}.$$
+后两式已对照官方 PDF 的 Eq. 6/Sec. 3.3；正文与 manifest 仍不扩展论文没有报告的训练细节。
 
-$$\mathcal L=\mathbb E\|f_\theta(x_t,t,y)-v_t\|_2^2+\lambda_{repa}\mathcal L_{repa}.$$
+## 5. 实验、技术 claim 与归因
 
-### 3.5 训练与实现事实
+![Table 5：PixelDiT-XL 核心增量消融，原论文裁剪且含完整 caption。](../assets/papers/pixeldit/table5-core-ablation-caption.png)
 
-ImageNet XL 使用 $D=1152,N=26,M=4$，bf16 mixed precision，batch 256；T2I 先 512 分辨率 400K step/batch 1024，再 1024 分辨率 100K step/batch 768（Sec. 4.1）。代码使用 PyTorch SDPA（`pixdit_core/modules.py:215`）、bf16 autocast（`c2i/src/diffusion.py:82,107`），T2I 采用 FSDP FULL_SHARD 且通信/优化器状态精度 fp32（`t2i/train.py:65-92`）。公开仓库未提供完全匹配论文训练硬件数量与端到端 wall-clock。
+### 5.1 技术 claim 证据矩阵
 
-## 4. 关键结论与证据
+| 技术点 | 声称收益 | 实验/控制 | 指标变化 | 证据强度 | 结论 |
+|---|---|---|---|---|---|
+| RMSNorm + RoPE | 改善 vanilla DiT | Table 5，同为 80 epoch，但两项一起加入 | 9.84→8.53；绝对 -1.31，约 -13.3% | confounded | 组合有效，单项归因 unverified |
+| dual-level without compaction | 直接像素路径 | Table 5，80 epoch | OOM | direct failure observation | 证明 uncompacted 版本在未报告的测试环境不可行 |
+| token compaction | 恢复可训练性 | Table 5，80 epoch | OOM→3.50 | direct feasibility | supported；不能由 OOM 计算精确 speedup |
+| pixel-wise AdaLN | 提升像素细节/质量 | Table 5，80 epoch | 3.50→2.36；绝对 -1.14，约 -32.6% | direct incremental ablation | supported |
+| 训练至 320 epoch | 完整系统质量 | Table 5 | 2.36@80→1.61@320；绝对 -0.75，约 -31.8% | compute-confounded | 训练预算收益，不是架构组件增益 |
+| VAE-free | 避免重建误差 | 既有记录称 Fig. 1 定性编辑例 | 非 matched quantitative bridge | indirect | plausible, not isolated |
+| PiT MHSA | 提升全局一致性 | 既有记录 Table 6 remove-attention | 2.36→2.56 @80；1.97→2.22 @160 | direct ablation, but table absent locally | partially-supported in this run |
 
-### 4.1 主结果及公平性
+### 5.2 主结果与公平性
 
-ImageNet-256 的 1.61 比 PixelFlow-XL 1.98 低 0.37（18.7%），但表中模型规模/epoch 缺失不一。ImageNet-512 的 1.81 优于 REPA 2.08（0.27，13.0%），然而 PixelDiT 同时包含 REPA 对齐、不同架构/训练预算与 guidance；这不是“相同 DiT，仅移除 VAE”的受控实验。T2I fp16 A100 吞吐报告为 512: 1.07 sample/s、1024: 0.33 sample/s（Table 4），只可用于该采样配置，不能外推训练效率。
+PDF Tables 2–3 报告 ImageNet-256 gFID 1.61 和 ImageNet-512 gFID 1.81；与 PixelFlow-XL 1.98、REPA 2.08 的差值分别为 0.37（18.7%）和 0.27（13.0%）。这些数字已在 PDF 中直接复核，但 baseline 间的模型规模、训练 epoch、REPA、数据和 guidance 未同时匹配，完整系统优势仍不能归因为去 VAE。
 
-### 4.2 技术 claim 证据矩阵
+### 5.3 收益来源
 
-![Table 5 core ablation](../assets/papers/pixeldit/table5_core_ablation_caption.png)
+- 直接：Table 5 的 pixel-wise AdaLN 在 80 epoch matched incremental setting 下带来 1.14 gFID 绝对改善。
+- 可行性：compaction 将 OOM 变为可训练结果，但缺硬件、precision、峰值显存，无法量化 OOM 边界。
+- 混杂：RMSNorm 与 RoPE 一起加入；320 epoch 同时改变训练预算；跨论文主结果同时改变架构和 recipe。
+- PDF 已重验 PiT attention、REPA 与完整主结果；代码/配置一致性仍未重验。
 
-| 技术点 | claim | 实验 | 控制 | 变化 | 强度 | 结论 |
-|---|---|---|---|---|---|---|
-| compaction | 使像素训练可行 | Tables 5/6 | matched architecture branch | OOM->3.50；82,247->311 GFLOPs | direct feasibility | supported |
-| pixel-wise AdaLN | 改善细节/质量 | Table 5 | 80 epoch incremental | 3.50->2.36，绝对 -1.14/相对 -32.6% | direct ablation | supported |
-| PiT attention | 全局对齐有益 | Table 6 | remove attention | 2.36->2.56 (80e), 1.97->2.22 (160e) | direct ablation | supported |
-| RMSNorm+RoPE | 改善基线 | Table 5 | 两项捆绑 | 9.84->8.53 | confounded | component attribution unverified |
-| VAE removal | 避免重建误差 | Fig. 1 editing example | model/recipe not matched | qualitative | mechanism visualization | plausible, not isolated |
-| 320 epoch 1.61 | SOTA quality | Table 5 | training budget changed | 2.36@80->1.61@320 | confounded with compute | complete-system result |
+## 6. Related Work 对比
 
-### 4.3 Evidence loop
-
-Claim（compaction 使 pixel global attention 可行）-> mechanism（序列缩短 $p^2$、矩阵缩小 $p^4$）-> measurement（Table 6: 82,247 vs 311 GFLOPs；uncompacted OOM）-> code（`PiTBlock` compress/attention/expand）-> limitation（OOM 硬件/精度和内存峰值未报告，311 GFLOPs 不是 wall-clock）。因此机制与可行性证据闭环，但无法推出跨硬件吞吐比例。
-
-### 4.4 收益归因
-
-可直接归因：pixel-wise AdaLN 在相同 80 epoch 增益 1.14 gFID；PiT attention 的 80/160 epoch 增益分别 0.20/0.25。不可直接归因：1.61 对 latent baseline 的差距混合架构、REPA、数据/训练和采样；RMSNorm 与 RoPE 捆绑。
-
-## 5. Related Work 对比
-
-| 类别 | 机制 | 优点 | 局限 | PixelDiT 差异 |
+| 类别 | 机制 | 优点 | 局限 | 与 PixelDiT 的关系 |
 |---|---|---|---|---|
-| latent DiT | VAE 压缩后扩散 | 序列短 | 有重建上限与两阶段目标 | 直接 RGB，但计算更重 |
-| PixelFlow/PixNerd | 层次 flow/神经场 | 像素空间可扩展 | 非纯 Transformer | PixelDiT 用双层 Transformer |
-| plain pixel transformer | 全局像素或大 patch | 简单 | O($H^2W^2$) 或细节弱 | compaction+pixel modulation |
+| latent DiT | VAE 压缩后在 latent grid 扩散 | 序列短、生态成熟 | 重建上限与两阶段优化 | PixelDiT 直接 RGB，但承担更高像素路径成本 |
+| patch-only pixel DiT | 大 patch token 直接建模 | Transformer 简洁 | patch 内细节可能被过早汇聚 | PixelDiT 保留独立 pixel state |
+| plain pixel Transformer | $HW$ token 全局注意力 | 直接像素依赖 | 二次 score 导致 OOM | PixelDiT 用临时 compaction 规避 |
+| window/sparse attention | 局部或稀疏 token mixing | 避免全局二次计算 | 长程依赖/实现规则更复杂 | 是 compaction 的替代路线，论文现有消融未比较 |
 
-## 6. OpenReview 交叉核验
+比较公平性边界：当前材料不能确认所有 related-work baseline 的参数、数据、训练预算与 sampling guidance；因此只比较机制和权衡，不宣称全面 SOTA 因果。
 
-任务包 `openreview_url` 为 unknown，论文/仓库材料未提供 forum、decision 或 rebuttal 标识；因此公开 OpenReview 分支记为不适用，不能据此评估审稿阶段争议。
+## 7. OpenReview 交叉核验
 
-## 7. Infra 需求分析
+本地没有 OpenReview URL、review、meta-review、decision 或 rebuttal；本次恢复范围是父任务提供的官方 PDF，未提供公开评审原始记录。该分支为 `skipped-with-reason`，详见 公开评审核验记录。因此 novelty、baseline fairness、数据来源和复现性担忧只能作为本审查提出的证据缺口，不能冒充 reviewer 意见。
 
-### 7.1 计算扩展
+## 8. Infra 需求分析
 
-未压缩像素全局注意力每头约 $O((HW)^2d)$；压缩后为 $O((HW/p^2)^2D)$。注意力矩阵理论缩小 $p^4$，$p=16$ 为 65,536 倍；实际总模型 GFLOPs 仅从 82,247 到 311（264倍），因为 patch MLP、投影、像素 MLP 等不随同一比例缩放。
+### 8.1 计算与显存
 
-### 7.2 激活显存
+未压缩像素注意力的 score 元素数与压缩后的值为：
 
-单头单图注意力元素：$A_{pix}=(HW)^2$，$A_{patch}=(HW/p^2)^2$。256 分辨率时分别为 4,294,967,296 与 65,536；仅矩阵若 bf16 为约 8 GiB vs 128 KiB（未计 head、batch、反向与 fused SDPA 不物化矩阵的优化）。这解释 OOM 方向，但不是论文实测峰值。
+$$
+A_{\mathrm{pix}}=(HW)^2,\qquad
+A_{\mathrm{patch}}=\left(\frac{HW}{p^2}\right)^2,\qquad
+\frac{A_{\mathrm{pix}}}{A_{\mathrm{patch}}}=p^4.
+$$
 
-### 7.3 数据类型、带宽与 kernel
+当 $H=W=256,p=16$ 时，二者分别为 $4{,}294{,}967{,}296$ 和 $65{,}536$ 元素。若粗略按 bf16 score、$b=2$ bytes 计算：
 
-训练为 bf16 mixed precision；T2I 吞吐为 fp16；FSDP collective/state 配置为 fp32。SDPA 可使用 fused kernel，但仓库未固定 FlashAttention backend，故不能声称特定 kernel。compaction 增加线性投影读写，却显著减少 attention QKV/score 流量；无逐算子 bytes/runtime，无法计算 effective bandwidth 或利用率。局部 pixel MLP/调制更可能受 HBM traffic 影响，patch attention 随宽度/长度可能偏 compute-bound。
+$$
+M_{\mathrm{score}}=A\,b,
+$$
 
-### 7.4 并行、互联与异构
+约为 8 GiB 与 128 KiB（单头单图、未计 batch/head/backward，且 fused SDPA 可能不显式物化完整矩阵）。这是 analysis-derived 方向估计，不是论文实测峰值。既有记录的 Table 6 82,247→311 GFLOPs 为 264 倍而非 $p^4$，因为 MLP、投影、patch path 等不按相同比例下降。
 
-T2I 代码 FULL_SHARD 意味每层参数 all-gather、梯度 reduce-scatter；粗略每 step 通信量与参数字节 $P b$ 同阶并乘 world-size 系数，确值依 FSDP bucket/拓扑。未报告 GPU 数、NVLink/RDMA、利用率或 overlap 指标。CPU 负责数据加载/文本预处理，GPU 执行模型；代码无 NPU kernel、CPU offload（显式 false）或异构调度证据。部署结论限于 NVIDIA CUDA 路径。
+### 8.2 Data types、带宽与 kernel
 
-## 8. 代码交叉核验
+既有记录称训练为 bf16 mixed precision、T2I 吞吐为 fp16，FSDP collective/optimizer state 为 fp32；本轮无代码/配置，均标记“未重新核验”。compaction 减少 attention QKV/score 的长序列流量，却增加 compress/expand 投影与逐像素读写。由于没有逐算子 bytes、runtime、HBM 峰值与 profiler：
 
-commit `41f73006ae532b0b41fee72b181dc22891a5a01a`：`pixdit_core/pixeldit_c2i.py:190-289` 实现两路输入与 fold 输出；`PiTBlock` 实现压缩、SDPA、展开与逐像素 AdaLN；`pixeldit_t2i.py` 只在 patch 路径加入联合文本注意力，符合 Sec. 3.2。`tools/download.py` 指向公开 Hugging Face checkpoint，但本次未下载大权重；模型元数据/精确参数量因此只以仓库配置为准，不从 README 推断。
+$$
+\mathrm{EffectiveBandwidth}=
+\frac{\mathrm{BytesMoved}}{\mathrm{RuntimeSeconds}},\qquad
+\mathrm{Utilization}=
+\frac{\mathrm{EffectiveBandwidth}}{\mathrm{PeakBandwidth}}
+$$
 
-## 9. 局限、启发与待验证问题
+均无法数值化。不能仅由 GFLOPs 声称真实 wall-clock 或 bandwidth speedup，也不能断言固定 FlashAttention backend。
 
-- 没有“同架构同预算、有/无 VAE”的桥接实验，VAE-free 优势仍与完整系统变化混杂。
-- OOM 与 GFLOPs 未绑定硬件、batch、precision、峰值显存；难复现系统边界。
-- 26M T2I 数据缺少来源/过滤细节，限制公平比较和复现。
-- 值得验证 fused SDPA 下实际 HBM bytes、MFU、FSDP 通信占比，以及 $p,D_{pix},M$ 的质量-吞吐 Pareto。
-- 最小关键实验：固定参数/FLOPs/REPA/guidance，比较 latent 与 pixel；报告不同 GPU 上峰值显存、step time、kernel profile 与有效带宽。
+### 8.3 并行、互联与异构
+
+既有记录称 T2I 代码使用 FSDP FULL_SHARD，意味着参数 all-gather 与梯度 reduce-scatter；但 world size、bucket、NVLink/RDMA、overlap 和通信占比未知。CPU 可合理承担 dataloader/文本预处理，GPU 执行训练/采样；本地没有 NPU kernel、CPU offload 或异构 scheduler 证据。部署结论只能限定为“既有记录所描述的 NVIDIA/PyTorch 路径”，不能外推 NPU。
+
+## 9. 代码与 checkpoint 对照
+
+正式记录给出官方代码 commit `41f73006ae532b0b41fee72b181dc22891a5a01a`，并记载：
+
+- `pixdit_core/pixeldit_c2i.py:190-289`：双路输入、PiT compress/attention/expand 与 fold 输出；
+- `pixdit_core/modules.py:215`：PyTorch SDPA；
+- `c2i/src/diffusion.py:82,107`：bf16 autocast；
+- `t2i/train.py:65-92`：FSDP FULL_SHARD，通信/优化器状态 fp32。
+
+这些路径在本轮无 worktree，故属于“legacy-recorded, locally unavailable”，不满足本轮源码复核。checkpoint 只知既有记录称 `tools/download.py` 指向 Hugging Face；本轮没有 metadata/config/权重，参数量和 checkpoint 配置均未验证。
+
+## 10. 优点、局限与可改进项
+
+### 优点
+
+- 把“VAE-free 像素建模”与“可扩展全局语义计算”的矛盾转化为清晰的层次结构。
+- Table 5 直接展示 uncompacted OOM、compaction 可行和 pixel-wise AdaLN 增益，关键机制至少有一条受控证据链。
+- 临时 compaction 不替代逐像素状态，概念上避免把内部层次结构误写成外置 codec。
+
+### 局限
+
+- 缺同架构同预算、仅改变 VAE 的桥接实验；“去 VAE 提升质量”未被隔离。
+- OOM/FLOPs 没有绑定硬件、batch、precision、峰值显存和 wall-clock，系统可扩展性外推有限。
+- 本轮已有 PDF/全文；仍缺 LaTeX source、code worktree、checkpoint metadata 与 OpenReview，不能独立重验实现和评审。
+- 26M T2I 数据的来源、过滤和许可细节在既有记录中不足。
+
+### 最小补强实验
+
+1. 固定参数、FLOPs、REPA、guidance 和训练预算，对比 latent 与 pixel objective。
+2. 分离 RMSNorm 与 RoPE，并对 $p,D_{\mathrm{pix}},M$ 做质量—吞吐 Pareto。
+3. 报告峰值显存、step time、kernel profile、HBM bytes、MFU 和 FSDP 通信占比。
+4. 重新取得固定 commit worktree与 checkpoint config，逐项核对论文配置。
+
+## 11. 研究启发
+
+- 压缩位置可以从独立 tokenizer/codec 移入 backbone 内部，关键不在“是否压缩”，而在是否保留端到端目标和高分辨率状态。
+- 可探索可逆/多尺度 compaction、动态 $p$、内容自适应 token budget，以及对 compaction 信息损失的显式正则。
+- 系统研究应把 algorithmic token reduction 与 kernel/backend/FSDP runtime 分开测量。
+
+## 12. 待验证问题
+
+1. VAE-free 的收益在严格 matched bridge 中是否仍存在？
+2. compaction 的线性映射丢失哪些频率/颜色细节，pixel residual path 能否完全补偿？
+3. pixel-wise AdaLN 的收益来自位置特异性、额外参数量还是优化稳定性？
+4. PiT attention 在不同分辨率、$p$ 与文本条件下的边际收益如何？
+5. fused SDPA 下实际 memory traffic、利用率与 wall-clock 是否遵循理论 $p^4$ 趋势？
+6. 公开代码 commit 和 checkpoint 是否完全匹配论文 XL/T2I 配置？
+
+## 13. 一句话总结
+
+PixelDiT 的核心价值是把像素空间扩散的全局二次注意力，通过“保留像素状态、临时压缩做全局混合”的双层 Transformer 化解；Table 5 支持其可行性与 pixel-wise AdaLN 增益，但 VAE-free 的独立质量因果、跨硬件效率和本轮源码复核仍未闭合。
