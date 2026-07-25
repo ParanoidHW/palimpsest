@@ -1,295 +1,382 @@
-# OpenVLA
+# OpenVLA: An Open-Source Vision-Language-Action Model 精读分析
 
 > [!info] 文档关系
 > - 文档类型：Paper
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[具身智能模型演进、Infra 与端云协同](../surveys/embodied-ai-evolution-infra.md)
 > - 证据资产：`../assets/papers/openvla/`
-> - 相关文档：[论文索引](../evidence/paper-index.md)、[图表清单](../evidence/figure-inventory.md)
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md) · [Paper index](../evidence/paper-index.md)
 
-论文：[arXiv:2406.09246](https://arxiv.org/abs/2406.09246)。代码核验固定于 [openvla/openvla](https://github.com/openvla/openvla/tree/c8f03f48af692657d3060c19588038c7220e9af9) 的 `c8f03f48af692657d3060c19588038c7220e9af9`；过程材料保留于审计区。
+> 资料状态：已核验 CoRL 2024/arXiv PDF、完整 LaTeX 源码、官方代码仓库与公开 checkpoint 配置。正式论文图表均为 200 DPI PDF 页面紧裁剪、包含完整 caption 且通过原分辨率 QA 的证据对象。OpenReview 论坛存在，但评审线程被 HTTP 403 与交互验证阻断。
 
-## 论文资料
+## 修订信息
 
-- 研究领域：视觉-语言-动作模型、通用机器人策略、参数高效适配与模型部署。
-- 核心问题：能否以开放的 7B VLM 基座和多机器人示范得到可泛化、可微调、可量化的 VLA。
-- 方法：在 970k 真实机器人 demonstrations 上端到端微调 Prismatic-7B，用离散 action tokens 和 action-only cross entropy 学习控制。
-- 训练规模（测量）：64 x A100、14 天、21,500 A100-hours、global batch 2048；27 epochs，固定 LR $2\times10^{-5}$（Section 3.4/3.5）。
-- 主要外推约束：视觉/语言基座预训练数据不公开；实验以 manipulation、第三人称相机、单臂 end-effector control 为主；高频、低延迟、边缘 NPU 场景未验证。
+- 当前文档版本：`1.0.0`
+- 当前修订 ID：`rev-openvla-initial-20260725`
+- 当前修订时间：`2026-07-25T18:17:47+08:00`
+- 替代版本：无；这是首次满足当前交付规范的正式版本。
 
-## 核心机制与贡献
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-openvla-initial-20260725` | `1.0.0` | `2026-07-25T18:17:47+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从官方 PDF/源码、代码、checkpoint metadata 独立重建完整单篇精读 | non-ICML Paper 交付完整性修复 | 本文各分析章节与 [Figure inventory](../evidence/figure-inventory.md) | 官方论文、源码、固定 commit 代码与公开 checkpoint 配置 | material |
 
-1. **开放 VLA 栈。** PDF、源码、训练/推理代码和 checkpoint 均公开；HF checkpoint 可直接核验为 ungated。开放性是可审计事实，不等于所有预训练数据开放。
-2. **7B 多模态动作模型。** DINOv2 + SigLIP 融合、MLP projector、Llama 2 7B 与动作词表复用构成完整路径（Figure 2）。论文摘要报告相对 RT-2-X 跨 29 tasks 提高 16.5 个百分点，但数据量、视觉编码器和模型规模同时变化，组件归因是 confounded。
-3. **新机器人适配。** 摘要报告相对 Diffusion Policy 聚合提高 20.4 个百分点；Table 1 直接比较 partial/full/LoRA，显示 LoRA r=32 以 97.6M trainable params 达到 68.2% vs full FT 69.7%。但 Table 1 使用较小 SigLIP-only 变体。
-4. **量化部署证据。** Table 2 与 Appendix D.4 同时测成功率、显存和控制方式；int4 在测试变体上以 7.0 GB 达到 71.9%，bf16 为 16.8 GB/71.3%。证据支持消费级 GPU，不支持真正嵌入式 edge/NPU。
+## 0. 资料与配图索引
 
-## 方法与实现
+- 论文：[arXiv 2406.09246](https://arxiv.org/abs/2406.09246)；CoRL 2024。
+- LaTeX/source：arXiv 官方 source。
+- 开源代码：[openvla/openvla](https://github.com/openvla/openvla)，核验 commit `c8f03f48af692657d3060c19588038c7220e9af9`。
+- checkpoint metadata：`metadata/openvla-7b-config.json` 与 `metadata/openvla-7b-model-api.json`；Hugging Face revision `47a0ec7fc4ec123775a391911046cf33cf9ed83f`。
+- OpenReview：forum `ZMnD6QZAE6`；访问边界见 公开评审核验记录。
+- 视觉清单与 QA：[Figure inventory](../evidence/figure-inventory.md)。
 
-### 3.1 问题到方案逻辑链
+## 0.1 术语与符号解释
 
-封闭 VLA 与高适配成本 -> 选择开放 Prismatic VLM -> 用 Open-X 多机器人数据覆盖 embodiment/task -> 连续动作分位归一化并复用 Llama token -> action-only next-token loss -> 以 FSDP/AMP/FlashAttention 训练 -> LoRA 与 bitsandbytes 降低适配/推理门槛 -> REST server 将大模型计算移出机器人端。
+### 0.1.1 术语表
 
-### 3.2 设计动机与具体问题映射
+| 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
+|---|---|---|---|---|
+| VLA | 输入视觉观测与语言指令、输出机器人动作的 vision-language-action policy | vision-language-action model | 不是只输出文本的 VLM，也不是独立 planner | §1–§3；Figure 2 |
+| out-of-the-box | 未在目标机器人任务上额外训练，直接使用 OpenX 预训练策略评测 | direct evaluation | 不代表零训练；模型已在 OpenX robot data 上训练 | §5.1 |
+| OpenX pretraining | 在整理后的 Open X-Embodiment 多机器人混合数据上训练 VLA | robot pretraining | 与 Internet VLM pretraining 不同 | §3.3；Appendix D.1 |
+| fused vision encoder | 并行使用 DINOv2 与 SigLIP，并按通道拼接 patch features | DinoSigLIP | 不是 early fusion of raw images，也不是 ensemble voting | §3.1；Figure 2；checkpoint config |
+| action tokenization | 每个动作维度按训练集 $q_{0.01}$ 到 $q_{0.99}$ 区间离散，并映射到 Llama 词表尾部 token | discretized actions | 不等于 text token generation 的语义词 | §3.2；`prismatic/vla/action_tokenizer.py` |
+| action detokenization | 将生成 token 还原为归一化 bin center，再按目标数据集统计量反归一化为连续动作 | action decoding | 不等于额外 learned decoder | Figure 2；`prismatic/models/vlas/openvla.py` |
+| language grounding | 在多物体场景中依据指令选择正确目标并执行动作 | instruction grounding | 不等于 Internet 概念语义泛化 | §5.1；Figure 3 |
+| semantic generalization | 测试 robot action data 中未见的对象、指令或 Internet 概念 | semantic OOD | 与视觉、运动、物理 OOD 分开 | §5.1；Figure 3 |
+| matched Diffusion Policy | 去掉 proprioception/history/action chunking，改为单图、单相对动作，以匹配 OpenVLA I/O | DP matched | 不是原始完整 Diffusion Policy | §5.2 footnote |
+| LoRA | 对所有 linear layers 注入低秩适配矩阵的参数高效微调 | low-rank adaptation | 论文 Table 1 的 PEFT 使用较小 SigLIP-only OpenVLA 变体，不是完整 fused checkpoint 的严格同模型对比 | §5.3；Table 1 footnote；`vla-scripts/finetune.py` |
+| blocking control | 完整执行当前动作后再预测下一动作，用于去除不同推理速度造成的 dynamics 差异 | synchronized control | 与主评测 5 Hz non-blocking controller 不同 | Appendix D.4 |
 
-| 设计项 | why 状态/来源 | 具体问题 | 因果机制 | 替代/权衡 | 验证证据 | 判断 |
+### 0.1.2 符号表
+
+| 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
-| DINOv2 + SigLIP fused encoder | author-stated；Sections 3.1/3.4 | 语义理解与精细空间控制需兼顾 | channel-wise 拼接语义与空间特征 | SigLIP-only 更小、更省显存 | 小规模 Bridge 实验：Prismatic 比 LLaVA 约 +10pp；未隔离 encoder/data/projector | partially supported |
-| 2-layer MLP projector + Llama 2 7B | inferred；Figure 2/Prismatic 继承 | 将视觉 patch 对齐到成熟 LLM 表征/生成接口 | 映射到语言 embedding 后复用 causal LM | cross-attention/action head 可能更直接 | 架构/代码存在；无 projector/LLM 替换消融 | plausible |
-| q01/q99 内 256-way 动作离散化 | author-stated；Section 3.2 | min/max 受 outlier 拉宽、降低有效粒度 | 分位裁剪后每维均匀离散 | continuous regression、learned tokenizer；离散误差/词表语义污染 | 无 bin 数/分位边界消融；代码确认 | plausible, unisolated |
-| 覆盖 Llama 最后 256 个低频 token | author-stated；Section 3.2 | Llama 仅预留 100 special tokens，不够 256 | 复用现有词表槽，无需扩 embedding | 扩词表或独立 action head；可能破坏低频文本 token | 代码确认；无性能消融 | unverified benefit |
-| action-token-only cross entropy | author-stated；Section 3.2 | prompt/视觉上下文不应成为监督目标 | 仅 action labels 回传 next-token loss | MSE/diffusion/chunked objective | dataset mask 与代码确认；无 objective 消融 | plausible |
-| Open-X 筛选与 mixture weighting | author-stated；Section 3.3 | 传感/动作空间不一致、数据分布失衡 | 限定第三人称/单臂 EEF，按多样性重权重 | 更广泛异构 I/O；当前适用面变窄 | 数据 ablation 有整体趋势但多项同时变化 | partially supported |
-| 224 x 224 input | author-stated；Section 3.4 | 高分辨率增加 patch 数和二次 attention 成本 | 较短视觉 token 序列降低训练时间 | 384 px 可能提升细粒度视觉 | 224 vs 384 未见成功率差，后者训练约 3x 慢；未给完整表/误差 | supported in tested tasks |
-| 全量更新 vision encoder | author-stated hypothesis；Section 3.4 | Internet vision features缺少机器人精细空间细节 | task-specific gradient 调整视觉特征 | freeze 可保留通用性和省算力 | Table 1 frozen vision 47.0% vs full 69.7%，但较小变体且参数量差异巨大 | partially supported |
-| 27 epochs、token accuracy >95% | author-stated；Section 3.4 | 机器人动作拟合需多次遍历 | 更多优化步提高 action token fit | 过拟合/灾难遗忘风险 | 作者报告 rollout 持续提升，但无曲线/受控表 | indirect |
-| LoRA r=32 all-linear | author-stated；Section 5.3 | full FT 显存/多 GPU 成本高 | 低秩增量只训练 1.4% 参数 | sandwich/last-layer/r64 | Table 1 matched strategies；r32/r64 均 68.2%，r32 更省参数/显存 | supported for SigLIP-only variant |
-| int4 inference | author-stated；Section 5.4 | 7B bf16 权重不易放入低显存 GPU | 压缩权重流量，抵消量化/反量化开销 | int8 精度更高但本实现更慢；专用 kernels 未测 | Table 2、Figure 6、Appendix D.4 blocking control | supported for tested variant/tasks |
-| remote REST server | author-stated；Section 3.5 | 机器人本地缺少大 GPU | 图像/指令上传到 GPU server，action 返回客户端 | 本地 edge 推理；网络抖动与隐私代价 | code-only，无端到端网络 latency/SLA | implementation exists, deployment claim unverified |
+| $N$ | 单步动作的维数 | author-defined | 每个 action | 常见为 7 | §3.2；Figure 2 | 不是 token sequence 总长以外的时间 horizon |
+| $a_j$ | 动作第 $j$ 维连续值 | analysis-derived | $j \in \{1,\dots,N\}$ | dataset-specific | §3.2 重建 | 不同机器人动作语义与尺度不同 |
+| $q^{(j)}_{0.01},q^{(j)}_{0.99}$ | 第 $j$ 维训练动作的 1% 与 99% 分位数 | author-defined/code-defined | dataset/action dimension | 连续动作单位 | §3.2；checkpoint `norm_stats`; `openvla.py` | 不同 `unnorm_key` 取值不同 |
+| $b_j$ | 第 $j$ 维离散 bin 索引 | analysis-derived | 单步动作 | $0$–$255$ | §3.2；`action_tokenizer.py` | 代码有 256 edges 与 255 centers 的实现细节，最终 token mapping 需按实际 tokenizer 验证 |
+| $p_\theta(y_t\mid y_{<t},x)$ | 给定图像/指令上下文 $x$ 时第 $t$ 个 action token 的条件概率 | analysis-derived from author objective | action-token positions | probability | §3.2 next-token objective | loss 仅在 action-token labels 上计算 |
+| $\mathcal{L}_{\mathrm{act}}$ | action token 交叉熵 | analysis-derived | batch/token | nats or implementation CE units | §3.2；`vla-scripts/finetune.py` | 不直接优化 task success |
+| $r$ | LoRA rank | author-defined/code-defined | each targeted linear layer | 32 or 64 in Table 1 | §5.3；`finetune.py` | rank 增大近似线性增加 trainable params |
+| $P$ | 参数量 | analysis-derived | model/component | parameters | §3.5/Table 1 | “7B”是近似；Table 1 full FT 为 7,188.1M |
+| $s$ | 每个参数存储字节数 | analysis-derived | weights | bf16=2, int8=1, int4=0.5 before metadata overhead | infra derivation | 实测 VRAM 包含 allocator、activations 与 quantization metadata |
+| $f$ | 控制/动作预测频率 | author-defined | deployment | Hz | §3.5、§5.4 | 不是 raw token/s |
+| $T,X$ | Diffusion Policy 预测 action chunk 长度与每次 open-loop 执行步数 | author-defined | controller | DROID $T=16,X=8$；5 Hz $T=8,X=3$ | §5.2 footnote | OpenVLA 本文版本不做 action chunking |
+| $\Delta_{\mathrm{abs}},\Delta_{\mathrm{rel}}$ | 绝对/相对成功率增益 | analysis-derived | paired result | percentage points / percent | §5 归因 | relative gain 分母必须明确 |
+| $B_{\mathrm{eff}},U$ | 有效带宽与峰值带宽利用率 | analysis-derived | memory/interconnect path | bytes/s, ratio | §8 derivation | 论文未报告 bytes moved/runtime breakdown，不能数值化 |
 
-### 3.3 架构与动作解码
+## 1. 论文基本信息
 
-HF revision `47a0ec...` 配置直接记录 `OpenVLAForActionPrediction`、`dinosiglip-vit-so-224px`、DINOv2 ViT-L/14-reg4 与 SigLIP-SO400M/14、`torch_dtype=bfloat16`、`n_action_bins=256`、padded vocab 32064 和 25 组 dataset statistics。safetensors index 有 982 tensor keys、3 shards、32 个 Llama layers（0..31），总权重字节 `15,082,474,368`。
+- 研究领域：robot foundation models、vision-language-action、imitation learning、跨机器人预训练与高效适配。
+- 核心问题：如何把 Internet-pretrained VLM 与多机器人 demonstrations 结合成可公开、可微调、可实际部署的 generalist manipulation policy。
+- 研究目标：在多 embodiment 的直接评测与新机器人适配上达到强性能，同时开放模型、数据管线、训练/部署代码，并降低微调与推理门槛。
+- 关键约束：单图输入、单步 7D action token 自回归；训练数据限定为相容的第三人称相机与单臂 end-effector control；7B 模型推理频率远低于高频控制需求。
 
-动作路径在当前官方 commit 的 [`modeling_prismatic.py`](https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/prismatic/extern/hf/modeling_prismatic.py) 中可逐步核验：
+## 2. 研究动机与问题—方案闭环
 
-1. 首个 multimodal prefill 运行 vision backbone 和 projector，再把 patch embeddings 插在 BOS 后（lines 361-415）。
-2. `predict_action()` 调用 `generate(max_new_tokens=N)`（lines 506-524）；7D 控制即 7 个串行 autoregressive steps，而不是 action chunk。
-3. 后续 step 只传最后一个 token 和 `past_key_values`，batch size 被限制为 1（lines 319-341, 449-485）；vision encoder 不重复执行。
-4. token ID -> bin center -> q01/q99 反归一化（lines 520-534）。
+### 2.1 出发点与背景痛点
 
-代码实现有一个应明确记录的细节：[`ActionTokenizer`](https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/prismatic/vla/action_tokenizer.py) 用 256 个 `linspace` boundary values 得到 255 个 centers；`digitize` 可产生 1..256，解码时终端索引裁到 center 254（lines 30-66）。因此论文“256 bins”在 token label 数上成立，但当前代码只有 255 个不同 decoded centers，最高两个离散索引会折叠。论文未讨论，也无影响测试。
+作者明确指出，VLA 的价值在于把 Internet-scale visual/language representations 与 robot demonstrations 结合，使新行为不必完全从头训练。然而当时最强的 RT-2-X 等系统主要闭源，研究者无法检查训练 recipe、数据 mixture、动作编码或部署行为；同时，已有工作集中在 out-of-the-box policy，几乎没有系统研究如何高效适配到新机器人。于是“开放性”与“适配成本”不是发布层面的附属问题，而是阻碍 VLA 被复现、诊断和扩展的核心约束（Abstract、§1、§2）。
 
-### 3.4 关键公式
+### 2.2 现有方案为何不够
 
-论文为文字定义；下列是与论文/代码一致的本文形式化。对受 mask 的 gripper 维不执行连续反归一化。
+第一，from-scratch generalist policies（RT-1-X、Octo）没有充分利用强 Internet-pretrained VLM，在论文专门设计的更强 OOD 测试中容易选错物体或产生无目标动作；Figure 3 给出直接结果。第二，closed VLA 虽有较强语义能力，却无法自由微调、重训或审计。第三，7B 模型的全量微调和在线推理仍重：完整微调每任务需 8×A100、5–15 小时，bf16 推理约 15–16.8 GB，频率不足以覆盖 50 Hz 等高频控制。根因分别是 representation/data diversity 不足、访问控制、以及模型容量/逐 token 生成带来的算力与带宽成本。
+
+### 2.3 目标问题与成功标准
+
+- 在多个真实机器人上直接控制，并在 visual/motion/physical/semantic/language-grounding OOD 上优于或匹配强 generalist baselines。
+- 用 10–150 demonstrations 适配新 Franka tasks，且在多任务/多对象/语言条件场景保持可靠。
+- LoRA 与低比特量化显著降低训练参数量或 VRAM，而成功率不显著下降。
+- 公开 checkpoint、训练/微调/部署代码与 OpenX 支持。
+- 不解决：高频/双臂 dexterous control、历史观测、多摄像头/proprioception、Internet+robot co-training 的知识保持、严格安全保证。
+
+### 2.4 核心方案如何解决并优化问题
+
+| 原始问题/失败模式 | 根因或约束 | 对应方案设计 | 改变的变量/系统行为 | 作用机制 | 预期优化及指标 | 证据来源 | 判断 |
+|---|---|---|---|---|---|---|---|
+| from-scratch policy OOD 弱 | representation 与 robot data diversity 不足 | Prismatic-7B + 970k OpenX trajectories | 视觉/语言先验与跨 embodiment 数据覆盖 | 预训练 features 与多域 demonstrations 提供迁移初始化 | task success/generalization | §3.1–§3.3；Figure 3；Table 9 | supported，但 backbone 与 data 贡献仅部分隔离 |
+| 细粒度空间控制不足 | 单一 semantic encoder 可能弱于 spatial feature | DINOv2+SigLIP fused encoder | patch feature channels | 同时保留 semantic 与 spatial cues | Bridge success | §3.1；Table 9 | partially-supported：匹配的 Bridge-only 对比为 5.0 pp |
+| 连续动作不在 LLM 输出空间 | tokenizer 只建模离散 token | 逐维 256-bin action tokenization | 连续回归变为 action-token classification | 复用 next-token prediction 与 LLM head | action token accuracy/control success | §3.2；code | plausible；没有与连续 head 的受控替换 |
+| 不同机器人动作尺度 | dataset action ranges 异构 | dataset-specific quantile normalize/unnormalize | 动作尺度与 outlier influence | $q_{0.01}$–$q_{0.99}$ 提高有效分辨率 | token accuracy/stable control | §3.2；checkpoint norm stats | plausible；无 quantile vs min-max ablation |
+| 新任务全量微调昂贵 | 7B 参数和 optimizer state | LoRA all-linear | trainable params 7,188.1M → 97.6M | 学习低秩增量 | success、VRAM、GPU-hours | Table 1；§5.3；code | supported on smaller SigLIP-only experimental variant |
+| 推理显存大 | bf16 weight footprint | int4 quantization | weight precision/storage | 降低 HBM footprint 和 transfer bytes | VRAM、Hz、success | Table 2；Appendix D.4 | supported in tested Bridge tasks |
+| 8-bit rollout success 下降 | quantization kernel overhead 降低 control rate | blocking-control cross-check | controller timing | 固定 action execution rhythm，隔离 prediction quality | success | Appendix D.4 | supported；说明 runtime 会改变 policy outcome |
+
+### 2.5 完整因果链与证据闭环
+
+论文的因果链是：闭源 VLA 与缺少适配研究阻碍采用；弱/窄 robot training 与缺少 Internet representation 使 generalization 受限；因此以开放 Prismatic VLM 为底座，把连续动作映射为 token，在整理后的 970k OpenX trajectories 上端到端微调，并提供 LoRA 与量化路径；这应提高跨任务/跨 embodiment generalization、降低适配和部署资源；Figure 3、Franka 表、Table 1、Table 2、Table 9 与 blocking-control experiment 分别测量直接成功率、适配成功率、训练资源、推理资源及部分组件因果。
+
+闭环总体为 `partially-supported`。OpenX diversity、vision fine-tuning、LoRA 与 int4 有较直接证据；但“OpenVLA 优于 RT-2-X 是数据多样性+新组件造成”的 headline attribution 有混杂：模型、数据量、data cleaning、encoder、训练 recipe 与 RT-2-X API querying 同时变化。action tokenization、256 bins、27 epochs、224 px 等设计也缺少完整 matched ablation。
+
+## 3. 核心贡献与创新点
+
+1. 发布 7B open-source VLA、checkpoint 与完整 PyTorch pipeline，使大规模 OpenX training、HF integration、FSDP/FlashAttention、LoRA 和部署可检查（§3–§4、code）。
+2. 在 29 个真实机器人任务上建立强 generalist 结果；Bridge average 70.6%，高于 RT-2-X 50.6% 共 20.0 pp，而摘要的跨平台汇总 headline 为 16.5 pp（Figure 3、Figure 4）。
+3. 系统评估对新 robot setup 的 fine-tuning：Franka-Tabletop 上 OpenVLA 67.2% vs Diffusion Policy 48.5%，差 18.7 pp；Franka-DROID 58.3% vs 35.0%，差 23.3 pp（Appendix Table 7）。
+4. 给出 PEFT 与低比特推理的实物机器人证据，尤其 LoRA 只训练 1.4% 参数而接近 full FT，int4 将 VRAM 从 16.8 GB 降到 7.0 GB且成功率相当（Table 1、Table 2）。
+5. 通过 blocking-control 实验展示一个重要 system lesson：推理 precision 的影响必须拆成数值质量与控制频率/dynamics 两部分（Appendix D.4）。
+
+## 4. 研究方法
+
+### 4.1 方法总览
+
+输入为单张 $224\times224$ RGB 图像与语言 instruction。DINOv2 和 SigLIP 分别产生视觉 patch features，通道拼接后经 2-layer MLP projector 映射到 Llama 2 embedding space；语言 tokenizer 处理 instruction，视觉 token 与语言 token 共同条件化 Llama 2 7B。模型逐 token 生成一个 $N$ 维动作，detokenizer 再按目标 dataset statistics 还原为连续控制量。
+
+![OpenVLA Figure 2 architecture](../assets/papers/openvla/fig2_architecture_caption.png)
+
+> 原论文 Figure 2，PDF page 4；包含完整 caption。它描述 architecture/data flow，不证明每个组件的收益。
+
+### 4.2 组件级设计动机与具体问题映射
+
+| 设计项 | why 状态 | 原文证据 | 针对问题 | 因果机制 | 替代/权衡 | 验证证据 | 判断 |
+|---|---|---|---|---|---|---|---|
+| Prismatic-7B VLM backbone | author-stated | §3.1、§3.4 | language grounding 与 spatial reasoning | 继承 Internet-pretrained visual/language features | LLaVA/IDEFICS；更大 backbone 成本更高 | 小规模 backbone comparison，约 +10 pp over LLaVA | partially-supported，实验细节有限 |
+| DINOv2+SigLIP fused encoder | author-stated | §3.1、§3.4 | semantic 与 spatial cues 兼顾 | channel-wise concat | SigLIP-only 更省算力/显存 | Table 9 的 Bridge-only 45.6 vs 40.6 | supported but modest |
+| 256-bin action tokenization | author-stated/inferred | §3.2 | 复用 LLM head且 special tokens 不足 | 连续动作离散为 existing token IDs | learned continuous head、new vocab extension | code evidence，无受控收益实验 | unverified as optimal choice |
+| 1%–99% quantile bounds | author-stated | §3.2 | outlier 扩大 bins、降低分辨率 | 截断 tails 后提高中心区间 granularity | min-max、nonuniform bins | code evidence，无 ablation | plausible |
+| action-only cross entropy | author-stated | §3.2 | 训练目标聚焦 robot output | mask non-action labels | regression/diffusion/action chunking | implementation verified | plausible；task success 间接 |
+| OpenX curated mixture | author-stated | §3.3 | 多 embodiment/tasks 且 I/O 异构 | 过滤成相容 action/sensor space并重权重 | 更通用 heterogeneous sensors | Table 9 OpenX vs Bridge-only +30.7 pp | supported |
+| 224 px input | author-stated | §3.4 | 384 px context/compute 过高 | 少 patch tokens，attention 成本下降 | 384 px 可能增强视觉细节 | authors report no performance difference, 3× training time | supported within small-scale tests |
+| vision-encoder fine-tuning | author-stated | §3.4 | frozen Internet features缺少控制所需细节 | features adapt to scene/control cues | frozen encoder 保留 robustness、节省 memory | Appendix Table 10；Table 1 | supported |
+| 27 epochs, fixed LR | author-stated | §3.4 | action-token accuracy需持续提高 | repeated exposure raises token accuracy >95% | early stop/warmup | training trend prose，无 full curve | partially-supported |
+| LoRA all-linear adaptation | author-stated/code-defined | §5.3；`finetune.py` | full FT optimizer/gradient memory | low-rank weight updates | sandwich/frozen/last-layer/full FT | Table 1 rank 32/64 sensitivity | supported on reduced variant |
+| int4 quantized inference | author-stated | §5.4 | 7B bf16 VRAM/transfer | compress weights；transfer reduction offsets dequant overhead | int8 slower on tested stack | Table 2 + Appendix blocking control | supported |
+| remote REST inference | author-stated/code-defined | §3.5；`vla-scripts/deploy.py` | robot旁缺少大 GPU | image/instruction over network → server action | introduces network latency/failure surface | code only，无 telemetry | unverified for robust production serving |
+
+### 4.3 关键公式
+
+逐维 quantile clipping 与均匀离散可重建为：
 
 $$
-\tilde a_d=\operatorname{clip}\left(2\frac{a_d-q_{01,d}}{q_{99,d}-q_{01,d}}-1,-1,1\right),
+\tilde a_j=\operatorname{clip}\!\left(
+\frac{a_j-q^{(j)}_{0.01}}{q^{(j)}_{0.99}-q^{(j)}_{0.01}},0,1
+\right),\qquad
+b_j=\operatorname{bin}_{256}(\tilde a_j).
+$$
+
+动作 token 序列上的训练目标为：
+
+$$
+\mathcal{L}_{\mathrm{act}}(\theta)
+=-\sum_{t\in\mathcal{A}}
+\log p_\theta(y_t\mid y_{<t},x),
+$$
+
+其中 $\mathcal{A}$ 仅包含 action-token positions。代码 `vla-scripts/finetune.py` 用 mask 统计 action token accuracy；核心 HF/Prismatic path 生成最后 $N$ 个 token，并按 dataset-specific $q_{0.01},q_{0.99}$ 反归一化：
+
+$$
+\hat a_j=
+\frac{\hat z_j+1}{2}
+\left(q^{(j)}_{0.99}-q^{(j)}_{0.01}\right)+q^{(j)}_{0.01},
+$$
+
+其中 $\hat z_j\in[-1,1]$ 为 bin center。这里的公式是依据 §3.2 与代码重建；论文未给编号公式。
+
+### 4.4 训练、数据与部署
+
+最终模型报告使用 64×A100、约 14 天、batch 2048、27 epochs，合计约 21,500 A100-hours。OpenX 原始池有 70+ datasets、2M+ trajectories；最终 mixture 为 970k demonstrations，并过滤至至少一个第三人称 camera、single-arm end-effector control。DROID 初期以 10% mixture 加入，但 action-token accuracy 较低，最后三分之一训练将其移除。
+
+代码 snapshot 通过 FSDP、bf16 mixed precision、FlashAttention 与 distributed data loader 支持多节点训练。当前 LoRA 脚本默认 $r=32$、all-linear、bf16；可选 NF4 4-bit quantized LoRA。部署脚本提供 FastAPI `/act`，但没有 batching、admission control、deadline scheduling、observability 或安全 fallback。
+
+## 5. 关键结论与证据归因
+
+### 5.1 主结果
+
+![OpenVLA Figure 3 Bridge results](../assets/papers/openvla/fig3_bridge_results_caption.png)
+
+> 原论文 Figure 3，PDF page 7。BridgeData V2 共 170 rollouts/approach。OpenVLA average 70.6%，RT-2-X 50.6%，绝对差 20.0 pp、相对增益约 $20.0/50.6=39.5\%$。OpenVLA 在 semantic generalization 为 36.3%，低于 RT-2-X 38.8%，因此不能概括为所有 OOD 均胜。
+
+Franka-Tabletop aggregate 为 67.2% vs Diffusion Policy 48.5%，绝对 +18.7 pp、相对约 +38.6%；Franka-DROID 为 58.3% vs 35.0%，绝对 +23.3 pp、相对约 +66.6%。论文摘要的 20.4% 应理解为其选定 fine-tuning aggregate headline；逐表复核时应优先引用明确表格数字和 scope。
+
+LIBERO appendix 的优势更小：OpenVLA 76.5%，Octo 75.1%，Diffusion Policy 72.4%；OpenVLA 并非每个 suite 都第一。这支持“可适配 simulation”，但不支持“real-world pretraining 普遍带来大幅 simulation advantage”。
+
+### 5.2 技术点证据矩阵
+
+| 技术点 | 声称收益 | 对应实验 | 控制性 | 指标变化 | 证据强度 | 结论 |
+|---|---|---|---|---|---|---|
+| OpenX diversity | generalization | Table 9 OpenVLA vs OpenVLA-Bridge | architecture same，但 training data volume/domain 不同正是被测变量 | 76.3→45.6，-30.7 pp | direct ablation | supported |
+| fused DINOv2+SigLIP | spatial/generalization | Table 9 Bridge vs Bridge-SigLIP | matched Bridge-only models | 45.6→40.6，-5.0 pp | replacement baseline | supported, effect modest |
+| vision encoder fine-tuning | precise control | Appendix Table 10 | two VLM families，部分 frozen trials中止 | comparable subset 80.0 vs 46.7 | direct ablation with caveats | supported |
+| LoRA $r=32$ | lower train params/memory | Table 1 | same reduced SigLIP-only variant/tasks | 68.2 vs full 69.7；97.6M vs 7,188.1M | matched PEFT comparison | supported for variant |
+| rank 32 sufficient | rank-insensitive | Table 1 | matched | both 68.2%；memory 59.7 vs 60.5 GB | sensitivity | supported within 33 rollouts |
+| int4 | halve VRAM without success loss | Table 2 + blocking control | same tasks；timing controlled in appendix | 16.8→7.0 GB；71.3→71.9 | direct system experiment | supported |
+| int8 numeric quality not root cause | rollout loss from low Hz | blocking control | controller timing isolated | blocking averages overlap | direct control | supported |
+| 256 bins/tail-vocab overwrite | effective action prediction | none | none | no matched delta | code-only | unverified as design optimum |
+| 27 epochs | needed until >95% token accuracy | prose training observation | no curve/early-stop comparison | not quantified in task success | indirect | partially-supported |
+| headline beats RT-2-X due to data+new components | stronger direct control | Figure 3/Table 9 | multiple confounds and different proprietary model/query path | headline gains | confounded | correlation-only for joint attribution |
+
+![OpenVLA Table 9 ablation](../assets/papers/openvla/table9_ablation_caption.png)
+
+> 原论文 Table 9，PDF page 34。它最清楚地区分 OpenX data effect 与 fused encoder effect，但其 full OpenVLA 与 Bridge-only models 的 training data amount/domain 都不同；这正是 data mixture 的整体效应，不是纯粹“数据多样性”单变量估计。
+
+### 5.3 PEFT 与资源归因
+
+![OpenVLA Table 1 PEFT](../assets/papers/openvla/table1_peft_caption.png)
+
+> 原论文 Table 1，PDF page 10。关键边界：该节使用较小的 SigLIP-only、Octo-mixture OpenVLA 变体；数值不能无条件外推到完整 fused 7B checkpoint。
+
+LoRA $r=32$ 相对 full FT 的 trainable params 减少：
+
+$$
+1-\frac{97.6}{7188.1}=98.64\%,
+$$
+
+而成功率差为 $68.2-69.7=-1.5$ pp，小于各自标准误差。VRAM 由跨 2 GPU 的 163.3 GB aggregate 降至单卡 59.7 GB；因为 full FT 有 FSDP shard 标记，不能把这两个数直接解释成单设备同条件 63.4% reduction。论文更可靠的 operational comparison 是 8×A100 的 full FT 对单 A100 LoRA，约 8× GPU-hour reduction。
+
+### 5.4 是否验证了核心假设
+
+- “开放 VLA 可以达到强 generalist results”：支持；真实机器人 A/B rollouts 与开源 artifacts 齐全。
+- “多样 robot pretraining 是主要增益来源”：支持；Table 9 效果最大。
+- “DINOv2+SigLIP fusion 是重要增益”：部分支持；matched gain 仅 5.0 pp。
+- “高效 adaptation 可保持性能”：支持，但 PEFT 证据来自较小变体。
+- “低比特推理不损害 policy”：int4 在测试 scope 内支持；int8 强烈依赖 runtime/controller coupling。
+- “VLA 是新任务的通用默认选择”：仅部分支持；窄、精细单指令任务上 Diffusion Policy 更好，OpenVLA 可靠率通常仍低于 90%。
+
+## 6. Related Work 对比
+
+| 类别/工作 | 方法核心 | 优点 | 局限 | 与 OpenVLA 的关系 |
+|---|---|---|---|---|
+| RT-1-X | 从头训练的较小 cross-embodiment transformer | 相对轻量 | Internet knowledge/language grounding 弱 | OpenVLA 用 VLM initialization 与更强 data recipe |
+| RT-2-X | 55B closed VLA，Internet+robot co-training | semantic generalization 强 | closed、无法自由 fine-tune；大 | OpenVLA 7B、开放；在多数实物任务更强，但 semantic OOD 略弱 |
+| Octo | 93M open generalist policy | 开放、支持 heterogeneous inputs/fine-tuning | 无大 VLM backbone | OpenVLA 更重但 language-conditioned diversity 上通常更强 |
+| Diffusion Policy | continuous action diffusion + history/proprioception/action chunking | 窄任务精度与平滑性强 | 从头训练、多任务语言 grounding 相对弱 | 是 downstream adaptation 强 baseline；I/O 不完全等价，论文同时给 matched 版本 |
+| PaLM-E/RT-2 系 | 把 embodied/action prediction 纳入大模型 | transfer/world knowledge | 高成本、开放性不足 | OpenVLA 把开放与 efficiency 作为主线 |
+
+比较公平性边界：RT-2-X 是 API 模型，Bridge 上因 zero-action freezing 使用 second-most-likely action workaround，无法用同一 data cleaning 重训；OpenVLA 使用更多 trajectories（970k vs 350k）、不同 backbone 与 preprocessing。因此 Figure 3 是 system-level comparison，不是单一算法变量比较。
+
+## 7. OpenReview 公开评审 × 论文内容交叉核验
+
+- OpenReview forum：`ZMnD6QZAE6`
+- 访问日期：2026-07-25
+- decision/meta-review：文本 blocked；论文已由 CoRL 2024 proceedings 独立确认接收。
+- rebuttal/review/discussion：blocked；详见 公开评审核验记录。
+
+| 来源 | 观点/约束 | 对应 claim/实验 | 证据 | 状态 | 判断 |
+|---|---|---|---|---|---|
+| OpenReview public thread | review、score、rebuttal、decision note | 全文 | API 403；forum challenge | unclear/blocked | 不推断 reviewer 共识；不影响 paper/code 事实，但无法审计 rebuttal 后变化 |
+
+由于没有取得 review note，不把本文自己的担忧冒充 reviewer concerns。可独立确认的核心阅读风险是：baseline system confounds、真实机器人 rollout 数量有限、PEFT/quantization 使用较小模型变体、以及 success metric 对 controller timing 敏感。
+
+## 8. Infra 需求分析
+
+### 8.1 算力与训练
+
+论文报告最终训练约 21,500 A100-hours。简单核算 $64\times14\times24=21,504$ GPU-hours，与报告一致。若按 64 GPUs 同步 FSDP，瓶颈取决于 sharding strategy、activation recomputation 与 interconnect；论文没有提供 MFU、step time、FLOPs 或 NVLink/IB topology，不能计算 utilization。
+
+### 8.2 显存与存储
+
+纯权重下界为：
+
+$$
+M_{\mathrm{weights}}=P\cdot s.
+$$
+
+取 $P\approx7.1881\times10^9$，bf16 的理论权重约 $14.38$ GB（十进制），接近论文约 15 GB 与实测 16.8 GB；差值来自视觉组件、buffers、allocator、KV/activation 与框架开销。int4 理论下界约 3.59 GB，但实测 7.0 GB，说明 quantization metadata、未量化层与 runtime buffers 不可忽略。
+
+全量 AdamW training 还需 gradients、optimizer states 与 master weights，单卡复制不可行；FSDP 是必要而非装饰性优化。LoRA 只训练 97.6M 参数，显著减少 gradient/optimizer state，但 frozen base weights 和 forward activations 仍占显存，故 Table 1 仍需 59.7 GB。
+
+### 8.3 Data Types / 数值格式
+
+| 对象 | 格式 | 阶段 | 硬件依赖 | 影响 | 证据 |
+|---|---|---|---|---|---|
+| weights/activations | bf16 | train/infer | A100/RTX/H100 tensor cores | bf16 model约 15–16.8 GB | §3.5、checkpoint config、code |
+| LoRA training compute | bf16 | fine-tune | CUDA GPU | base forward仍重；trainable states小 | `finetune.py` |
+| optional QLoRA weights | NF4 4-bit, bf16 compute | fine-tune | bitsandbytes CUDA | 降 base weight memory | current code snapshot；非主论文 Table 1 设置 |
+| inference weights | int8/int4 | inference | bitsandbytes/dequant kernels | int8 overhead 在部分 GPU 反而降 Hz；int4 transfer saving 更大 | §5.4 |
+| action token IDs | integer vocabulary IDs | train/infer | tokenizer/LLM head | 复用 CE 与 autoregressive generation | §3.2、code |
+| continuous action | float after unnormalize | robot control | CPU/GPU postprocess | 恢复 dataset-specific units | `openvla.py` |
+
+### 8.4 带宽、互联与利用率
+
+推理最少要读一次主要权重，粗略 lower bound 为 $P\cdot s$ bytes/action prediction；实际 autoregressive 生成 $N$ 个 action tokens 会重复经过 decoder layers，并受 cache 与 kernel fusion 影响。定义：
+
+$$
+B_{\mathrm{eff}}=\frac{\mathrm{BytesMoved}}{\mathrm{RuntimeSeconds}},
 \qquad
-k_d=\operatorname{digitize}(\tilde a_d;\mathcal B_{256}).
+U=\frac{B_{\mathrm{eff}}}{B_{\mathrm{peak}}}.
 $$
 
-$$
-\mathcal L_{act}=-\sum_{t\in\text{action labels}}\log p_\theta(y_t\mid I,\ell,y_{<t}).
-$$
+论文没有 bytes moved、kernel trace 或 peak bandwidth，故不能给数值利用率。Table 2 的证据只允许判断：int4 在测试 GPU 上因更少 HBM traffic 抵消 dequant overhead；int8 kernel overhead 没有被 transfer reduction 抵消。训练时 FSDP 需要 all-gather/reduce-scatter，64 A100 是否跨节点及互联类型未报告，是复现 throughput 的关键缺口。
 
-$$
-\hat a_d=\frac{\tilde a_d+1}{2}(q_{99,d}-q_{01,d})+q_{01,d}.
-$$
+### 8.5 CPU/GPU/NPU 异构执行
 
-这个目标把动作维度顺序变成自回归条件顺序；后维 action token 条件于前维预测。论文没有比较并行独立 heads 或连续联合分布，因而不能断言这种顺序本身带来收益。
+| 阶段 | CPU | GPU/NPU | 数据移动 | 同步/overlap | 潜在瓶颈 | 证据 |
+|---|---|---|---|---|---|---|
+| input | image capture、prompt、resize orchestration | vision preprocessing/model | camera/host→GPU | 未说明 pinned/async | CPU preprocessing/PCIe | code |
+| inference | REST/FastAPI、serialization | VLA forward/generate | image request→GPU；action→host/network | request synchronous | GPU decode + network jitter | `deploy.py` |
+| control | client/controller | 无特定 NPU path | action over network/robot bus | non-blocking 5/15 Hz | deadline miss changes dynamics | §5.2、§5.4 |
+| training | data pipeline/RLDS shuffle | 64 A100 FSDP | host storage→GPU + collectives | 未报告 overlap | input pipeline/interconnect | code、§3.5 |
 
-### 3.5 训练、数据与部署
+没有 NPU/custom accelerator implementation，不能声称可直接移植。NPU 需要 DINO/SigLIP/Llama、quantized matmul、tokenizer/postprocess 和 action deadline 的完整 operator coverage。
 
-- 训练：最终模型 global batch 2048、64 A100、BF16 mixed precision compute、FP32 gradient reduction、FSDP full/hybrid sharding、LLM activation checkpointing；代码路径见 `prismatic/conf/vla.py:48-55` 与 `prismatic/training/strategies/fsdp.py:139-182`。
-- 数据：970k trajectories；多机器人数据先规范化到单臂 EEF action。DROID 初始 weight 10%，因 action token accuracy 持续低在最后三分之一训练移除，说明 mixture 并非固定。
-- 当前 LoRA 脚本：all-linear、r 默认 32；可选 `load_in_4bit=True, quant_type=nf4, compute_dtype=bf16`。这是 QLoRA 训练路径，不等于论文 int4 inference 格式。
-- 当前 REST deploy：默认 BF16 + FlashAttention 2，同步 FastAPI `/act`；量化只在验证脚本注释示例中，不是 deploy CLI 开关。
+### 8.6 Serving 与调度
 
-## 关键实验与证据
+论文 release 的 remote server 是研究级单请求 `/act` path，而非完整 serving system：没有 dynamic batching、request priorities、deadline scheduler、model replicas、health checks 或 safe stop。对机器人控制，平均 latency 不足以表征风险；需要 p95/p99 end-to-end latency、jitter、dropped-frame rate、network interruption fallback 和 action validity constraints。Appendix D.4 已证明 runtime frequency 本身会改变成功率，因此 serving optimization 与算法质量必须分开报告。
 
-### 4.1 技术点证据矩阵
+## 9. 开源代码与 checkpoint 对照
 
-| 技术点 | 声称效果 | 证据 | 控制性 | 证据强度 | 结论 |
-|---|---|---|---|---|---|
-| 7B open VLA 超过 RT-2-X | +16.5pp across 29 tasks | Abstract、Section 5.1 | 数据/架构/规模均不同 | confounded result | 系统整体有效，不能拆到单组件 |
-| fused DINOv2+SigLIP | 更好空间 reasoning/控制 | Section 3.4 Prismatic vs LLaVA 约 +10pp | backbone 组合和基座同时变 | replacement baseline, confounded | partially supported |
-| 224 px | 近似同效果、384 px 训练 3x 慢 | Section 3.4 | 分辨率对比，缺明细/误差 | direct but incompletely reported | tested tasks supported |
-| vision encoder 应微调 | frozen vision 降到 47.0% | Table 1，full 69.7% | trainable 参数/模型路径不同 | direct strategy comparison, confounded | adaptation important，但机制未隔离 |
-| LoRA r32 | 近 full FT，少 98.6% trainable params | Table 1 | 同表、同任务；小模型变体 | direct ablation | supported in scope |
-| int4 | 成功率不降、VRAM 减半以上 | Table 2；Appendix D.4 | 精度对比 + blocking control | direct controlled deployment evidence | supported in 8 Bridge tasks |
-| int8 失败来自慢推理 | non-blocking 58.1%，blocking 74.4% | Section 5.4；Appendix D.4 | blocking 控制系统动态 | controlled mechanism evidence | supported, 仍缺 kernel profiler |
-| autoregressive decode | N 串行 token、KV cache | code commit lines | 静态代码检查 | code evidence | implemented；latency attribution未测 |
-| remote deployment | 可从机器人远程请求 action | deploy.py | 无网络 latency/SLA benchmark | code-only | 功能存在，实时性未验证 |
-| edge/NPU deployment | 未提供 | 无 Jetson/NPU/CPU 实测 | 无 | none | unverified/not demonstrated |
+- 代码 commit：`c8f03f48af692657d3060c19588038c7220e9af9`
+- checkpoint revision：`47a0ec7fc4ec123775a391911046cf33cf9ed83f`
+- 注意：代码 snapshot 晚于论文，含 2025 更新；只把路径作为当前实现证据。
 
-### 4.2 微调内存与量化结果
-
-![Table 1: fine-tuning memory](../assets/papers/openvla/table1_finetuning_memory_caption.png)
-
-Table 1（测量）显示 batch 16 下：full FT 163.3 GB（`*` 表示 2 GPU FSDP sharding）、last-layer 51.4 GB、frozen vision 156.2 GB（2 GPU）、sandwich 64.0 GB、LoRA r32 59.7 GB、r64 60.5 GB。论文没有说明星号数值是单卡峰值还是两卡合计，故不做 per-GPU 除法。
-
-LoRA r32 相对 full FT（推导）：成功率 -1.5pp（-2.15% 相对），trainable params 减少 7,090.5M（-98.64%），报告 VRAM 减少 103.6 GB（-63.4%）。这些数值只适用于脚注所述的较小 SigLIP-only 预训练变体。论文没有“训练阶段按 bf16/int8/int4”的受控显存表；当前 QLoRA NF4 代码也没有论文级 measured VRAM，因此该问题只能回答为**策略维度有测量，训练精度维度缺失**。
-
-![Figure 6: inference throughput](../assets/papers/openvla/fig6_inference_speed_caption.png)
-
-![Table 2: quantized inference](../assets/papers/openvla/table2_quantization_memory_caption.png)
-
-Table 2（测量）与 derived delta：
-
-| 精度 | success | VRAM | 相对 bf16 success | 相对 bf16 VRAM | 解释 |
-|---|---:|---:|---:|---:|---|
-| bf16 | 71.3 +/- 4.8% | 16.8 GB | baseline | baseline | 论文默认 |
-| int8 | 58.1 +/- 5.1% | 10.2 GB | -13.2pp / -18.5% | -6.6 GB / -39.3% | A5000 仅 1.2 Hz，非阻塞控制动态改变；blocking control 下恢复到 74.4 +/- 4.9% |
-| int4 | 71.9 +/- 4.7% | 7.0 GB | +0.6pp / +0.84% | -9.8 GB / -58.3% | A5000 约 3 Hz；blocking control 68.8 +/- 5.2%，误差区间重叠 |
-
-Table 2 同样是 SigLIP-only/较小 data mixture 变体；Section 3.5 对最终融合模型另报 bf16 约 15 GB、RTX 4090 约 6 Hz。两个 bf16 memory 数字来自不同模型/测量上下文，不应强行合并。
-
-### 4.3 收益归因
-
-| 变化 | 指标变化 | 影响路径 | 证据强度 |
+| 论文机制 | 本地路径 | pinned GitHub | 一致性 |
 |---|---|---|---|
-| full FT -> LoRA r32 | 69.7 -> 68.2%，163.3 -> 59.7 GB | 训练参数/optimizer/gradient state 减少 | matched table within smaller variant |
-| bf16 -> int4 | 71.3 -> 71.9%，16.8 -> 7.0 GB | weight bytes 与 HBM traffic 减少，量化开销被抵消 | direct + blocking-control support |
-| bf16 -> int8 | 71.3 -> 58.1%，16.8 -> 10.2 GB | 本实现 quant ops 使 control frequency 降至 1.2 Hz | controlled via Appendix D.4, no kernel trace |
-| fused vision/backbone/data mix | RT-2-X comparison +16.5pp | data diversity + architecture + training recipe bundle | confounded; no component variance decomposition |
+| 256-bin action tokenizer | `official repository: prismatic/vla/action_tokenizer.py` | `https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/prismatic/vla/action_tokenizer.py` | 一致；实现细节需注意 bin edges/centers |
+| generate→detokenize→unnormalize | `official repository: prismatic/models/vlas/openvla.py` | `https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/prismatic/models/vlas/openvla.py` | 一致 |
+| OpenX dataset/collator | `official repository: prismatic/vla/datasets/datasets.py` | `https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/prismatic/vla/datasets/datasets.py` | 一致 |
+| FSDP training | `official repository: vla-scripts/train.py`; `prismatic/training/strategies/fsdp.py` | pinned commit 对应路径 | 一致 |
+| LoRA/QLoRA | `official repository: vla-scripts/finetune.py` | pinned commit 对应路径 | LoRA 一致；QLoRA 是 current snapshot 扩展 |
+| bf16/int8/int4 eval | `official repository: experiments/robot/openvla_utils.py` | pinned commit 对应路径 | 一致 |
+| remote serving | `official repository: vla-scripts/deploy.py` | pinned commit 对应路径 | 一致但研究级 |
 
-### 4.4 显式证据闭环
+checkpoint config 直接确认：`OpenVLAForActionPrediction`、Llama-2-7B、fused `dinosiglip-vit-so-224px`、224 px、bf16、256 action bins、vocab 32064、25 组 normalization stats。模型 open/ungated；15.1 GB weight shards未下载。论文使用约 7B/7.5B 的近似称呼，Table 1 给 7,188.1M trainable params；这些口径不矛盾，但比较时必须注明来源。
 
-**Claim：int4 可在显存受限 GPU 上保持成功率。** -> **机制：** 权重压缩减少模型驻留和逐 token 传输。 -> **测量：** Table 2 为 7.0 GB/71.9%，Figure 6 给多 GPU throughput；Appendix D.4 以 blocking control 得到 bf16/int8/int4 重叠误差区间。 -> **边界：** 使用较小 SigLIP-only 变体、8 Bridge tasks、80 rollouts/precision。 -> **局限：** 未披露具体 int4 packing/accumulation/kernel profiler，也无最终融合模型与 edge NPU 结果。 -> **下一实验：** 固定同一 fused checkpoint、同一控制 scheduler，在 RTX/Jetson/NPU 上记录 kernel trace、bytes moved、p50/p99 latency、功耗与成功率。
-
-## 5. Related Work 对比
-
-| 类别 | 机制/优势 | 局限 | 与 OpenVLA 比较公平性 |
-|---|---|---|---|
-| RT-2-X | 55B VLA、跨机器人、闭源 API | checkpoint/微调不可用 | OpenVLA 整体对比有价值；参数、数据和架构多项变化，不能归因到 fused encoder |
-| Octo | <100M transformer policy、开放且易微调 | 容量/Internet VLM prior 较弱 | 同下游数据微调较接近，但模型规模与预训练不同 |
-| RT-1/动作 token VLA | 直接离散动作 token，成熟 recipe | 通常单/少机器人、规模和开放性有限 | OpenVLA 沿用动作 token 化，不是原创离散化 |
-| Diffusion Policy | 连续、多峰、action chunking，窄任务强 | 从头训练、语言/多任务 prior 较弱 | 论文提供 full 与 matched 版本改善公平性；完整 DP 仍有 history/proprio/chunking 优势 |
-| IDEFICS/LLaVA/Prismatic | 通用 VLM 基座 | 不是机器人专用 | Section 3.4 小规模筛选支持 Prismatic，但缺完整 matched architecture ablation |
-
-## 6. OpenReview 公开评审交叉核验
-
-未建立可核验的公开 OpenReview 记录。task packet 的 `openreview_url` 为 `unknown`；arXiv 页面、LaTeX 源码和官方代码均未提供 forum；2026-07-14 对 OpenReview v2 API 的精确标题请求返回 HTTP 403。因此本报告不引用、转述或推测 reviewer/decision/rebuttal，相关检查标为 `skipped-with-reason`，不影响论文原文与代码证据，但无法利用评审发现额外争议。
-
-## Infra 与部署
-
-### 7.1 算力与串行路径
-
-- **测量：** 预训练 21,500 A100-hours；最终模型 RTX 4090 约 6 actions/s；无 compilation/speculative decoding。
-- **代码确认：** batch-1 multimodal prefill 一次；随后 $N$ 次 cached Llama decode。典型 7D 控制产生约 $7f=42$ action tokens/s，但每个动作还包含 vision prefill。
-- **推断：** 视觉 encoder/projector 主要在 prefill；逐 token Llama attention/MLP 和输出 projection 是串行关键路径。batch=1、输出极短，不能依赖 batching 摊薄权重读取。
-- **未测：** 没有 Nsight/torch profiler、kernel time breakdown 或 FLOP utilization。不能确定 FlashAttention、MLP GEMV、LM head 还是 quant/dequant kernel 占比；“int8 量化操作开销”是作者系统解释，非 kernel 级证据。
-
-### 7.2 显存与存储
-
-$$
-M_w=\frac{Pb}{8},\qquad
-P_{eq,bf16}=\frac{15{,}082{,}474{,}368}{2}=7{,}541{,}237{,}184.
-$$
-
-- **checkpoint 测量：** safetensors 总计 15,082,474,368 bytes = 14.05 GiB；配置为 bf16。若所有权重均为 2 bytes，则推导为 7.541B parameter-equivalents，与 README “all 7.5B parameters”一致；未下载 shards 逐 tensor 验证 dtype，故保留假设。
-- **理想 weight-only 推导：** int8 约 7.03 GiB，int4 约 3.51 GiB。Table 2 活动 VRAM 是 10.2/7.0 GB，差额来自视觉权重、量化 scales/packing、activation、KV cache、CUDA workspace 等。
-- **当前代码注释：** int8 passive/active 约 9/10 GB，int4 约 6/7 GB；与 Table 2 同数量级但不是同一规范测量。
-- **训练：** BF16 compute + FP32 reduce、FSDP sharding、activation checkpointing。optimizer state/gradient/activation 的分项字节未报告，无法从 Table 1 反推出每卡构成。
-
-### 7.3 Data Types / 数值格式
-
-| 对象 | 格式 | 阶段 | 硬件/算子依赖 | 影响 | 证据 |
-|---|---|---|---|---|---|
-| 最终 weights/compute | bf16 | train/infer | A100/RTX 4090；BF16 support | checkpoint 约 15 GB，默认稳定 | paper 3.5；HF config；FSDP code |
-| gradient reduction | fp32 | pretraining | NCCL/FSDP | 更稳但通信字节更高 | `conf/vla.py:54-55`；`fsdp.py:139-146` |
-| int8 inference | bitsandbytes 8-bit（具体 packing 未披露） | infer | GPU quant/dequant kernels | 降 VRAM但该实现吞吐下降 | Table 2/Figure 6；verify script |
-| int4 inference | bitsandbytes `load_in_4bit=True`，quant type 未显式固定 | infer | GPU 4-bit kernels | 7.0 GB且性能保持 | Table 2；verify script |
-| QLoRA base | NF4, bf16 compute | fine-tune | bitsandbytes + PEFT | 更低 base memory；无 paper measured VRAM | `finetune.py:145-180` |
-| action/token IDs | integer token IDs；actions float arrays | infer boundary | CPU NumPy + GPU generation | CPU 后处理很小但同步 | `modeling_prismatic.py:518-534` |
-
-### 7.4 带宽、互联与利用率
-
-在“每个 decode token 近似流过一次全模型权重、无跨 token 权重 cache”的粗模型下：
-
-$$
-B_{eff}\approx N M_w f.
-$$
-
-对 7D、15.08 GB bf16 checkpoint、6 Hz，得到约 $7\times15.08\times6=633$ GB/s 的权重读取需求（推导，不是 profiler）。它解释 Figure 6 中 int4 可因少搬数据而快于 bf16，也解释 batch-1 decode 易 memory-bound；但 vision prefill、LM head、cache reuse、量化 metadata 与 kernel fusion 均未计入。
-
-论文未给实际 bytes moved 或各 GPU peak bandwidth，因此
-
-$$
-U=B_{eff}/B_{peak}
-$$
-
-无法可靠求值，带宽 utilization 标为 blocked metadata，而不是填一个硬件规格推测。训练侧 64 A100 的 FSDP 产生 all-gather/reduce-scatter；global batch 2048、per-device 32 与 FP32 reduce 可由 config 核验，但论文未给拓扑、NVLink/InfiniBand、通信量或 overlap telemetry。
-
-### 7.5 CPU/GPU/NPU 与 edge
-
-| 阶段 | CPU/网络 | GPU | 同步与移动 | 判断 |
-|---|---|---|---|---|
-| preprocess | JSON/NumPy、PIL RGB、tokenizer | image tensor 接收 | REST 上传整张图；无压缩/异步协议说明 | 网络 latency/带宽未测 |
-| prefill | 调度与输入准备 | DINOv2+SigLIP、projector、Llama prefill | CPU->GPU tensor copy | 无 pinned-memory/DMA overlap 证据 |
-| decode | Python `generate` 调度 | N 次 cached Llama decode | 每 token 同步依赖前 token | 关键串行路径 |
-| postprocess | token IDs 回 CPU NumPy、q01/q99 unnormalize、JSON response | 无专用 kernel | GPU->CPU 小数组 | 量小但 server 代码是同步请求 |
-| edge/NPU | 无实现/benchmark | 远端 CUDA GPU | robot-server 往返 | remote serving 不等于 edge inference |
-
-结论：OpenVLA 证明了“机器人可以是薄客户端、模型在远端消费/服务器 GPU 运行”，没有证明 Jetson、手机 SoC、NPU 或 CPU-only 上的实时部署。代码有 CPU fallback device 选择，但 BF16/custom model 在 CPU 的速度与算子兼容性未测试。
-
-### 7.6 Serving 与自定义算子
-
-- FlashAttention 2 是默认 deploy attention implementation；没有 TensorRT-LLM、CUDA graph、continuous batching 或专用 action decoder kernel。
-- `generate()` 只支持 batch size 1；server 无队列、microbatch、backpressure、timeout、authentication 或 p99 latency telemetry。
-- 量化路径使用 bitsandbytes 通用 kernels。Figure 6 caption 仅把 TensorRT-LLM 作为未来可能，不是本文实现。
-- 控制质量与 scheduler 紧耦合：int8 在 5 Hz non-blocking loop 失败、blocking loop 恢复，说明机器人系统评价不能只看离线 token accuracy。
-
-## 代码状态与实现核验
-
-### 8.1 代码
-
-| 论文机制 | 本地路径 | 固定 GitHub 链接 | 对照结论 |
-|---|---|---|---|
-| 动作离散化 | `prismatic/vla/action_tokenizer.py` | [commit c8f03 lines 13-68](https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/prismatic/vla/action_tokenizer.py#L13-L68) | 256 boundary/255 center 细节补充论文 |
-| 视觉 prefill + KV cached decode | `prismatic/extern/hf/modeling_prismatic.py` | [commit c8f03 lines 319-415](https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/prismatic/extern/hf/modeling_prismatic.py#L319-L415) | 与论文架构一致 |
-| action generation/反归一化 | 同上 | [commit c8f03 lines 492-562](https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/prismatic/extern/hf/modeling_prismatic.py#L492-L562) | `N` serial tokens，dataset key 明确 |
-| LoRA/QLoRA | `vla-scripts/finetune.py` | [commit c8f03 lines 145-180](https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/vla-scripts/finetune.py#L145-L180) | all-linear；QLoRA=NF4/bf16 compute |
-| REST deployment | `vla-scripts/deploy.py` | [commit c8f03 lines 67-143](https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/vla-scripts/deploy.py#L67-L143) | BF16/FlashAttention；无量化 CLI |
-| int8/int4 examples | `vla-scripts/extern/verify_openvla.py` | [commit c8f03 lines 43-68](https://github.com/openvla/openvla/blob/c8f03f48af692657d3060c19588038c7220e9af9/vla-scripts/extern/verify_openvla.py#L43-L68) | 注释示例与 passive/active memory |
-
-当前 HEAD 晚于论文；论文日期之后，相关文件中 `modeling_prismatic.py`、`openvla.py`、`finetune.py` 有修改。因此实现结论明确绑定 `c8f03...`，而 `7a359...` 仅用于标出论文时点，不能把二者混作同一快照。未执行 15 GB 模型推理或训练测试；代码结论属于静态检查。
-
-### 8.2 checkpoint/config
-
-| Checkpoint | 状态/revision | 已核验结构 | 容量/格式 | 未核验项 |
-|---|---|---|---|---|
-| `openvla/openvla-7b` | open, ungated; `47a0ec7fc4ec123775a391911046cf33cf9ed83f` | `OpenVLAForActionPrediction`；DINOv2+SigLIP；32 Llama layers；vocab 32064；25 norm-stat keys | 3 safetensors shards；15,082,474,368 bytes；config bf16 | 未下载 shards；text config 未序列化 hidden/head/intermediate size，不能仅凭 JSON 宣称这些字段的 exact value |
-| `openvla/openvla-7b-prismatic` | open, ungated; `5e44aaf23f992e150f26b257500144225ab6643b` | checkpoint/config/statistics/metrics 文件名可见 | `step-295000-epoch-40-loss=0.2200.pt`；README 称约 30 GB | API 快照未给 file size；权重未下载/反序列化 |
-
-容量、算法和 runtime 必须分开：融合视觉 encoder/32-layer Llama 是 capacity；action token mapping/loss/quantization 是 algorithm/numeric format；FlashAttention、KV cache、REST 是 runtime。HF revision 2026-02-17 晚于论文，代表当前公开模型仓状态，不证明论文发布当天字节完全相同。
-
-## 局限与证据边界
+## 10. 优点、局限与安全边界
 
 ### 优点
 
-- 论文、源码、代码与权重元数据形成可追溯闭环；deployment 结论可落到具体函数。
-- 量化实验没有停在离线 accuracy，Appendix D.4 用 blocking control 隔离 latency 对闭环动态的影响。
-- Table 1 同时报告 success、trainable params 和 VRAM，使适配成本可比较。
+- 开放程度高：paper/source/code/config/checkpoint 均可核验，降低了 VLA 黑盒程度。
+- 从 data、architecture、adaptation、quantization 到 deployment 形成较完整链路。
+- 真实机器人任务覆盖 visual/motion/physical/semantic/language grounding，并有 A/B initial-state control。
+- Appendix 对 OpenX、dual encoder、vision fine-tuning、quantization timing 给出有用消融。
+- 明确暴露失败：semantic OOD 弱于 RT-2-X、窄 dexterous tasks 弱于 Diffusion Policy、可靠率通常 <90%。
 
 ### 局限
 
-- Table 1/2 使用 SigLIP-only 小变体，不能直接代表最终融合 checkpoint；这是最关键的系统外推限制。
-- 无 kernel profiler、bytes moved、功耗、p50/p99 latency 或网络 telemetry；主导 kernel 与 bandwidth utilization 只能推断。
-- 无真正 edge/NPU/Jetson 部署；remote GPU server 只是把算力移到网络另一端。
-- 训练显存没有按 bf16/int8/int4 精度受控报告；QLoRA memory 只在后续代码/README 中描述。
-- 动作 decoder 是逐维串行且不 action chunk，限制高频控制；batch-1 serving 也阻碍吞吐共享。
-- 256 bins 与 255 decoded centers 的代码细节未在论文分析或消融。
-- DINOv2/SigLIP/Llama 2 预训练数据不可审计，数据泄漏与 license provenance 边界存在。
+- headline system comparison 混合 data volume/cleaning、architecture、training recipe 与 proprietary baseline querying。
+- 主要 robot trials 数量有限，部分任务允许 0.5 partial success；标准误差不等于跨场景 robustness。
+- 单图、无 proprioception/history、逐步 action prediction，限制高频与双臂控制。
+- PEFT/quantization 使用较小 SigLIP-only variant，不能完全代表 flagship fused checkpoint。
+- action representation、bin count、token overwrite、27 epochs、learning rate 等缺少系统 matched ablation。
+- Internet knowledge 在 robot-only fine-tuning 后衰减；semantic generalization 已显示该边界。
+- OpenReview review/rebuttal 不可访问，无法重建 peer-review concern resolution。
+- 安全方面没有正式 constraint、collision avoidance、uncertainty gating、OOD detector 或 verified fallback；开源不等于安全可部署。
 
 ### 可改进
 
-- 在同一 fused checkpoint 上复现实测 bf16/int8/int4/NF4，固定 scheduler、controller 和 action frequency。
-- 增加 action chunking/并行 action head，对比自回归逐维 token 的 latency、成功率与校准误差。
-- 提供 Nsight trace、HBM bytes、quant/dequant kernel 时间、server p99、功耗/动作和网络抖动敏感性。
-- 针对 Jetson/NPU 做 operator coverage、fallback、DMA 与端到端机器人实测，而非只给 remote server。
+最小高价值实验是：在同一 backbone/trajectory count/cleaning/compute 下正交消融 OpenX diversity、DINOv2 fusion 与 co-training；对 action head 比较 256-bin autoregressive、continuous regression、diffusion/action chunking；报告 end-to-end latency distribution 与 control success 的 frequency-response curve；在 frozen benchmark 上增加多 seed、更多 robots 与 hard safety events。
 
-## 研究启发
+## 11. 研究启发
 
-- VLA 系统评价应把 model quality 与 control-loop timing 分开；Appendix D.4 是比单纯离线 token accuracy 更可靠的模板。
-- action tokenizer 的量化误差、顺序依赖和词表复用应成为独立研究对象，而不只是数据预处理。
-- 低位宽是否加速取决于 bytes saved 与 dequant overhead 的竞争；int8 比 int4 更慢说明“位宽更高即更快”不成立。
-- 面向边缘端，真正关键的不只是权重能否装下，还包括视觉 prefill、串行 N-token decode、网络/传感器调度和 operator fallback。
+- VLA 系统评测必须把 model numeric quality、inference frequency、controller semantics 与 network runtime 分层；Appendix D.4 是很强的范例。
+- data mixture 的因果贡献可能远大于 encoder tweak；Table 9 中 30.7 pp vs 5.0 pp 提醒研究优先级。
+- parameter-efficient “trainable params” 与实际 VRAM/latency 不是同一指标；需同时报告 frozen weights、activations 与 serving footprint。
+- future OpenVLA-like models可结合 action chunking、temporal smoothing 与 heterogeneous sensory tokens，以补足其窄任务 dexterity。
+- 一个可复现实验闭环应固定：dataset revisions/normalization stats、controller frequency、robot initial states、action convention、server latency 和 success rubric。
 
-## 待验证问题
+## 12. 解读问题/待验证清单
 
-1. 在最终 DINOv2+SigLIP checkpoint 上，Table 1/2 的 memory/success 是否仍成立？
-2. 256 token labels 对应 255 centers 的终端折叠是否影响动作饱和区？
-3. 7 个动作维度的生成顺序是否引入不对称误差；并行 head 或 chunking 能否提高频率？
-4. kernel trace 中 vision prefill、Llama MLP/attention、LM head、quant/dequant 各占多少？
-5. REST 往返的 p50/p99、丢包、图像压缩与控制稳定性如何？
-6. QLoRA NF4 的实际 train VRAM 与 Table 1 LoRA BF16 路径如何比较？
-7. 哪些算子在 Jetson/NPU 上缺失并回退 CPU，最终功耗/动作是多少？
-8. 论文时点 commit `7a359...` 与当前 HF revision 的权重/配置是否有行为差异？
-9. 训练数据中不同机器人 q01/q99 和 action units 是否导致跨 embodiment token 语义冲突？
+1. 970k trajectories 中哪些 mixture/cleaning 规则贡献最大，还是单纯 data volume？
+2. DINOv2 fusion 的 5 pp gain 是否在多 seed、其他 embodiments 与同 full-data setting 复现？
+3. 256 uniform bins 是否优于 nonuniform bins、continuous heads 或 FAST/action chunk tokenizer？
+4. action-token accuracy >95% 与 real-world success 的 calibration 曲线是什么？
+5. robot-only fine-tuning 如何量化遗忘 Internet semantic knowledge？
+6. int4 在不同 GPU、batch、controller frequency 上能否稳定保持 success？
+7. remote serving 的 p99 latency/jitter 与 safe-stop 行为是什么？
+8. full fused OpenVLA 上 LoRA、QLoRA 与 full FT 的 matched comparison 是否仍成立？
+9. 真实机器人评测若增加 seed/operator/environment/site，方差是否显著上升？
+10. OpenReview reviewers 是否已提出 baseline fairness、partial credit 或 smaller-variant caveat；rebuttal 如何回应？当前 blocked。
 
-## 一句话总结
+## 13. 一句话总结
 
-OpenVLA 的核心价值是把 7B VLM 到机器人动作的训练、权重、量化和远程部署路径开放并用真实 rollouts 验证；最大不确定性是系统显存/量化表来自较小变体，且没有 kernel profiling 或真正 edge/NPU 实测，不能把“7 GB GPU inference”扩写成“端侧已解决”。
+OpenVLA 的核心价值不是单一新网络模块，而是把强 VLM、整理后的跨机器人数据、动作 tokenization、真实机器人评测与可用的微调/量化代码连成首个高可审计的 7B open VLA；其最强因果证据支持 OpenX diversity、vision adaptation、LoRA 与 int4，但 headline superiority 仍受系统级混杂、低频单步控制和有限真实机器人评测约束。
