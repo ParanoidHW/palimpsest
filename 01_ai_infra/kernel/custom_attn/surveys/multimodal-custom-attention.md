@@ -199,7 +199,7 @@ $$
 
 **实现细节（代码已核验）**：`lvsa/sparse_attention.py:275-304` 的 `ring_block_frame_csr()` 返回 `int32 indptr` 与 `int32 indices`，并明确写明 FlashInfer `BlockSparseAttentionWrapper` 跳过未列的 frame blocks，**不构造** dense `[Sq,Sk]` mask。`_build_flashinfer_csr()` 还构造 compact frame layout 和 copy instructions。关键 host-device 事实在 `ensure_device():601-607`：`fi_indptr/fi_indices` 故意保留 CPU，供 host mask builder/FlashInfer planning pass 使用，planner 再创建运行期 device copy。
 
-这回答了“CPU 生成能否直接给 kernel”：**CPU 可生成 CSR；GPU kernel 不直接从 host RAM 读 CSR**。若 metadata 随 denoising step 变化，应缓存或增量更新，否则 planner 成本会侵蚀稀疏收益。详细路径、复杂度和质量边界见 [LVSA 精读](../papers/lvsa.md)。
+这回答了“CPU 生成能否直接给 kernel”：**CPU 可生成 CSR；GPU kernel 不直接从 host RAM 读 CSR**。若 metadata 随 denoising step 变化，应缓存或增量更新，否则 planner 成本会侵蚀稀疏收益。详细路径、复杂度和质量边界见 [LVSA 研究方法](../papers/lvsa.md#4-研究方法)、[Infra 需求分析](../papers/lvsa.md#8-infra-需求分析)和[开源代码与 checkpoint 对照](../papers/lvsa.md#9-开源代码与-checkpoint-对照)。
 
 ---
 
@@ -236,7 +236,7 @@ $$
 - **TMR（在线）**：锚点 step $t_a$ 的 mask $M^{(h)}_{t_a}$ 不必每步刷新。通过当前和锚点 Q/K 的轻量 drift proxy 判断是否复用。
 - **EBC（离线）**：在固定全局 sparsity budget 下，根据不同 head 的 error-vs-sparsity 曲线配置不同 threshold；不改底层 sparse kernel。
 
-论文的关键系统洞见是：只缓存/复用 **稀疏 descriptor**，而不是缓存完整 $N\times N$ mask。Table 4 的端到端提升说明 TMR 与 EBC 的目标不同，但由于本次未找到官方实现，不能断言 descriptor 是 CSR、BlockMask 还是某个 Triton 数据结构，也不能声称其在 CPU 或 GPU 上生成。详细数据与证据强度见 [HASTE 精读](../papers/haste.md)。
+论文的关键系统洞见是：只缓存/复用 **稀疏 descriptor**，而不是缓存完整 $N\times N$ mask。Table 4 的组件消融说明 TMR 与 EBC 的目标不同，但由于本次未找到官方实现，不能断言 descriptor 是 CSR、BlockMask 还是某个 Triton 数据结构，也不能声称其在 CPU 或 GPU 上生成。详细数据与证据强度见 [HASTE 关键结论](../papers/haste.md#5-关键结论)和[开源代码、源码与 checkpoint 对照](../papers/haste.md#9-开源代码源码与-checkpoint-对照)。
 
 ---
 
@@ -270,7 +270,7 @@ $$
 \quad O_h=\operatorname{Scatter}(\hat O_h;S_h).
 $$
 
-这解释了它为什么能复用 FlashAttention：kernel 从不需要知道稀疏 token 的原始位置，只面对连续 compact tensor。真正的代价移到 gather/contiguous conversion/scatter 和 selector；这在短序列、低 sparsity 或 head 选择高度发散时可能占主导。未获得官方代码，具体 index placement 和实现细节标为 PDF-only。详见 [Token Sparse Attention 精读](../papers/token-sparse-attention.md)。
+这解释了它为什么能复用 FlashAttention：kernel 从不需要知道稀疏 token 的原始位置，只面对连续 compact tensor。真正的代价移到 gather/contiguous conversion/scatter 和 selector；这在短序列、低 sparsity 或 head 选择高度发散时可能占主导。代码固定到官方 commit，具体实现边界见 [Token Sparse Attention 开源代码与 checkpoint 对照](../papers/token-sparse-attention.md#9-开源代码与-checkpoint-对照)，质量与系统证据见[关键结论与技术主张证据矩阵](../papers/token-sparse-attention.md#5-关键结论与技术主张证据矩阵)。
 
 ---
 
@@ -298,7 +298,7 @@ MInference 的分层策略是：离线给每个 head 选 pattern family；在线
 
 Matrix Attention 将一帧视为矩阵，沿 frame-level 计算 Q/K/V 和 attention，而非对所有 patch token 建立时间 token-pair。它表明最优系统选择有时是**降低 token topology 的维度**。
 
-但官方 commit `359bd12` 中的公开 `models/latte_t2v.py:761-779` 对二维 mask 会转为 `-10000` bias 并 broadcast 到 score path；该实现不证明存在 custom sparse kernel。报告将“论文算法的复杂度收益”和“公开代码的 mask implementation”严格分开。详见 [FrameDiT 精读](../papers/framedit.md)。
+但官方 commit `359bd12` 中的公开 `models/latte_t2v.py:761-779` 对二维 mask 会转为 `-10000` bias 并 broadcast 到 score path；该实现不证明存在 custom sparse kernel。报告将“论文算法的复杂度收益”和“公开代码的 mask implementation”严格分开。详见 [FrameDiT 研究方法](../papers/framedit.md#4-研究方法)和[开源代码对照](../papers/framedit.md#9-开源代码对照)。
 
 ### 2.11 分布式异构 mask runtime：MagiAttention 的 AttnSlice 与 CP 执行计划
 
@@ -456,14 +456,14 @@ attention visibility semantics
 | **bubble / barrier tail** | bubble 是 PE 因无就绪 work/data/scale 而空闲；barrier tail 是同步点等待最慢 PE 的尾部 | cross-paper-synthesis | idle slot, synchronization tail | 本文用 p95/p50、load CV 和最大 PE 时间联合刻画 | §4.7 时间模型 | 平均利用率高仍可能有明显 barrier tail |
 | **mask predicate** | 用 `visible(q,k)`、block id、offset 或 stream id 在线判定可见性 | paper-stated | mask function, rule mask | Causal-rCM 的 `BlockPattern`/`AttnMaskSpec` 生成 Flex `BlockMask` | [Causal-rCM evidence](../evidence/causal-rcm-kernel-adoption.md) | predicate 能表达规则，不代表后端能跳过相同数量的物理 tile |
 | **BlockMask** | block 粒度的可见性与可跳过 block map；由 predicate 编译/构造，但运行时不需要 materialize token-pair dense mask | paper-stated | block mask | Causal-rCM 使用 PyTorch FlexAttention `create_block_mask()` 缓存结果 | [Causal-rCM evidence](../evidence/causal-rcm-kernel-adoption.md) | 不等于任意二维 bool mask；block 内 padding 仍可能产生额外 work |
-| **CSR sparse graph** | 用 `indptr + indices` 列出每个 query row 可访问的 key block | paper-stated | compressed sparse row, block CSR | LVSA 的 CPU planner 生成 frame-block CSR，FlashInfer plan 消费它 | [LVSA 精读](../papers/lvsa.md)、§2.4 | CSR 是邻接表示，不是 dense bool mask，也不是执行 schedule 本身 |
+| **CSR sparse graph** | 用 `indptr + indices` 列出每个 query row 可访问的 key block | paper-stated | compressed sparse row, block CSR | LVSA 的 CPU planner 生成 frame-block CSR，FlashInfer plan 消费它 | [LVSA 研究方法](../papers/lvsa.md#4-研究方法)、§2.4 | CSR 是邻接表示，不是 dense bool mask，也不是执行 schedule 本身 |
 | **selected segments** | selector 输出 token/block index、segment length 和 compact batch 边界 | paper-stated | selected indices, packed segments | VMoBA/TSA 将选中 QKV gather/pack 后交给 varlen attention | [VMoBA 研究方法](../papers/vmoba.md#4-研究方法)、§2.5、§2.8 | selected segment 不等于 block-sparse kernel 内部跳 tile |
 | **varlen / `cu_seqlens`** | 将不同长度样本或选中 segment 拼成连续 QKV，并用累计长度数组标记边界 | paper-stated | variable-length attention, packed attention | Cosmos 3 用于拆分双流；VMoBA 用于 selected Q/KV segment | §2.2、[VMoBA 研究方法](../papers/vmoba.md#4-研究方法) | 它解决 batch/segment 边界，不自动表达任意 token-pair 稀疏图 |
 | **selector / router** | 根据 attention map、query-key proxy、top-k 或 threshold 选择 token/block/head path 的控制面 | paper-stated | gate, block router, sparse selector | FlexAttention VLM 选高分辨率区域；VMoBA 选 block；TSA 选 token | §2.1、§2.5、§2.8 | selector 的 score/top-k 本身可能是 dense 或成为主要开销 |
 | **online softmax / LSE merge** | 分块遍历 score 时在线维护 row max、指数和；多 segment 时用 log-sum-exp 状态合并 | cross-paper-synthesis | streaming softmax, log-sum-exp merge | FlashAttention 避免 materialize score；VMoBA 合并 selected segments | §2.5、§4.6 | 不等于近似 softmax；跨 PE 拆 row 时还要传递/归并状态 |
 | **JVP** | Jacobian-vector product，用方向向量与 Jacobian 的乘积传播导数信息 | paper-stated | Jacobian-vector product | Causal-rCM 的定制 Triton 路径让 primal 与 JVP 使用同一 mask contract | [Causal-rCM evidence](../evidence/causal-rcm-kernel-adoption.md) | 不等于普通 backward/VJP；后端支持范围可能不同 |
-| **planner / plan** | 将 descriptor、shape、layout 和资源约束转成可执行 schedule/buffer 的控制面过程及结果 | paper-stated / cross-paper-synthesis | planning pass, attention plan | LVSA/FlashInfer 有 host planning；本文扩展为 DSA `AttentionPlan` | [LVSA 精读](../papers/lvsa.md)、§4.1、§4.6 | CPU 生成 plan 不代表 device kernel 直接读取 host memory |
-| **TMR / EBC** | TMR 跨 denoising step 复用 mask descriptor；EBC 按 head 的误差-稀疏曲线分配阈值预算 | paper-stated | Temporal Mask Reuse, Error-guided Budgeted Calibration | HASTE 用二者分别降低在线 refresh 成本和校准 head budget | [HASTE 精读](../papers/haste.md)、§2.6 | TMR 是 descriptor reuse，不是缓存完整 attention 输出；EBC 不等于底层 kernel |
+| **planner / plan** | 将 descriptor、shape、layout 和资源约束转成可执行 schedule/buffer 的控制面过程及结果 | paper-stated / cross-paper-synthesis | planning pass, attention plan | LVSA/FlashInfer 有 host planning；本文扩展为 DSA `AttentionPlan` | [LVSA Infra 需求分析](../papers/lvsa.md#8-infra-需求分析)、§4.1、§4.6 | CPU 生成 plan 不代表 device kernel 直接读取 host memory |
+| **TMR / EBC** | TMR 跨 denoising step 复用 mask descriptor；EBC 按 head 的误差-稀疏曲线分配阈值预算 | paper-stated | Temporal Mask Reuse, Error-guided Budgeted Calibration | HASTE 用二者分别降低在线 refresh 成本和校准 head budget | [HASTE 研究方法](../papers/haste.md#4-研究方法)、§2.6 | TMR 是 descriptor reuse，不是缓存完整 attention 输出；EBC 不等于底层 kernel |
 | **TTFT / TPOT** | 首 token 时间与后续每 token 时间，分别刻画 prefill/启动和 decode 稳态延迟 | cross-paper-synthesis | time to first token, time per output token | 本文把它们列为 serving 指标；视频 diffusion 还需另报 per-step/E2E | §4.3 | 不适合直接替代视频生成 wall time 或训练吞吐 |
 | **descriptor** | 描述 sparse work 的紧凑 metadata，避免 $L\times L$ mask | cross-paper-synthesis | sparse metadata, plan metadata | 可包含 CSR、range、index、length、page、scale id 和依赖信息 | §3、§4.1、§4.6 | descriptor 越紧凑不必然越易执行；还取决于 decode 和寻址成本 |
 | **mask IR** | 编译器/运行时消费的中间表示，保留 mask 语义、动态性及 lowering 所需约束 | cross-paper-synthesis | attention mask intermediate representation | 本文建议将 `MaskSpec`、`QuantLayout` 和物理 `AttentionPlan` 分层 | §4.6 API | 不等于单一 CSR ABI；IR 也不能丢失 quant axis/scale binding |
