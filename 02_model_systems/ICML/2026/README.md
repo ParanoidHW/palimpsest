@@ -15,10 +15,10 @@
 |---|---|---|
 | [SplAttN](papers/splattn.md) | ICML 2026 Spotlight；官方 poster `60900` | complete：完整 PDF/source、代码与 2 张论文图已复核 |
 | [XDLM](papers/xdlm.md) | ICML 2026 未独立核验 | complete |
-| [Dual-Latent Memory Routing](papers/dual-latent-memory-routing.md) | ICML 2026 Spotlight；poster `63955`、OpenReview `SFWWUr9V7c` | blocked：PDF/API challenge，声称仓库 404 |
+| [Dual-Latent Memory Routing](papers/dual-latent-memory-routing.md) | ICML 2026 Spotlight；poster `63955`、OpenReview `SFWWUr9V7c` | limited：原投稿索引方法、公式与 Tables 1–4 已恢复；accepted final/视觉/代码/评审仍受限 |
 | [LatentLM](papers/latentlm.md) | ICML 2026 未独立核验 | complete |
 | [Flex-Forcing](papers/flex-forcing.md) | ICML 2026 Spotlight | complete with limitations：完整 PDF/source 与 2 张论文图已复核；代码/公开评审未取得 |
-| [OmniFit layer compression](papers/omnifit-layer-compression.md) | ICML 2026 Spotlight；OpenReview `8RY20mLzup`、poster `65962` | blocked：PDF/source/API/code 不可得 |
+| [OmniFit layer compression](papers/omnifit-layer-compression.md) | ICML 2026 Spotlight；OpenReview `8RY20mLzup`、poster `65962` | limited：官方摘要已恢复；final PDF/source/视觉/代码/评审仍受限 |
 | [LiME](papers/lime.md) | ICML 2026 未独立核验 | complete |
 | [SelfJudge](papers/selfjudge.md) | arXiv `journal_ref: ICML 2026` | complete |
 | [OnlineSpec](papers/onlinespec.md) | ICLR 2026 Lifelong Agent Workshop | complete，venue mismatch |

@@ -92,7 +92,7 @@
 
 ## 排除记录
 
-- Dual-Latent、OmniFit：当前没有可满足单一编号对象 + 完整 caption + 原分辨率 QA 的正式图表。
+- Dual-Latent、OmniFit：`visual-evidence-skip`。前者仅恢复 original-submission 的索引文本，后者仅恢复官方摘要；两者均无可验证的本地 final PDF/page render，故没有可满足单一编号对象 + 完整 caption + 原分辨率 QA 的正式图表，也未使用生成图替代论文证据。
 - SplAttN Figure 8 初裁：混入页眉，已重裁后提升。
 - Flex-Forcing Table 2 初裁：caption 最后一行截断，已重裁后提升。
 - SelfJudge 初始 Figure 1/2/4：含页眉或后续正文，已重裁后提升。

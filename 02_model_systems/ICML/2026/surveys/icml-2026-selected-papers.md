@@ -21,7 +21,7 @@
 
 [LiME](../papers/lime.md#3-研究方法) 通过共享 PEFT 模块、轻量 expert modulator 与表示复用路由，避免每个 expert 复制 adapter；它的直接证据覆盖参数量、训练吞吐和主结果，但“更多专家保留更多任务信息”的理论命题不能替代真实路由负载与尾延迟测量。
 
-[Dual-Latent Memory Routing](../papers/dual-latent-memory-routing.md#3-研究方法设计动机与证据边界) 的官方摘要提出视觉/推理双 latent memory 与动态 routing，但官方 PDF/API 当前仍受站点访问限制，声称的代码仓也不存在，因此只保留摘要级设计线索。[OmniFit](../papers/omnifit-layer-compression.md#证据与状态声明) 已定位到 OpenReview `8RY20mLzup`、ICML poster `65962` / Spotlight `84897`；但正文/source/API/code 仍不可得，摘要中的 20% token、98% performance、2.31× speedup 和 2.5× VRAM saving 只能作为未复核作者声明，且不能用同名 3D body-fitting 工作替代。
+[Dual-Latent Memory Routing](../papers/dual-latent-memory-routing.md#4-技术声明证据矩阵与收益归因) 已从 original-submission 搜索索引恢复双 latent bank、injector、eligibility gate、router、三阶段训练、核心公式和 Tables 1–4。替换证据支持 dual bank、trainable injector 与 adaptive budget，但 accepted final PDF、视觉、代码和公开评审仍受限。[OmniFit](../papers/omnifit-layer-compression.md#4-技术声明证据矩阵与收益归因) 已从 ICML official poster 恢复 training-free 定位、LAHP、ARTS 和 profiling–execution decoupling；20% tokens、98% performance、2.31× speedup 和 2.5× VRAM saving 仍只是摘要聚合 claim，不能用同名 3D body-fitting 工作替代。
 
 ## 3. 解码加速：从质量放宽到在线自适应
 
@@ -51,6 +51,6 @@
 ## 6. 建议阅读顺序
 
 1. 生成统一：XDLM → LatentLM → DODO。
-2. 多模态参数效率：LiME → Dual-Latent（摘要级）。
+2. 多模态参数效率：LiME → Dual-Latent（original-submission 索引证据）→ OmniFit（官方摘要级）。
 3. 解码加速：SelfJudge → MTP → OnlineSpec → ECHO。
-4. 最后对照阅读 source/code 闭环的 SplAttN、source-complete 但 code-absent 的 Flex-Forcing，以及仍受阻的 Dual-Latent 与 OmniFit，区分实现差异、公开材料缺口和负面实验结论。
+4. 最后对照阅读 source/code 闭环的 SplAttN、source-complete 但 code-absent 的 Flex-Forcing，以及证据受限的 Dual-Latent 与 OmniFit，区分 original-submission/摘要证据、accepted-final 缺口、实现差异和负面实验结论。
