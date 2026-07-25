@@ -139,7 +139,7 @@ $$
 
 packed batch 组织为 $[R_0,G_0,R_1,G_1,\ldots]$，每个 $G_i$ 只读本样本 $[R_i,G_i]$。本地论文材料记录：相对 FlexAttention baseline，Cosmos3-Nano 端到端训练吞吐增加 22%；Hopper 使用 FlashAttention-3，GB200 使用 NATTEN/CUTLASS 路线。
 
-**工程判断**：当非典型 mask 可以 lower 为少量 causal/full rectangular segments 时，拆成 multiple varlen calls 往往优于把任意 predicate 暴露给通用 sparse kernel。它是统一模型的首选优化顺序。实现证据在本地 [Cosmos 3 精读](../../../../02_model_systems/multimodal_generation/papers/cosmos-3.md) 的 two-way attention 小节及 [逐篇分析](../papers/cosmos-3.md)。
+**工程判断**：当非典型 mask 可以 lower 为少量 causal/full rectangular segments 时，拆成 multiple varlen calls 往往优于把任意 predicate 暴露给通用 sparse kernel。它是统一模型的首选优化顺序。完整机制、数据和系统边界见 [Cosmos 3 canonical Paper](../../../../02_model_systems/multimodal_generation/papers/cosmos-3.md)；本领域采用判断见 [attention lowering evidence](../evidence/cosmos-3-attention-lowering.md)。
 
 ---
 
@@ -147,11 +147,11 @@ packed batch 组织为 $[R_0,G_0,R_1,G_1,\ldots]$，每个 $G_i$ 只读本样本
 
 **它解决什么**：teacher-forcing 能并行、稳定地训练 AR diffusion，但输入含 clean history 和 noisy target；推理时又是自生成 chunk。普通 causal mask 或一个 forward-only mask 都不足以表达其训练目标，更不能自动支持 Jacobian-vector product (JVP)。
 
-![Causal-rCM Fig.3](../assets/papers/causal-rcm/fig3_causal_training_paradigms_caption.png)
+![Causal-rCM Fig.3](../../../../02_model_systems/multimodal_generation/assets/papers/causal-rcm/fig3_causal_training_paradigms_caption.png)
 
 *原论文 Fig.3：TF 使用干净历史，DF 使用不同噪声级别的历史，SF 在自生成历史上 rollout 并使用 KV cache。图注完整保留。*
 
-![Causal-rCM Fig.4](../assets/papers/causal-rcm/fig4_recipe_comparison_caption.png)
+![Causal-rCM Fig.4](../../../../02_model_systems/multimodal_generation/assets/papers/causal-rcm/fig4_recipe_comparison_caption.png)
 
 *原论文 Fig.4：Causal-rCM 将 TF consistency initialization 与 SF-DMD 组合；这解释训练 recipe，不单独证明 kernel 的收益。*
 
@@ -169,7 +169,7 @@ $$
 
 **实现细节（代码已核验）**：官方 commit `ed3cb14` 的 `rcm/utils/blockmask.py` 将它表示为 `BlockPattern` 和 `AttnMaskSpec`；`_make_mask_fn()` 只计算 query/key block id，`create_block_mask()` 缓存编译后的 Flex `BlockMask`。`teacher_forcing` 和 `block_causal` 对齐到默认 128-token block；`flash_attention_jvp_triton.py` 用同一 mask 参与 primal 与 JVP。即 mask 是 operator contract，而不是 score 后处理。Magi range 路径的 forward/JVP 证据存在，但源码注释表明其 backward 支持有边界，不能宣称所有 backend 等价。
 
-**结论与风险**：论文报告的 10x convergence 是 continuous-time CM、training recipe、JVP 和系统配置的端到端结果，不能仅归因给 kernel。详见 [Causal-rCM 精读](../papers/causal-rcm.md)。
+**结论与风险**：论文报告的 10x convergence 是 continuous-time CM、training recipe、JVP 和系统配置的端到端结果，不能仅归因给 kernel。完整证据边界见 [Causal-rCM canonical Paper](../../../../02_model_systems/multimodal_generation/papers/causal-rcm.md)；本领域的 kernel 解读见 [adoption evidence](../evidence/causal-rcm-kernel-adoption.md)。
 
 ---
 
@@ -244,13 +244,13 @@ $$
 
 **它解决什么**：视频 DiT 的 3D full attention 随帧数/分辨率二次增加。直接移植 LLM mask 会破坏 temporal dependency；即使发现了 temporal slash pattern，也可能因非连续 memory layout 跑得很慢。
 
-![Sparse VideoGen Fig.4](../assets/papers/sparse-videogen/fig4_svg_workflow_caption.png)
+![Sparse VideoGen Fig.4](../../../../02_model_systems/multimodal_generation/assets/papers/sparse-videogen/fig4_svg_workflow_caption.png)
 
 *原论文 Fig.4：SVG 对每个 attention head 用 sampled rows 在线比较 spatial/temporal sparse attention 与 full attention 的 MSE，并选择相应 kernel。*
 
 **机制**：spatial head 的可见性接近帧内/邻帧 block；temporal head 对应相同 spatial position 的跨帧 slash。它用 online profiling 将 head dispatch 给 spatial 或 temporal kernel，并通过 layout transformation 把原本不连续的 temporal gather 改造成硬件友好访问。
 
-**实现判断**：论文说明原型使用 Triton 和 FlashInfer，但本次未取得可审计官方 kernel 源码，因此不能把它的具体 mask metadata 格式写成事实。它最重要的工程启发是：`发现 sparse pattern` 和 `把 pattern 排列成 coalesced tiles` 是两件事，前者没有后者不会得到理论 speedup。详见 [Sparse VideoGen 精读](../papers/sparse-videogen.md)。
+**实现判断**：论文说明原型使用 Triton 和 FlashInfer，但本次未取得可审计官方 kernel 源码，因此不能把它的具体 mask metadata 格式写成事实。它最重要的工程启发是：`发现 sparse pattern` 和 `把 pattern 排列成 coalesced tiles` 是两件事，前者没有后者不会得到理论 speedup。完整 Paper 见 [Sparse VideoGen canonical Paper](../../../../02_model_systems/multimodal_generation/papers/sparse-videogen.md)，采用边界见 [kernel evidence](../evidence/sparse-videogen-kernel-adoption.md)。
 
 ---
 
@@ -454,14 +454,14 @@ attention visibility semantics
 | **SRAM / bank** | 片上静态存储及其可并行访问分区 | cross-paper-synthesis | scratchpad, local memory | 本文关注 K/V/scale 驻留、bank conflict、spill 和 reuse | §4.7、§4.9 | 不等于 GPU HBM；bank hit 也不必然等于 cache hit |
 | **NoC** | PE、SRAM bank 和功能单元之间的片上互连 | cross-paper-synthesis | Network-on-Chip | 本文统计 work stealing、K/V/scale copy 和跨 PE LSE merge 的 NoC bytes/hops | §4.7、§4.9 | 不等于 PCIe/NVLink 等芯片间互连 |
 | **bubble / barrier tail** | bubble 是 PE 因无就绪 work/data/scale 而空闲；barrier tail 是同步点等待最慢 PE 的尾部 | cross-paper-synthesis | idle slot, synchronization tail | 本文用 p95/p50、load CV 和最大 PE 时间联合刻画 | §4.7 时间模型 | 平均利用率高仍可能有明显 barrier tail |
-| **mask predicate** | 用 `visible(q,k)`、block id、offset 或 stream id 在线判定可见性 | paper-stated | mask function, rule mask | Causal-rCM 的 `BlockPattern`/`AttnMaskSpec` 生成 Flex `BlockMask` | [Causal-rCM 精读](../papers/causal-rcm.md)、§2.3 | predicate 能表达规则，不代表后端能跳过相同数量的物理 tile |
-| **BlockMask** | block 粒度的可见性与可跳过 block map；由 predicate 编译/构造，但运行时不需要 materialize token-pair dense mask | paper-stated | block mask | Causal-rCM 使用 PyTorch FlexAttention `create_block_mask()` 缓存结果 | [Causal-rCM 精读](../papers/causal-rcm.md)、§2.3 | 不等于任意二维 bool mask；block 内 padding 仍可能产生额外 work |
+| **mask predicate** | 用 `visible(q,k)`、block id、offset 或 stream id 在线判定可见性 | paper-stated | mask function, rule mask | Causal-rCM 的 `BlockPattern`/`AttnMaskSpec` 生成 Flex `BlockMask` | [Causal-rCM evidence](../evidence/causal-rcm-kernel-adoption.md) | predicate 能表达规则，不代表后端能跳过相同数量的物理 tile |
+| **BlockMask** | block 粒度的可见性与可跳过 block map；由 predicate 编译/构造，但运行时不需要 materialize token-pair dense mask | paper-stated | block mask | Causal-rCM 使用 PyTorch FlexAttention `create_block_mask()` 缓存结果 | [Causal-rCM evidence](../evidence/causal-rcm-kernel-adoption.md) | 不等于任意二维 bool mask；block 内 padding 仍可能产生额外 work |
 | **CSR sparse graph** | 用 `indptr + indices` 列出每个 query row 可访问的 key block | paper-stated | compressed sparse row, block CSR | LVSA 的 CPU planner 生成 frame-block CSR，FlashInfer plan 消费它 | [LVSA 精读](../papers/lvsa.md)、§2.4 | CSR 是邻接表示，不是 dense bool mask，也不是执行 schedule 本身 |
 | **selected segments** | selector 输出 token/block index、segment length 和 compact batch 边界 | paper-stated | selected indices, packed segments | VMoBA/TSA 将选中 QKV gather/pack 后交给 varlen attention | [VMoBA 精读](../papers/vmoba.md)、§2.5、§2.8 | selected segment 不等于 block-sparse kernel 内部跳 tile |
 | **varlen / `cu_seqlens`** | 将不同长度样本或选中 segment 拼成连续 QKV，并用累计长度数组标记边界 | paper-stated | variable-length attention, packed attention | Cosmos 3 用于拆分双流；VMoBA 用于 selected Q/KV segment | §2.2、[VMoBA 精读](../papers/vmoba.md) | 它解决 batch/segment 边界，不自动表达任意 token-pair 稀疏图 |
 | **selector / router** | 根据 attention map、query-key proxy、top-k 或 threshold 选择 token/block/head path 的控制面 | paper-stated | gate, block router, sparse selector | FlexAttention VLM 选高分辨率区域；VMoBA 选 block；TSA 选 token | §2.1、§2.5、§2.8 | selector 的 score/top-k 本身可能是 dense 或成为主要开销 |
 | **online softmax / LSE merge** | 分块遍历 score 时在线维护 row max、指数和；多 segment 时用 log-sum-exp 状态合并 | cross-paper-synthesis | streaming softmax, log-sum-exp merge | FlashAttention 避免 materialize score；VMoBA 合并 selected segments | §2.5、§4.6 | 不等于近似 softmax；跨 PE 拆 row 时还要传递/归并状态 |
-| **JVP** | Jacobian-vector product，用方向向量与 Jacobian 的乘积传播导数信息 | paper-stated | Jacobian-vector product | Causal-rCM 的定制 Triton 路径让 primal 与 JVP 使用同一 mask contract | [Causal-rCM 精读](../papers/causal-rcm.md)、§2.3 | 不等于普通 backward/VJP；后端支持范围可能不同 |
+| **JVP** | Jacobian-vector product，用方向向量与 Jacobian 的乘积传播导数信息 | paper-stated | Jacobian-vector product | Causal-rCM 的定制 Triton 路径让 primal 与 JVP 使用同一 mask contract | [Causal-rCM evidence](../evidence/causal-rcm-kernel-adoption.md) | 不等于普通 backward/VJP；后端支持范围可能不同 |
 | **planner / plan** | 将 descriptor、shape、layout 和资源约束转成可执行 schedule/buffer 的控制面过程及结果 | paper-stated / cross-paper-synthesis | planning pass, attention plan | LVSA/FlashInfer 有 host planning；本文扩展为 DSA `AttentionPlan` | [LVSA 精读](../papers/lvsa.md)、§4.1、§4.6 | CPU 生成 plan 不代表 device kernel 直接读取 host memory |
 | **TMR / EBC** | TMR 跨 denoising step 复用 mask descriptor；EBC 按 head 的误差-稀疏曲线分配阈值预算 | paper-stated | Temporal Mask Reuse, Error-guided Budgeted Calibration | HASTE 用二者分别降低在线 refresh 成本和校准 head budget | [HASTE 精读](../papers/haste.md)、§2.6 | TMR 是 descriptor reuse，不是缓存完整 attention 输出；EBC 不等于底层 kernel |
 | **TTFT / TPOT** | 首 token 时间与后续每 token 时间，分别刻画 prefill/启动和 decode 稳态延迟 | cross-paper-synthesis | time to first token, time per output token | 本文把它们列为 serving 指标；视频 diffusion 还需另报 per-step/E2E | §4.3 | 不适合直接替代视频生成 wall time 或训练吞吐 |

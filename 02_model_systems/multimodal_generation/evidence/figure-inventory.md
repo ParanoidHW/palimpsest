@@ -16,7 +16,8 @@ Cosmos 3 资产来自 arXiv:2606.02800v1 的 LaTeX/TikZ/source-native figures；
 | Figure 3 / p.8 | 将异构 embodiment control 映射为共享几何组件构成的紧凑 action vector：ego/effector 使用 3D translation + 6D rotation 的 relative-pose pseudo-actions，grasp state 表示当前操控状态，domain-aware projections 处理不同长度。 | `figures/model_architecture/action/action_representation.tex` | `../assets/papers/cosmos-3/action-representation.png`; `(0,0,1134,504)` | cosmos-3 / action encoding | pass |
 | Figure 5 / p.11 | 单一 sequence 包含 AR 与 DM subsequence；AR reasoner 与 DM generator 在每层使用独立参数，DM 通过 joint attention 读取 AR 条件，而 AR 不读取 noisy DM。 | `figures/model_architecture/mot_architecture.tex` | `../assets/papers/cosmos-3/mot-architecture.png`; `(0,0,1672,763)` | cosmos-3 / MoT | pass |
 | Figure 6 / p.13 | 3D MRoPE 为 packed language/video/audio/action token 分配 $(t,h,w)$；语言三轴相同、video 三轴变化、audio/action 只用时间轴；FPS modulation 使相同真实时长在 16/24/30 FPS 下覆盖相等 position range。 | `figures/model_architecture/mrope_coordinate_assignment.tex` | `../assets/papers/cosmos-3/mrope-coordinate-assignment.png`; `(0,0,1308,320)` | cosmos-3 / position alignment | pass |
-| Reasoner data composition / p.15 | Reasoner 的 22.0M pre-training 与 2.2M SFT samples 按 OCR、VQA、reasoning、captioning、grounding、instruction 等 capability category 分解。 | `figures/data/reasoner/reasoner_stats.tex` | `../assets/papers/cosmos-3/reasoner-pretraining-mix.png`; `(0,0,497,373)` 与 `reasoner-sft-mix.png`; `(0,0,497,373)` | cosmos-3 / data stages | pass；同一原编号的两个并列子图，正文仅嵌 pre-training 子图，inventory 共同解释 |
+| Reasoner data composition (pre-training) / p.15 | Reasoner 的 22.0M pre-training samples 按 OCR、VQA、reasoning、captioning、grounding、instruction 等 capability category 分解。 | `figures/data/reasoner/reasoner_stats.tex` | `../assets/papers/cosmos-3/reasoner-pretraining-mix.png`; `(0,0,497,373)` | cosmos-3 / data stages | pass；单一子图、原分辨率复核 |
+| Reasoner data composition (SFT) / p.15 | Reasoner 的 2.2M SFT samples 按 OCR、VQA、reasoning、captioning、grounding、instruction 等 capability category 分解。 | `figures/data/reasoner/reasoner_stats.tex` | `../assets/papers/cosmos-3/reasoner-sft-mix.png`; `(0,0,497,373)` | cosmos-3 / data stages | pass；单一子图、原分辨率复核 |
 | Generator data curriculum / p.20 | Generator 按 pre-training、mid-training 与 post-training 逐步引入 image/video/audio、action/transfer 和专用任务数据。 | `figures/data/data_curriculum.tex` | `../assets/papers/cosmos-3/data-curriculum.png`; `(0,0,1151,350)` | cosmos-3 / curriculum | pass |
 | Action distribution / data section | 展示不同 action domain/embodiment 在训练数据中的分布，用于说明 domain-aware projection 和 sampling mixture。 | action data source figure | `../assets/papers/cosmos-3/action-data-distribution.png`; `(0,0,523,313)` | cosmos-3 / supplement data detail | pass；未用于 headline conclusion |
 | Multiview packaging / data section | 多视角 action sample 将 camera views 拼成单 canvas，并在 JSON prompt 中附 view-layout metadata。 | `figures/data/action/action_multiview_packaging.tex` | `../assets/papers/cosmos-3/droid-multiview-packaging.jpg`; `(0,0,640,540)` | cosmos-3 / Q&A data construction | pass；source-native raster |
@@ -54,6 +55,21 @@ Cosmos 3 资产来自 arXiv:2606.02800v1 的 LaTeX/TikZ/source-native figures；
 | Survey trends/infra | OpenRouter ICU 基于完整 Survey Markdown 生成的整理图；request `74741304-81a2-4ba7-a4b6-37d0a6b9969e` | `../assets/surveys/multimodal-diffusion-infra/survey-trends-infra-generated.png` | pass；1024x1024 原分辨率复核，无重叠/空白 |
 
 ## 完整 Paper 精读新增视觉（2026-07-12）
+
+## Cross-domain canonicalization（2026-07-25）
+
+Causal-rCM 与 Sparse VideoGen 原先在 custom-attention 下的重复资产已迁入本 domain 的 canonical Paper owner。它们继续作为原论文证据使用；custom-attention 只通过跨域 adoption Evidence 引用，未复制图体。
+
+| Paper / Object / PDF 页 | 完整 caption（中文转述） | 正式资产 / bbox | Usage / QA |
+|---|---|---|---|
+| Causal-rCM Figure 1 / p.1 | 流式视频/世界模型的生成质量、训练收敛和在线性能总体结果。 | `../assets/papers/causal-rcm/fig1_streaming_performance_caption.png`; `(0,0,1195,525)` | headline result；pass，单一对象、完整 caption、原分辨率复核 |
+| Causal-rCM Figure 3 / p.6 | 对比 Teacher Forcing、Diffusion Forcing 与 Self Forcing 的 clean/noisy block mask、训练轨迹和 KV-cache 关系。 | `../assets/papers/causal-rcm/fig3_causal_training_paradigms_caption.png`; `(0,0,1180,515)` | custom-mask mechanism；pass |
+| Causal-rCM Figure 4 / p.7 | 展示先 TF-CM、后 SF-DMD 的分阶段 recipe，以及各训练范式的关系。 | `../assets/papers/causal-rcm/fig4_recipe_comparison_caption.png`; `(0,0,1180,565)` | training-recipe boundary；pass |
+| Causal-rCM Figure 9 / p.17 | 交互式生成中，时间因果 mask 约束历史与当前 noisy block 的可见性。 | `../assets/papers/causal-rcm/fig9_cosmos3_temporal_causal_mask_caption.png`; `(0,0,1020,690)` | multimodal transfer；pass |
+| Sparse VideoGen Figure 3 / p.3 | 视频 DiT 的 attention head 分别呈现空间邻域与跨帧同位置的时间模式。 | `../assets/papers/sparse-videogen/fig3_spatial_temporal_head_masks_caption.png`; `(0,0,1260,620)` | mask semantics；pass |
+| Sparse VideoGen Figure 4 / p.4 | 在线抽样 query rows，对 full、spatial、temporal 输出做近似误差比较并逐 head 选择模式。 | `../assets/papers/sparse-videogen/fig4_svg_workflow_caption.png`; `(0,0,1250,570)` | online profiling；pass |
+| Sparse VideoGen Figure 5 / p.5 | 时间稀疏访问通过 layout transformation 重排为连续 tile，以改善内存合并访问。 | `../assets/papers/sparse-videogen/fig5_layout_transformation_caption.png`; `(0,0,690,515)` | layout mechanism；pass |
+| Sparse VideoGen Figure 8 / p.8 | 比较原始稀疏访问与重排后的 kernel latency，显示 layout 对实际速度的影响。 | `../assets/papers/sparse-videogen/fig8_sparse_kernel_latency_caption.png`; `(0,0,675,470)` | kernel latency；pass |
 
 以下是完整精读提升后新增的第二类证据图。bbox 使用各 paper review 的 PDF page render 像素坐标 `(x,y,width,height)`；每张图均经过 contact-sheet 初筛和原分辨率逐图 QA。
 

@@ -9,14 +9,14 @@
 
 ## 入选十篇
 
-1. **[Causal-rCM (2026)](../papers/causal-rcm.md)**：统一视频生成与交互世界模型，唯一同时公开 custom mask、JVP、KV cache 和并行兼容代码的强证据点。
+1. **[Causal-rCM (2026)](../../../../02_model_systems/multimodal_generation/papers/causal-rcm.md)**：完整 Paper 由 Multimodal Generation canonical owner 维护；本领域的 [kernel adoption evidence](causal-rcm-kernel-adoption.md) 保留 custom mask、JVP、KV cache 和并行兼容性的采用判断。
 2. **[HASTE (2026)](../papers/haste.md)**：回答动态稀疏 mask 的控制面成本，而不只报告 attention FLOPs。
 3. **[LVSA (2026)](../papers/lvsa.md)**：回答结构化时空稀疏如何落成 CSR 和 FlashInfer plan。
 4. **[FrameDiT (2026)](../papers/framedit.md)**：架构级去掉 token-level temporal full attention，作为“不是所有优化都应表达成 mask”的反例。
 5. **[Token Sparse Attention (2026)](../papers/token-sparse-attention.md)**：token 选择后复用已有 kernel，代表 selector 与 kernel 解耦。
-6. **[Cosmos 3 (2026)](../papers/cosmos-3.md)**：多模态统一模型中，把通用 FlexAttention 语义拆成 causal reasoner 与 full generator 两个变长调用。
+6. **[Cosmos 3 (2026)](../../../../02_model_systems/multimodal_generation/papers/cosmos-3.md)**：完整 Paper 由 Multimodal Generation canonical owner 维护；本领域的 [attention lowering evidence](cosmos-3-attention-lowering.md) 记录把通用语义拆成 causal reasoner 与 full generator 两个变长调用的工程含义。
 7. **[VMoBA (2025)](../papers/vmoba.md)**：训练内生 block router，将选择结果转成 FlashAttention varlen packing。
-8. **[Sparse VideoGen (2025)](../papers/sparse-videogen.md)**：training-free 视频 DiT 的 spatial/temporal head 模式与 Triton/FlashInfer 原型。
+8. **[Sparse VideoGen (2025)](../../../../02_model_systems/multimodal_generation/papers/sparse-videogen.md)**：完整 Paper 由 Multimodal Generation canonical owner 维护；本领域的 [kernel adoption evidence](sparse-videogen-kernel-adoption.md) 记录 spatial/temporal head 模式与 Triton/FlashInfer 原型的采用边界。
 9. **[MInference 1.0 (2024)](../papers/minference.md)**：长上下文 kernel-aware dynamic sparse attention 的方法/实现桥接锚点。
 10. **[FlexAttention for Efficient High-Resolution Vision-Language Models (ECCV 2024)](../papers/flexattention-vlm.md)**：纯多模态理解侧的高分辨率 token selection 案例，补足“理解 - 统一 - 生成”覆盖；注意其方法名不等于 PyTorch FlexAttention API。
 

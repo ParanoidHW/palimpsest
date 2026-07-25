@@ -19,10 +19,10 @@
 | MInference | Fig. 4 / p.4 | 三类稀疏模式分别通过规则、在线索引近似或 block 选择进入对应计算路径。 | `../assets/papers/minference/fig4_three_sparse_patterns_caption.png` / `(0,0,1000,430)` | dispatch |
 | MInference | Fig. 7 / p.20 | Vertical-Slash 的动态 mask 被编码为合并 range 与独立 column index，供 kernel 遍历。 | `../assets/papers/minference/fig7_vertical_slash_dynamic_mask_caption.png` / `(0,0,595,485)` | metadata |
 | MInference | Fig. 10 / p.22 | 1M context 下分解 pattern approximation、index 构造和 sparse kernel 的时延与显存开销。 | `../assets/papers/minference/fig10_kernel_latency_breakdown_caption.png` / `(0,0,915,580)` | planner cost |
-| Sparse VideoGen | Fig. 3 / p.3 | 视频 DiT 不同 attention head 分别呈现空间邻域与跨帧同位置的时间模式。 | `../assets/papers/sparse-videogen/fig3_spatial_temporal_head_masks_caption.png` / `(0,0,1260,620)` | mask semantics |
-| Sparse VideoGen | Fig. 4 / p.4 | 在线抽样 query rows，对 full、spatial、temporal 输出做近似误差比较并逐 head 选择模式。 | `../assets/papers/sparse-videogen/fig4_svg_workflow_caption.png` / `(0,0,1250,570)` | online profiling |
-| Sparse VideoGen | Fig. 5 / p.5 | 时间稀疏访问通过 layout transformation 重排为连续 tile，以改善内存合并访问。 | `../assets/papers/sparse-videogen/fig5_layout_transformation_caption.png` / `(0,0,690,515)` | data layout |
-| Sparse VideoGen | Fig. 8 / p.8 | 比较原始稀疏访问与重排后的 kernel latency，显示 layout 对实际速度的影响。 | `../assets/papers/sparse-videogen/fig8_sparse_kernel_latency_caption.png` / `(0,0,675,470)` | kernel latency |
+| Sparse VideoGen | Fig. 3 / p.3 | 视频 DiT 不同 attention head 分别呈现空间邻域与跨帧同位置的时间模式。 | `../../../../02_model_systems/multimodal_generation/assets/papers/sparse-videogen/fig3_spatial_temporal_head_masks_caption.png` / `(0,0,1260,620)` | mask semantics；canonical owner 为 Multimodal Generation |
+| Sparse VideoGen | Fig. 4 / p.4 | 在线抽样 query rows，对 full、spatial、temporal 输出做近似误差比较并逐 head 选择模式。 | `../../../../02_model_systems/multimodal_generation/assets/papers/sparse-videogen/fig4_svg_workflow_caption.png` / `(0,0,1250,570)` | online profiling；canonical owner 为 Multimodal Generation |
+| Sparse VideoGen | Fig. 5 / p.5 | 时间稀疏访问通过 layout transformation 重排为连续 tile，以改善内存合并访问。 | `../../../../02_model_systems/multimodal_generation/assets/papers/sparse-videogen/fig5_layout_transformation_caption.png` / `(0,0,690,515)` | data layout；canonical owner 为 Multimodal Generation |
+| Sparse VideoGen | Fig. 8 / p.8 | 比较原始稀疏访问与重排后的 kernel latency，显示 layout 对实际速度的影响。 | `../../../../02_model_systems/multimodal_generation/assets/papers/sparse-videogen/fig8_sparse_kernel_latency_caption.png` / `(0,0,675,470)` | kernel latency；canonical owner 为 Multimodal Generation |
 | VMoBA | Fig. 1 / p.1 | 在视频生成质量与 latency 之间比较 full attention、既有稀疏方法与 VMoBA 的折中。 | `../assets/papers/vmoba/fig1_quality_latency_tradeoff_caption.png` / `(0,0,1150,655)` | headline result |
 | VMoBA | Fig. 2 / p.4 | VMoBA 先做时空 recurrent partition，再以 gate 选择 blocks，最终用 varlen attention 计算选中块。 | `../assets/papers/vmoba/fig2_vmoba_pipeline_caption.png` / `(0,0,1000,610)` | selector pipeline |
 | VMoBA | Fig. 3 / p.4 | 不同层和 head 呈现 temporal、spatial 与 3D neighbor 的 block locality。 | `../assets/papers/vmoba/fig3_spatiotemporal_block_patterns_caption.png` / `(0,0,655,415)` | locality evidence |
@@ -39,10 +39,10 @@
 | LVSA | Fig. 2 / p.4 | 全局 anchor 随时间轮转，为长视频提供周期性的远程依赖连接。 | `../assets/papers/lvsa/fig2_rotating_global_anchors_caption.png` / `(0,0,695,500)` | anchors |
 | LVSA | Table 1 / p.6 | 在 80GB GPU 上比较 dense、LVSA-SDPA 与 LVSA-FlashInfer 的长视频 wall time、显存与 OOM。 | `../assets/papers/lvsa/table1_wall_time_caption.png` / `(0,0,1190,515)` | runtime evidence |
 | LVSA | Fig. 4 / p.6 | 随生成 horizon 增长比较 dense 与 LVSA 的 wall-time scaling。 | `../assets/papers/lvsa/fig4_wall_time_scaling_caption.png` / `(0,0,1190,505)` | scaling |
-| Causal-rCM | Fig. 1 / p.1 | 报告流式视频/世界模型在生成质量、训练收敛和在线性能上的总体结果。 | `../assets/papers/causal-rcm/fig1_streaming_performance_caption.png` / `(0,0,1195,525)` | headline result |
-| Causal-rCM | Fig. 3 / p.6 | 对比 Teacher Forcing、Diffusion Forcing 与 Self Forcing 的 clean/noisy block mask、训练轨迹和 KV-cache 关系。 | `../assets/papers/causal-rcm/fig3_causal_training_paradigms_caption.png` / `(0,0,1180,515)` | special causal mask |
-| Causal-rCM | Fig. 4 / p.7 | 展示先 TF-CM、后 SF-DMD 的分阶段 recipe，以及各训练范式的关系。 | `../assets/papers/causal-rcm/fig4_recipe_comparison_caption.png` / `(0,0,1180,565)` | training recipe |
-| Causal-rCM | Fig. 9 / p.17 | Cosmos 3 交互式生成中，时间因果 mask 约束历史与当前 noisy block 的可见性。 | `../assets/papers/causal-rcm/fig9_cosmos3_temporal_causal_mask_caption.png` / `(0,0,1020,690)` | multimodal transfer |
+| Causal-rCM | Fig. 1 / p.1 | 报告流式视频/世界模型在生成质量、训练收敛和在线性能上的总体结果。 | `../../../../02_model_systems/multimodal_generation/assets/papers/causal-rcm/fig1_streaming_performance_caption.png` / `(0,0,1195,525)` | headline result；canonical owner 为 Multimodal Generation |
+| Causal-rCM | Fig. 3 / p.6 | 对比 Teacher Forcing、Diffusion Forcing 与 Self Forcing 的 clean/noisy block mask、训练轨迹和 KV-cache 关系。 | `../../../../02_model_systems/multimodal_generation/assets/papers/causal-rcm/fig3_causal_training_paradigms_caption.png` / `(0,0,1180,515)` | special causal mask；canonical owner 为 Multimodal Generation |
+| Causal-rCM | Fig. 4 / p.7 | 展示先 TF-CM、后 SF-DMD 的分阶段 recipe，以及各训练范式的关系。 | `../../../../02_model_systems/multimodal_generation/assets/papers/causal-rcm/fig4_recipe_comparison_caption.png` / `(0,0,1180,565)` | training recipe；canonical owner 为 Multimodal Generation |
+| Causal-rCM | Fig. 9 / p.17 | Cosmos 3 交互式生成中，时间因果 mask 约束历史与当前 noisy block 的可见性。 | `../../../../02_model_systems/multimodal_generation/assets/papers/causal-rcm/fig9_cosmos3_temporal_causal_mask_caption.png` / `(0,0,1020,690)` | multimodal transfer；canonical owner 为 Multimodal Generation |
 
 ## 跨领域 canonical 资产
 
