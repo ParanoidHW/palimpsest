@@ -118,7 +118,7 @@ H_l=\operatorname{Attn}([H_{\text{low}},H_{\text{text}},\operatorname{Gather}(H_
 \quad S_{l+1}=\operatorname{Select}(\operatorname{Map}(H_l)).
 $$
 
-**kernel 含义**：这是 `selected indices -> gather -> compact rectangular attention`，不是先构造高分辨率 token 对的 dense mask。其数学对象、batch varlen 映射与控制面成本见 [Paper 的 kernel mapping](../papers/flexattention-vlm.md)；论文没有声称使用 PyTorch FlexAttention、Triton sparse kernel 或 FlashAttention varlen。主结果与 selection/resolution 消融见 [主结果与证据矩阵](../papers/flexattention-vlm.md)。
+**kernel 含义**：这是 `selected indices -> gather -> compact rectangular attention`，不是先构造高分辨率 token 对的 dense mask。其数学对象、batch varlen 映射与控制面成本见 [Paper 的 Infra 需求分析](../papers/flexattention-vlm.md#8-infra-需求分析)；论文没有声称使用 PyTorch FlexAttention、Triton sparse kernel 或 FlashAttention varlen。主结果与 selection/resolution 消融见 [关键结果与证据强度](../papers/flexattention-vlm.md#5-关键结果与证据强度)。
 
 ---
 
@@ -219,7 +219,7 @@ $$
 
 **实现细节（代码已核验）**：`src/vmoba.py:530-710` 先 `calc_chunks`，gather K/V，计算 $[C,H,S]$ gate，然后 `topk`/threshold 得到 bool `gate_mask`。下一步以 `nonzero` 获得 selected query indices，生成 `moba_cu_seqlen_q` 和 `moba_cu_seqlen_kv`，最后调用 FlashAttention varlen forward/backward。
 
-因此 VMoBA **暂时会有 dense gate tensor**，但不会把 token-pair dense mask 传进 FlashAttention；稀疏性最终是 `indices + compact QKV + cu_seqlens`。风险也随之清楚：`gate`, `topk/sort`, `nonzero`, gather/scatter 和 LSE merge 是控制面成本。release code 的 default `threshold_type=query_head` 与论文中 per-head global 描述存在复现差异，应在基准配置中固定。详见 [VMoBA 精读](../papers/vmoba.md)。
+因此 VMoBA **暂时会有 dense gate tensor**，但不会把 token-pair dense mask 传进 FlashAttention；稀疏性最终是 `indices + compact QKV + cu_seqlens`。风险也随之清楚：`gate`, `topk/sort`, `nonzero`, gather/scatter 和 LSE merge 是控制面成本。release code 的 default `threshold_type=query_head` 与论文中 per-head global 描述存在复现差异，应在基准配置中固定。详见 [VMoBA 研究方法](../papers/vmoba.md#4-研究方法)、[Infra 分析](../papers/vmoba.md#8-infra-需求分析)和[开源代码对照](../papers/vmoba.md#9-开源代码对照)。
 
 ---
 
@@ -284,7 +284,7 @@ $$
 
 MInference 的分层策略是：离线给每个 head 选 pattern family；在线用近似索引构建具体 range/column/block index；随后 dispatch 三种优化 GPU kernels（论文声明 PIT、Triton、FlashAttention 相关实现）。它不是将一个大稀疏矩阵交给通用 dense kernel。
 
-它虽主要为 LLM prefill，但其模式/索引/dispatch 分离为多模态视频提供桥接：video DiT 必须把 causal pattern 改为 bidirectional spatial-temporal pattern，并把在线 planner 开销乘上 denoising steps。具体 Appendix C range/column index 讨论与证据见 [MInference 精读](../papers/minference.md)。
+它虽主要为 LLM prefill，但其模式/索引/dispatch 分离为多模态视频提供桥接：video DiT 必须把 causal pattern 改为 bidirectional spatial-temporal pattern，并把在线 planner 开销乘上 denoising steps。具体 Appendix C range/column index 讨论与证据见 [MInference Infra 分析](../papers/minference.md#8-infra-需求分析)和[开源代码对照](../papers/minference.md#9-开源代码对照)。
 
 ---
 
@@ -457,8 +457,8 @@ attention visibility semantics
 | **mask predicate** | 用 `visible(q,k)`、block id、offset 或 stream id 在线判定可见性 | paper-stated | mask function, rule mask | Causal-rCM 的 `BlockPattern`/`AttnMaskSpec` 生成 Flex `BlockMask` | [Causal-rCM evidence](../evidence/causal-rcm-kernel-adoption.md) | predicate 能表达规则，不代表后端能跳过相同数量的物理 tile |
 | **BlockMask** | block 粒度的可见性与可跳过 block map；由 predicate 编译/构造，但运行时不需要 materialize token-pair dense mask | paper-stated | block mask | Causal-rCM 使用 PyTorch FlexAttention `create_block_mask()` 缓存结果 | [Causal-rCM evidence](../evidence/causal-rcm-kernel-adoption.md) | 不等于任意二维 bool mask；block 内 padding 仍可能产生额外 work |
 | **CSR sparse graph** | 用 `indptr + indices` 列出每个 query row 可访问的 key block | paper-stated | compressed sparse row, block CSR | LVSA 的 CPU planner 生成 frame-block CSR，FlashInfer plan 消费它 | [LVSA 精读](../papers/lvsa.md)、§2.4 | CSR 是邻接表示，不是 dense bool mask，也不是执行 schedule 本身 |
-| **selected segments** | selector 输出 token/block index、segment length 和 compact batch 边界 | paper-stated | selected indices, packed segments | VMoBA/TSA 将选中 QKV gather/pack 后交给 varlen attention | [VMoBA 精读](../papers/vmoba.md)、§2.5、§2.8 | selected segment 不等于 block-sparse kernel 内部跳 tile |
-| **varlen / `cu_seqlens`** | 将不同长度样本或选中 segment 拼成连续 QKV，并用累计长度数组标记边界 | paper-stated | variable-length attention, packed attention | Cosmos 3 用于拆分双流；VMoBA 用于 selected Q/KV segment | §2.2、[VMoBA 精读](../papers/vmoba.md) | 它解决 batch/segment 边界，不自动表达任意 token-pair 稀疏图 |
+| **selected segments** | selector 输出 token/block index、segment length 和 compact batch 边界 | paper-stated | selected indices, packed segments | VMoBA/TSA 将选中 QKV gather/pack 后交给 varlen attention | [VMoBA 研究方法](../papers/vmoba.md#4-研究方法)、§2.5、§2.8 | selected segment 不等于 block-sparse kernel 内部跳 tile |
+| **varlen / `cu_seqlens`** | 将不同长度样本或选中 segment 拼成连续 QKV，并用累计长度数组标记边界 | paper-stated | variable-length attention, packed attention | Cosmos 3 用于拆分双流；VMoBA 用于 selected Q/KV segment | §2.2、[VMoBA 研究方法](../papers/vmoba.md#4-研究方法) | 它解决 batch/segment 边界，不自动表达任意 token-pair 稀疏图 |
 | **selector / router** | 根据 attention map、query-key proxy、top-k 或 threshold 选择 token/block/head path 的控制面 | paper-stated | gate, block router, sparse selector | FlexAttention VLM 选高分辨率区域；VMoBA 选 block；TSA 选 token | §2.1、§2.5、§2.8 | selector 的 score/top-k 本身可能是 dense 或成为主要开销 |
 | **online softmax / LSE merge** | 分块遍历 score 时在线维护 row max、指数和；多 segment 时用 log-sum-exp 状态合并 | cross-paper-synthesis | streaming softmax, log-sum-exp merge | FlashAttention 避免 materialize score；VMoBA 合并 selected segments | §2.5、§4.6 | 不等于近似 softmax；跨 PE 拆 row 时还要传递/归并状态 |
 | **JVP** | Jacobian-vector product，用方向向量与 Jacobian 的乘积传播导数信息 | paper-stated | Jacobian-vector product | Causal-rCM 的定制 Triton 路径让 primal 与 JVP 使用同一 mask contract | [Causal-rCM evidence](../evidence/causal-rcm-kernel-adoption.md) | 不等于普通 backward/VJP；后端支持范围可能不同 |
