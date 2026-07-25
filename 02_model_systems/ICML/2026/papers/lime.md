@@ -11,15 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-lime-problem-solution-20260725`
-- 当前修订时间：`2026-07-25T10:05:32+08:00`
-- 替代版本：`rev-lime-initial` / `1.0.0` / manifest `82016b244a1fa626a9a83e3b2387bc0e546d267e059449dd589b77e915f2b825`
+- 当前文档版本：`1.1.1`
+- 当前修订 ID：`rev-lime-format-gate-20260725`
+- 当前修订时间：`2026-07-25T23:59:00+08:00`
+- 替代版本：`rev-lime-problem-solution-20260725` / `1.1.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | `rev-lime-initial` | `1.0.0` | 2026-07-17T10:00:00+08:00 | `review_lime` | `initial` | 无 | 新建单篇精读、证据矩阵与图表 inventory | 用户委派 ICML 2026 精读 | 全文 | arXiv v1 PDF、提取文本、图表 QA | 无 |
 | `rev-lime-problem-solution-20260725` | `1.1.0` | 2026-07-25T10:05:32+08:00 | `/root` | `content-update` | `rev-lime-initial` / `1.0.0` / `82016b244a1fa626a9a83e3b2387bc0e546d267e059449dd589b77e915f2b825` | 新增轻量 MoE-PEFT 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1/2、Table 2 与既有消融 | minor：不改变主结论，补充系统边界 |
+| `rev-lime-format-gate-20260725` | `1.1.1` | 2026-07-25T23:59:00+08:00 | `/root` | `format-update` | `rev-lime-problem-solution-20260725` / `1.1.0` | 将结果章标题显式标注为技术声明证据矩阵 | 使单篇 Paper 格式审计可机器判定，不改变正文 | §4 | 既有 claim/ablation 表 | none |
 
 ## 0. 资料与配图索引
 
@@ -170,7 +171,7 @@ $$|ϕ_{LiME}|=L(|ϕ|+E d_o+d_o+1),\qquad |ϕ_{MoE-PEFT}|=L E|ϕ|.$$
 
 主模型为 LLaVA-OneVision-Qwen2-7B，另用 Molmo2-8B 做泛化。MMT-47 训练 158,613 样本、47 测试集共 70,392 样本；3 epochs、5 seeds（42/123/456/789/1024），默认 E=4、n=3、θ=0.7、`γ_r=0.7`。Table 20 给出 4×H100 80GB、AdamW 8-bit、base bf16、PEFT/modulator float32、LoRA rank 2、最大序列 2048、图像 384×384、视频 8 帧。效率对比另在单 H100、batch 2、梯度累积 2、GLUE 1 epoch。数据类别不平衡被保留，任务/模态标签不输入模型；这是考验无显式 task identifier 路由的设定，但也使类别均值可能受样本分布影响。
 
-## 4. 关键结论
+## 4. 关键结论与技术声明证据矩阵
 
 ### 4.1 主结果
 

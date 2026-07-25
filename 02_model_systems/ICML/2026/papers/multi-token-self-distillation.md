@@ -11,16 +11,17 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.2.0`
-- 当前修订 ID：`rev-mtp-problem-solution-20260725`
-- 当前修订时间：`2026-07-25T10:05:32+08:00`
-- 替代版本：`rev-mtp-source-code-refresh` / `1.1.0` / manifest `0c69275a93ca140f479b0710fa0477e48c85e5b2d97de306c08f216528e38693`
+- 当前文档版本：`1.2.1`
+- 当前修订 ID：`rev-mtp-format-gate-20260725`
+- 当前修订时间：`2026-07-25T23:59:30+08:00`
+- 替代版本：`rev-mtp-problem-solution-20260725` / `1.2.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-mtp-initial` | `1.0.0` | 2026-07-17T10:00:00+08:00 | `review_mtp` | `initial` | `none` | `none` | 首次完成单篇精读及证据整理 | 用户 ICML 2026 精读任务 | PDF v2、arXiv metadata、图表裁剪与 QA | `none` |
 | `rev-mtp-source-code-refresh` | `1.1.0` | 2026-07-24T23:40:00+08:00 | `mtp_self_distillation_refresh` | `evidence-update` | `rev-mtp-initial` / `1.0.0` / `f8e8b9b439ca7db62ff8c98df1f630f94cd617ef8a12963b689a899a1420e1c6` | `none` | 恢复完整 arXiv v2 源码并固定、审计官方实现；刷新复现与系统结论 | 关闭上一版 source/code blocker | §0、§3、§7–§12；`source/`、`code/mtp-lm/` | e-print `00README.json`；Git commit `167413e`；实现/配置路径 | `material`：核心算法和 cache 行为获代码确认；全量 checkpoint metadata 仍未独立冻结 |
 | `rev-mtp-problem-solution-20260725` | `1.2.0` | 2026-07-25T10:05:32+08:00 | `/root` | `content-update` | `rev-mtp-source-code-refresh` / `1.1.0` / `0c69275a93ca140f479b0710fa0477e48c85e5b2d97de306c08f216528e38693` | `none` | 新增 standalone MTP 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 2/3/4/12 与官方 commit `167413e` | minor：不改变主结论，明确并发瓶颈 |
+| `rev-mtp-format-gate-20260725` | `1.2.1` | 2026-07-25T23:59:30+08:00 | `/root` | `format-update` | `rev-mtp-problem-solution-20260725` / `1.2.0` | `none` | 将结果章标题显式标注为技术声明证据矩阵 | 使单篇 Paper 格式审计可机器判定，不改变正文 | §4 | 既有主结果/消融/收益归因 | none |
 
 ## 0. 资料与配图索引
 
@@ -158,7 +159,7 @@ $$k'=\max\{m\le k_{max}:\max_j\operatorname{softmax}(\ell_{i+j})>\tau,\;j=0,\ldo
 
 student/teacher 均从 Llama-3.1-8B-MagpieAlign-SFT-v0.1 或 Qwen3-4B-Instruct-2507 初始化；teacher frozen，student 全参数训练。MetaMathQA 训练 context 160、global batch 128；Magpie ablation context 1024、batch 16；AdamW、warm-up 2000 steps、峰值 lr $10^{-5}$、约 100k steps。随机 $k$ 平均约 9，MetaMathQA 约 500M supervised tokens；4×GH200 FSDP 训练 24–36h，单 GH200 可评测。Qwen3 未使用官方 chat template，而是 BOS + `input\n\nresponse`；这是重要的公平性与迁移变量。
 
-## 4. 关键结论
+## 4. 关键结论与技术声明证据矩阵
 
 ### 4.1 主结果
 

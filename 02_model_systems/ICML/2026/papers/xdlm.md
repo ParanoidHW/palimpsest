@@ -9,13 +9,14 @@
 
 ## 修订信息
 
-- 当前版本：`1.1.0`
-- 当前修订：`rev-xdlm-problem-solution-20260725`
+- 当前版本：`1.1.1`
+- 当前修订：`rev-xdlm-format-visual-gate-20260725`
 
 | revision_id | version | revised_at | revised_by | revision_type | supersedes | migration_resolution | summary | reason | affected_locations | evidence | impact_on_conclusions |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-initial-xdlm` | `1.0.0` | `2026-07-16T18:44:15+08:00` | `review_xdlm` | `initial` | `null` | `null` | Initial deep review of arXiv:2602.01362v1 with PDF visuals and pinned code evidence. | 用户要求建立首版审计交付。 | 本文各节；正式 Figure inventory | arXiv v1；XDLM commit `66c34ac5` | `material` |
 | `rev-xdlm-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root` | `content-update` | `rev-initial-xdlm` / `1.0.0` / `0aa01d529b3eab614a75cf265f645ae0738c03e5be2eac9f021149e5183d4cea` | `null` | 新增理解—生成权衡的问题—方案—优化—证据闭环，并统一行内公式为 `$...$`。 | 统一回写既有 Paper 报告并修正 Markdown 数学兼容性。 | `研究动机与问题—方案闭环`；术语/符号与方法、局限 | PDF Figure 1/3/4、Table 17、XDLM commit `66c34ac5` | `minor`：不改变主结论，修复公式渲染 |
+| `rev-xdlm-format-visual-gate-20260725` | `1.1.1` | `2026-07-25T23:59:45+08:00` | `/root` | `format-update` | `rev-xdlm-problem-solution-20260725` / `1.1.0` | `null` | 将设计矩阵标题显式标注 rationale，并在实验章嵌入已 QA 的 Figure 3/4。 | 关闭 Paper 格式与视觉交付自动审计缺口。 | 设计矩阵；关键实验 | Figure inventory 中既有 Figure 3/4 | `none`：不改变分析结论 |
 
 ## 来源与证据库存
 
@@ -123,7 +124,7 @@ D_{\mathrm{KL}}=\frac{\beta_{t|s}\alpha_s r(z_t)}{f_t(x,z_t)}h_t(x,z_t,\tilde x_
 $$
 并在 $s\to t$ 时用 Lemma 3.5 的极限式替换数值不稳定的首项，得到 Eq. (15) 的连续时间训练目标。代码 `XDMHelper.sample_one_step` 直接实现从 mask/token 两种状态分支计算 posterior，`get_kl` 实现 $h_t$ 的标量分解；这与论文的概念对象一致。
 
-### 设计-理由矩阵
+### 设计依据（rationale）矩阵
 
 | 设计 | 理由状态与来源 | 目标瓶颈/问题 | 因果机制 | 替代与 trade-off | 验证 |
 |---|---|---|---|---|---|
@@ -149,9 +150,13 @@ $$
 
 ## 关键实验与归因
 
+![Figure 3：LLaDA-XDLM benchmark 对比](../assets/papers/xdlm/fig3-llada-xdlm.png)
+
 论文在 8×H800、AdamW（$\beta_1=0.9,\beta_2=0.999$）、global batch 512、EMA 0.9999、默认 $k=0.1$ 下统一训练。OWT validation PPL：XDLM 24.097，MDLM 24.016，UDLM 25.937；七个 zero-shot 数据平均 XDLM 54.110，MDLM 53.650，UDLM 59.574。ImageNet-1K 无 CFG 时 XDLM 在 16 steps 报 FID 25.77；CFG=2 时 XDLM 在 4 steps 13.55、8 steps 8.96，16 steps 的最佳整体值转给 MDLM（6.73），显示 kernel 的 benefit 随 budget 改变。
 
 Figure 3 显示 LLaDA-XDLM 在 32 steps 的 MBPP 15.0，相比 LLaDA 6.8；图中还包含 LLaDA-XDLM-infer 5.4 和 LLaDA-MDLM 4.4，说明仅 inference/formulation 不能复现完整继续预训练收益。Figure 4 的 LM1B 曲线显示 UDLM 在 1M steps 达 PPL 96.385，而 XDLM（$k=0.1$）为 101.983；作者正文所谓“match or surpass MDLM”只在部分阶段成立，不能读成所有长期 generation 指标都优于 UDLM。
+
+![Figure 4：文本与图像生成训练动态](../assets/papers/xdlm/fig4-training-dynamics.png)
 
 收益归因应拆成：
 
