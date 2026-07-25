@@ -140,7 +140,7 @@ stream diffusion 又不同：chunk history、noisy context、frame deadline 与 
 
 ### 4.1 U-Net 到 DiT
 
-[DiT](../papers/dit.md) 用规则的 transformer block、adaLN-Zero 和 latent patch 取代多尺度 U-Net。其系统优势是算子更规整、易使用 GEMM/FlashAttention/TP/SP/compile；代价是 token 数对 attention 成本更敏感，局部/多尺度先验需由数据和结构重新学习。
+[DiT](../papers/dit.md#25-完整因果链与证据闭环) 用规则的 transformer block、adaLN-Zero 和 latent patch 取代多尺度 U-Net。其系统优势是算子更规整、易使用 GEMM/FlashAttention/TP/SP/compile；代价是 token 数对 attention 成本更敏感，局部/多尺度先验需由数据和结构重新学习。
 
 ### 4.2 Single-stream、dual-stream 与 MMDiT
 
@@ -202,9 +202,9 @@ $$
 | HunyuanVideo 1.5 | 16×16 | 4 | 1 | 720p/241 帧约数十万 | 具体 padding/latent frame 规则以 checkpoint 为准 |
 | PixelDiT | 无外部 VAE | 1 | 内部 compaction `p` | global path `HW/p²` | pixel path 仍处理局部像素结构 |
 
-[DC-AE Table 3](../papers/dcae.md) 展示 f8p2 到 f64p1 的训练/推理/显存变化；它说明“相同 latent scalar 数”也可能对应完全不同 token 数，attention 与 projection 的瓶颈因此不同。
+[DC-AE Table 3](../papers/dcae.md#51-主结果) 展示 f8p2 到 f64p1 的训练/推理/显存变化；它说明“相同 latent scalar 数”也可能对应完全不同 token 数，attention 与 projection 的瓶颈因此不同。
 
-![DC-AE Table 3：token 压缩对训练、推理和显存的影响。原论文表，PDF p.9。](../assets/papers/dcae/table3-imagenet-efficiency.png)
+![DC-AE Table 3：token 压缩对训练、推理和显存的影响。原论文表，PDF p.8。](../assets/papers/dcae/table3-imagenet-efficiency-caption.png)
 
 ### 5.3 视频 VAE 的 Infra 诉求
 
@@ -254,7 +254,7 @@ window、tile、block-sparse、head-specific pattern 和 dynamic profiling 都�
 
 ### 6.5 DiT cache 与多级 offload
 
-DiT cache 重用相邻 step 的 attention/MLP/transformer feature，不是 LLM KV cache。[FEB-Cache](../papers/feb-cache.md) 把质量漂移与 component frequency 联系起来，但发布实现未复现完整 MLP-only/attention-only table。系统设计应把以下内容作为可选能力而非论文既成事实：
+DiT cache 重用相邻 step 的 attention/MLP/transformer feature，不是 LLM KV cache。[FEB-Cache](../papers/feb-cache.md#25-完整因果链与边界) 把质量漂移与 component frequency 联系起来，但发布实现未复现完整 MLP-only/attention-only table。系统设计应把以下内容作为可选能力而非论文既成事实：
 
 1. HBM 保存热点 step/layer feature；
 2. CPU RAM 保存较冷 feature；
