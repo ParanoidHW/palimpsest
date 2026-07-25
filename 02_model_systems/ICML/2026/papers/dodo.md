@@ -11,14 +11,15 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-dodo-initial`
-- 当前修订时间：`2026-07-17T09:58:45+08:00`
-- 替代版本：无（initial）
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-dodo-problem-solution-20260725`
+- 当前修订时间：`2026-07-25T10:05:32+08:00`
+- 替代版本：`rev-dodo-initial` / `1.0.0` / manifest `106f19de6067499080d8ff689d4eccc4db99810dfb6cd61d73584afd6d7cca6e`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-dodo-initial` | `1.0.0` | `2026-07-17T09:58:45+08:00` | `review_dodo` | initial | 无 | 无 | 建立单篇深度审阅、视觉证据、venue/代码边界和 infra 分析 | 用户题单 | 本文各节与正式 Figure inventory | arXiv v2、Tables 1–3/Figures 4–5、ICML workshop 页面 | material |
+| `rev-dodo-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root` | `content-update` | `rev-dodo-initial` / `1.0.0` / `106f19de6067499080d8ff689d4eccc4db99810dfb6cd61d73584afd6d7cca6e` | 无 | 新增论文级研究动机与问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | 既有 PDF/HTML、Table 2/3、Figure 5/6 与设计理由矩阵 | minor：不改变主结论，补足因果解释 |
 
 ## 0. 资料与配图索引
 
@@ -66,6 +67,36 @@
 - Venue：ICML 官方搜索将其列为 **Workshop**，指向 4th Structured Probabilistic Inference & Generative Modeling；没有主会录用证据。
 - 核心问题：全局 masked diffusion 理论上能并行 OCR，却因长度不匹配与位置锚定产生不可修复的同步错误；怎样保留并行性又恢复因果锚点？
 - 核心判断：DODO 的贡献不是“扩散天然适合 OCR”，而是发现 vanilla 全局扩散实际不适合精确 OCR，并用 block 边界把错误传播范围从全序列缩到局部窗口。
+
+## 1.1 研究动机与问题—方案闭环
+
+### 1.1.1 出发点与背景痛点
+
+作者从长文档 OCR 的解码瓶颈出发：自回归 VLM 虽能高精度转录，但长度为 $L$ 的输出需要约 $L$ 次顺序前向计算。OCR 又不同于开放式生成，图像通常决定近似唯一的目标序列，条件分布较集中，理论上允许多个 token 并行预测。真正的矛盾是：怎样把这种低歧义性转化为吞吐收益，同时不破坏 OCR 对漏字、错位、截断和片段碰撞的严格序列对齐。
+
+### 1.1.2 现有方案为何不够
+
+标准全局 masked diffusion 在固定长度 canvas 上工作，并采用 carry-over unmasking：token 一旦揭示便不能回滚。真实长度未知时，canvas 或 early EOS 会导致截断/冗余；片段若被提交到错误绝对 offset，后续又无法整体平移，便形成断裂或碰撞。简单在推理时给 vanilla MDM 切块也无效：Table 2 中 inference-only block 的 NED 为 0.951，配套 block-wise training 后才降至 0.067。Oracle length 下 vanilla MDM 仍为 0.100 NED，也说明长度不是唯一根因，位置同步仍重要。
+
+### 1.1.3 计划解决的问题与成功标准
+
+- 核心问题：在保留 masked diffusion 多 token 并行的同时，引入因果锚定和动态长度适应。
+- 约束：输出顺序严格、真实长度未知、已提交 token 不可随意改写；block 内仍需并行。
+- 成功标准：以 NED 衡量转录保真度，以 TPS 和 steps/token 衡量效率；达到接近强 OCR/AR 基线的准确率并提高吞吐。
+- 边界：论文未预设明确达标阈值，也未报告生产级 page latency、其他语言或开放生成泛化。
+
+### 1.1.4 核心方案如何解决并优化问题
+
+| 原始问题/失败模式 | 根因或约束 | 对应设计 | 改变的变量/系统行为 | 作用机制 | 预期优化 | 证据与判断 |
+|---|---|---|---|---|---|---|
+| AR 逐 token 串行 | 每个 token 依赖前一次 forward | block 内 masked diffusion | 一次 forward 可提交多个 token | 顺序粒度从 token 提升到 block/step | steps/token、TPS | Figure 5/6；partially supported |
+| 全局 canvas 长度失配 | 推理前未知 $L$，揭示后不可回滚 | block factorization + stopping | 长度决策改为逐 block 扩展 | 避免一次性预设全文 canvas | NED、截断率 | §4.2–4.3、Table 2；partially supported |
+| 片段 offset 被锁死 | 全局非因果提交缺少稳定前缀锚点 | 顺序 prefix anchor + block-wise training | 待对齐范围缩到当前 block | 训练中学习以 committed prefix 定位 | NED、结构稳定性 | inference-only 0.951→trained 0.067；supported as bundle |
+| 每步重算长 prefix | bidirectional prefix 随 active block 改变 | block-causal attention + exact KV cache | committed prefix KV 变为静态 | 只重算 active block | TPS | Table 3：29.5→103.7 TPS、NED 近似；supported as bundle |
+
+### 1.1.5 完整因果链与证据闭环
+
+长 OCR 的 AR 串行成本高 → OCR 低歧义允许并行，但全局 MDM 的固定 canvas 与不可回滚提交会放大长度和位置错误 → DODO 将全文分解为顺序条件化的有限 block，以已完成 prefix 作为坐标锚点，并让 block 结构进入训练 → block 内保留并行揭示，block-causal attention 再使 prefix 可 exact cache → 改变的是不可逆承诺范围、前缀依赖和每 token 前向次数 → NED 降低、steps/token 与 TPS 改善。Table 2/3 和 Figure 6 支持训练—推理一致的 block 结构及 cache 有效；但位置错误类型没有直接计数，stopping 没有独立消融，约 5× 收益也混合 block training、attention mask 与 cache，因此单组件贡献仍未完全隔离。
 
 ## 2. 核心贡献与证据边界
 

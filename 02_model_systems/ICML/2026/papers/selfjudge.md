@@ -11,14 +11,15 @@
 
 ## 修订信息
 
-- 当前文档版本：1.0.0
-- 当前修订 ID：rev-selfjudge-initial
-- 当前修订时间：2026-07-17T12:00:00+08:00
-- 替代版本：无（initial）
+- 当前文档版本：1.1.0
+- 当前修订 ID：rev-selfjudge-problem-solution-20260725
+- 当前修订时间：2026-07-25T10:05:32+08:00
+- 替代版本：rev-selfjudge-initial / 1.0.0 / manifest `71b30e32bbd27bd0db9f3bf6c657bc5e6feccb6ea08527ff33e2da3653415fd2`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | rev-selfjudge-initial | 1.0.0 | 2026-07-17T12:00:00+08:00 | review_selfjudge | initial | 无 | 无 | 首次精读、图表 QA、证据与 infra 分析 | 用户委派 | 全文 | task packet、PDF、source、validation | none |
+| rev-selfjudge-problem-solution-20260725 | 1.1.0 | 2026-07-25T10:05:32+08:00 | `/root` | content-update | rev-selfjudge-initial / 1.0.0 / `71b30e32bbd27bd0db9f3bf6c657bc5e6feccb6ea08527ff33e2da3653415fd2` | 无 | 新增自监督 judge verification 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1–4、Eq. 6–8 与既有证据矩阵 | minor：明确这是可调有损加速 |
 
 ## 0. 资料与配图索引
 
@@ -40,7 +41,7 @@
 | draft model | 生成候选 token 与概率的小模型 | M_draft | 不等于 judge | §3.1 |
 | alignment verification | 依据 p/q 的 rejection sampling | standard SD | 与语义 judge 不同 | Eq.(3) |
 | judge verification | target hidden state 上的二分类器 | judge decoding | 不是离线 suffix score | §3.2、Eq.(4–5) |
-| semantic preservation score | 替换前后 target likelihood 差 | s(y,z_i) | 不是外部语义真值 | Eq.(6–8) |
+| semantic preservation score | 替换前后 target likelihood 差 | $s(y,z_i)$ | 不是外部语义真值 | Eq.(6–8) |
 | SelfJudge-R / F | 在线阈值取最佳 recall / F1 | operating point | 不是不同容量 | §4.2 |
 | two-stage verification | judge 与 alignment 并行，任一路径通过即接受 | SelfJudge inference | judge 单独不保持 target 分布 | §3.2、Appendix D.2 |
 | suffix window | 离线标注纳入的未来 token 数 | N | 在线 verifier 不访问 future token | Figure 4 |
@@ -49,19 +50,19 @@
 
 | 符号 | 含义 | 性质 | 作用域 | 单位/取值 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
-| \(\gamma\) | 每 cycle draft token 数 | author-defined | 每请求 | GSM8K=20、MMLU=15（wall-clock） | §3.1、§4.5 | 不等于 m |
-| \(d_i,q_i\) | draft token 与概率 | author-defined | token i | token / [0,1] | Eq.(1) | q 与 p 区分 |
-| \(p_i,u_i,r_i\) | target 概率、随机量、alignment 接受率 | author-defined | token i | [0,1] | Eq.(2–3) | alignment 路径 |
-| \(h_i\) | target hidden state | author-defined | token i | vector | Eq.(4–5) | 在线 verifier 输入 |
-| \(\theta\) | 在线 judge 阈值 | author-defined | 每配置 | holdout 选择 | Eq.(5)、Table 2 | 与 τ 不同 |
-| \(y,y_{<i},y_{>i}\) | target response、前缀、后缀 | author-defined | 每样本/位置 | sequence | Eq.(6–8) | suffix 仅离线 |
-| \(z_i\) | mismatch 位置的 draft top-1 token | author-defined | token i | token | Eq.(6) | 不是任意替换 |
-| \(s(y,z_i)\) | semantic score | author-defined | mismatch | log-likelihood difference | Eq.(6–8) | target 自身 proxy |
-| \(\tau\) | 离线标签阈值 | author-defined | 数据生成 | AutoJudge unacceptable 的 0.1 quantile | §4.1 | 与 θ 不同 |
-| \(N\) | suffix window | author-defined | 离线 | 0/5/10/20 | Figure 4 | N=0 为 prefix-only |
-| \(m\) | 平均 accepted length | author-defined | 数据集级 | token/cycle | Tables 1–3 | 不等于 token/s |
+| $\gamma$ | 每 cycle draft token 数 | author-defined | 每请求 | GSM8K=20、MMLU=15（wall-clock） | §3.1、§4.5 | 不等于 m |
+| $d_i,q_i$ | draft token 与概率 | author-defined | token i | token / [0,1] | Eq.(1) | q 与 p 区分 |
+| $p_i,u_i,r_i$ | target 概率、随机量、alignment 接受率 | author-defined | token i | [0,1] | Eq.(2–3) | alignment 路径 |
+| $h_i$ | target hidden state | author-defined | token i | vector | Eq.(4–5) | 在线 verifier 输入 |
+| $\theta$ | 在线 judge 阈值 | author-defined | 每配置 | holdout 选择 | Eq.(5)、Table 2 | 与 τ 不同 |
+| $y,y_{<i},y_{>i}$ | target response、前缀、后缀 | author-defined | 每样本/位置 | sequence | Eq.(6–8) | suffix 仅离线 |
+| $z_i$ | mismatch 位置的 draft top-1 token | author-defined | token i | token | Eq.(6) | 不是任意替换 |
+| $s(y,z_i)$ | semantic score | author-defined | mismatch | log-likelihood difference | Eq.(6–8) | target 自身 proxy |
+| $\tau$ | 离线标签阈值 | author-defined | 数据生成 | AutoJudge unacceptable 的 0.1 quantile | §4.1 | 与 θ 不同 |
+| $N$ | suffix window | author-defined | 离线 | 0/5/10/20 | Figure 4 | N=0 为 prefix-only |
+| $m$ | 平均 accepted length | author-defined | 数据集级 | token/cycle | Tables 1–3 | 不等于 token/s |
 | Acc/FC/Pass@1 | accuracy、事实一致性、代码首次通过率 | author-defined | 数据集级 | %/score | Tables 1/6/7 | 不可跨任务直接比 |
-| \(\Delta_m,\Delta_{task}\) | 相对 SD 的长度/任务变化 | author-defined | 汇总 | token/point | Table 1 | 无置信区间 |
+| $\Delta_m,\Delta_{task}$ | 相对 SD 的长度/任务变化 | author-defined | 汇总 | token/point | Table 1 | 无置信区间 |
 
 ## 0.2 AI 生成算法分析示意图
 
@@ -74,6 +75,36 @@
 - 目标：用 target likelihood 自监督训练轻量 verifier，提高 accepted length 与 wall-clock throughput。
 - 假设：target likelihood 差可作语义 proxy；离线可看 suffix，在线只有 prefix hidden state；judge OR acceptance 会放宽严格分布等价。
 - 版本：固定 arXiv:2510.02329v2（27 May 2026），metadata 为 ICML 2026。
+
+## 1.1 研究动机与问题—方案闭环
+
+### 1.1.1 出发点与背景痛点
+
+标准 speculative decoding 为保持与 target 完全相同的采样分布，会拒绝 lexical 不同但语义可接受的 draft token，导致 accepted length 偏低。已有宽松 verifier 往往依赖人工标签、规则、可执行答案或特定领域 judge，难以跨任务扩展。作者希望从 target 自身获得监督，在不需要外部标注的情况下学习“语义上可接受”的放宽验证器。
+
+### 1.1.2 现有方案为何不够
+
+严格 token equality/likelihood acceptance 优化的是分布等价，不是任务语义等价；外部 AutoJudge 的训练域又会造成跨域退化。根因是 verifier 缺少可规模化、与当前 target 对齐的 semantic acceptability 标签。直接用当前 token likelihood 仍看不到替换对后续序列的影响，因此作者利用 suffix likelihood 构造离线反事实标签，再学习在线可用的 prefix-state judge。
+
+### 1.1.3 计划解决的问题与成功标准
+
+- 核心问题：用 target 自监督生成 acceptability 标签并训练轻量 verifier，补回严格验证误拒的语义等价 token。
+- 约束：在线 verifier 只能读取当前 target hidden state；judge 与标准 rejection sampling 并行；放宽接受会牺牲严格分布等价。
+- 成功标准：提高 average accepted length 和 wall-clock throughput，同时把任务 accuracy/quality 降幅控制在阈值内，并跨数学、知识和代码任务泛化。
+- 边界：target likelihood 是语义 proxy 而非人工真实性判断；阈值与 suffix window 需按任务校准。
+
+### 1.1.4 核心方案如何解决并优化问题
+
+| 原始问题/失败模式 | 根因或约束 | 对应设计 | 改变的变量/系统行为 | 作用机制 | 预期优化 | 证据与判断 |
+|---|---|---|---|---|---|---|
+| 严格 SD 拒绝语义等价 token | acceptance 只看分布/词面一致 | judge OR standard acceptance | 最终接受集合扩大 | 任一规则通过即可保留 token | accepted length、throughput | Figure 1/3；supported，但有损 |
+| 缺少可扩展 judge 标签 | 人工/规则标签昂贵且域相关 | target-likelihood self-supervision | mismatch token 获得自动二元标签 | 比较替换前后 suffix likelihood | 跨域训练数据 | Figure 2、Eq. 6–8；plausible/indirect |
+| 离线标签使用 future，在线不可见 | 训练和部署信息不对称 | lightweight hidden-state verifier | 在线只读 prefix hidden state | 蒸馏离线 acceptability signal | 低开销判断 | 方法与吞吐结果支持；无 kernel-only 隔离 |
+| 语义影响可能延迟出现 | 单 token score 看不到后续 | suffix window $N$ | 标签考虑未来 N token | 捕获替换对局部续写的影响 | quality—speed 校准 | Figure 4；supported sensitivity |
+
+### 1.1.5 完整因果链与证据闭环
+
+严格 speculative verification 把语义可接受但词面不同的 token 拒绝 → 根因是验证目标追求分布等价且缺少可扩展语义标签 → 用 target 对替换前后 suffix 的 likelihood 差生成自监督标签 → 训练只依赖 prefix hidden state 的轻量 judge，并与标准 acceptance 取 OR → 改变每轮接受集合和平均 chunk 长度 → 预期提高吞吐，同时以阈值控制质量损失。Figure 2 支持标签构造，Figure 3/4 给出速度—准确率与 suffix window 敏感性，跨域对比也显示优于域特定 judge；但 likelihood 差未被人工语义标注直接校准，放宽规则不再保证 exact sampling，因此证据支持的是“可调有损加速”，不是无损 speculative decoding。
 
 ## 2. 核心贡献
 
@@ -130,7 +161,7 @@ s(y,z_i)=
 \underbrace{\log P(y_{>i}\mid y_{<i},z_i)-\log P(y_{>i}\mid y_{\le i})}_{\mathrm{suffix\ likelihood}}.
 $$
 
-标签为 \(\mathbf{1}[s(y,z_i)>\tau]\)。这里的“语义”只是 target 概率下的条件一致性 proxy；事实改变但 likelihood 仍高时可能误放行。
+标签为 $\mathbf{1}[s(y,z_i)>\tau]$。这里的“语义”只是 target 概率下的条件一致性 proxy；事实改变但 likelihood 仍高时可能误放行。
 
 ### 3.5 训练/实验/部署
 
@@ -199,11 +230,11 @@ Table 3：单 A100 的 SelfJudge-F 吞吐，GSM8K 137.37 vs SD 111.21（+23.5%�
 
 ### 7.1 算力
 
-每 cycle 约为 \(C_T+\gamma C_D+C_V\)。论文测得 \(C_V=0.02\) 秒。SelfJudge 不减少 target 参数，而以更多 accepted tokens 摊薄每 token 的 target forward。
+每 cycle 约为 $C_T+\gamma C_D+C_V$。论文测得 $C_V=0.02$ 秒。SelfJudge 不减少 target 参数，而以更多 accepted tokens 摊薄每 token 的 target forward。
 
 ### 7.2 显存与存储
 
-训练保存 mismatch hidden state，约 \(O(LH)\)；论文给 69,432/53,318 labels，未给 dtype/GB。在线需双模型 KV cache、logits/hidden 和线性权重。70B 用 4×A100 TP；显存布局与量化未报告。
+训练保存 mismatch hidden state，约 $O(LH)$；论文给 69,432/53,318 labels，未给 dtype/GB。在线需双模型 KV cache、logits/hidden 和线性权重。70B 用 4×A100 TP；显存布局与量化未报告。
 
 ### 7.3 Data Types
 

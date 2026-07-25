@@ -11,14 +11,15 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-echo-initial`
-- 当前修订时间：`2026-07-17T10:15:00+08:00`
-- 替代版本：无（initial）
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-echo-problem-solution-20260725`
+- 当前修订时间：`2026-07-25T10:05:32+08:00`
+- 替代版本：`rev-echo-initial` / `1.0.0` / manifest `1996f8ea4d8bfc9a5dfe46dfd5027a7476c5e64f5664c027acbc219c560ef0c0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-echo-initial` | `1.0.0` | `2026-07-17T10:15:00+08:00` | `review_echo` | `initial` | 无 | 无 | 首次建立完整深度审查、视觉证据、venue 核验和 infra 分析 | 用户题单 | 本文各节与两张正式图 | arXiv v2、LaTeX source、OpenReview 主投稿元数据 | material |
+| `rev-echo-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root` | `content-update` | `rev-echo-initial` / `1.0.0` / `1996f8ea4d8bfc9a5dfe46dfd5027a7476c5e64f5664c027acbc219c560ef0c0` | 无 | 新增高并发验证预算的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1/2/5、Algorithm 1、Theorem 2 与既有证据矩阵 | minor：不改变主结论，强化归因边界 |
 
 ## 0. 资料与配图索引
 
@@ -65,6 +66,37 @@
 - Venue：**ICML 2026 spotlight**，由 OpenReview 主投稿元数据独立确认；不是仅凭候选清单推断。
 - 研究问题：传统 speculative decoding 在低 batch 下可把 target 验证近似当“免费并行”，但高并发下验证转为 compute-bound，静态大树把低价值 token 推入昂贵验证，动态密集控制又有判断误差、控制开销和 ragged-kernel 不兼容。
 - 核心假设：每轮总验证量可被硬预算 $K_{\max}$ 约束；置信度可代理候选的边际接受收益；少数深度比其余深度更可分。
+
+## 1.1 研究动机与问题—方案闭环
+
+### 1.1.1 出发点与背景痛点
+
+ECHO 面向大模型高并发服务。传统 speculative decoding 默认 target 能近似“免费”并行验证更多候选，因而倾向扩大候选树、提高 Mean Accepted Tokens；但高并发时总验证量 $K_{\mathrm{total}}$ 使 target verification 进入 compute-bound，额外候选会直接拉长整批请求的验证时间。论文因此不再追求单请求最大化树或 MAT，而是问：共享验证算力成为稀缺资源时，怎样提高每轮 verified tokens 真正转化为接受进展的比例。
+
+### 1.1.2 现有方案为何不够
+
+静态树控制开销低，却在低置信请求上提交大量无效分支；动态树若在每层/节点密集判断，又会累积误剪和控制开销。Figure 2 显示置信度可分性随深度变化，只有少数深度是 accept/reject 的 sweet spots。更深层的根因是优化目标错位：当 $K_{\mathrm{total}}>K_{\max}$ 后，MAT 增加不再等价于吞吐提升；只扩大树增加验证浪费，只做请求调度又无法清除树内低价值候选。
+
+### 1.1.3 计划解决的问题与成功标准
+
+- 核心问题：在 $\sum_i K_i\le K_{\max}$ 的共享预算下联合决定树深、树宽和跨请求预算。
+- 约束：training-free，不修改 target 权重和接受规则；控制开销低；ragged tree 可进入验证路径。
+- 成功标准：高负载提高 tokens/s，低负载提高相对 AR wall-time speedup，并用 Draft Utilization 检查候选效率。
+- 边界：TTFT、P95/P99、公平性、starvation、能耗和非 H100 条件未验证。
+
+### 1.1.4 核心方案如何解决并优化问题
+
+| 原始问题/失败模式 | 根因或约束 | 对应设计 | 改变的变量/系统行为 | 作用机制 | 预期优化 | 证据与判断 |
+|---|---|---|---|---|---|---|
+| 高并发候选越多、验证越慢 | verification 超过饱和点 | batch 固定预算 $K_{\max}$ | 限制 $K_{\mathrm{total}}$ | 将无界扩树改为共享预算分配 | throughput、验证利用率 | Figure 1/5；partially supported，缺 budget sweep |
+| dense gate 开销高且误剪 | 深度间置信度可分性不同 | AUC-selected sparse gates | 减少 gate 次数 | 只在高可分深度截断/扩展 | tokens/s | Figure 2/5；direct ablation supported |
+| 单一阈值跨深度失配 | 正确路径置信度随深度下降 | depth-aware $\tau_d$ | 各深度放行边界 | 减少浅层放行和深层过剪 | budget utilization | Appendix D/Figure 5；supported |
+| 固定树浪费在低置信请求 | 请求的边际接受收益不同 | 跨请求优先扩深、剩余预算扩宽 | 重分配各请求 $K_i$ | 预算流向高置信路径 | batch 接受进展 | Algorithm 1/Theorem 2；partially supported |
+| ragged tree 不适配 dense path | 每请求候选数不同 | flatten-and-pack | 重排候选执行布局 | 对候选并集一次验证 | runtime compatibility | Figure 3；代码未发布，unverified implementation |
+
+### 1.1.5 完整因果链与证据闭环
+
+高并发使 target verification 从近似免费并行变为 compute-bound 共享资源 → 静态大树浪费验证，dense 动态控制又误剪并增添开销 → ECHO 用 sparse、depth-aware gate 识别值得继续的路径，在固定 $K_{\max}$ 下把低置信请求释放的预算转给高置信请求，剩余预算再扩宽，并将 ragged tree 打包统一验证 → 改变的是 gate 频率、候选集合、请求间预算和总验证上界 → matched ablation 支持 sparse gate 与 depth-aware threshold，完整系统在 Qwen3-235B、BS=256 上由 2,803 提升至 3,207 tok/s。端到端增益仍绑定初始树、调度和 packing；Theorem 2 也未证明 confidence 能准确排序真实边际收益，因此公平性、tail latency 和 packing kernel 效率仍未闭环。
 
 ## 2. 核心贡献与创新点
 

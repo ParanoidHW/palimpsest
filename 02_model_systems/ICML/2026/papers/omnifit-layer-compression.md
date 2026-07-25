@@ -11,15 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-omnifit-openreview-refresh`
-- 当前修订时间：`2026-07-24T23:30:00+08:00`
-- 替代版本：`rev-omnifit-initial` / `1.0.0`
+- 当前文档版本：`1.2.0`
+- 当前修订 ID：`rev-omnifit-problem-solution-20260725`
+- 当前修订时间：`2026-07-25T10:05:32+08:00`
+- 替代版本：`rev-omnifit-openreview-refresh` / `1.1.0` / manifest `47536b25688678da0ecd7fc876e76b73211c8d050f9f7983eba20b6a8f5224fe`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | rev-omnifit-initial | 1.0.0 | 2026-07-17T00:00:00+08:00 | review_omnifit | initial | none | none | 建立 blocked 交付并记录恢复边界 | 精确论文资料不可用 | 全文 | task_packet.yaml recovery_attempts_already_made | material |
 | rev-omnifit-openreview-refresh | 1.1.0 | 2026-07-24T23:30:00+08:00 | `/root` | evidence-update | rev-omnifit-initial / 1.0.0 | none | 恢复精确 OpenReview/ICML 身份并记录访问阻塞 | 刷新上次未取得源文件的论文 | 来源、身份与阻塞边界 | OpenReview `8RY20mLzup`；ICML poster `65962` / Spotlight `84897` | material：身份/venue 已确认，技术结论仍 blocked |
+| rev-omnifit-problem-solution-20260725 | 1.2.0 | 2026-07-25T10:05:32+08:00 | `/root` | content-update | rev-omnifit-openreview-refresh / 1.1.0 / `47536b25688678da0ecd7fc876e76b73211c8d050f9f7983eba20b6a8f5224fe` | none | 新增论文级问题—方案闭环的 blocked 分类，不从题名推断机制 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | 精确身份、访问阻塞和排除同名论文证据 | minor：技术结论仍 blocked |
 
 ## 0. 资料与配图索引
 
@@ -52,6 +53,34 @@
 - Venue：ICML 2026 Spotlight；身份由官方 poster 与 OpenReview 元数据交叉确认。
 - 研究领域：据标题和官方摘要为 omnimodal large language model 的 training-free layer-adaptive token compression；正文实现未核验。
 - 核心问题、研究目标、关键约束/假设：不可判定。任何具体描述都可能把标题误读为方法事实。
+
+## 1.1 研究动机与问题—方案闭环
+
+### 1.1.1 出发点与背景痛点
+
+当前可访问的一手材料只确认题名、作者身份和 ICML 2026 Spotlight 状态。题名包含 “Bridging Modalities”“Layer-Adaptive Token Compression”和“Omnimodal Large Language Models”，但题名不能证明作者如何定义背景痛点，因此论文出发点标记为 `unavailable`。尤其不能据此断言瓶颈发生在视觉 token、音频 token、特定层或 KV cache。
+
+### 1.1.2 现有方案为何不够
+
+PDF、摘要正文、公式、图表和代码均不可得，无法确认作者比较了哪些现有方案、观察到什么失败模式，以及根因是模态冗余、层间信息密度差异、算力/显存约束还是其他因素。此前检索到的同名 3D body-fitting 论文已被明确排除，不能用于补写这一缺口。
+
+### 1.1.3 计划解决的问题与成功标准
+
+- 核心问题：`not-stated / unavailable`。
+- 目标场景、约束与指标：`unavailable`。
+- 摘要数字：当前正式报告仅将 20% token、98% performance、2.31× speedup、2.5× VRAM saving 作为未复核作者声明；在缺少原摘要/PDF定位时，不能据此反推具体优化机制。
+- 明确不做：不从题名推断 layer selection、token scoring、训练目标或部署结构。
+
+### 1.1.4 核心方案如何解决并优化问题
+
+| 原始问题/失败模式 | 根因或约束 | 对应设计 | 改变的变量/系统行为 | 作用机制 | 预期优化 | 证据与判断 |
+|---|---|---|---|---|---|---|
+| unavailable | unavailable | 题名仅出现 layer-adaptive token compression | unavailable | unavailable | 题名暗示压缩，但指标和路径不可确认 | 无正文证据；blocked |
+| unavailable | unavailable | 题名仅出现 bridging modalities | unavailable | unavailable | unavailable | 不把命名扩写成算法事实；blocked |
+
+### 1.1.5 完整因果链与证据闭环
+
+本轮无法建立“背景痛点 → 现有方案失败 → 根因 → 设计 → 被改变变量 → 指标改善”的论文级因果链。唯一可靠结论是论文身份和 venue；方案机制及优化证据仍 blocked。解除阻塞后应优先读取 Introduction、method overview、主表和消融，再用新修订替换本节，而不是保留任何由题名产生的推测。
 
 ## 2. 核心贡献与创新点
 

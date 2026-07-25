@@ -11,14 +11,15 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-lime-initial`
-- 当前修订时间：`2026-07-17T10:00:00+08:00`
-- 替代版本：无（initial）
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-lime-problem-solution-20260725`
+- 当前修订时间：`2026-07-25T10:05:32+08:00`
+- 替代版本：`rev-lime-initial` / `1.0.0` / manifest `82016b244a1fa626a9a83e3b2387bc0e546d267e059449dd589b77e915f2b825`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | `rev-lime-initial` | `1.0.0` | 2026-07-17T10:00:00+08:00 | `review_lime` | `initial` | 无 | 新建单篇精读、证据矩阵与图表 inventory | 用户委派 ICML 2026 精读 | 全文 | arXiv v1 PDF、提取文本、图表 QA | 无 |
+| `rev-lime-problem-solution-20260725` | `1.1.0` | 2026-07-25T10:05:32+08:00 | `/root` | `content-update` | `rev-lime-initial` / `1.0.0` / `82016b244a1fa626a9a83e3b2387bc0e546d267e059449dd589b77e915f2b825` | 新增轻量 MoE-PEFT 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1/2、Table 2 与既有消融 | minor：不改变主结论，补充系统边界 |
 
 ## 0. 资料与配图索引
 
@@ -83,6 +84,36 @@
 - 关键约束/假设：冻结 backbone；`E≪d` 的 representation slice 足够路由；共享 PEFT 输出可经逐元素缩放逼近专家专属 adapter；因果窗口末 token 信息量不低于更早 token；数据和训练预算有限。
 - venue 判断：arXiv 元数据只显示 cs.LG 预印本；没有可验证的 ICML acceptance/decision 元数据，不能把候选列表当作接收事实。
 
+## 1.1 研究动机与问题—方案闭环
+
+### 1.1.1 出发点与背景痛点
+
+LiME 从多模态多任务 PEFT 的扩展成本出发：传统 MoE-PEFT 往往为每个 expert 复制一套 adapter，并在多层设置 learned router。专家数增加时，可训练参数、优化状态和路由开销近似线性增长，削弱了 PEFT 原本的轻量目标；许多设计又只适用于 LoRA，难以复用到其他 PEFT 家族。
+
+### 1.1.2 现有方案为何不够
+
+现有方案把“专家专门化”与“完整 PEFT 参数复制”绑定，根因是 expert identity 直接落在高维权重增量上；learned router 又为每层引入额外参数和输入相关计算。简单减少 expert 会损失任务分工，完整复制则放大参数和训练成本。论文据此把问题改写为：是否只学习低维调制信号，就能让一个共享 PEFT 模块表现出多个专家。
+
+### 1.1.3 计划解决的问题与成功标准
+
+- 核心问题：在不复制完整 adapter、不增加 learned router 参数的情况下保留任务/输入 specialization。
+- 约束：兼容多类 PEFT；训练参数与 expert 数增长应显著慢于 MoE-PEFT。
+- 成功标准：多任务平均指标不低于强 PEFT/MoE-PEFT 基线，同时降低 trainable parameters、训练时间或吞吐成本。
+- 边界：峰值显存仍可能由冻结 backbone 主导；真实 serving 的 expert load、尾延迟和通信未被测量。
+
+### 1.1.4 核心方案如何解决并优化问题
+
+| 原始问题/失败模式 | 根因或约束 | 对应设计 | 改变的变量/系统行为 | 作用机制 | 预期优化 | 证据与判断 |
+|---|---|---|---|---|---|---|
+| 每个 expert 复制 adapter | 专门化编码在高维 PEFT 权重中 | shared PEFT + lightweight modulators | expert-specific 参数从矩阵变为低维向量 | 调制共享更新而非复制完整模块 | trainable parameters、训练效率 | Figure 1/2、参数表；supported |
+| learned router 增参并增加计算 | 每层路由需要额外网络 | representation-reuse routing | 路由信号复用已有表示 | 以零新增 router 参数产生选择分数 | 参数与吞吐 | Figure 1、效率实验；部分支持 |
+| 固定 top-k 难适应样本难度 | 专家需求随输入变化 | Auto Top-K / n-gram routing | 每个输入激活专家数量与粒度 | 按表示或局部模式调整激活 | 质量—计算折中 | 消融/敏感性支持程度依设置 |
+| 多 expert 可能负载塌缩 | 路由偏向少数专家 | load balancing | 专家使用分布 | 约束分配避免专家闲置 | 稳定性与容量利用 | 有训练设计；缺线上 telemetry |
+
+### 1.1.5 完整因果链与证据闭环
+
+MoE-PEFT 随 expert 数复制高维 adapter 并叠加 learned routers → 根因是专门化和路由都通过新增参数实现 → LiME 将可共享的 PEFT 主体与低维 expert modulation 解耦，并复用模型表示完成路由 → 改变的是每个 expert 的参数规模、激活选择和共享计算比例 → 预期在保持多任务专门化的同时降低可训练参数与训练成本。Table 2 和 Figure 2 支持质量与参数/训练效率收益；但峰值显存受 backbone 支配，路由的实际负载均衡、通信和在线尾延迟没有测量，因此系统优化结论不能外推为所有 serving 场景的等比例加速。
+
 ## 2. 核心贡献与创新点
 
 1. **轻量专家**：每层从 `E|ϕ|` 复制 adapter 改为 `|ϕ|+E d_o` 调制参数（Eq. (1)、参数量式、图 1）。
@@ -115,7 +146,7 @@
 
 $$h=z+\hat z\odot P(x).$$
 
-可选共享调制器为 `h=z+\hat z\odot P(x)+γ(\hat z\odot p_s)`。Auto Top-K 选择 `S_θ(x)={i:w_i≥θ max_jw_j}`，随后对选中权重重归一化。论文称支持任意 PEFT，但实际主实验只实例化 LoRA、DoRA、LoRA-FA、SliceFine 和 Prompt Tuning。
+可选共享调制器为 $h=z+\hat z\odot P(x)+\gamma(\hat z\odot p_s)$。Auto Top-K 选择 $S_\theta(x)=\{i:w_i\ge\theta\max_j w_j\}$，随后对选中权重重归一化。论文称支持任意 PEFT，但实际主实验只实例化 LoRA、DoRA、LoRA-FA、SliceFine 和 Prompt Tuning。
 
 ### 3.4 关键公式
 

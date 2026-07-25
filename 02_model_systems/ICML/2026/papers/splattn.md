@@ -11,15 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-splattn-refresh-20260724`
-- 当前修订时间：`2026-07-24T18:21:12+08:00`
-- 替代版本：`rev-splattn-initial` / `1.0.0` / manifest `1006a623b3473b4129ba2f3fd8ecb08fd7c299846678d0636e1b1438fef2650c`
+- 当前文档版本：`1.2.0`
+- 当前修订 ID：`rev-splattn-problem-solution-20260725`
+- 当前修订时间：`2026-07-25T10:05:32+08:00`
+- 替代版本：`rev-splattn-refresh-20260724` / `1.1.0` / manifest `07d9f00acf3f680de281cec7c7caabaecfae10e7492a66d9bd1497750f8ddcfe`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-splattn-initial` | `1.0.0` | `2026-07-16T12:00:00+08:00` | `review_splattn` | initial | 无 | 无 | 首次审阅 | 用户指定的单篇 paper-deep-review 任务 | `analysis.md`；`figure_inventory.md`；`review_checklist.md` | `extracted_text/ar5iv.html`；`code/SplAttN/` | minor |
 | `rev-splattn-refresh-20260724` | `1.1.0` | `2026-07-24T18:21:12+08:00` | `splattn_refresh` | mixed | tracked：`rev-splattn-initial` / `1.0.0` / `1006a623b3473b4129ba2f3fd8ecb08fd7c299846678d0636e1b1438fef2650c` | 无 | 恢复完整 PDF/source；加入 Figure 1 与 Figure 8 严格视觉证据；以官方 ICML 页面提升 venue；刷新代码/checkpoint；重核 SCS/CMIT、kernel 与 runtime，并指出连续论文表述和离散实现的差异 | 任务包的 revise-existing 请求 | `analysis.md`；`figure_inventory.md`；`figures/`；`source/`；`code/`；`checkpoint_metadata/`；`venue/` | `paper.pdf` arXiv v2；`source/example_paper.tex`；ICML poster 60900；commit `0c279d…`；HF model API | material |
+| `rev-splattn-problem-solution-20260725` | `1.2.0` | `2026-07-25T10:05:32+08:00` | `/root` | content-update | `rev-splattn-refresh-20260724` / `1.1.0` / `07d9f00acf3f680de281cec7c7caabaecfae10e7492a66d9bd1497750f8ddcfe` | 无 | 新增 3D–2D bridging 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1/8、Table 4、源码与固定代码 commit | minor：不改变主结论，突出连续—离散实现边界 |
 
 ## 0. 资料与配图索引
 
@@ -45,7 +46,7 @@
 | Gaussian Soft Splatting | 以 Gaussian 邻域和逆深度权重将点的 CCM/深度散射到图像平面 | differentiable Gaussian splatting；soft splat | 不是 3DGS 的可学习椭球/alpha compositing；代码是固定有限窗口 scatter | §3.2 Eq. 6–7；`models/model_utils.py` L1261–1564 |
 | GS-Bridge | Hybrid geometric tokenizer、soft-splatted visual representation、TinyViT 与 3D→2D cross-attention 的组合 | Gaussian Splatting Bridge | 不只是 renderer；也不是 decoder | §3.2；Figure 1/3；`models/SplAttN.py` |
 | Active Cross-Modal Alignment | 几何 token 作 Query，视觉 token 作 Key/Value 的 cross-attention | active attention | 不等于把图像特征简单 concat；代码实际只有每样本 3 个 view token | §3.2 Eq. 8；`SVFNet.forward` |
-| CCM | 由归一化 3D 坐标形成的三通道 pseudo-color map | coordinate color map | 不是 RGB 相机图像；论文把 \(f_k\) 具体化为坐标伪彩色 | §3.2 Eq. 6 后文字；renderer code |
+| CCM | 由归一化 3D 坐标形成的三通道 pseudo-color map | coordinate color map | 不是 RGB 相机图像；论文把 $f_k$ 具体化为坐标伪彩色 | §3.2 Eq. 6 后文字；renderer code |
 | SCS | 预训练 DGCNN 对完成点云真实类别给出的置信度 | Semantic Consistency Score | 不是几何距离，也不是人工感知评分；受 oracle 校准与域偏移影响 | §4.2；Appendix D Eq. 16 |
 | SCS* | 推理时切断/置零 2D branch 后的 SCS counterfactual | visual-removal SCS | 不是独立模型重新训练结果；反映输入删除敏感性 | §4.2；Figure 8 |
 | CMIT | channel-aware entropy 与空间 coverage 的乘积，作者用作 total information yield proxy | Cross-Modal Information Throughput | 不是通信系统的 bit/s；数值依赖 feature scaling、binning 与 coverage 定义 | Appendix C Eq. 15；Figure 8 |
@@ -55,19 +56,19 @@
 
 | 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
-| \(\mathcal{P}_{in}\) | 输入 partial point cloud | author-defined | 每样本，\(N\) 个三维点 | normalized 3D coordinates | Eq. 1；Figure 1 | 与 decoder 的 \(\mathcal{P}_0,\mathcal{P}_1,\mathcal{P}_2\) 不同 |
-| \(\pi(p)\) | 点 \(p\) 到图像平面的投影 | author-defined | 每点 | pixel/sub-pixel coordinate | Eq. 1–4 | 代码随后把坐标 `.long()` 化为离散 scatter index |
-| \(P_{hard},P_{soft}\) | 给定几何的硬/软视觉查询密度 | author-defined | \(v\mid\mathcal{P}_{in}\) | normalized density interpretation | Eq. 1, 3 | 实现未显式归一化成论文的全域概率密度 |
-| \(\mathcal{G}(\cdot;\sigma)\), \(\sigma\) | Gaussian kernel 与带宽 | author-defined / code-valued | 每个 splat 邻域 | 论文未报 numeric \(\sigma\)；PCN code 为 1.5 pixel，kernel size 4 | Eq. 3, 7；`config_pcn.py` | “kernel size 4”不等于 \(\sigma=4\)；无敏感性实验 |
-| \(\alpha_p\) | 点的正贡献权重 | author-defined | 每点 | 非负；实现对应 inverse-depth contribution | Eq. 3；Appendix B | 正文密度式抽象，实际代码还受可见范围 mask 影响 |
-| \(\mathcal{V}(\mathbf q)\) | 查询位置的归一化聚合视觉/CCM 特征 | author-defined | 每空间 query | feature vector | Eq. 6 | 同一字母 \(\mathcal V\) 又在 attention 中作 Value 语义，需按阶段区分 |
-| \(w_k(\mathbf q)\) | Gaussian × inverse-depth 的聚合权重 | author-defined | query \(q\) 邻域内第 \(k\) 个点 | dimensionless relative weight | Eq. 7 | code 的 Gaussian offset 对固定 kernel offsets 计算，x/y index 离散 |
-| \(\mathbf u_k,z_k,f_k,\epsilon\) | 投影位置、深度、附着特征与数值稳定项 | author-defined | 第 \(k\) 个 primitive | pixel；normalized depth；CCM；\(\epsilon=10^{-12}\) in code | Eq. 6–7；renderer | \(z_k\) 需为正；代码 mask 非正深度 |
-| \(\mathbf F_{geo},\mathbf F_{vis},\mathbf F_l,\mathbf F_g\) | 几何 token、视觉 token、局部特征、融合全局特征 | author-defined | token/channel tensors | code 多为 256/512 channels | Figure 1；Eq. 8；`models/SplAttN.py` | 论文图的视觉“field”在 code 中最终压缩为 3 个 TinyViT view vectors |
-| \(\mathbf W_Q,\mathbf W_K,\mathbf W_V,d\) | cross-attention projections 与 head dimension | author-defined | attention layer | code `d_model=256`, `nhead=4` | Eq. 8；`SVFNet` | 与视觉 Value \(\mathcal V\) 同字母但层级不同 |
-| \(H(\mathbf V),C(\mathbf V),\mathrm{CMIT}\) | channel-aware entropy、active coverage 与二者乘积 | author-defined | 每 feature representation | proxy，非 bit/s | Appendix C Eq. 15 | Figure 8 的 7.8×25.7≈200.5；数值尺度不可跨实现直接比较 |
-| \(\mathrm{SCS},\mathrm{SCS}^*\) | 原始视觉输入与视觉移除 counterfactual 的 oracle confidence | author-defined | 每完成点云/汇总 | [0,1] confidence | Appendix D Eq. 16；Figure 8 | 星号表示 intervention，不是统计显著性 |
-| \(\Delta_{rel}\) | 本文用于报告相对变化的推导量 | analysis-derived | 两数比较 | percent | 本分析 §4.4 | 不是论文符号；\((new-old)/old\) |
+| $\mathcal{P}_{in}$ | 输入 partial point cloud | author-defined | 每样本，$N$ 个三维点 | normalized 3D coordinates | Eq. 1；Figure 1 | 与 decoder 的 $\mathcal{P}_0,\mathcal{P}_1,\mathcal{P}_2$ 不同 |
+| $\pi(p)$ | 点 $p$ 到图像平面的投影 | author-defined | 每点 | pixel/sub-pixel coordinate | Eq. 1–4 | 代码随后把坐标 `.long()` 化为离散 scatter index |
+| $P_{hard},P_{soft}$ | 给定几何的硬/软视觉查询密度 | author-defined | $v\mid\mathcal{P}_{in}$ | normalized density interpretation | Eq. 1, 3 | 实现未显式归一化成论文的全域概率密度 |
+| $\mathcal{G}(\cdot;\sigma)$, $\sigma$ | Gaussian kernel 与带宽 | author-defined / code-valued | 每个 splat 邻域 | 论文未报 numeric $\sigma$；PCN code 为 1.5 pixel，kernel size 4 | Eq. 3, 7；`config_pcn.py` | “kernel size 4”不等于 $\sigma=4$；无敏感性实验 |
+| $\alpha_p$ | 点的正贡献权重 | author-defined | 每点 | 非负；实现对应 inverse-depth contribution | Eq. 3；Appendix B | 正文密度式抽象，实际代码还受可见范围 mask 影响 |
+| $\mathcal{V}(\mathbf q)$ | 查询位置的归一化聚合视觉/CCM 特征 | author-defined | 每空间 query | feature vector | Eq. 6 | 同一字母 $\mathcal V$ 又在 attention 中作 Value 语义，需按阶段区分 |
+| $w_k(\mathbf q)$ | Gaussian × inverse-depth 的聚合权重 | author-defined | query $q$ 邻域内第 $k$ 个点 | dimensionless relative weight | Eq. 7 | code 的 Gaussian offset 对固定 kernel offsets 计算，x/y index 离散 |
+| $\mathbf u_k,z_k,f_k,\epsilon$ | 投影位置、深度、附着特征与数值稳定项 | author-defined | 第 $k$ 个 primitive | pixel；normalized depth；CCM；$\epsilon=10^{-12}$ in code | Eq. 6–7；renderer | $z_k$ 需为正；代码 mask 非正深度 |
+| $\mathbf F_{geo},\mathbf F_{vis},\mathbf F_l,\mathbf F_g$ | 几何 token、视觉 token、局部特征、融合全局特征 | author-defined | token/channel tensors | code 多为 256/512 channels | Figure 1；Eq. 8；`models/SplAttN.py` | 论文图的视觉“field”在 code 中最终压缩为 3 个 TinyViT view vectors |
+| $\mathbf W_Q,\mathbf W_K,\mathbf W_V,d$ | cross-attention projections 与 head dimension | author-defined | attention layer | code `d_model=256`, `nhead=4` | Eq. 8；`SVFNet` | 与视觉 Value $\mathcal V$ 同字母但层级不同 |
+| $H(\mathbf V),C(\mathbf V),\mathrm{CMIT}$ | channel-aware entropy、active coverage 与二者乘积 | author-defined | 每 feature representation | proxy，非 bit/s | Appendix C Eq. 15 | Figure 8 的 7.8×25.7≈200.5；数值尺度不可跨实现直接比较 |
+| $\mathrm{SCS},\mathrm{SCS}^*$ | 原始视觉输入与视觉移除 counterfactual 的 oracle confidence | author-defined | 每完成点云/汇总 | [0,1] confidence | Appendix D Eq. 16；Figure 8 | 星号表示 intervention，不是统计显著性 |
+| $\Delta_{rel}$ | 本文用于报告相对变化的推导量 | analysis-derived | 两数比较 | percent | 本分析 §4.4 | 不是论文符号；$(new-old)/old$ |
 
 ## 1. 论文基本信息
 
@@ -78,6 +79,36 @@
 - 研究领域：多模态点云补全、可微投影、3D–2D cross-attention。
 - 核心问题：硬投影把稀疏点云压到极少像素，视觉分支难形成有效的几何—视觉连接；现有多模态模型可能退化为主要依赖 3D 先验。
 - 关键假设：扩大 2D 支持并保留可微权重能提高跨模态可学习性；KITTI 的稀疏/各向异性可用作视觉依赖 stress test。
+
+## 1.1 研究动机与问题—方案闭环
+
+### 1.1.1 出发点与背景痛点
+
+点云补全希望利用图像纹理和轮廓补足稀疏几何，但把 3D 点硬投影到少数像素后，视觉分支只得到离散、低覆盖的支持。即使模型名义上是多模态，也可能主要依赖 3D shape prior，图像只成为弱辅助。作者的出发点是先修复 3D→2D 桥接，再让几何特征主动查询视觉信息，并显式验证模型是否真正依赖视觉。
+
+### 1.1.2 现有方案为何不够
+
+hard projection 的根因是 one-point/one-pixel 离散映射：稀疏点云在图像平面覆盖率低，坐标微小变化也难形成平滑权重变化；被动 concat 又不能保证视觉信息按几何部位被读取。只看 Chamfer Distance 也无法区分“真的使用图像”与“靠几何先验完成”，因此需要机制设计和反事实评估两条线同时闭环。
+
+### 1.1.3 计划解决的问题与成功标准
+
+- 核心问题：建立高覆盖、可学习的 3D–2D 表示桥，并让补全网络主动融合视觉与局部几何。
+- 约束：软投影需保持几何对应；融合不能丢失局部 topology；输出需逐级恢复稠密点云。
+- 成功标准：PCN/ShapeNet 几何指标改善，projection replacement 消融有效，移除视觉后性能应有可解释下降。
+- 边界：论文的连续可微叙述与当前代码的离散 scatter 实现并不完全一致；视觉依赖指标仍受 intervention distribution shift 影响。
+
+### 1.1.4 核心方案如何解决并优化问题
+
+| 原始问题/失败模式 | 根因或约束 | 对应设计 | 改变的变量/系统行为 | 作用机制 | 预期优化 | 证据与判断 |
+|---|---|---|---|---|---|---|
+| 稀疏点只覆盖少量像素 | hard one-to-one projection | Gaussian soft splatting | 每个点影响有限邻域像素及权重 | 扩大 2D 支持并平滑聚合 | CD/F1、跨模态可学习性 | Table 4 direct replacement；supported |
+| 视觉信息被动、容易被忽略 | concat 不按几何需求取信息 | geometric-query cross-attention | geometry token 对 view token 的选择权重 | 由几何位置主动读取视觉线索 | 融合质量 | Figure 1/代码；缺替换消融，plausible |
+| 局部细节与全局骨架难兼顾 | 单一路径 inductive bias 有限 | local encoder + global-local decoder | 局部/全局特征进入不同生成阶段 | 先骨架、后分级细化 | 稠密补全指标 | 结构与主结果支持，组件归因混杂 |
+| 好结果未必来自视觉 | 几何先验可单独完成 | SCS/SCS* + CMIT | 视觉移除后的输出/置信变化 | 反事实衡量视觉依赖 | dependency evidence | Figure 8；partially supported |
+
+### 1.1.5 完整因果链与证据闭环
+
+hard projection 造成图像平面支持稀疏 → 视觉分支难形成稳定跨模态连接，模型可能退化为几何先验 → Gaussian splatting 扩大每个 3D 点的 2D 支持，TinyViT 提取三视角表示，geometry-query attention 主动融合视觉，global-local decoder 再分阶段生成点云 → 改变的是像素覆盖、视角注意力和局部/全局信息进入解码器的路径 → Table 4 支持 soft splat replacement 改善 PCN，Figure 8 支持模型对视觉移除更敏感。未闭合之处是 cross-attention/decoder 未被完全拆分，且代码的整数 scatter 削弱“连续坐标梯度”主张；因此端到端收益成立，但每个理论机制的独立因果强度不同。
 
 ## 2. 核心贡献与证据边界
 
@@ -132,7 +163,7 @@ w_k(\mathbf q)=
 \cdot(z_k+\epsilon)^{-1}.
 $$
 
-代码在 `SoftSplatCCM._gaussian_splat` 中使用 4×4 offsets、\(\sigma=1.5\)，再以 `x_grid.long()`/`y_grid.long()` 建 scatter indices。由于 `x_grid = x + offset`，其 Gaussian 距离对固定 offset 基本为常数；x/y 路由经过整数 index，不提供论文所描述的连续坐标梯度。深度权重仍对正深度可微，但输入 partial points 是模型输入而非学习参数。由此应把论文层面的“连续密度/非消失几何坐标梯度”与代码层面的“离散有限邻域平滑+逆深度归一化”分开。
+代码在 `SoftSplatCCM._gaussian_splat` 中使用 4×4 offsets、$\sigma=1.5$，再以 `x_grid.long()`/`y_grid.long()` 建 scatter indices。由于 `x_grid = x + offset`，其 Gaussian 距离对固定 offset 基本为常数；x/y 路由经过整数 index，不提供论文所描述的连续坐标梯度。深度权重仍对正深度可微，但输入 partial points 是模型输入而非学习参数。由此应把论文层面的“连续密度/非消失几何坐标梯度”与代码层面的“离散有限邻域平滑+逆深度归一化”分开。
 
 Active alignment 为：
 
@@ -147,10 +178,10 @@ $$
 
 ### 3.5 训练、指标与部署设定
 
-- 论文：4×RTX 4090 训练；AdamW；one-cycle cosine 文字。代码 PCN config：420 epochs、global batch 27、LR 2e-4、CosineAnnealingLR、kernel 4、\(\sigma=1.5\)。
+- 论文：4×RTX 4090 训练；AdamW；one-cycle cosine 文字。代码 PCN config：420 epochs、global batch 27、LR 2e-4、CosineAnnealingLR、kernel 4、$\sigma=1.5$。
 - 不一致：论文称 one-cycle cosine，当前代码构建 warmup + cosine scheduler；这可能是措辞差异或训练版本变化，复现时应以 commit/config 固定。
 - 训练 loss：代码使用三尺度 HyperCD-like `arcosh(1+d)` 加 partial-to-final one-sided matching，而论文正文主要介绍评测 CD/DCD/F1，没有完整披露该训练目标细节。
-- PCN 评测：\(L_1\)-CD ×\(10^3\)、DCD、F1；ShapeNet-55/34：\(L_2\)-CD ×\(10^3\)、F-Score@1%。
+- PCN 评测：$L_1$-CD ×$10^3$、DCD、F1；ShapeNet-55/34：$L_2$-CD ×$10^3$、F-Score@1%。
 
 ## 4. 关键结论
 
@@ -158,7 +189,7 @@ $$
 
 ![Figure 8 — KITTI counterfactual evidence](../assets/papers/splattn/fig8-multimodal-dependency.png)
 
-Figure 8 中 SplAttN 的 entropy 7.8、coverage 25.7%，乘积约为 \(7.8\times25.7=200.46\)，与报告 CMIT 200.5 一致。SCS 从 0.518 降至 SCS* 0.383：
+Figure 8 中 SplAttN 的 entropy 7.8、coverage 25.7%，乘积约为 $7.8\times25.7=200.46$，与报告 CMIT 200.5 一致。SCS 从 0.518 降至 SCS* 0.383：
 
 $$
 \Delta_{rel}=\frac{0.383-0.518}{0.518}=-26.1\%.
@@ -222,17 +253,17 @@ Appendix Table 8 在单 RTX 3090、batch 1：
 - 训练报告为 4×RTX 4090；代码使用 DDP/NCCL 与 SyncBatchNorm。
 - PCN final output 16384 points；Chamfer CUDA 和 kNN/FPS custom operators 是主要非标准依赖。
 - 代码没有 AMP/autocast，训练显式将预测/GT 转 float，故公开路径以 fp32 为主；未见 bf16/fp16/fp8/int8/量化。
-- 模型报告 65.89M params。仅 fp32 参数约 \(65.89M\times4=263.6\) MB；训练还需 gradients 与 Adam moments，粗略仅这些状态约 \(4\times\) 参数 bytes，即约 1.05 GB，不含 activations、CUDA workspace 和 DDP buffers。
+- 模型报告 65.89M params。仅 fp32 参数约 $65.89M\times4=263.6$ MB；训练还需 gradients 与 Adam moments，粗略仅这些状态约 $4\times$ 参数 bytes，即约 1.05 GB，不含 activations、CUDA workspace 和 DDP buffers。
 
 ### 7.2 带宽与利用率
 
-Soft splat 对每点每视角写 \(K^2=16\) 个邻域贡献，复杂度约：
+Soft splat 对每点每视角写 $K^2=16$ 个邻域贡献，复杂度约：
 
 $$
 O(BVN K^2),\quad V=3,\;N=2048,\;K=4.
 $$
 
-仅 contribution 数约 \(B\times98{,}304\)，并分别 `scatter_add_` 权重和值；离散随机写降低 coalescing。论文只给 end-to-end latency，未给 bytes moved，故不能诚实计算 effective bandwidth：
+仅 contribution 数约 $B\times98{,}304$，并分别 `scatter_add_` 权重和值；离散随机写降低 coalescing。论文只给 end-to-end latency，未给 bytes moved，故不能诚实计算 effective bandwidth：
 
 $$
 \mathrm{EffectiveBandwidth}=\frac{\mathrm{BytesMoved}}{\mathrm{RuntimeSeconds}}
@@ -290,7 +321,7 @@ README 也链接 Google Drive 三个 `.pth` 文件；本次保存了 folder HTML
 ### 局限
 
 - “continuous density / non-vanishing coordinate gradient”与当前离散 `.long()` scatter 实现存在实质差距。
-- 论文不报告 numeric \(\sigma\) 或 bandwidth/kernel sensitivity；1.5 来自 code config。
+- 论文不报告 numeric $\sigma$ 或 bandwidth/kernel sensitivity；1.5 来自 code config。
 - Figure 8 只有三个方法、一个 stress-test domain，CMIT 与 SCS drop 的“strict correlation”统计证据不足。
 - SCS 依赖 DGCNN oracle calibration；SCS* 是输入破坏 intervention，可能混合视觉依赖与 OOD 响应。
 - runtime 比 GeoFormer 慢约 31%，且没有 kernel/bandwidth profiling。
@@ -299,8 +330,8 @@ README 也链接 Google Drive 三个 `.pth` 文件；本次保存了 folder HTML
 
 ## 10. 研究启发与最小复现闭环
 
-1. 用 bilinear/differentiable rasterizer 替换 integer scatter，直接测 \(\|\partial L/\partial u\|\) 与 alignment error，验证理论主张。
-2. 对 kernel size 与 \(\sigma\) 做二维 sweep，同时报告 CD、coverage、CMIT、latency 和 oversmoothing。
+1. 用 bilinear/differentiable rasterizer 替换 integer scatter，直接测 $\|\partial L/\partial u\|$ 与 alignment error，验证理论主张。
+2. 对 kernel size 与 $\sigma$ 做二维 sweep，同时报告 CD、coverage、CMIT、latency 和 oversmoothing。
 3. 把 renderer-only、fusion-only、decoder-only 的增益拆开，并加入 no-attention/concat/gated fusion。
 4. SCS 之外加入几何 fidelity、human preference、不同 oracle 与多种视觉 intervention 强度。
 5. 最小复现需要 PCN/ShapeNet 数据、TinyViT 预训练权重、对应 SplAttN checkpoint、CUDA Chamfer/PointNet2/kNN ops、4×GPU training 或单 GPU eval；配置必须固定到 commit 与 HF revision。
@@ -308,7 +339,7 @@ README 也链接 Google Drive 三个 `.pth` 文件；本次保存了 folder HTML
 ## 11. 解读问题/待验证清单
 
 1. 如果 x/y scatter index 不可导，论文关于 visual supervision 更新 geometry coordinates 的梯度链条具体作用于哪个可学习变量？
-2. \(\sigma=1.5\) 是否对 224×224、不同点密度和 KITTI normalization 稳健？
+2. $\sigma=1.5$ 是否对 224×224、不同点密度和 KITTI normalization 稳健？
 3. CMIT 的 entropy binning、channel aggregation和 coverage threshold 是否会改变方法排序？
 4. 视觉分支只输出 3 个 view tokens 后，attention 是否仍能定位细粒度 image-plane 区域？
 5. visual-removal 是零输入、mask token 还是移除 branch？不同 intervention 是否同结论？

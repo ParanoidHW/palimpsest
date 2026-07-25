@@ -11,15 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-mtp-source-code-refresh`
-- 当前修订时间：`2026-07-24T23:40:00+08:00`
-- 替代版本：`rev-mtp-initial` / `1.0.0` / manifest `f8e8b9b439ca7db62ff8c98df1f630f94cd617ef8a12963b689a899a1420e1c6`
+- 当前文档版本：`1.2.0`
+- 当前修订 ID：`rev-mtp-problem-solution-20260725`
+- 当前修订时间：`2026-07-25T10:05:32+08:00`
+- 替代版本：`rev-mtp-source-code-refresh` / `1.1.0` / manifest `0c69275a93ca140f479b0710fa0477e48c85e5b2d97de306c08f216528e38693`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-mtp-initial` | `1.0.0` | 2026-07-17T10:00:00+08:00 | `review_mtp` | `initial` | `none` | `none` | 首次完成单篇精读及证据整理 | 用户 ICML 2026 精读任务 | PDF v2、arXiv metadata、图表裁剪与 QA | `none` |
 | `rev-mtp-source-code-refresh` | `1.1.0` | 2026-07-24T23:40:00+08:00 | `mtp_self_distillation_refresh` | `evidence-update` | `rev-mtp-initial` / `1.0.0` / `f8e8b9b439ca7db62ff8c98df1f630f94cd617ef8a12963b689a899a1420e1c6` | `none` | 恢复完整 arXiv v2 源码并固定、审计官方实现；刷新复现与系统结论 | 关闭上一版 source/code blocker | §0、§3、§7–§12；`source/`、`code/mtp-lm/` | e-print `00README.json`；Git commit `167413e`；实现/配置路径 | `material`：核心算法和 cache 行为获代码确认；全量 checkpoint metadata 仍未独立冻结 |
+| `rev-mtp-problem-solution-20260725` | `1.2.0` | 2026-07-25T10:05:32+08:00 | `/root` | `content-update` | `rev-mtp-source-code-refresh` / `1.1.0` / `0c69275a93ca140f479b0710fa0477e48c85e5b2d97de306c08f216528e38693` | `none` | 新增 standalone MTP 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 2/3/4/12 与官方 commit `167413e` | minor：不改变主结论，明确并发瓶颈 |
 
 ## 0. 资料与配图索引
 
@@ -39,7 +40,7 @@
 | MTP | 单个主模型一次前向输出连续 (k) 个 token 的独立模型行为 | multi-token prediction | 不等于带 verifier 的 speculative decoding | Sec.3.2 |
 | Student-forced online MTP | 学生先用 argmax 生成一段，再由冻结 NTP teacher 对该段按自身条件链评分 | online objective | 不等于 teacher-forced ground-truth CE | Eq.(2–3), Sec.3.3 |
 | Hard teacher | teacher 对每个条件位置取 argmax，目标退化为 one-hot 序列 | hard distribution | 不等于 soft teacher 的全分布蒸馏 | Sec.3.3, Appendix B |
-| ConfAdapt | 依据每个预测位置最大 softmax 概率是否超过阈值 (	au)，动态选本步 (k') | confidence-adaptive decoding, CA | 不做二次 verifier；不是接受/拒绝式 speculative decoding | Sec.3.4, Sec.4.3 |
+| ConfAdapt | 依据每个预测位置最大 softmax 概率是否超过阈值 $\tau$，动态选本步 $k'$ | confidence-adaptive decoding, CA | 不做二次 verifier；不是接受/拒绝式 speculative decoding | Sec.3.4, Sec.4.3 |
 | Static (k) | 每次固定输出 (k) 个 token | static decoding | 速度是有效 (k)，不必等于真实硬件吞吐 | Sec.5.2 |
 | Blocked attention | 训练阶段使 MTP span 内 token 只看自身 span 与上游 GT token 的因果 mask | block/causal MTP mask | 不等于推理时使用的标准 causal mask | Sec.4.2, Fig.3 |
 | Effective (k)/Acceleration Factor | 生成全过程平均每个 forward 输出/采用的 token 数，用作加速代理 | effective k | 不等于端到端 tok/s；SGLang 实测另见 Fig.12 | Sec.5.2, App.C.3 |
@@ -49,18 +50,18 @@
 
 | 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
-| (V) | 词表大小 | author-defined | 全局 | token 数 | Eq.(1) | 与 vocabulary 集合同名 |
-| (X=(x_1,ldots,x_N)) | 输入 token 序列 | author-defined | 样本级 | (V^N) | Sec.3.1 | (N) 是训练 context 长度，不是生成长度 |
-| (f_	heta,ell_i) | 参数为 (	heta) 的 transformer 与位置 (i) logits | author-defined | 模型/位置 | (ell_iinmathbb{R}^V) | Sec.3.1 | student/teacher 参数需加上标 |
-| (g) | logits readout（argmax 或 softmax sample） | author-defined | 训练/推理阶段 | token 或分布 | Sec.3.1–3.2 | teacher 的 hard/soft readout 不同 |
-| (k) | MTP span 长度；输出 token 数 | author-defined | 每个 region/step | 训练随机 [2,16] | Sec.3.2, App.B | 与 (k')、(k_{max}) 区分 |
-| (R) | 单个序列中的 MTP region 数 | author-defined | 样本级 | (M=N/(2k_{max})) 实际固定 | Eq.(3), Fig.2 |
-| (y') | 学生 argmax 物化的 (k)-token rollout | author-defined | region 级 | (V^k) | Eq.(2–3) | 不是数据集 ground truth |
-| (P_{	heta_T}), (P_{	heta_S}) | teacher 的 NTP 条件概率、student 的 MTP 分布 | author-defined | token/region | [0,1] | Eq.(2–3) | student 未显式参数化真正联合分布 |
-| (	au) | ConfAdapt 置信度阈值 | author-defined | 每步 | 0.6–0.995 | Sec.4.3, Fig.4 | 不是温度 temperature |
-| (k') | ConfAdapt 本步选择的最大连续高置信位置 | author-defined | 每个生成 step | (1le k'le k_{max}) | Sec.4.3 | 论文文字写 (k'in(1,k_{max}))，实现语义包含 1 |
-| (N) | 训练上下文长度 | author-defined | batch/sample | 160 MetaMathQA；1024 Magpie | App.B |
-| (M) | 每序列 MTP region 数 | author-defined | batch/sample | (N/(2k_{max})) | App.B | 不是模型层数 |
+| $V$ | 词表大小 | author-defined | 全局 | token 数 | Eq. (1) | 与 vocabulary 集合同名 |
+| $X=(x_1,\ldots,x_N)$ | 输入 token 序列 | author-defined | 样本级 | $V^N$ | Sec. 3.1 | $N$ 是训练 context 长度，不是生成长度 |
+| $f_\theta,\ell_i$ | 参数为 $\theta$ 的 transformer 与位置 $i$ logits | author-defined | 模型/位置 | $\ell_i\in\mathbb{R}^V$ | Sec. 3.1 | student/teacher 参数需加上标 |
+| $g$ | logits readout（argmax 或 softmax sample） | author-defined | 训练/推理阶段 | token 或分布 | Sec. 3.1–3.2 | teacher 的 hard/soft readout 不同 |
+| $k$ | MTP span 长度；输出 token 数 | author-defined | 每个 region/step | 训练随机 $[2,16]$ | Sec. 3.2, App. B | 与 $k'$、$k_{\max}$ 区分 |
+| $R$ | 单个序列中的 MTP region 数 | author-defined | 样本级 | $M=N/(2k_{\max})$，实际固定 | Eq. (3), Fig. 2 |
+| $y'$ | 学生 argmax 物化的 $k$-token rollout | author-defined | region 级 | $V^k$ | Eq. (2)–(3) | 不是数据集 ground truth |
+| $P_{\theta_T},P_{\theta_S}$ | teacher 的 NTP 条件概率、student 的 MTP 分布 | author-defined | token/region | $[0,1]$ | Eq. (2)–(3) | student 未显式参数化真正联合分布 |
+| $\tau$ | ConfAdapt 置信度阈值 | author-defined | 每步 | 0.6–0.995 | Sec. 4.3, Fig. 4 | 不是温度 temperature |
+| $k'$ | ConfAdapt 本步选择的最大连续高置信位置 | author-defined | 每个生成 step | $1\le k'\le k_{\max}$ | Sec. 4.3 | 论文文字写 $k'\in(1,k_{\max})$，实现语义包含 1 |
+| $N$ | 训练上下文长度 | author-defined | batch/sample | 160 MetaMathQA；1024 Magpie | App. B |
+| $M$ | 每序列 MTP region 数 | author-defined | batch/sample | $N/(2k_{\max})$ | App. B | 不是模型层数 |
 | (B) | 全局 batch size | analysis-derived from paper | 训练 | 128 或 16 sequences | App.B | 不能直接换算为 token batch，长度不同 |
 | (mathrm{EffK}) | 本文表格中的平均有效 k | analysis-derived | benchmark/策略 | 无量纲 | Tables 1–2 | 不能替代 tok/s |
 
@@ -76,13 +77,43 @@
 - 关键约束/假设：student 与 teacher 从同一 checkpoint 初始化；teacher 冻结；student 的逐位置分布并不天然构造联合分布，故训练用 deterministic rollout + teacher chain score；ConfAdapt 假设“高置信度 token 更可能组成高质量 span”。
 - Venue：任务列表标为 ICML 2026 candidate；arXiv v2 和 PDF 均显示 under review，未独立验证接收。
 
+## 1.1 研究动机与问题—方案闭环
+
+### 1.1.1 出发点与背景痛点
+
+标准 next-token prediction 每次 forward 只提交一个 token，串行依赖造成解码延迟。Speculative decoding 能并行验证多个候选，但通常需要额外 draft/speculator、target verifier、接受规则以及更复杂的 serving pipeline。作者希望保留“一次生成多个 token”的收益，同时让单个已有自回归模型独立完成训练和推理。
+
+### 1.1.2 现有方案为何不够
+
+直接独立预测未来多个 token 会把各位置的高概率选择拼成 teacher 未必认可的联合序列，形成 consistency mismatch；固定预测长度还不能适应不同上下文难度。根因是训练目标若只看逐位置标签，就没有约束 student 自己 rollout 后形成的 token chain 与 teacher 分布保持一致。传统 speculative verification 可以纠错，但重新引入双模型和逐轮验证开销。
+
+### 1.1.3 计划解决的问题与成功标准
+
+- 核心问题：将预训练 NTP LM 蒸馏为 standalone MTP LM，一次 forward 可提交多个相容 token。
+- 约束：不依赖独立 verifier；模型架构和主干实现尽量不变；训练覆盖不同 prefix 和预测跨度。
+- 成功标准：在准确率可控条件下提高 acceleration factor，并给出 static/adaptive 解码的 latency—throughput 行为。
+- 边界：confidence-adaptive 的逐 token 决策开销可能在高并发抵消理论收益。
+
+### 1.1.4 核心方案如何解决并优化问题
+
+| 原始问题/失败模式 | 根因或约束 | 对应设计 | 改变的变量/系统行为 | 作用机制 | 预期优化 | 证据与判断 |
+|---|---|---|---|---|---|---|
+| 多位置独立预测形成不相容序列 | 逐位置监督不约束 student rollout | self-distillation with teacher chain likelihood | 训练 target 从固定标签变为 teacher 对 student chain 的反馈 | 让联合多 token 输出贴近 teacher 条件分布 | chunk accuracy、acceleration | 方法、Figure 4；partially supported |
+| 训练只覆盖固定 prefix/span | 部署时上下文与 MTP 长度变化 | randomized offset/span masks + target replication | 一个序列物化多个 prefix/window 问题 | 并行覆盖不同预测位置与跨度 | 样本效率、泛化 | Figure 2/3、代码；supported |
+| 固定提交长度无法适应难度 | token confidence 随上下文变化 | ConfAdapt | 每轮实际提交 token 数 | 置信度不足时提前停止 | accuracy—speed 自适应 | Figure 4；supported trade-off |
+| speculative pipeline 复杂 | 需要 draft/target 二次验证 | standalone MTP decoding | 服务拓扑变为单模型多 token 提交 | 直接输出 chunk，无第二模型 | 部署简化、单请求 latency | 架构/代码支持；高并发收益受 Figure 12 限制 |
+
+### 1.1.5 完整因果链与证据闭环
+
+NTP 串行延迟高，而传统 speculative decoding 依赖额外 verifier → 直接 MTP 又会产生联合序列不相容 → 根因是训练没有在 student rollout 上约束 teacher 条件概率 → self-distillation 用 teacher feedback 监督 student 生成链，随机 mask/offset 覆盖不同 prefix 和 span，ConfAdapt 再按置信度决定提交长度 → 改变的是一次 forward 的有效提交 token 数及其联合一致性 → Figure 4 支持准确率—加速 Pareto，源码与 commit 验证训练/解码路径。Figure 12 同时表明 static MTP 的并发行为较平滑，而当前 ConfAdapt 逐 token 控制会成为高负载瓶颈，所以“standalone”解决了系统拓扑复杂度，却不自动保证最高 serving throughput。
+
 ## 2. 核心贡献与创新点
 
-1. 提出 Student-forced online MTP objective：用学生 rollout (y') 和 teacher 条件链概率构造在线损失（Eq.2–3），避免 offline CE 让多个位置独立配对、破坏 token 相关性。
+1. 提出 Student-forced online MTP objective：用学生 rollout $y'$ 和 teacher 条件链概率构造在线损失（Eq.2–3），避免 offline CE 让多个位置独立配对、破坏 token 相关性。
 2. 将 MTP 作为 standalone model，而非 speculative draft head；最终推理只需标准模型 forward、KV cache 与 causal mask。
 3. 提出训练时随机 offset/k 的 blocked attention，使一个序列内并行形成多个 MTP 问题（Fig.2–3）。
-4. 提出 ConfAdapt 动态选 (k')，在 GSM8K 上报告 Llama 8B 超过 3× 且相对同 checkpoint 的准确率下降小于 3%，Qwen3-4B 约 3×、下降约 7%（Sec.5.2）。
-5. 在 SGLang prototype 中与 EAGLE-3 比较吞吐/延迟；静态 (k=3) 在单请求/不同并发下具竞争力，但 ConfAdapt 在高并发有调度和过算开销（Fig.12, App.C.3）。
+4. 提出 ConfAdapt 动态选 $k'$，在 GSM8K 上报告 Llama 8B 超过 3× 且相对同 checkpoint 的准确率下降小于 3%，Qwen3-4B 约 3×、下降约 7%（Sec.5.2）。
+5. 在 SGLang prototype 中与 EAGLE-3 比较吞吐/延迟；静态 $k=3$ 在单请求/不同并发下具竞争力，但 ConfAdapt 在高并发有调度和过算开销（Fig.12, App.C.3）。
 
 ## 3. 研究方法
 
@@ -118,14 +149,14 @@ $$P_{\theta_T}(y'\mid x_{1:i})=\prod_{j=1}^{k}P_{\theta_T}(y'_j\mid y'_{1:j-1}\o
 在线 MTP 目标：
 $$L_{MTP}=-\frac1R\sum_{r=1}^{R}P_{\theta_T}(y'\mid x_{1:i_r})\log P_{\theta_S}(y'\mid x_{1:i_r}).$$
 
-ConfAdapt 选择最大 (k')：
+ConfAdapt 选择最大 $k'$：
 $$k'=\max\{m\le k_{max}:\max_j\operatorname{softmax}(\ell_{i+j})>\tau,\;j=0,\ldots,m-1\}.$$
 
 最后一个式子是依据 Sec.4.3 的实现语义整理的 review-derived 公式；论文文字只给出不等式和最大索引。
 
 ### 3.5 训练/实验/部署设计
 
-student/teacher 均从 Llama-3.1-8B-MagpieAlign-SFT-v0.1 或 Qwen3-4B-Instruct-2507 初始化；teacher frozen，student 全参数训练。MetaMathQA 训练 context 160、global batch 128；Magpie ablation context 1024、batch 16；AdamW、warm-up 2000 steps、峰值 lr (10^{-5})、约 100k steps。随机 (k) 平均约 9，MetaMathQA 约 500M supervised tokens；4×GH200 FSDP 训练 24–36h，单 GH200 可评测。Qwen3 未使用官方 chat template，而是 BOS + `input\n\nresponse`；这是重要的公平性与迁移变量。
+student/teacher 均从 Llama-3.1-8B-MagpieAlign-SFT-v0.1 或 Qwen3-4B-Instruct-2507 初始化；teacher frozen，student 全参数训练。MetaMathQA 训练 context 160、global batch 128；Magpie ablation context 1024、batch 16；AdamW、warm-up 2000 steps、峰值 lr $10^{-5}$、约 100k steps。随机 $k$ 平均约 9，MetaMathQA 约 500M supervised tokens；4×GH200 FSDP 训练 24–36h，单 GH200 可评测。Qwen3 未使用官方 chat template，而是 BOS + `input\n\nresponse`；这是重要的公平性与迁移变量。
 
 ## 4. 关键结论
 
@@ -135,11 +166,11 @@ student/teacher 均从 Llama-3.1-8B-MagpieAlign-SFT-v0.1 或 Qwen3-4B-Instruct-2
 
 ![Figure 4: Accuracy versus acceleration](../assets/papers/multi-token-self-distillation/fig4-accuracy-acceleration.png)
 
-Fig.4 的 Llama 模型在 ConfAdapt (	au=0.9) 附近约 3.3×、准确率约 64.1%，相对其 MTP Static k=1 的 66.0% 下降约 1.9 个百分点；Qwen3 在 (	au=0.9) 约 3.1×、83.6%，相对 Static k=1 的 89.1% 下降约 5.5 个百分点。相对“原始 checkpoint step 0”则分别是 69.5% 和 75.4%，所以摘要中的“相对同 checkpoint”不能与 step-0 baseline 混同。Tables 1–2 显示迁移到 BBH、IFEval、CNN DailyMail 时 Eff.k 和质量更不稳定；开放式 CNN 的 Eff.k 通常仅 1.2–3.1。
+Fig.4 的 Llama 模型在 ConfAdapt $\tau=0.9$ 附近约 3.3×、准确率约 64.1%，相对其 MTP Static $k=1$ 的 66.0% 下降约 1.9 个百分点；Qwen3 在 $\tau=0.9$ 约 3.1×、83.6%，相对 Static $k=1$ 的 89.1% 下降约 5.5 个百分点。相对“原始 checkpoint step 0”则分别是 69.5% 和 75.4%，所以摘要中的“相对同 checkpoint”不能与 step-0 baseline 混同。Tables 1–2 显示迁移到 BBH、IFEval、CNN DailyMail 时 Eff.k 和质量更不稳定；开放式 CNN 的 Eff.k 通常仅 1.2–3.1。
 
 ![Figure 12: SGLang throughput/latency](../assets/papers/multi-token-self-distillation/fig12-throughput-latency.png)
 
-Fig.12/Appendix C.3 报告 static k=3 在 c=1 下与 EAGLE-3 竞争；ConfAdapt 单请求有效，但高并发因预测 16、实际接受约 3，浪费计算/带宽且要求同 query length batch，吞吐优势下降。该结果是 prototype serving 的系统性证据，不是算法本身“无损”。
+Fig.12/Appendix C.3 报告 static $k=3$ 在 c=1 下与 EAGLE-3 竞争；ConfAdapt 单请求有效，但高并发因预测 16、实际接受约 3，浪费计算/带宽且要求同 query length batch，吞吐优势下降。该结果是 prototype serving 的系统性证据，不是算法本身“无损”。
 
 ### 4.2 消融和机制证据
 
@@ -259,7 +290,7 @@ README 明确链接 Hugging Face collection，并给出公开 push 命令与 `tr
 1. student 的逐位置分布在何种条件下近似真实联合分布，是否可用 sequence-level likelihood 或 mutual information 直接验证？
 2. ConfAdapt 的阈值是否应按任务、tokenizer、长度和模型规模校准，而不是固定 0.9？
 3. 与 EAGLE-3 比较时，若统一 BF16、CUDA graphs、batch 上限和 overlap scheduling，静态 k=3 的优势是否仍在？
-4. Qwen chat template off 带来的 89.1% Static k=1 是否把 MTP 收益与模板差异混在一起？
+4. Qwen chat template off 带来的 89.1% Static $k=1$ 是否把 MTP 收益与模板差异混在一起？
 5. “3× acceleration”是有效 k、单请求 latency 还是端到端 tok/s；三者在不同并发下如何对应？
 6. 训练时 500M supervised tokens、约 35 epochs 是否会导致特定数据域过拟合？
 7. 已确认代码包含 `<MTP>` token、KV crop/rewrite 与 EOS/stop 处理；仍需逐 checkpoint 验证 remote-code revision 是否与 commit `167413e` 完全一致。

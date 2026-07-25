@@ -11,14 +11,15 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-latentlm-20260716-initial`
-- 当前修订时间：`2026-07-16T18:50:00+08:00`
-- 替代版本：无（initial）
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-latentlm-problem-solution-20260725`
+- 当前修订时间：`2026-07-25T10:05:32+08:00`
+- 替代版本：`rev-latentlm-20260716-initial` / `1.0.0` / manifest `ed220a43616c7af6b26d4477c7227a7366d60ce2a0082c51ac6ac4882f637441`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-latentlm-20260716-initial` | `1.0.0` | `2026-07-16T18:50:00+08:00` | `review_latentlm` | initial | 无 | 无 | 首次建立论文级证据分析、视觉 QA、代码/OpenReview/infra 边界 | 用户题单 | 本文各节与正式 Figure inventory | arXiv v1、LaTeX、Figure 2/7、UniLM commit | material |
+| `rev-latentlm-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root` | `content-update` | `rev-latentlm-20260716-initial` / `1.0.0` / `ed220a43616c7af6b26d4477c7227a7366d60ce2a0082c51ac6ac4882f637441` | 无 | 新增连续 token 自回归建模的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 2/6/7、Tables 3–6 与 UniLM 代码 | minor：不改变主结论，明确组件混杂 |
 
 ## 0. 资料与配图索引
 
@@ -63,6 +64,37 @@
 - 研究领域：统一多模态生成与理解、连续 token 自回归建模、VAE/diffusion。
 - 核心问题：如何让 causal Transformer 同时原生处理离散 token 与连续表征，而不把连续信号强制量化，也不切换到整序列双向 diffusion。
 - 关键假设：连续 latent 可逐 token 生成；轻量 diffusion head 足以建模单 token 条件分布；较大且可控 latent 方差能提高对 exposure bias 的鲁棒性。
+
+## 1.1 研究动机与问题—方案闭环
+
+### 1.1.1 出发点与背景痛点
+
+多模态系统需要同时处理文本/代码等离散数据和图像、语音等连续数据。传统模块化管线依赖 ASR、TTS、文生图等独立模块，以文本作为中间接口，难以端到端优化且会损失跨模态信息。论文真正追求的是：不放弃标准 causal LM 的变长序列、交错模态和 KV-cache 接口，也能逐 token 原生生成连续表征。
+
+### 1.1.2 现有方案为何不够
+
+VQ-VAE 将连续信号量化为 code，会引入信息瓶颈；提高重建质量又会拉长 code 序列。把连续位置交给 sequence-level diffusion 虽共享权重，但仍使用双向注意力、多次 backbone 去噪和不同生成协议，不自然支持变长交错序列。普通 image VAE 还存在 latent channel variance collapse，小方差表征对自回归累计误差脆弱。根因不是单纯“参数未共享”，而是连续输出分布、causal 序列接口和鲁棒 tokenizer 三者不匹配。
+
+### 1.1.3 计划解决的问题与成功标准
+
+- 核心问题：同一 causal Transformer 原生理解/生成离散 token 与连续 latent，避免 VQ 量化和整序列双向 diffusion。
+- 约束：离散位置保留 softmax NTP；连续位置逐 token 生成；大 backbone 每个 AR 位置只计算一次；latent variance 可控。
+- 成功标准：ImageNet 的 FID/IS/throughput、MLLM 的 PPL/FID/CLIP/CIDEr/VQAv2、TTS 的 SIM/WER/frame rate 均形成可接受质量—效率权衡。
+- 边界：端到端延迟、VAE decode/I/O、低精度部署及固定组件的 head-only 隔离消融未报告。
+
+### 1.1.4 核心方案如何解决并优化问题
+
+| 原始问题/失败模式 | 根因或约束 | 对应设计 | 改变的变量/系统行为 | 作用机制 | 预期优化 | 证据与判断 |
+|---|---|---|---|---|---|---|
+| 离散/连续依赖不同管线 | 输出空间不同 | shared causal backbone + 双 head | 上下文计算共享、按位置选分布 | 保留统一 causal sequence | 跨模态指标、PPL/FID | Figure 2/Table 3；partially supported |
+| VQ 信息损失且序列长 | 有限 codebook/低压缩率 | continuous VAE latent | 离散 code 变为短连续向量 | 避免硬量化并缩短 AR 序列 | 重建、frame rate、steps | Tables 4–6；partially supported |
+| 连续 token 不适合 softmax | 条件分布连续且多峰 | next-token diffusion head | 每个连续位置局部去噪 | 以 $h_i$ 条件生成 latent | FID、生成质量 | §2、Tables 1/3；缺 matched alternative head |
+| image diffusion 重复计算 backbone | 每个 denoise step 重跑大模型 | lightweight head + DPM-Solver | 多步计算下沉到局部 head | backbone/KV 每 AR 位置只算一次 | throughput | Figure 7/代码；partially supported |
+| vanilla VAE latent 对 AR 误差脆弱 | variance collapse | σ-VAE | 提高并约束 latent variance | 让 decoder/AR 对 latent 偏移更鲁棒 | FID sensitivity | Figure 6；direction supported |
+
+### 1.1.5 完整因果链与证据闭环
+
+模块化/VQ/sequence-diffusion 分别造成信息瓶颈、长序列或协议割裂 → 根因是连续输出分布与 causal LM 接口不匹配，且普通 latent 对 exposure bias 不鲁棒 → LatentLM 用 σ-VAE 产生可控连续 latent，共享 causal Transformer 统一上下文，离散位置走 softmax、连续位置走轻量 next-token diffusion → 改变的是 token 表示、attention 方向、backbone 重算次数和 latent 扰动尺度 → 预期提高跨模态兼容性、生成质量和吞吐。Figure 6 直接支持 variance 方向，TTS 表格支持短 latent 序列，Table 3/Figure 7 支持整体质量和扩展性；但 diffusion head、GQA、tokenizer 和训练规模仍有混杂，端到端系统成本也未完整计入，因此整体方案有效不等于所有收益可唯一归因于 next-token diffusion。
 
 ## 2. 核心贡献与创新点
 
