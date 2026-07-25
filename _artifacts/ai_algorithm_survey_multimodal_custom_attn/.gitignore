@@ -1,9 +1,0 @@
-# Retain local primary materials without committing large downloads or nested repositories.
-papers/*/paper.pdf
-papers/*/source/
-papers/*/extracted_text/
-papers/*/code/
-papers/*/figures/
-papers/*/crops_spec.json
-figure_qa/
-ppt_qa/detailed_render/

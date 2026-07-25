@@ -1,5 +1,0 @@
-===== PAGE 44 =====
-
-Submission and Formatting Instructions for ICML 2026
-statistical reliability; we report mean accuracy and standard deviation across seeds.
-44

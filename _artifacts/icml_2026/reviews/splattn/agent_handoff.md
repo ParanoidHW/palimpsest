@@ -1,9 +1,0 @@
-# Agent Handoff: SplAttN
-
-- status: `blocked` (PDF/source archive retrieval incomplete; review completed from ar5iv HTML and code).
-- paper: `arxiv:2605.01466v1`, “SplAttN: Bridging 2D and 3D with Gaussian Soft Splatting and Attention for Point Cloud Completion”. Recommended formal slug: `splattn`.
-- provenance: dispatch `icml2026-splattn-001`; task `review_splattn`; task-packet SHA-256 `7b4312a569695b73e21740f0b478b31bb0e465be5e85dffa703fce9c7c4cb737`; skill-tree SHA-256 `93e435dbedfea453d129ba1f62cbc35f718472624053003f80461892f872be6e`; contract SHA-256 `33da33ba0fc320e994da7067084d7d0384e83bc3a5bb5c58d9633f5be54d0e21`.
-- artifacts: `analysis.md`, `figure_inventory.md`, `review_checklist.md`, `deliverable_manifest.json`, `artifact_manifest.sha256`, `extracted_text/ar5iv.html`, `extracted_text/paper.txt`, `code/SplAttN/`.
-- synthesis claims: (1) Gaussian splatting expands idealized support and supplies smooth gradients (analysis §3.4; HTML Eq.(3)-(4)); (2) code implements finite Gaussian kernels and 3D→2D cross-attention (`models/model_utils.py:1263-1524`, `models/SplAttN.py:152-161`); (3) hybrid local/global geometry and SDG produce 256→2048→16384 points (`models/SplAttN.py:200-302`); (4) PCN average CD 6.36 is HTML Table 1 evidence, but component attribution is confounded; (5) KITTI visual ablation uses SCS/CMIT proxies (analysis §4.2, §9).
-- formal-promotion candidates: none accepted as crop because invalid PDF prevents page/bbox/100%-QA. Parent may promote analysis after rewriting artifact-only links and supplying valid PDF crops.
-- blocked/skipped: PDF and source archive truncated; no page renders/crops/contact sheet; OpenReview unavailable; generated diagram skipped because `responses-doc --input-file analysis.md` unsupported; checkpoint metadata absent; ICML status unverified. No suspected out-of-folder write observed.
