@@ -5,711 +5,463 @@
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[Evolution](../surveys/evolution.md)
 > - 证据资产：`../assets/papers/dflash/`
-> - 相关文档：[D2SD](d2sd.md)，[HyperDFlash](hyperdflash.md)
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
 
-## 0. 资料归档与图像元素
+> 资料状态：已核验 arXiv `2602.06036v2` camera-ready PDF、官方 LaTeX/source、官方代码 commit、三组 Hugging Face API/config 快照与 OpenReview submission ID。五张正文/附录 Figure 均由 240 dpi PDF page render 重新裁剪，包含完整 caption；原始 vector PDF 仍在 source。公开 OpenReview 评审 note 因 browser challenge/API 403 无法取得，精确分类为 access-blocked。本文是 delegated process review，不是 formal Paper。
 
-本目录已归档：
+## 修订信息
 
-- 论文 PDF：`2602.06036v2.pdf`（本地 artifacts 中未保留）
-    
-- arXiv 摘要页：`arxiv_abs.html`（本地 artifacts 中未保留）
-    
-- arXiv LaTeX 源码：`source/`（本地 artifacts 中未保留）
-    
-- 从 LaTeX 源码中抽取的原始 PDF 图：`extracted_figures/`（本地 artifacts 中未保留）
-    
-- 从原始 PDF 图转换得到的 Markdown 配图 PNG：已复制到正式目录 `../assets/papers/dflash/`
-    
-- 官方代码仓库快照：`code/dflash/`（本地 artifacts 中未保留），remote 为 `https://github.com/z-lab/dflash`，当前提交 `94e4abc update model list`
-    
-- 本分析文件：当前 Markdown 笔记
-    
+- 当前文档版本：`1.0.0`
+- 当前修订 ID：`rev-dflash-b1-initial`
+- 当前修订时间：`2026-07-25T15:17:53+08:00`
+- 替代版本：无；这是该 process workspace 的首次交付，不接入 legacy delivery。
 
-论文与代码链接：
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-dflash-b1-initial` | `1.0.0` | `2026-07-25T15:17:53+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 首次建立单篇因果闭环、术语符号、设计动机、claim matrix、实验归因、视觉 QA、代码/模型配置/OpenReview/infra 核验 | 父任务要求补齐 DFlash B1 隔离交付 | `analysis.md`；[Figure inventory](../evidence/figure-inventory.md)；过程侧公开评审记录；`source_verification.md`；`code/dflash` | arXiv v2 PDF/source；official code `94e4abc…`；checkpoint configs；结构与语义验证 | material |
 
-- arXiv: [https://arxiv.org/abs/2602.06036v2](https://arxiv.org/abs/2602.06036v2)
-    
-- GitHub: [https://github.com/z-lab/dflash](https://github.com/z-lab/dflash)
-    
-- Hugging Face models: [https://hf.co/collections/z-lab/dflash](https://hf.co/collections/z-lab/dflash)
-    
-- Project page: [https://dflash.z-lab.ai](https://dflash.z-lab.ai/)
-    
+## 0. 资料与配图索引
 
-已从原始 LaTeX 源码抽取图像，并转换为可在 Markdown 中直接显示的 PNG。正文的关键论证段落已经嵌入对应示意图；PDF 原图也保留，便于后续做 PPT 或高精度复用。
+- 论文：`paper.pdf`；arXiv `2602.06036v2`，ICML 2026 camera-ready。
+- 源码/LaTeX：`source/2602.06036.tar` 与 `source/latex/`。
+- 元数据：`source/arxiv-metadata.xml`；完整核验记录见 `source_verification.md`。
+- 开源代码：`https://github.com/z-lab/dflash`；`code/dflash`；commit `94e4abc5e0c31b67bc1a9d30f1cc34ece28a8756`。
+- Checkpoints：`source/hf-qwen3-8b-dflash-*`、`source/hf-qwen3-4b-dflash-*`、`source/hf-qwen3-8b-target-*`。
+- OpenReview：submission/forum `Oz335dV48X`；评审获取分类见 过程侧公开评审记录。
+- 提取文本与 PDF 页渲染已在隔离过程工作区核验；正式文档只保留 QA 通过的原论文裁图。
+- 视觉证据：Figures 1–5；完整页码、caption、bbox 与逐图 QA 见 [Figure inventory](../evidence/figure-inventory.md)。
+- AI 生成分析示意图：未生成。已安装的 `openrouter-icu-image` 只有 `generate/edit` image endpoints，不支持技能强制要求的 `responses-doc --input-file analysis.md` document-input 路径；即使 API key 可用，也不得用 prompt-only 图片替代。
 
-|论文图|PNG 配图|PDF 原图|所在 section|用途|
+| 视觉 | 类型 | 本地路径 | 主要证据 |
+|---|---|---|---|
+| Figure 1 | result | `../assets/papers/dflash/fig1-speedup-caption.png` | Qwen3-8B 各任务端到端 speedup |
+| Figure 2 | mechanism/system | `../assets/papers/dflash/fig2-inference-design-caption.png` | target feature fusion、每层 KV injection、parallel proposal |
+| Figure 3 | system result | `../assets/papers/dflash/fig3-draft-latency-caption.png` | draft depth/token budget 对 latency 的影响 |
+| Figure 4 | mechanism | `../assets/papers/dflash/fig4-training-attention-caption.png` | random anchors、block-local attention、跨 block 隔离 |
+| Figure 5 | mechanism result | `../assets/papers/dflash/fig5-acceptance-vs-epoch-caption.png` | loss decay 的训练动态 |
+
+## 0.1 术语与符号解释
+
+### 0.1.1 术语表
+
+| 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
 |---|---|---|---|---|
-|Figure 1: speedup comparison|[`fig1-speedup.png`](../assets/papers/dflash/fig1-speedup.png)|`dflash_speedup.pdf`|Introduction|DFlash 与 EAGLE-3 / AR decoding 的总体速度对比|
-|Figure 2: inference design|[`fig2-inference-design.png`](../assets/papers/dflash/fig2-inference-design.png)|`dflash_inference_design.pdf`|Preliminaries|目标模型 hidden features 融合并注入 draft KV cache 的推理结构|
-|Figure 3: draft latency bar|[`fig3-draft-latency.png`](../assets/papers/dflash/fig3-draft-latency.png)|`draft_latency_bar.pdf`|Preliminaries|1/3/5 层 DFlash 与 1 层 EAGLE-3 的 draft cost 对比|
-|Figure 4: training attention|[`fig4-training-attention.png`](../assets/papers/dflash/fig4-training-attention.png)|`dflash_attn.pdf`|Method|训练时 block diffusion attention mask、anchor、mask token、跨 block 隔离|
-|Figure 5: acceptance vs epoch|[`fig5-acceptance-vs-epoch.png`](../assets/papers/dflash/fig5-acceptance-vs-epoch.png)|`acceptance_length_vs_epoch.pdf`|Appendix|loss decay 对收敛速度和 acceptance length 的影响|
+| target model | 冻结的高质量 autoregressive LLM；产生 authoritative posterior token、hidden states 与最终输出 | oracle model | 不等于 teacher-only 离线模型；它也在线 verification | paper §3–5；code `dflash/model.py:87-143` |
+| draft model | 五层为主的轻量 Qwen3-shaped Transformer adapter，使用 target feature 作为条件并行预测 masked block | diffusion drafter | 不等于独立端到端 dLLM，也不等于 target 的 early-exit 层 | paper §4；HF config |
+| block diffusion drafting | 一个 forward 同时预测 anchor 后的 `block_size-1` 个 masked positions | one-step diffusion draft | 不等于多轮迭代 denoising；也不等于 tree construction | paper §3.2, §4.1；code `model.py:107-121` |
+| speculative cycle | draft proposal 后由 target 一次并行 verification，提交最长匹配前缀再加一个 target bonus token | draft–verify cycle | 不等于单个 draft forward；包含 target verification | paper §3.1；code `model.py:126-143` |
+| acceptance length $\tau$ | 每 cycle 平均提交 token 数，包含 target bonus token | accepted length | 不等于仅被接受的 draft token 数 $a$ | paper Eq. (1)；code `model.py:135-140` |
+| target context feature | 五个 target layers 的 hidden states 拼接后，经共享线性投影和 RMSNorm 得到的条件特征 | fused target feature | 不等于 target logits；也不是每个 draft layer 各自重新融合 | paper Appendix A.3；code `model.py:39-45,317-335` |
+| KV injection | target context feature 在每个 draft layer 被投影为额外 K/V entries | persistent conditioning | 不等于把 target feature 只加到 draft input embedding | paper §4.1, Table 9；code `model.py:226-238` |
+| anchor token | 每个训练/推理 block 首位的 clean token；推理时来自上一 cycle 的 target bonus token | clean anchor | 不等于随机保留的任意 masked position | paper §4.2, Figure 4 |
+| mask token | block 中待并行预测的位置；Qwen3 checkpoints 中 ID 151669 | noise token | 不等于 causal-mask 的不可见位置 | HF configs；paper Figure 4 |
+| random anchor sampling | 每 epoch 从 response 中采 anchor 并构造多个局部 masked blocks | sampled blocks | 不等于标准固定 block partition | paper §4.2, Table 13 |
+| loss decay | 对 block 内更靠前 token 施加更大 CE 权重 | acceptance-aware weighting | 不等于学习率 decay；$\gamma$ 在此是权重衰减尺度 | paper Eq. (4), Appendix A.1 |
+| input fusion | target feature 只在 draft input 处融合的对照 | EAGLE-3-style conditioning | 不等于每层 KV injection | paper Table 9 |
+| serving speedup | 同一 backend/硬件设置下相对 native AR baseline 的 tok/s 或 per-token latency 比值 | end-to-end acceleration | 不等于单独 draft-kernel speedup或 acceptance length | paper Tables 1–3, 5, 12 |
+| lossless | 最终提交 token 总由 target posterior 决定；greedy 或 code 所实现的 exact-match sampling 不改变 target 轨迹 | target-distribution preserving | 不代表 draft token 自身正确率 100%，也不代表数值 bitwise reproducibility | paper Introduction/Conclusion；code `model.py:126-143` |
+
+### 0.1.2 符号表
+
+| 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
+|---|---|---|---|---|---|---|
+| $\mathcal M_t,\mathcal M_d$ | target 与 draft model | author-defined | 全局 | 模型 | paper §3.1 | `t/d` 是角色，不是训练/测试集 |
+| $\gamma$（speed model） | 每 cycle proposal 的 draft-token budget | author-defined | per cycle | token count | paper §3.1–3.2 | paper 又在 loss decay 中复用 $\gamma$ 作为 decay scale |
+| $L$ | speculative decoding 平均 per-token latency | author-defined | workload/backend | seconds/token | paper Eq. (1) | 不等于单 cycle latency |
+| $L_{\text{target}}$ | target 原生 AR per-token latency | author-defined | matched baseline | seconds/token | paper §3.1 | 必须在同一 backend/load 下比较 |
+| $T_{\text{draft}}$ | 一个 cycle 的 drafting time | author-defined | per cycle | seconds | paper Eq. (1) | 不包含 verification |
+| $T_{\text{verify}}$ | target 并行验证 proposal 的时间 | author-defined | per cycle | seconds | paper Eq. (1) | 随 block size、batch 与 backend 变化 |
+| $\tau$ | 含 bonus token 的平均 acceptance length | author-defined | dataset/workload average | tokens/cycle，$[1,\gamma+1]$ | paper Eq. (1) | 不等于 draft-only acceptance $a$ |
+| $\eta$ | 相对 target AR 的 speedup $L_{\text{target}}/L$ | author-defined | matched evaluation | ratio | paper §3.1 | table 中 `speedup` 是实测同义量 |
+| $t_{\text{step}},t_{\text{parallel}}$ | AR draft 单步 latency 与一次 parallel-block latency | author-defined | draft stage | seconds | paper Eqs. (2)–(3) | “近似不随 $\gamma$”只在 moderate block size 成立 |
+| $\mathbf H^{(l_i)}$ | target 第 $l_i$ 层 hidden state | author-defined | per token/layer | BF16 tensor | Appendix A.3 | code 的 `output_hidden_states` 有 embedding offset |
+| $\mathbf H_t,\mathbf H_d$ | fused target context feature 与 draft hidden state | author-defined | per token/draft layer | hidden tensor | Appendix A.3 | $\mathbf H_t$ 已经过 $W_c$+RMSNorm |
+| $W_c$ | 五层 target hidden 拼接到 draft hidden size 的共享投影 | author-defined | model-global | $H\times 5H$ | Appendix A.3 | 不等于每层 K/V projection |
+| $\mathbf Q_i,\mathbf K_i,\mathbf V_i$ | draft layer $i$ 的 query/key/value | author-defined | per layer/head/token | tensor | Appendix A.3 | K/V 同时含 target context 与 draft block |
+| $k$ | block 内 token position | author-defined | $k=1,\dots,b-1$ | index | paper Eq. (4) | anchor 不计入 masked-token loss |
+| $w_k$ | position $k$ 的 CE loss weight | author-defined | per masked position | positive scalar | paper Eq. (4) | 非 acceptance probability |
+| $\gamma$（loss） | loss-decay rate；b16/b10/b8 分别取 7/5/4 | author-defined | training config | scalar | Appendix A.1 | 与 proposal budget 同名复用，含义不同 |
+| $b$ | block size，包含 1 个 anchor | analysis-derived | train/infer | 8, 10, 16 等 | paper §5；HF config | 实际 draft positions 为 $b-1$ |
+| $a$ | 首次 mismatch 前连续匹配的 draft token 数 | analysis-derived | per cycle | $0,\dots,b-1$ | analysis derivation；code `model.py:135` | cycle 提交量是 $a+1$ |
+| $H,I,L_d,N_q,N_{kv},d_h,s$ | hidden/intermediate size、draft layers、Q/KV heads、head dim、bytes/element | analysis-derived | checkpoint/system | counts, bytes | HF configs；§8 derivation | 用于容量/KV 估算，不是 paper 原符号 |
+| $\mathrm{BW}_{eff},U_{\mathrm{BW}}$ | effective bandwidth 与峰值利用率 | analysis-derived | kernel/runtime | bytes/s, ratio | §8.4 derivation | paper/code 无 bytes-moved counter，不能给数值 |
 
 ## 1. 论文基本信息
 
-**研究领域。** 该论文属于大语言模型推理加速，具体交叉在 speculative decoding、diffusion language model、LLM serving system 和硬件友好的 decoding 算法。
+- 标题：*DFlash: Block Diffusion for Flash Speculative Decoding*
+- 作者：Jian Chen, Yesheng Liang, Zhijian Liu
+- 版本/venue：arXiv `2602.06036v2`；ICML 2026 camera-ready
+- 领域：lossless speculative decoding、block diffusion、LLM inference/serving
+- 核心问题：现有高接受率 drafter 仍 autoregressive，draft latency 随 proposal budget 线性增长；纯 diffusion drafter 则可能太大或太弱。
+- 研究目标：把 diffusion 限定为单步 block proposal adapter，用 target hidden features 提升 proposal 质量，再由 target 验证保证输出合同。
+- 关键约束：每个 target family 需独立训练 draft；block size 受 workload 影响；最终速度受 target verification、backend 和 concurrency 共同决定。
 
-**核心问题。** 自回归 LLM 解码每次只能生成一个 token，低 batch / 长输出场景下经常受内存带宽和串行依赖限制，GPU 利用率低。Speculative decoding 通过 draft model 先猜多个 token、target model 并行验证来降低平均每 token 延迟，但现有强方法如 EAGLE-3 仍以自回归方式 draft，draft 阶段本身仍串行，且小 draft model 容量不足会使 acceptance length 很快饱和。Diffusion LLM 能并行预测 masked tokens，但独立生成质量通常弱于自回归 LLM，且需要多步 denoising 才能保质量，直接替代 target model 不现实。
+## 2. 研究动机与问题—方案闭环
 
-**研究目标。** DFlash 试图把 diffusion model 从“独立生成器”重新定位为“speculative drafter”：用小型 block diffusion drafter 在单次 forward 中并行预测一段 future tokens，再由高质量 frozen autoregressive target model 验证，从而同时得到：
+### 2.1 出发点与背景痛点
 
-- 目标模型分布不变的 lossless decoding；
-    
-- draft 阶段低延迟和更高 GPU 并行度；
-    
-- 相比 EAGLE-3 更高的 acceptance length 与端到端 speedup；
-    
-- 可落地到 Transformers、SGLang、vLLM 等 serving backend。
-    
+`author-stated`：LLM decoding 的串行 token dependency 使低 batch/长输出推理慢、memory-bound 且 GPU 利用不足；长 CoT 放大 decode 占比。标准 speculative decoding 已把多个 draft tokens 合并为一次 target verification，但 EAGLE-3 的 draft stage 本身仍需多次 autoregressive steps。论文因此不是重新解决“能否验证多个 token”，而是清除 speculative pipeline 中残留的 draft-side seriality（Introduction；§3）。
 
-## 2. 核心贡献与创新点
+`author-stated`：diffusion model 能并行预测 masked tokens，但独立生成质量通常弱于 AR target，且多步 denoising 会吃掉并行收益。论文的关键重定位是：draft 不必独立承担最终质量，只要 proposal 能被 target 快速验证；因此可将 denoising 压到单步而不让 draft 直接决定最终输出（Introduction；Conclusion）。
 
-**1. 将 block diffusion 放到 speculative drafting，而不是端到端生成。** 论文的关键判断是：diffusion LLM 独立生成质量不足不是致命问题，因为 speculative decoding 的最终 token 由 target model 验证。这样 diffusion 的并行 denoising 优势被保留，质量风险由 target verification 吸收。
+### 2.2 现有方案为何不够
 
-**2. 目标模型 hidden features 作为 draft model 的强条件。** DFlash 不让小 diffusion drafter “从零预测未来 token”。它在 target prefill / verification 中抽取多个 target layers 的 hidden states，拼接后投影为 target context feature，作为 draft model 的条件输入。论文的逻辑链是：target hidden states 含有多 token 预测信息 -> small drafter 只需学习把这些上下文特征转换成 block token proposal -> acceptance length 提升。
+第一条 failure mode 是 AR drafting 的 $T_{\text{draft}}=\gamma t_{\text{step}}$：budget 越大越慢，迫使 EAGLE-3 等使用浅 drafter；浅模型的 $\tau$ 又早早饱和，质量与 latency 被同一串行链绑定（§3.2，Figure 3）。第二条 failure mode 是 naive small diffusion drafter 缺少 target 内部表征，需“from scratch”猜 future tokens；Appendix Table 10 的 5-layer no-feature drafter 在 math 上只有 2.65–3.73× speedup 与 3.23–4.61 的 $\tau$。第三条是大 dLLM drafter：论文指出 DiffuSpec/SpecDiff-2 约 7B，draft quality 较强却付出容量/latency。
 
-**3. KV injection 替代一次性 input fusion。** EAGLE-3 类方法主要把 target features 融到 draft input；DFlash 将融合后的 target features 注入每一层 draft attention 的 Key/Value，并通过 draft KV cache 复用。这样 target information 在每层都可被注意力访问，避免随着 draft depth 加深而被稀释。
+`inferred boundary`：这些 prior-failure 判断并非同一实验平台下的完整统一对比。DFlash 对 EAGLE-3 有直接实测，对其他 diffusion speculative methods 以“无开源实现”为由未跑；因此“state-of-the-art across all diffusion drafters”证据不足，只能稳健地说在已测 EAGLE-3 与 native AR baseline 上领先。
 
-**4. 单步 block diffusion draft，draft latency 不随 draft token 数线性增长。** 自回归 draft 的成本近似为 `draft_steps * single_step_latency`；DFlash 在一个 block 内并行预测 masked positions，因此可使用更深 draft model，同时保持 draft latency 较低。论文声称 5-layer DFlash draft 16 tokens 比 EAGLE-3 draft 8 tokens 仍有更低 draft cost，并有更高 acceptance length。
+### 2.3 论文计划解决的问题与成功标准
 
-**5. 训练过程对 speculative decoding 场景做了专门对齐。** 论文没有直接照搬标准 block diffusion training，而是引入随机 anchor sampling、跨 block 隔离的稀疏 attention mask、早期 token loss decay、共享且冻结 target embedding / LM head。这些设计都围绕一个目标：提升一个 speculative cycle 中靠前 token 的命中率，因为第一个错误会截断整个 block 的接受长度。
+- 核心研究问题：能否让一个显著小于 target 的 diffusion adapter 在一次 forward 中提出完整 block，同时达到足够高的 $\tau$，使 $T_{\text{draft}}$ 与 $T_{\text{verify}}$ 的总成本被更多 accepted tokens 摊薄？
+- 目标场景：Qwen3/LLaMA family 的长输出、低至中并发 decoding；并扩展到 SGLang/vLLM。
+- 必须满足：target output contract 不变；draft block 一次产生；target features 可被每层持续访问；端到端 speedup 而非只提升 $\tau$。
+- 成功标准：Qwen3 上显著高于 EAGLE-3 的 matched-budget speedup/$\tau$；H200/B200 backend 中真实 throughput 提升；设计消融能拆分 parallel drafting 与 conditioning。
+- 不解决：零训练迁移到任意 target、动态 block scheduler、完整 training code 开源、NPU/多机部署和所有 diffusion baseline 的统一公平对比。
 
-## 3. 研究方法：问题、思路与技术路线
+### 2.4 核心方案如何解决并优化问题
 
-### 3.1 速度模型与设计动机
+| 原始问题/失败模式 | 根因或约束 | 对应方案设计 | 改变的变量/系统行为 | 作用机制 | 预期优化及指标 | 证据来源 | 判断 |
+|---|---|---|---|---|---|---|---|
+| AR draft latency 随 budget 线性增长 | token-to-token dependency | one-forward block diffusion proposal | $\gamma$ 次 sequential draft steps 变为一次 block forward | masked positions 并行计算 | 降 $T_{\text{draft}}$，提高 speedup | §3.2；Figure 3；code `model.py:107-121` | supported |
+| small drafter 从零猜 future tokens | 容量小且缺少 target semantics | 抽取五层 target hidden 并共享融合 | draft condition 从 token embedding 扩展为 deep target features | target representation 提供 future-token hints | 提高 $\tau$ | §4.1；Table 7；Appendix Table 10 | partially supported：有消融，但 no-feature 与完整主模型并非一张 matched table |
+| 深层 drafter 中 input condition 稀释 | 只在 input 注入一次 | 每层 KV injection | target feature 在每层 attention 均作为 K/V | 每层 query 直接访问 persistent context | 随 depth 增长保持 acceptance | Table 9；HF/code K/V concat | supported |
+| first error 使整个后缀无效 | prefix acceptance contract | early-position loss decay | 前部 token CE 权重提高 | 优先减少最早 mismatch | 加速 $\tau$ 收敛 | Eq. (4), Figure 5 | partially supported：曲线支持，缺最终 matched 数表/置信区间 |
+| 固定 partition 与推理 anchor 不匹配 | 推理 block 总以 target bonus token 起始 | random anchor sampling | 训练 block 起点每 epoch 变化 | 对齐推理条件并扩增 context coverage | 提升 speedup/$\tau$ | Table 13 | supported |
+| 多个 blocks 训练会泄漏 | block 间并非同一真实序列状态 | block-local bidirectional sparse mask | 跨 block attention 设为 invisible | 并行训练且避免 future/block leakage | 降训练成本、保持目标有效 | Figure 4, §4.2 | plausible：机制清楚，无 runtime/quality ablation |
+| 共享 vocab projection 成本大且易漂移 | 独立 embedding/head 增参并偏离 target space | 冻结共享 target embedding 与 LM head | 只训练 draft Transformer + fusion | proposal logits 与 target vocabulary geometry 对齐 | 降参数/训练成本 | §4.2；HF repo single draft weights | plausible：无独立消融 |
+| 大 context 下 base drafter $\tau$ 下降 | draft 未见过 long-context pattern | 1.6K LongAlign samples fine-tune | draft context distribution 被扩展 | 学会利用长距 target feature | 16K/32K acceptance 回升 | Table 4 | supported for tested datasets，非零样本泛化 |
 
-论文在 Preliminaries 中采用 speculative decoding 的平均 per-token latency：
+### 2.5 完整因果链与证据闭环
 
-$$  
-L = \frac{T_{\text{draft}} + T_{\text{verify}}}{\tau},  
+完整链条是：长输出 AR decoding 的 serial/memory-bound 痛点，使 speculative decoding 成为可行合同；但 AR drafter 仍有 $\gamma$ 个 sequential steps，且浅 drafter 的 acceptance 饱和。DFlash 将 draft stage 改成一次 block-parallel forward，直接减少 $T_{\text{draft}}$；又把 target 多层 hidden 通过共享 fusion 和每层 KV injection 送入小 drafter，提升 proposal 的连续匹配长度 $\tau$。target 对 proposal 一次并行验证，只提交连续匹配前缀与一个 target posterior token，最终输出仍由 target 决定。由
+
+$$
+L=\frac{T_{\text{draft}}+T_{\text{verify}}}{\tau},\qquad
+\eta=\frac{L_{\text{target}}}{L}
 $$
 
-  
+可预期更低 draft cost 与更高 $\tau$ 共同放大 speedup。Figure 3 直接支持 draft-side latency 路径；Table 7/9/13 与 Figure 5 分别支持 feature count、KV injection、anchor sampling 与 loss weighting；Table 1 和 SGLang Table 3 支持端到端结果。
 
-其中：
+证据闭环的边界是：Table 1 的完整系统同时改变 proposal topology、draft capacity、conditioning 与 verification budget，不能把 4–6× 全部归给单个组件；Figure 3 没有报告误差条；主表没有置信区间/多次运行方差；其他 diffusion baselines 未实测；高 concurrency 时 speedup 明显回落，说明 target verification/compute saturation 会重新成为 binding constraint。故总体判断为 `partially-supported`：核心机制—指标方向有直接证据，但跨方法的精确贡献分解与泛化边界未完全封闭。
 
-- T_{\text{draft}}：每个 speculative cycle 的 draft 时间；
-    
-- T_{\text{verify}}：target model 并行验证 draft block 的时间；
-    
-- \tau \in [1,\gamma+1]：每个 cycle 平均接受 token 数，包括 target 产生的 bonus token；
-    
-- speedup 为
-    
+## 3. 核心贡献与创新点
 
-$$  
-\eta = \frac{L_{\text{target}}}{L}.  
+1. 把 block diffusion 从 final generator 重定位为 lossless speculative proposal adapter；最终质量风险由 target verification 吸收（Introduction/Conclusion）。
+2. 用五层 target hidden fusion + every-draft-layer KV injection 同时提升小 drafter 的条件质量与 depth scaling（Figure 2；Table 7/9）。
+3. 以 one-forward block prediction 消除 AR draft 的 budget-linear serial cost（§3.2；Figure 3）。
+4. 用 random anchors、block-local sparse attention 和 early-token loss decay 把训练目标对齐 prefix acceptance，而非平均 token denoising（Figure 4；Eq. 4；Table 13；Figure 5）。
+5. 给出 Transformers、SGLang、vLLM 与后续 MLX 的实现/模型发布；但 camera-ready 所对应训练 recipe 仍未开源。
+
+## 4. 研究方法
+
+### 4.1 方法总览
+
+![Figure 2: DFlash inference design](../assets/papers/dflash/fig2-inference-design-caption.png)
+
+一个 cycle 从已经确定的 anchor token 开始。target 在 prefill/上一轮 verification 时输出 posterior 与 hidden states；五个 target layers 的 hidden 被拼接并投影为 $\mathbf H_t$。draft 输入为 `[anchor, mask, …, mask]`，target embedding 将其映射到 $\mathbf H_d$。每个 draft layer 只由 draft positions 产生 Q，而 target context 与 draft positions 一起产生 K/V。所有 masked positions 一次输出 proposal；target 再对完整 block 并行算 posterior，提交最长 exact-match prefix 与一个 target token，随后 crop target/draft KV cache 并进入下一 cycle。代码准确实现了这一 stage distinction（`model.py:87-169,185-347`）。
+
+### 4.2 组件级设计动机与具体问题映射
+
+| 设计项 | why 状态 | 原文证据 | 针对问题 | 因果机制 | 替代/权衡 | 验证证据 | 判断 |
+|---|---|---|---|---|---|---|---|
+| single-step block diffusion drafting | author-stated | §3.2, §4.1 | AR draft seriality | 同一 layer operation 覆盖所有 positions | AR/tree conditioning 更强但有 sequential cost | Figure 3；完整方法主表 | supported |
+| five target hidden layers + $W_c$ | author-stated | §4.1, Appendix A.3 | tiny drafter 缺 context | 汇聚 shallow-to-deep representations | 更多 features 增 offline cache/训练 I/O | Table 7 | supported for 3→5 features |
+| every-layer KV injection | author-stated | §4.1, Table 9 | input condition 随 depth 稀释 | 每层 query 直接 attend persistent target K/V | KV cache 墧；input fusion 更便宜 | matched replacement Table 9；code | supported |
+| deeper 5-layer drafter | author-stated | §3.2, Table 6 | 1-layer drafter capacity ceiling | parallel block amortizes added depth | 8 layers $\tau$ 更高但 latency 抵消 | Table 6；Figure 3 | supported，最优依 workload |
+| random anchor sampling | author-stated | §4.2 | standard blocks 与 bonus-token anchor 不匹配 | 对齐 inference start states 并做数据增广 | 固定 block 更简单/可复现 | Table 13 | supported |
+| block-local bidirectional sparse mask | author-stated | §4.2, Figure 4 | 多 blocks 拼接会泄漏 | block 内共同 denoise，跨 block 隔离 | 分 block forward 无泄漏但训练慢 | mechanism visual only | plausible |
+| early-position exponential loss decay | author-stated | Eq. (4), Appendix A.5.1 | first mismatch 截断后缀 | 对前部 token 提高梯度权重 | uniform CE 更中性；可能牺牲尾部 | Figure 5 | partially-supported |
+| shared frozen embedding/LM head | author-stated | §4.2 | vocab projection 墧/表示漂移 | 复用 target token space | 限制 draft 表征自由度 | no matched ablation；checkpoint/code linkage | plausible |
+| train b16, optional infer b8 | inferred from evidence | Table 8 | serving load 的 verification cost 变化 | 大 block 训练保留向小 block 退化能力 | b8→b16 泛化差；scheduler 未实现 | Table 8 | partially-supported |
+| long-context fine-tune | author-stated | §5.4, Table 4 | >4K acceptance degradation | 少量长 context 样本适配 draft | 额外 data/epochs；非 zero-shot | Table 4 | supported in tested ranges |
+
+### 4.3 推理公式与实现
+
+Target feature fusion：
+
+$$
+\mathbf H_t=\operatorname{RMSNorm}\!\left(W_c[\mathbf H^{(l_1)};\ldots;\mathbf H^{(l_5)}]\right).
 $$
 
-  
+Layer $i$ 的 KV injection：
 
-由此直接推出 DFlash 的优化方向：要么降低 T_{\text{draft}}，要么提高 \tau。自回归 draft 的成本为：
-
-$$  
-T_{\text{draft}} = \gamma \cdot t_{\text{step}},  
+$$
+\mathbf Q_i=W_i^Q\mathbf H_d,\quad
+\mathbf K_i=[W_i^K\mathbf H_t;W_i^K\mathbf H_d]_{\rm seq},\quad
+\mathbf V_i=[W_i^V\mathbf H_t;W_i^V\mathbf H_d]_{\rm seq}.
 $$
 
-  
+代码一致性：`extract_context_feature` 选 `target_layer_ids` 并 concat；`self.fc` 与 `hidden_norm` 实现 $W_c$+RMSNorm；attention 只对 `hidden_states` 做 Q，而对 `target_hidden` 和 draft hidden 都做 K/V concat（`model.py:39-45,223-238,312-347`）。HF Qwen3-8B checkpoint 将层 ID 固定为 `[1,9,17,25,33]`。
 
-而 block diffusion draft 近似为：
+Greedy/exact-match acceptance 可写为
 
-$$  
-T_{\text{draft}} = t_{\text{parallel}}.  
+$$
+a=\sum_{j=1}^{b-1}\prod_{k=1}^{j}\mathbf 1[d_k=\hat y_k],\qquad
+\tau=\mathbb E[a+1].
 $$
 
-  
+代码用 equality 后 `cumprod().sum()` 得 $a$，再写入 `a+1` 个 token、crop cache，并把 `a+1` 加入统计（`model.py:134-143`）。这明确区分 drafting、target verification 与 serving/runtime。
 
-因此，DFlash 的方法不是单纯“让 draft model 更准”，而是同时改变两个变量：通过 block diffusion 降低 draft 串行成本，通过 target hidden conditioning 提高 $\tau$。
+### 4.4 训练目标
 
-![Figure 3: DFlash 与 EAGLE-3 draft cost 对比](../assets/papers/dflash/fig3-draft-latency.png)
+![Figure 4: DFlash training attention](../assets/papers/dflash/fig4-training-attention-caption.png)
 
-图 3 对应这一段的关键证据：DFlash 用 block diffusion 后，draft cost 不随 draft token 数按自回归方式线性累积，因此即使 draft model 加深到 3 或 5 层，仍能保持低 draft latency。它支撑的不是最终准确率结论，而是“DFlash 有空间使用更强 drafter 而不把 draft 阶段拖慢”的系统假设。
+训练先对 clean prompt/response 跑 frozen target，取所有 token 的五层 hidden。每个 sampled anchor 后放 $b-1$ 个 masks；同 block positions 双向可见，跨 block 不可见，target context 作为条件。masked-token CE 的 position weight 为
 
-### 3.2 推理流程
-
-DFlash 的一个 decoding cycle 可以拆成以下步骤。
-
-![Figure 2: DFlash 推理结构](../assets/papers/dflash/fig2-inference-design.png)
-
-这张图对应 DFlash 推理主路径：target model 先给出 token 与 hidden context features；这些 features 经过融合后进入 draft model 的 KV cache；draft model 对 masked block 并行出 proposal；target model 再并行 verify。理解 DFlash 时要抓住图中的两个方向：横向是 speculative decoding cycle，纵向是 target features 被注入每层 draft attention。
-
-**Step 1: target prefill / verification 输出 hidden features。** 对输入 prompt，target model 标准 prefill 并生成第一个 token；同时从若干 target layers 抽取 hidden states。论文实验中通常从第 2 层到倒数第 3 层之间均匀选 5 层。
-
-**Step 2: 多层 hidden states 融合。** Appendix 中给出 KV injection 前的融合公式：
-
-$$  
-\mathbf{H}_{t} = \mathrm{RMSNorm} \left( W_c[\mathbf{H}^{(l_1)};\ldots;\mathbf{H}^{(l_5)}] \right).  
+$$
+w_k=\exp\left(-\frac{k-1}{\gamma_{\rm loss}}\right),
 $$
 
-  
+其中 b16/b10/b8 的 $\gamma_{\rm loss}$ 分别为 7/5/4。Appendix 报告 6 epochs、AdamW、LR $6\times10^{-4}$、clip 1.0、cosine schedule、warmup 0.04、max length 3072（Coder 4096）、每 sequence 512 anchors。约 800K mixture 来自 Nemotron Post-Training Dataset V2 与 CodeAlpaca，但 response 由 target 重生成以加强 alignment。
 
-其中 W_c 将拼接后的多层 target hidden states 投影回 draft hidden dimension。
+事实缺口：source 说明可 online 或 offline hidden caching，却没报告实际每个模型采用哪一种、训练 GPU 数/类型、global batch、optimizer states、wall time、随机种子与完整数据生成参数。当前代码 commit 无训练实现，因此 Figure 4 的 Flex Attention mask 与 loss decay 只能从论文核验，不能从代码核验。
 
-**Step 3: draft block 构造。** Draft block 的第一个 token 是干净 anchor token，后面 b-1 个位置是 mask token。DFlash 使用 target embedding layer 将这些 token 转成 embedding，并由小型 draft Transformer 在单次 forward 中预测后续 b-1 个 token。
+### 4.5 模型容量与 checkpoint
 
-**Step 4: KV injection。** 在 draft layer i，draft token 产生 query；target context feature 和 draft token 一起产生 key/value：
+Qwen3-8B DFlash config：$H=4096,I=12288,L_d=5,N_q=32,N_{kv}=8,d_h=128$，BF16、b16。按当前代码的 Q/K/V/O 与 SwiGLU 三个矩阵、两次 layer norm、共享 fusion $W_c$ 估算：
 
-$$  
-\begin{aligned} \mathbf{Q}_i &= W_i^Q \mathbf{H}_d, \\ \mathbf{K}_i &= [W_i^K \mathbf{H}_t;\, W_i^K \mathbf{H}_d]_{\mathrm{seq}}, \\ \mathbf{V}_i &= [W_i^V \mathbf{H}_t;\, W_i^V \mathbf{H}_d]_{\mathrm{seq}}. \end{aligned}  
+$$
+N_d\approx L_d\!\left[2H(N_qd_h)+2H(N_{kv}d_h)+3HI+2H\right]+5H^2+H
+\approx1.049\times10^9.
 $$
 
-  
+对应 BF16 约 2.097 GB，与 Hub `usedStorage=2,097,597,257` bytes 一致。它相对 8B target 是轻量 adapter，但不是“几十 M 参数”；任何声称 30M 的二手解读都与 checkpoint 配置冲突。
 
-注意这里 target features 不经过 draft 的 Q projection、output projection 和 FFN，而是作为额外 KV entries 被每一层 draft attention 使用。
+## 5. 关键结论与技术 claim 证据矩阵
 
-**Step 5: target parallel verification。** Target model 对整段 draft block 并行算 posterior token。若 draft token 与 target posterior token 连续一致，则接受；遇到第一个不一致位置后，使用 target posterior token 作为 bonus token，进入下一个 cycle。可写为：
+### 5.1 主结果
 
-$$  
-a = \sum_{j=1}^{b-1} \prod_{k=1}^{j}\mathbb{1}[d_k=\hat{y}_k],  
-$$
+![Figure 1: speedup comparison](../assets/papers/dflash/fig1-speedup-caption.png)
 
-  
+Qwen3-8B、temperature 0、Transformers、2048 max new tokens：DFlash b16 平均 4.86×/$\tau=6.49$，EAGLE-3 tree16 为 1.76×/2.96，EAGLE-3 tree60 为 2.02×/3.40。相对 tree16，speedup 绝对 +3.10×、相对 +176.1%，$\tau$ +3.53、相对 +119.3%；相对 tree60，speedup +2.84×、相对 +140.6%，$\tau$ +3.09、相对 +90.9%。这些数来自 Table 1，不是 Figure 1 估读。
 
-其中 a 是被接受的 draft token 数，单 cycle 贡献 a+1 个 token，后面的 +1 是 target 的 bonus token。因此实验报告的$\tau$对应平均 a+1。
-### 3.3 训练设计
+Qwen3-4B greedy 的平均为 4.91×/6.54，对 EAGLE-3(16) 1.81×/3.05：speedup +3.10×（+171.3%），$\tau$+3.49（+114.4%）。Sampling temperature 1 时 Qwen3-8B 降到 4.03×/5.48，相对 greedy 分别 -0.83×（-17.1%）与 -1.01（-15.6%），说明 open-ended uncertainty 会缩短 exact-match prefix。
 
-论文 Method 的训练设计围绕“推理时会发生什么”来做对齐：
+Reasoning mode 中 Qwen3-4B/8B 在 GPQA/MATH-500/AIME25 报告约 3.64–4.64×，$\tau=4.55–5.82$。这支持长 CoT 场景，但没有 EAGLE-3 reasoning baseline，因此只能证明相对 native AR 的 acceleration，不能证明 reasoning 上相对 EAGLE-3 的优势。
 
-![Figure 4: DFlash training attention mask](../assets/papers/dflash/fig4-training-attention.png)
+### 5.2 Technical claim matrix
 
-图 4 是训练部分最重要的示意图。蓝色 target context features 是条件信息；黄色 clean response tokens 是随机采样的 anchors；绿色 mask tokens 是 block 内要并行预测的位置；白色 invisible tokens 表示 attention mask 隔离跨 block 信息。它说明 DFlash 的训练不是普通 next-token LM，也不是标准全序列 diffusion，而是把多个 speculative draft blocks 拼在一起，用稀疏 mask 一次训练多个局部 denoising 任务。
+| 技术点 | 声称收益 | 实验/消融 | 是否受控 | 指标变化 | 证据分类 | 结论 |
+|---|---|---|---|---|---|---|
+| block diffusion 替代 AR draft | 降 drafting latency | Figure 3；Table 9 AR vs block groups | Figure 3 同硬件但未给误差；Table 9 同 5L/b8 | 16 tokens：5L DFlash latency远低于 1L EAGLE-3；Table 9 KV block 3.3× vs KV AR 2.4× (GSM8K) | replacement + system visualization，仍混合 topology | supported |
+| target features 提升 proposal | 提高 $\tau$ | Appendix Table 10；Table 7 | 3-H→5-H 受控；no-feature→main 匹配信息不完整 | Math500 3-H→5-H：4.49→4.69×，5.38→5.64 | direct matched for feature count；confounded for none→full | partially-supported |
+| every-layer KV 优于 input fusion | 提高 acceptance 与 speedup | Table 9 | matched 5L/b8 within drafting family | block GSM8K：2.9→3.3×，$\tau$3.5→4.2；HumanEval 2.9→3.2×，3.5→4.0 | direct replacement | supported |
+| depth 可扩展 | 更深提高 $\tau$ | Table 6 | matched data/b16/5 features | Math500 3L→5L→8L $\tau$ 5.64→5.99→6.33；speedup 4.69→4.71→4.64 | direct sensitivity | supported；8L 并非最快 |
+| b16 能向 b8 泛化 | adaptive scheduling basis | Table 8 | matched 8L/5 features | b16→b8 Math $\tau=5.09$，接近 b8→b8 5.21；b8→b16 仅 5.02 vs b16→b16 6.33 | direct cross-setting sensitivity | supported asymmetry；scheduler 未验证 |
+| random anchors | 提高 data efficiency/$\tau$ | Table 13 | matched 3L/5H/b16/100K | Math 4.13→4.69× (+13.6%)，$\tau$4.94→5.64 (+14.2%) | direct ablation | supported |
+| loss decay | 更快/更好 convergence | Figure 5 | matched curve claim，缺数表/方差 | 曲线全程前期更高，后期差距很小 | mechanism visualization, correlation | partially-supported |
+| shared frozen embedding/head | 降参数并对齐 token space | prose + checkpoint | 无移除/可训练 head 对照 | 无独立 delta | code/config-only | plausible, unverified benefit |
+| sparse training mask | 一次训练多个 blocks 且无泄漏 | Figure 4/prose | 无 dense/separate-forward 对照 | 无 runtime/quality delta | mechanism-only | plausible |
+| long-context fine-tune | 恢复 >4K acceptance | Table 4 | base vs 1.6K/3-epoch adapted | hotpot 16K 3.61→6.05；qasper 16K 3.57→6.00；gov 32K 2.09→3.56 | direct adaptation comparison | supported for measured datasets |
+| 真实 serving gain | 降成本、提高 throughput | SGLang Table 3, vLLM Table 12 | matched backend/baseline；scheduler/kernel bundled | Qwen3-8B Math500 c1 230→1175 tok/s (5.1×), c32 5694→16076 (2.8×) | direct end-to-end, component-confounded | supported end-to-end |
+| “over 6× across range” | broad acceleration | Table 1 | task/model dependent | peak 6.09×；MT-Bench Q3-8B greedy仅2.75× | direct but selective headline | supported as peak，不能解释为所有设置 |
 
-- **Target frozen。** Draft model 学习匹配 frozen autoregressive target model 的 block-level diffusion prediction。
-    
-- **Random anchor sampling。** 不固定划分 response blocks，而是在 response 中随机采样 anchor tokens，每个 anchor 作为 block 第一个 token，后续位置 masked。这样更贴近推理时“上一轮 target bonus token 作为新 anchor”的行为。
-    
-- **Sparse attention / Flex Attention。** 多个 sampled blocks 拼到一个 sequence 中训练；同一 block 内可双向 attention，跨 block 不可见，防止信息泄露。
-    
-- **Loss decay。** 对 block 内第 k 个位置使用指数衰减权重：
-    
+![Figure 3: draft latency](../assets/papers/dflash/fig3-draft-latency-caption.png)
 
-$$  
-w_k = \exp\!\left(-\frac{k-1}{\gamma}\right).  
-$$
+![Figure 5: loss decay convergence](../assets/papers/dflash/fig5-acceptance-vs-epoch-caption.png)
 
-  
+### 5.3 假设是否被验证
 
-逻辑是 speculative decoding 中早期 token 更重要：第 1 个错误会导致后续 draft token 全部不能被接受。
+- “parallel drafting 降低 $T_{\text{draft}}$”：Figure 3 与代码 one-forward path 直接支持，但缺不同 batch/block 的完整 latency surface。
+- “target hidden 提供 future-token information”：feature-count/KV-injection/no-feature 结果支持其有效性；却未直接 probe hidden 中的信息量，因果表述应限于“作为 condition 能提升 acceptance”。
+- “每层 KV 防止 signal dilution”：Table 9 支持 KV 比 input fusion 好；没有逐层 representation probe，因此“稀释”是合理机制解释而非直接测量。
+- “loss decay 对齐 first-error objective”：acceptance 合同与公式因果一致；Figure 5 支持 convergence，缺最终多 seed 显著性。
+- “lossless”：target exact-match verification path 与代码提交逻辑支持；没有 property-based parity test 或随机 sampling 统计检验随仓库发布。
 
-- **共享 embedding 和 LM head。** Draft model 共享 target token embedding 和 LM head，并保持 frozen；只训练 draft Transformer 层，使 draft 更像目标模型表示空间上的 lightweight diffusion adapter。
-    
+### 5.4 收益来源归因
 
-### 3.4 实验设计
-
-数据和设置主要来自 Experiments 与 Appendix：
-
-- **Target models：** LLaMA-3.1-Instruct-8B，Qwen3-4B，Qwen3-8B，Qwen3-Coder-30B-A3B-Instruct；Appendix 还报告 Qwen3.5、Qwen3-Coder-Next、GPT-OSS 等更多模型。
-    
-- **训练数据：** 约 800K samples，来自 NVIDIA Nemotron Post-Training Dataset V2 与 CodeAlpaca；论文强调使用 target model 生成 response 以提升 target alignment。
-    
-- **主评测任务：** Math: GSM8K、MATH/MATH-500、AIME25；Code: HumanEval、MBPP、LiveCodeBench；Chat: MT-Bench、Alpaca。
-    
-- **硬件：** 主实验为 NVIDIA H200；SGLang serving 实验为单 B200 + FA4 backend；LLaMA-3.1 SGLang 实验为单 B200 + Flashinfer。
-    
-- **Baselines：** autoregressive decoding 与 EAGLE-3。论文没有与 DiffuSpec、SpecDiff-2、TiDAR 等 diffusion-based speculative decoding 方法实测对比，理由是缺少开源实现。
-    
-
-## 4. 关键结论与证据链
-
-### 4.1 主结论：DFlash 显著提升 Qwen3 non-thinking 解码速度
-
-数据来源：Experiments / `tab:main-results`，Qwen3 models，thinking disabled，Transformers backend，最大生成 2048 tokens。
-
-![Figure 1: Qwen3-8B 上 DFlash、EAGLE-3 与自回归解码 speedup 对比](../assets/papers/dflash/fig1-speedup.png)
-
-图 1 是论文主张的视觉摘要：在 Qwen3-8B + Transformers backend 上，DFlash 在多个任务上显著高于 EAGLE-3。图只展示速度结果，真正解释原因需要结合下表的 \tau：DFlash 不只是 draft 快，还把平均接受长度从 EAGLE-3 的约 3 提升到约 5.5-6.5。
-
-|Model / Temp|EAGLE-3(16) avg speedup / \tau|EAGLE-3(60) avg speedup / \tau|DFlash(16) avg speedup / \tau|
-|---|---|---|---|
-|Qwen3-4B, temp=0|1.81x / 3.05|2.08x / 3.48|**4.91x / 6.54**|
-|Qwen3-8B, temp=0|1.76x / 2.96|2.02x / 3.40|**4.86x / 6.49**|
-|Qwen3-4B, temp=1|1.72x / 2.95|1.93x / 3.36|**4.24x / 5.69**|
-|Qwen3-8B, temp=1|1.68x / 2.83|1.88x / 3.26|**4.03x / 5.48**|
-
-**导出逻辑。** EAGLE-3(60) 增大 tree size 后 \tau 只从约 3 提到约 3.3-3.5，speedup 仍约 2x，说明自回归 tree drafting 与 verification overhead 限制明显。DFlash 的 \tau 提到约 5.5-6.5，同时 draft block 并行，因而 speedup 到 4-5x。这个结果同时支持论文两个假设：target-feature conditioning 提高 draft quality；block diffusion 降低 draft latency。
-
-### 4.2 Reasoning mode 仍有较高收益
-
-数据来源：Experiments / `tab:reasoning-results`，Qwen3 thinking mode enabled，Transformers backend。
-
-|Model / Temp|GPQA speedup / \tau|MATH-500 speedup / \tau|AIME25 speedup / \tau|
-|---|---|---|---|
-|Qwen3-4B, temp=0|4.23x / 5.23|4.59x / 5.74|4.39x / 5.54|
-|Qwen3-4B, temp=1|3.67x / 4.55|3.93x / 4.89|3.64x / 4.68|
-|Qwen3-8B, temp=0|4.17x / 5.17|4.64x / 5.82|4.51x / 5.74|
-|Qwen3-8B, temp=1|3.75x / 4.65|4.03x / 5.06|3.70x / 4.69|
-
-**导出逻辑。** Reasoning traces 通常输出更长，串行 decode 成本更突出；DFlash 在 reasoning mode 仍保持 \tau\approx 4.5-5.8，因此端到端 speedup 约 3.6-4.6x。该证据说明 DFlash 不只适用于短回答或固定格式任务，也适用于长 CoT 解码。
-
-### 4.3 Serving backend 中收益真实存在，但高并发下下降
-
-数据来源：Experiments / `tab:sglang-all`，SGLang，单 B200，FA4 backend，concurrency 1/4/8/16/32。
-
-典型结果：
-
-- Qwen3-8B / Math500：baseline 230 tok/s at concurrency 1，DFlash 1175 tok/s，5.1x；concurrency 32 时 baseline 5694 tok/s，DFlash 16076 tok/s，2.8x，\tau=8.01。
-    
-- Qwen3-8B / HumanEval：concurrency 1 为 4.2x，concurrency 32 为 2.4x，\tau=6.50。
-    
-- Qwen3-Coder-30B-A3B / HumanEval：concurrency 1 为 3.5x，concurrency 32 为 3.1x，\tau=8.09。
-    
-
-**导出逻辑。** 低并发时 target autoregressive decoding 更接近 latency / memory-bound，DFlash 用较大的 parallel verification block 提高 GPU 利用率，所以 speedup 最大。高并发时 baseline 本身吞吐上升、target verification 更 compute-bound，DFlash 的相对 speedup 下降。这说明 DFlash 是有效 serving 优化，但不是在所有 batch/concurrency regime 下都固定 5-6x。
-
-### 4.4 LLaMA-3.1 上也优于 EAGLE-3，但增益低于 Qwen3 主实验
-
-数据来源：Experiments / `tab:dflash_vs_eagle3_llama31_acc`，LLaMA-3.1-8B-Instruct，SGLang，单 B200，DFlash block size 10。
-
-- GSM8K：DFlash concurrency 1/32 为 2.4x/1.6x，\tau=4.32；EAGLE-3(10) 为 1.6x/1.0x，\tau=3.49；EAGLE-3(60) 为 1.9x/0.6x，\tau=4.55。
-    
-- HumanEval：DFlash concurrency 1/32 为 2.8x/1.8x，\tau=4.91。
-    
-- Alpaca：DFlash concurrency 1/32 为 2.2x/1.4x，\tau=3.73。
-    
-
-**导出逻辑。** DFlash 在 LLaMA 上仍优于 EAGLE-3，但 speedup 明显低于 Qwen3 的 4-6x。原因可能包括 block size 更小、模型/数据对齐差异、backend 设置不同，以及 \tau 较低。该结果支持“方法可迁移”，但也提示每个 target family 都需要重新训练并调参。
-
-### 4.5 消融验证：每个关键设计都有贡献
-
-**无 target features 的 naive diffusion drafter 不够强。** 数据来源：Appendix / `tab:naive_diffusion`。5-layer block diffusion drafter 如果不接 target context features，在 math benchmarks 上 speedup 大多约 2.65-3.73x，\tau 约 3.23-4.61。这个结果低于主结果的 \tau\approx 5.5-6.5，说明 block diffusion parallelism 只能解决 latency，不能单独解决 draft quality。
-
-**Draft layers 增加会提升 \tau，但 5 层速度最好。** 数据来源：Experiments / `tab:ablation_draft_layers`。3/5/8 层在 Math500 上 \tau=5.64/5.99/6.33，但 speedup 为 4.69x/4.71x/4.64x。8 层质量更高但 draft latency 更高，5 层是质量和成本的折中点。
-
-**更多 target hidden features 有收益。** 数据来源：Experiments / `tab:ablation_target_hiddens`。3-H 到 5-H 在 Math500 上从 4.49x/\tau=5.38 提升到 4.69x/\tau=5.64，HumanEval 从 3.80x/\tau=4.47 提升到 3.90x/\tau=4.61。这直接支持“target hidden feature 是质量来源”的主张。
-
-**Block size 训练/推理存在非对称泛化。** 数据来源：Experiments / `tab:ablation_block_size`。b16->b16 在 Math500 / HumanEval 上为 4.64x/\tau=6.33、3.96x/\tau=5.29，优于 b8->b8。b16 训练的模型能较好退化到 b8 推理，但 b8 训练的模型泛化到 b16 较差。这支持未来做 adaptive block-size scheduling。
-
-**KV injection 优于 input fusion。** 数据来源：Experiments / `tab:ablation_kv_injection`。在 block-diffusion drafting 下，DFlash input fusion 到 KV injection：
-
-- GSM8K：3.5/2.9x -> 4.2/3.3x；
-    
-- HumanEval：3.5/2.9x -> 4.0/3.2x；
-    
-- MT-Bench：2.6/2.0x -> 3.0/2.2x。
-    
-
-这说明目标特征持续作为每层 KV 被访问，比只在输入层融合更有效。
-
-**随机 anchor sampling 和 loss decay 改善训练。** 数据来源：Appendix / `tab:ablation_sample_block` 与 Figure 5。随机 anchor sampling 相比 standard block construction，在 Math500 从 4.13x/\tau=4.94 提升到 4.69x/\tau=5.64，HumanEval 从 3.29x/\tau=3.86 提升到 3.90x/\tau=4.61。loss decay 图显示更快、更好的 convergence。二者共同证明训练目标确实应按 speculative acceptance 机制重写，而不是直接套标准 diffusion objective。
-
-![Figure 5: loss decay 对 acceptance length 收敛的影响](../assets/papers/dflash/fig5-acceptance-vs-epoch.png)
-
-图 5 对应上面的 loss decay 结论。它表达的是训练动态，而不是最终 benchmark speedup：对 block 内靠前位置加更高权重后，acceptance length 更快上升，最终也更高。原因和 speculative verification 的截断机制一致：越早出错，后续 token 越没有机会被接受。
-
-### 4.6 长上下文适配：可行但需要轻量 fine-tuning
-
-数据来源：Experiments / `tab:long-context`。基础 Qwen3.5-27B drafter 在超过 4K context 后 acceptance length 下降；用 LongAlign-10K 的 1.6K samples fine-tune 3 epochs 后明显改善：
-
-- hotpotqa 16K：3.61 -> 6.05；
-    
-- qasper 16K：3.57 -> 6.00；
-    
-- gov_report 32K：2.09 -> 3.56。
-    
-
-**导出逻辑。** Target hidden features 在长上下文仍有可用信息，但 draft model 需要见过长上下文模式才能稳定利用这些信息。DFlash 的长上下文能力不是零成本泛化，而是低数据量适配。
-
-## 5. Related Work 对比
-
-|方法线|代表工作|优点|局限|DFlash 的区别|
+| 组件/变化 | 对比基线 | 指标变化 | 影响路径 | 证据强度 |
 |---|---|---|---|---|
-|标准 speculative decoding|Leviathan et al. 2023|理论上 lossless，工程简单|小 draft model 自回归生成，draft latency 随 token 数线性增长|用 block diffusion 单步并行 draft|
-|Multi-head / tree decoding|Medusa|不需要外部 draft model，多个 head 并行预测|head 容量有限，tree verification overhead 明显|使用独立轻量 diffusion adapter，target hidden 强条件|
-|Feature-level speculative decoding|EAGLE/EAGLE-2/EAGLE-3|利用 frozen target feature，提高 acceptance|仍是自回归/tree draft；target feature 多为 input fusion，深层信息可能稀释|KV injection 到每个 draft layer；block 内并行预测|
-|Standalone diffusion LLM|LLaDA、Block Diffusion、Fast-dLLM v2、SDAR|masked tokens 并行生成，可双向建模|端到端质量弱于强 AR LLM；多步 denoising 降低速度；KV cache 支持弱|不独立生成最终答案，只做 proposal，target verification 保证最终输出|
-|Diffusion-style parallel drafter|PARD|低成本 parallel draft adaptation|小模型缺 target 内部表示，接受长度有限|用 target hidden features 作为核心信息源|
-|利用 AR hidden 的未来预测潜力|Your LLM Knows the Future|证明 AR hidden states 含多 token 信息，可用 LoRA 做并行 draft|仍依赖原模型/adapter 方案，系统目标不同|将该现象系统化为 target-conditioned diffusion drafter|
-|Diffusion-based speculative decoding|DiffuSpec、SpecDiff-2|大 diffusion drafter 可给较长 proposal|常用 7B 级 drafter，内存和 draft latency 高|小型 5/8 层 drafter，依赖 target features 补质量|
-|Diffusion + AR 混合生成|TiDAR|“think in diffusion, talk in AR” 的范式有启发|论文 related work 称最终生成质量尚非 lossless|DFlash 由 target verification 保证 lossless speculative decoding|
+| block parallelism | KV AR → KV block (Table 9) | GSM8K 2.4→3.3×，$\tau$4.8→4.2（质量略降、速度升） | draft latency/parallel utilization | matched replacement，最接近 algorithm-only bridge |
+| KV conditioning | block input → block KV | GSM8K 2.9→3.3×、3.5→4.2 | candidate quality/$\tau$ | direct |
+| feature count 3→5 | Table 7 | Math +0.20× speed, +0.26 $\tau$ | candidate quality | direct |
+| depth 3→5 | Table 6 | Math +0.02× speed, +0.35 $\tau$ | quality gain nearly offsets extra draft cost | direct sensitivity |
+| depth 5→8 | Table 6 | Math -0.07× speed, +0.34 $\tau$ | extra draft latency exceeds quality gain | direct sensitivity |
+| random anchors | standard → sample | Math +0.56×, +0.70 $\tau$ | training alignment/data coverage | direct |
+| loss decay | uniform → decay | curve shows earlier/final acceptance advantage | early-token quality | indirect visualization |
+| SGLang FA4 + Spec-v2 + DFlash | native SGLang baseline | c1 5.1×，c32 2.8× on Q3-8B Math500 | algorithm + kernel + scheduler + load | direct end-to-end，不能组件分解 |
 
-务实判断：DFlash 的真正定位不是“diffusion LLM 终于替代 AR LLM”，而是“diffusion 的并行预测特性在 speculative decoding 这个受验证保护的子任务中更实用”。
+粗分解结论：DFlash 的独特价值来自“两条同时成立的路径”——block proposal 主要降低 $T_{\text{draft}}$，KV/target features 主要提高 $\tau$。不能把完整 4.86× 对 1.76× 的差值简单相加分配给二者，因为 Table 9 的 bridge baseline 使用不同 b8/Qwen3-4B 设置，且 verification topology、draft capacity 与 runtime 相互作用。
 
-## 6. Infra 需求分析
+## 6. Related Work 对比
 
-### 6.1 算力需求
+| 类别/工作 | 方法核心 | 优点 | 局限 | 与 DFlash 的关系/公平性 |
+|---|---|---|---|---|
+| Leviathan-style SD | 独立 small AR drafter + target verify | lossless 合同清楚 | draft serial，容量/成本权衡 | DFlash 保留 verification，替换 draft topology |
+| Medusa | target 上多 prediction heads + tree verify | 无独立完整 drafter | head capacity/tree overhead | DFlash 用独立 adapter 与 block path |
+| EAGLE-1/2/3 | target feature-conditioned AR/tree draft | 高 acceptance、成熟 baseline | draft steps 串行；input fusion | 主实测 baseline；tree16 matched budget、tree60 performance setting，比较相对充分但 checkpoints 来自 AngelSlim/official mixture |
+| block diffusion/LLaDA/Fast-dLLM/SDAR | masked parallel generation | parallelism/bidirectional context | 独立生成质量、denoising steps、KV support | DFlash 只借其 proposal parallelism，不承担 final generation |
+| TiDAR | diffusion “thinking” + AR “talking” | 混合范式 | paper 指出 final quality 非 lossless | 未实测，不能据此宣称全面领先 |
+| DiffuSpec/SpecDiff-2 | large dLLM speculative drafter | 较长 acceptance | 大容量与 latency | 论文未因无开源实现而实测；比较仅为机制/容量论证 |
+| PARD | small AR model mimic diffusion-style parallel prediction | 轻量 proposal | acceptance ceiling | DFlash 用真实 masked-block adapter + target KV condition |
+| Samragh et al. | target hidden 含 future-token potential，LoRA parallel draft | 直接利用 target | 与 target 耦合 | DFlash 共享观察，但把解码器做成独立小 adapter |
 
-DFlash 的理论 speedup 来自：
+公平性边界：Table 1 对 EAGLE-3 给 tree16 与 tree60，能覆盖 matched node budget 与其典型高 acceptance setting；但 DFlash block proposal 与 EAGLE tree proposal 的 verification structure 并不相同，node count 相同不等价于 kernel/verification cost相同。论文以端到端 speedup 作为最终裁判是合理的；仍应报告多 seed/latency variance 与统一官方 implementation commit，camera-ready 未提供。
 
-$$  
-\eta = \frac{L_{\text{target}}}{(T_{\text{draft}} + T_{\text{verify}})/\tau}.  
+## 7. OpenReview 公开评审 × 论文内容交叉核验
+
+- OpenReview：`https://openreview.net/forum?id=Oz335dV48X`
+- 访问日期：2026-07-25
+- submission identity：已核验
+- public reviews/meta-review/decision/rebuttal/discussion：forum browser challenge，api/api2 均 HTTP 403；access-blocked
+- venue decision 的独立来源：arXiv v2 metadata 明确写 “Accepted at ICML 2026. Camera-ready version”；不能替代 decision note 内容。
+
+因此没有可负责任地填入的 reviewer claim，也不把网络访问失败解释为“没有评审”。本 review 自己识别的主要审计问题是：训练代码缺失、其他 diffusion baseline 未实测、误差/方差未报告、完整 gain 分解仍混杂、固定 block 与高并发边界、checkpoint 容量并非极小。它们是 reviewer analysis，不冒充公开评审意见。
+
+## 8. Infra 需求分析
+
+### 8.1 算力与 latency regime
+
+每 cycle 理想模型：
+
+$$
+T_{\rm cycle}=T_{\rm draft}(b,L_d)+T_{\rm verify}(b,B,C),\qquad
+L=\frac{T_{\rm cycle}}{\tau},
 $$
 
-  
+其中 $B$ 是 batch/concurrency，$C$ 是 context。低并发下 native AR target 多为 weight/HBM traffic dominated，较大 verification block 能提高 GPU occupancy；高并发时 native baseline 已能填满 GPU，verification 更 compute-bound，所以 Qwen3-8B Math500 speedup 从 c1 5.1× 降到 c32 2.8×。这不是方法失效，而是 binding constraint 从 serial launch/weight streaming 转向 target compute。
 
-要落地，必须同时满足：
+Figure 3 说明 DFlash draft latency 对 token budget 的增长小于 EAGLE-3，但不是严格常数：block attention/MLP FLOPs 仍随 $b$ 增长，且 deeper $L_d$ 墧。论文的 $T_{\text{draft}}=t_{\text{parallel}}$ 是 scheduling abstraction，不应解释为 $O(1)$ compute。
 
-$$  
-T_{\text{draft}} + T_{\text{verify}} < \tau \cdot L_{\text{target}}.  
+### 8.2 显存与存储
+
+Qwen3-8B draft weights约 2.097 GB BF16。Draft KV cache 每 token：
+
+$$
+\mathrm{KVBytes}_{d/token}=2L_dN_{kv}d_hs
+=2\cdot5\cdot8\cdot128\cdot2=20{,}480\ \text{bytes}.
 $$
 
-  
+Target KV 每 token约：
 
-Draft 端可粗略写为单层成本：
-
-$$  
-F_{\text{draft-layer}} \approx F_{\text{proj}}(b,D) +F_{\text{mlp}}(b,D,D_{\text{ff}}) +F_{\text{ctx-kv}}(c,D) +F_{\text{attn}}(b,c,D),  
+$$
+\mathrm{KVBytes}_{t/token}=2\cdot36\cdot8\cdot128\cdot2=147{,}456\ \text{bytes},
 $$
 
-  
+所以 draft KV 约为 target KV 的 13.9%，未计 allocator/page padding。五层 hidden concat 输入为 $5Hs=40{,}960$ bytes/token，fusion output为 $Hs=8{,}192$ bytes/token。当前 Transformers code 请求 `output_hidden_states=True`，通常会暂时 materialize embedding + 全部 36 layer outputs，约 $37Hs=303{,}104$ bytes/token；能否由 backend 只保留五层对 deployment memory 很重要，paper 未量化。
 
-其中 b 为 block size，c 为 target context feature length，D 为 hidden size。若用 gated MLP，主要项可近似为：
+Offline training cache 随 selected target layers 线性增长。以 BF16、800K samples、真实 token count $N$ 计，raw hidden cache近似 $5NHs$，没有 token-length distribution 不能给可靠 TB 数。
 
-$$  
-F_{\text{draft-layer}} \approx 4bD^2 + 3bDD_{\text{ff}} + 2cD^2 + 2b(c+b)D.  
+### 8.3 Data Types / 数值格式
+
+| 对象 | 格式 | 阶段 | 硬件依赖 | 影响 | 证据 |
+|---|---|---|---|---|---|
+| Qwen3 target/draft weights | BF16 | infer | NVIDIA tensor cores/Apple conversion path | 2 bytes/element；容量与 matmul throughput | HF configs；benchmark `dtype=torch.bfloat16` |
+| target/draft KV | 随 model dtype，核验 config 为 BF16 | infer | backend cache kernels | 每 token 约 147,456 + 20,480 B | config + derivation |
+| token IDs/mask IDs | int64 in Transformers tensor | infer | GPU embedding/index | 小于 weight/KV traffic | `model.py:79-82` |
+| logits/softmax | model/backend accumulation 未明确 | infer | PyTorch/FA2/FA4/vLLM | 可能影响 exact sampling parity | code/config未固定 accumulation |
+| quantized target | paper未报告 | infer | backend-specific | 不应把 README 后续 MLX 4-bit example外推到 paper主结果 | precisely unverified |
+
+### 8.4 带宽、互联与利用率
+
+$$
+\mathrm{BW}_{eff}=\frac{\mathrm{BytesMoved}}{\mathrm{RuntimeSeconds}},\qquad
+U_{\mathrm{BW}}=\frac{\mathrm{BW}_{eff}}{\mathrm{PeakBandwidth}}.
 $$
 
-  
+Paper 只给 latency/throughput，没有 Nsight bytes-moved、HBM transactions 或 peak-normalized counters，因此 $\mathrm{BW}_{eff}$ 与利用率不能数值化。定性上，低 batch target AR 会重复流式读取大权重；block verification 提高 weight reuse/arithmetic intensity。Draft 约 2.1GB 权重本身也可能 memory-bound，但一次处理 $b-1$ positions 比 $\gamma$ 次浅层 AR launches 更易复用。KV injection 增加 draft-layer K/V 读写；是否被 FA4/fused kernel 完全吸收未测。
 
-这里 2cD^2 来自 target context 的 K/V projection，2b(c+b)D 是 attention score/value 聚合量级。实际常数会随 GQA、FlashAttention 实现和 FLOP 计数口径变化。
+主实验是 single H200/B200，故无 all-reduce/all-to-all、NVLink/RDMA 证据。Qwen3.5 更大模型/README 的 `tp-size` 示例不是 camera-ready 主表的互联实验，不能据此声称多 GPU scaling。
 
-关键 infra 含义：
+### 8.5 CPU/GPU/NPU 异构执行
 
-- DFlash draft 是小模型，但不是零成本；如果 target context 很长，context KV projection 与 attention 也会增长。
-    
-- 单步 block draft 增加了每次 forward 的 token 并行度，低并发场景能明显提高 GPU utilization。
-    
-- 高并发时 target verification 本身变成 compute-bound，增大 block size 会增加 verification tokens，speedup 会下降；论文 SGLang 高并发结果已经体现这一点。
-    
+| 阶段 | CPU | GPU/Apple GPU | 数据移动/同步 | 潜在瓶颈 | 证据 |
+|---|---|---|---|---|---|
+| dataset/prompt | Python formatting/tokenization/API client | 无 | CPU→device input IDs | tokenizer/request overhead at short outputs | `benchmark.py` |
+| target prefill/verify | launch/scheduler | target kernels + hidden extraction | target KV/hidden on device | HBM/compute；all hidden materialization | `model.py:87-143` |
+| draft | launch/cache control | BF16 attention/MLP + target LM head | target hidden→draft fusion stays device-local | 2.1GB weight traffic、draft KV | `model.py:107-121,223-255` |
+| serving | SGLang/vLLM scheduler | FA4/Flashinfer/backend kernels | request batching, cache management | concurrency-dependent saturation | paper Table 3/12；README |
+| MLX | Python host | Apple Metal/MLX kernels | unified memory | portability path，非 paper benchmark | `model_mlx.py` |
+| NPU | 未实现/未报告 | 未验证 | 未知 | operator/cache compatibility | precise absence |
 
-### 6.2 显存与存储
+Transformers benchmark 用 `torch.cuda.synchronize()` 包围 timing，减少异步计时偏差，却增加同步；SGLang Spec-v2 scheduling overlap 是 throughput 结果的一部分。Repository 还列出 experimental overlap env flags，说明 runtime stability/版本 pin 是部署风险。
 
-**额外参数内存。** Appendix 给出 DFlash 额外投影矩阵：
+### 8.6 调度、Serving 与自定义算子
 
-$$  
-W_c \in \mathbb{R}^{D \times 5D}.  
-$$
+Camera-ready：SGLang 使用 single B200 + FA4，启用 Spec-v2 overlap；LLaMA 对比为了 EAGLE tree compatibility 使用 Spec-v1 + Flashinfer。当前 repo 增加 vLLM 0.20.1+、SGLang PR branch、MLX 路径，但版本晚于部分 paper 实验且 README 中若干依赖指向 PR heads。论文未发布 custom DFlash CUDA kernel；性能依赖 backend attention/cache/scheduler。动态 block scheduling 被明确留作 future work。
 
-  
+## 9. 开源代码与配置对照
 
-BF16 权重大小：
+- 仓库：`code/dflash`
+- commit：`94e4abc5e0c31b67bc1a9d30f1cc34ece28a8756`
+- 静态 compile：passed
+- GPU reproduction：未执行
 
-$$  
-M(W_c) = 5D^2 \times 2\ \text{bytes}.  
-$$
+| 论文机制 | 本地路径 | pinned commit URL | 一致性 |
+|---|---|---|---|
+| five target hidden concat | `dflash/model.py:27-45,87-100` | `https://github.com/z-lab/dflash/blob/94e4abc5e0c31b67bc1a9d30f1cc34ece28a8756/dflash/model.py` | 一致 |
+| single parallel block proposal | `dflash/model.py:107-121` | 同上 | 一致；当前 Transformers 只实现 one-shot |
+| target parallel verification/bonus token/cache crop | `dflash/model.py:126-143` | 同上 | 一致 |
+| every-layer target K/V concat | `dflash/model.py:185-255` | 同上 | 一致 |
+| shared fusion $W_c$ | `dflash/model.py:302-347` | 同上 | 一致 |
+| BF16 benchmark | `dflash/benchmark.py:190-233` | `https://github.com/z-lab/dflash/blob/94e4abc5e0c31b67bc1a9d30f1cc34ece28a8756/dflash/benchmark.py` | 一致 |
+| SGLang/vLLM concurrency client | `dflash/benchmark.py:322-431` | 同上 | 评测客户端存在；server backend 实现不在此 repo |
+| training random anchors/Flex Attention/loss decay | 不存在 | 无 | 未开源 |
+| paper tables reproduction | 不存在 | 无 | 未开源 |
 
-  
+### 9.1 Checkpoint/config 对照
 
-论文例子 D=2048：
+| Checkpoint | 状态/revision | 参数量/存储 | 架构 | 关键配置 | 与 target/baseline 差异 |
+|---|---|---:|---|---|---|
+| `z-lab/Qwen3-8B-DFlash-b16` | open; `9b41424…` | reviewer reconstruct 1.049B；Hub storage 2.098GB | 5L Qwen3-shaped draft, H4096, I12288, 32Q/8KV | BF16, b16, target layers 1/9/17/25/33 | 容量：5 vs target 36 layers；算法：noncausal masked block + KV injection；runtime：separate draft cache |
+| `Qwen/Qwen3-8B` | open; `b968826…` | target 8B family；five safetensor shards | 36L Qwen3ForCausalLM, same H/I/heads | BF16, causal AR | authoritative target |
+| `z-lab/Qwen3-4B-DFlash-b16` | open; `b74e3a3…` | Hub storage 1.075GB | 5L, H2560, I9728 | BF16, b16, same five layer IDs | family-specific draft; not interchangeable with 8B |
 
-$$  
-5 \times 2048 \times 2048 \times 2 = 41{,}943{,}040\ \text{bytes} \approx 40\ \text{MiB} \approx 42\ \text{MB}.  
-$$
+Model weights未下载/执行；Hub configs 与 API revisions已冻结。Capacity/config claims 是 verified metadata，不是 README-only 推断。
 
-  
-
-这相对 70 GB 级 target model 很小。
-
-**训练离线 hidden cache。** 如果离线缓存 target hidden states，原始存储量为：
-
-$$  
-M_{\text{hidden-cache}} = N \times S \times K \times D \times s,  
-$$
-
-  
-
-其中 N 是样本数，S 是最大 sequence length，K 是抽取 target layers 数，D 是 hidden size，s 是每元素字节数。按论文 800K samples、S=3072、K=5、BF16 s=2 粗估：
-
-- 若 D=4096：约 100.7 TB decimal，约 91.6 TiB；
-    
-- 若 D=2048：约 50.3 TB decimal，约 45.8 TiB。
-    
-
-因此离线训练会对存储和数据加载带宽提出很高要求；在线计算可省存储，但训练算力更高。
-
-**运行时 activation overhead。** Appendix 给出 batch size 1、sequence length 2048、K=5、D=2048、BF16：
-
-$$  
-M_{\text{proj-input}} = 1 \times 2048 \times 5 \times 2048 \times 2 \approx 40\ \text{MiB},  
-$$
-
-  
-
-$$  
-M_{\text{proj-output}} = 1 \times 2048 \times 2048 \times 2 \approx 8\ \text{MiB}.  
-$$
-
-  
-
-论文还称 decoding block size 16 时 temporary activation 低于 400 KB。也就是说推理时主要新增显存不是 W_c，而是 draft model weights、draft KV cache、以及框架为 hidden extraction / verification 保留的中间状态。
-
-**Draft KV cache overhead。** target context 被作为每层 draft KV entries 存储时，可按下式估计：
-
-$$  
-M_{\text{draft-KV-ctx}} = L_d \times B \times C \times 2 \times H_{\text{kv}} \times d_{\text{head}} \times s,  
-$$
-
-  
-
-其中 L_d 是 draft layers，B 是 batch size，C 是上下文长度，H_{\text{kv}}d_{\text{head}} 是 GQA 后的 KV hidden width。因为 L_d 只有 5 或 8，通常远小于 target KV cache，但在长上下文、高 batch、多并发 serving 下仍需要纳入 capacity planning。
-
-### 6.3 内存带宽
-
-低 batch decode 通常受权重读取和 KV cache 读写限制。可以用每输出 token 平均权重读近似理解：
-
-自回归 target baseline：
-
-$$  
-B_{\text{per-token}}^{\text{AR}} \approx B_{\text{target-weights}} + B_{\text{target-KV}}.  
-$$
-
-  
-
-自回归 speculative draft：
-
-$$  
-B_{\text{per-cycle}}^{\text{AR-draft}} \approx B_{\text{target-verify}} + \gamma B_{\text{draft-weights}} + B_{\text{KV}}.  
-$$
-
-  
-
-DFlash：
-
-$$  
-B_{\text{per-cycle}}^{\text{DFlash}} \approx B_{\text{target-verify}} + B_{\text{draft-weights}} + B_{\text{draft-KV-inject}} + B_{\text{KV}}.  
-$$
-
-  
-
-每 token 再除以 \tau。关键差异是 DFlash 不需要为 \gamma 个 draft tokens 串行读取 \gamma 次 draft weights；它把 block tokens 合并到一次 forward，提升矩阵乘法的算术强度。
-
-### 6.4 互联与组网
-
-论文主结果多为单 H200/B200，因此没有系统评估多机多卡互联。但从算法形态可推出以下需求。
-
-**同卡部署更简单。** 若 target 与 draft 在同一 GPU 或同一 tensor-parallel group，target hidden features 可本地传给 draft，避免跨设备传输。
-
-**target/draft 分离部署时 hidden transfer 不大但频繁。** 每 cycle 传输 target hidden features 的上界可估为：
-
-$$  
-M_{\text{transfer}} = B \times b \times K \times D \times s.  
-$$
-
-  
-
-例如 B=1、b=16、K=5、D=4096、BF16：
-
-$$  
-1 \times 16 \times 5 \times 4096 \times 2 = 655{,}360\ \text{bytes} \approx 0.625\ \text{MiB}.  
-$$
-
-  
-
-单次不大，但 cycle 频繁，且延迟敏感；跨 PCIe 或跨节点 RPC 会吃掉低延迟收益。生产部署更适合让 draft adapter 与 target colocate，或至少使用 NVLink/NVSwitch 级互联。
-
-**Tensor parallel / MoE 会放大同步需求。** Target verification 对 block tokens 并行计算，TP all-reduce 的消息形态从单 token 变成 block tokens；MoE target 还可能触发 expert all-to-all。DFlash 能减少 cycle 数，但每 cycle 的 target verify 更“宽”，需要 serving scheduler 正确 overlap。
-
-### 6.5 新算子与框架需求
-
-DFlash 对 infra 的主要要求不是新硬件，而是 decoding path 上的定制调度与 attention 支持：
-
-- **KV injection attention。** 需要高效支持 `[target-context KV; draft-token KV]` 拼接后的 attention，以及 cache crop/rollback。
-    
-- **Block verification scheduler。** Target 每轮验证一个 block，并根据 acceptance length 裁剪 target KV cache；框架需要避免频繁同步和 Python overhead。
-    
-- **Sparse training attention。** 论文训练使用同 block bidirectional、跨 block 不可见的稀疏 mask，并提到 Flex Attention。
-    
-- **Serving backend 集成。** README 显示 SGLang 需要 DFLASH speculative algorithm、draft attention backend FA4、Spec-v2 schedule overlap；vLLM v0.20.1+ 包含 core DFlash support，但部分模型仍依赖特定 PR/branch。
-    
-- **可优化 fused ops。** 适合进一步融合：target hidden concat + W_c projection + RMSNorm；context K/V projection + cache update；draft logits sampling + verify compare；accepted-length scan + KV crop。
-    
-
-## 7. 开源代码对照分析
-
-### 7.1 仓库状态
-
-官方仓库：`https://github.com/z-lab/dflash`。本地快照提交为 `94e4abc update model list`，许可证 MIT。
-
-README 明确写到 “training recipe soon”，因此当前开源内容主要覆盖 inference、benchmark、Transformers/MLX wrapper 与 serving 使用说明，不包含论文训练 recipe 的完整实现。也就是说，随机 anchor sampling、Flex Attention training mask、loss decay 等训练细节只能从论文源码核对，当前 GitHub 仓库不能直接复现训练过程。
-
-### 7.2 与论文一致的实现点
-
-**target layer 均匀选择与 hidden concat。** `dflash/model.py` 中 `build_target_layer_ids` 从 shallow 到 deep 选择 target layers，`extract_context_feature` 拼接 hidden states。对应论文 Method 中“uniformly sampled target layers”。代码位置：
-
-- GitHub: [https://github.com/z-lab/dflash/blob/94e4abc/dflash/model.py#L27-L45](https://github.com/z-lab/dflash/blob/94e4abc/dflash/model.py#L27-L45)
-    
-- 本地：`code/dflash/dflash/model.py`（本地 artifacts 中未保留）
-    
-
-**推理时 target prefill、抽 hidden、生成第一个 token。** `dflash_generate` 在 prefill 中调用 target，设置 `output_hidden_states=block_size > 1`，并将 target logits 采样结果作为第一个 token。对应论文 Inference pipeline。代码位置：
-
-- [https://github.com/z-lab/dflash/blob/94e4abc/dflash/model.py#L86-L100](https://github.com/z-lab/dflash/blob/94e4abc/dflash/model.py#L86-L100)
-    
-
-**block diffusion draft。** 每轮构造 `block_output_ids`，mask-filled output buffer 中第一个 token 为 anchor，后续位置由 draft logits 一次性采样填入。代码中 `target.model.embed_tokens(block_output_ids)` 体现共享 target embedding，`target.lm_head(model(...))` 体现共享 target LM head。代码位置：
-
-- [https://github.com/z-lab/dflash/blob/94e4abc/dflash/model.py#L107-L121](https://github.com/z-lab/dflash/blob/94e4abc/dflash/model.py#L107-L121)
-    
-
-**KV injection。** `Qwen3DFlashAttention.forward` 对 draft hidden 做 Q，对 target_hidden 和 draft hidden 分别做 K/V，然后按 sequence 维拼接。对应 Appendix 的公式。代码位置：
-
-- [https://github.com/z-lab/dflash/blob/94e4abc/dflash/model.py#L211-L238](https://github.com/z-lab/dflash/blob/94e4abc/dflash/model.py#L211-L238)
-    
-
-**target verification 与 acceptance length。** target 对 `block_output_ids` 做 forward，posterior sampled 后，代码用连续相等的 token 数计算 accepted draft tokens，再写入 target posterior bonus token。代码位置：
-
-- [https://github.com/z-lab/dflash/blob/94e4abc/dflash/model.py#L126-L143](https://github.com/z-lab/dflash/blob/94e4abc/dflash/model.py#L126-L143)
-    
-
-**benchmark 统计方式。** `benchmark.py` 用 baseline 与 DFlash 的 time-per-output-token 比值得到 speedup，并统计 average acceptance length。代码位置：
-
-- [https://github.com/z-lab/dflash/blob/94e4abc/dflash/benchmark.py#L120-L132](https://github.com/z-lab/dflash/blob/94e4abc/dflash/benchmark.py#L120-L132)
-    
-
-### 7.3 与论文不完全一致或不明确的地方
-
-**训练代码未开源。** README 当前称会在未来开源 training recipe。论文训练设计无法从仓库验证，包括 anchor sampling、loss decay、Flex Attention sparse mask、offline hidden cache pipeline。
-
-**Transformers backend 支持范围有限。** README 写明 Transformers backend 只支持 Qwen3 和 LLaMA-3.1；更多模型依赖 SGLang/vLLM/MLX。论文的 serving 结果与当前仓库 README 中更新后的模型列表不完全一一对应，可能因为仓库在论文后继续扩展。
-
-**随机采样 verification 的细节论文没有展开。** 代码在 `temperature > 0` 时分别从 draft logits 和 target logits sample，然后以 token equality 决定 acceptance。该过程可保持输出 token 来自 target posterior，但论文没有详细说明与标准 speculative sampling acceptance-ratio 形式的关系。
-
-**性能关键路径分散在外部 backend。** README 显示 SGLang 使用 PR branch，vLLM v0.20.1+ 有 core DFlash support，部分模型还需要特定 vLLM PR。仓库本身不能完整体现论文 SGLang FA4 / Spec-v2 scheduling overlap 的底层实现。
-
-## 8. 优点与局限
+## 10. 优点、局限与风险
 
 ### 优点
 
-- **问题切入务实。** 不试图证明 diffusion LLM 独立生成比 AR 更强，而是把 diffusion 的并行性放到 speculative drafting 这个更适合的位置。
-    
-- **方法和 speedup 公式一致。** Block diffusion 降 T_{\text{draft}}，target feature conditioning 提 \tau，二者都能从 latency model 直接解释。
-    
-- **关键设计有消融支撑。** 无 target feature、target hidden 数、draft depth、block size、KV injection、anchor sampling、loss decay 都有对应实验。
-    
-- **工程落地意识强。** 论文报告 SGLang/B200、vLLM appendix、并发吞吐，不只给离线 Transformers latency。
-    
-- **额外参数较小。** W_c 约 40 MiB 级；draft model 比 7B diffusion drafter 轻得多。
-    
+- 因果目标清晰：分别攻击 $T_{\text{draft}}$ 与 $\tau$，不是只报一个黑盒 speedup。
+- Table 9 提供罕见的 AR/block × input/KV bridge，使 parallelism 与 conditioning 至少能局部拆分。
+- 主表同时给 speedup 与 $\tau$，serving 表覆盖 concurrency 1–32，暴露高负载边界。
+- final target verification 保留 lossless contract，允许 aggressive one-step proposal。
+- checkpoint/config 与 inference code 已公开且当前 repo 扩展到多 backend。
 
 ### 局限
 
-- **训练 recipe 未开源。** 当前 GitHub 无法复现训练核心设计，这限制了第三方验证和迁移到新 target model。
-    
-- **每个 target / mode 基本都要专门训练。** README 也提示 Qwen3-4B/8B draft 未用 thinking traces 训练，启用 thinking 会性能不佳；这说明 draft 与 target 输出分布高度绑定。
-    
-- **与 diffusion-based baselines 缺少实测。** 论文未对 DiffuSpec、SpecDiff-2、TiDAR 等做实验对比，理由是缺少开源实现；因此 related work 的部分比较主要是定性和基于报告数字。
-    
-- **高并发 speedup 会下降。** SGLang 表显示 concurrency 32 下 speedup 明显低于 concurrency 1；部署需要动态 block size / scheduling，否则大 block verification 可能在 compute-bound 区间不划算。
-    
-- **长上下文需要额外适配。** Base drafter 在超过 4K 后 acceptance length 下降，需要少量 long-context fine-tuning。
-    
-- **隐藏状态缓存训练成本高。** 若离线缓存 target hidden states，原始存储可能达到数十 TB 到百 TB 量级。
-    
-- **框架集成复杂。** 需要 hidden state extraction、draft KV injection、verification cache crop、scheduler overlap、定制 attention backend；不是简单加载一个小模型就能稳定复现论文速度。
-    
+- training recipe/code、data regeneration、Flex Attention mask、loss 实现和表格 reproduction scripts 未开源。
+- 其他 diffusion speculative baselines 未实测；“SOTA”主要相对 EAGLE-3。
+- 大多数表无多 seed、置信区间、标准差、energy/HBM telemetry。
+- 完整 4–6× 是 algorithm+capacity+verification+kernel+scheduler 的系统结果，无法完全归因。
+- fixed block 对任务/temperature/concurrency敏感；MT-Bench 与高并发收益明显较低。
+- Qwen3-8B draft约 1.05B/2.1GB，仍有真实显存、load time 与 KV overhead。
+- 当前 Transformers code materialize 全部 hidden states，可能产生 paper 未计的 transient memory。
+- public OpenReview reviews/rebuttal/decision note access-blocked，缺独立审稿线索。
 
-## 9. 研究启发与可延伸方向
+### 可改进之处
 
-**1. 把强模型 hidden states 作为“可复用未来信息”。** DFlash 证明 target hidden states 不只是中间表示，也可以作为加速器的条件信号。后续可研究动态选择 target layers、压缩 hidden features、只传低秩 context feature。
+- 发布 deterministic training/data pipeline 与 exact paper commit/backend containers。
+- 做 matched 2×2×N factorial：AR/block × input/KV × depth/feature count，分解 quality 与 runtime。
+- 报告 latency distributions、Nsight HBM bytes、kernel occupancy、energy/token 与 batch/context surface。
+- 在线 scheduler 依据最近 acceptance histogram、batch size、verification cost选 $b$。
+- 只输出指定 target layers 的 hidden hooks，避免 `output_hidden_states=True` 全量 materialization。
+- 对 stochastic sampling 做长序列分布 parity/property tests。
 
-**2. Draft model 可以是任务化 adapter，而不是通用小模型。** 与训练小 AR draft model 相比，DFlash 更像 target model 的 decoding adapter。这个思路可扩展到 retrieval-augmented decoding、tool-call drafting、structured output drafting。
+## 11. 研究启发
 
-**3. Adaptive block size 是自然下一步。** 论文已观察 b16 训练可较好泛化到 b8 推理，高并发下大 block verification 可能不划算。可设计 scheduler 按 batch size、KV cache pressure、acceptance histogram 动态选择 block size。
+- Diffusion model 不必与 AR target 竞争 final quality；可作为受强条件约束的并行 proposal operator。
+- 对 prefix-dependent acceptance，训练损失应近似 downstream utility，而非平均 token accuracy。
+- Persistent condition 更适合深 adapter：将外部 condition 放进每层 K/V 是可迁移到 distillation/parallel head 的设计模式。
+- 未来最值得验证的是“adaptive block + selective hidden extraction + fused verification”，因为当前高并发瓶颈已从 draft 迁到 verification/runtime。
+- 最小复现闭环：Qwen3 target/draft checkpoint、HF config、Transformers 4.57.x、BF16 GPU、五个 benchmark prompt pipeline、native vs b16 两路径；但训练复现仍缺官方实现。
 
-**4. 训练目标应直接优化 acceptance length。** Loss decay 的启发是：生成质量指标不是 token 平均 CE，而是“第一个错误出现得多晚”。后续可尝试 listwise / survival-style objective、expected accepted length surrogate loss。
+## 12. 解读问题/待验证清单
 
-**5. Infra 上值得做 fused KV-injection kernels。** 当前算法有明确的数据流：target hidden concat -> projection -> per-layer K/V -> attention -> LM head -> verify compare。将这些环节融合或图编译，对低 latency serving 很关键。
+1. Table 1 每个 cell 跑了几次，方差和 warmup 规则是什么？
+2. Qwen3 EAGLE-3 AngelSlim checkpoints 与 DFlash target-generated 800K data 的公平性如何？
+3. `output_hidden_states=True` 的全层 transient memory/latency 在主表是否计入？
+4. loss decay 最终收益是否跨 seed 显著，还是主要提前 convergence？
+5. shared frozen embedding/head 是容量节省还是 acceptance 必需项？
+6. block-local Flex Attention 相对 separate-block training 的真实吞吐增益多大？
+7. 多 GPU/TP 下 target hidden 如何传给 draft，NVLink traffic 是否抵消收益？
+8. dynamic block scheduler 能否在 c1–c32 间保持更平坦的 speedup？
+9. sampling temperature/top-p/top-k 的 lossless parity 是否有自动测试？
+10. repo 未来 training recipe 是否与 camera-ready 800K/6-epoch 设置完全一致？
+11. checkpoint 1.05B 是否仍是所有 target family 的最优容量比例？
+12. OpenReview 中是否曾要求更多 diffusion baselines、统计报告或 code release？当前 access block 无法回答。
 
-**6. 多模态或代码模型也可用同范式。** 只要 target hidden states 对未来输出有强预测信息，block proposal + target verification 都可能成立。代码生成尤其适合，因为局部结构强、acceptance length 可能更长。
+## 13. 一句话总结
 
-## 11. 当前开源 DFlash 草稿模型结构规格补充
-
-数据来源：官方 README 的 Supported Models 列表、Hugging Face 各 `z-lab/*-DFlash` 仓库的 `config.json` 与文件元数据。只下载配置文件和元数据，未下载 safetensors 权重。仓库已刷新到 `94e4abc update model list`，README 当前列出 20 个 draft 模型。
-
-### 11.1 结构共性
-
-从可读取的 17 个配置看，当前公开 DFlash draft 基本都沿用同一类 `DFlashDraftModel`，`model_type` 标为 `qwen3`，但并不表示 target 都是 Qwen；它更多是复用 Qwen3 风格的 decoder block 实现。共同结构是：
-
-- 小型 decoder-only Transformer drafter，层数通常 5、6 或 8 层。
-    
-- 使用 target hidden states 的若干层作为条件，`target_layer_ids` 通常为 5、6 或 8 个。
-    
-- 多数模型 block size 为 16；LLaMA3.1 为 10，GPT-OSS-20B 为 8，GPT-OSS-120B 为 10，Kimi-K2.5 为 8。
-    
-- 大部分新模型使用 sliding-window draft attention：前几层 `sliding_attention`，最后 1 层 `full_attention`；早期 Qwen3 / LLaMA / GPT-OSS / Kimi-K2.5 配置是全 full attention。
-    
-- `mask_token_id` 随 target tokenizer 不同而变化；这是 block diffusion 中 masked positions 的输入 token。
-    
-
-### 11.2 规格总表
-
-|Target model|HF draft repo|L|D|FFN|Heads/KV|Block|Attention|SW|Target hidden ids|Weights|粗估 core params|
-|---|---|---|---|---|---|---|---|---|---|---|---|
-|gemma-4-31B-it|[z-lab/gemma-4-31B-it-DFlash](https://huggingface.co/z-lab/gemma-4-31B-it-DFlash)|5|5376|10752|64/8|16|4 SWA + 1 full|2048|[1,12,23,35,46,57] / 60|2.86 GiB/1 file|1.54B|
-|gemma-4-26B-A4B-it|[z-lab/gemma-4-26B-A4B-it-DFlash](https://huggingface.co/z-lab/gemma-4-26B-A4B-it-DFlash)|5|2816|5632|32/8|16|4 SWA + 1 full|2048|[1,6,11,17,22,27] / 30|0.80 GiB/1 file|0.43B|
-|Kimi-K2.5|[z-lab/Kimi-K2.5-DFlash](https://huggingface.co/z-lab/Kimi-K2.5-DFlash)|6|7168|18432|64/8|8|6 full|-|[1,12,24,35,47,58] / 61|6.48 GiB/2 file|3.48B|
-|Qwen3.6-27B|[z-lab/Qwen3.6-27B-DFlash](https://huggingface.co/z-lab/Qwen3.6-27B-DFlash)|5|5120|17408|32/8|16|4 SWA + 1 full|2048|[1,16,31,46,61] / 64|3.22 GiB/1 file|1.73B|
-|Qwen3.6-35B-A3B|[z-lab/Qwen3.6-35B-A3B-DFlash](https://huggingface.co/z-lab/Qwen3.6-35B-A3B-DFlash)|6|2048|6144|32/8|16|5 SWA + 1 full|4096|[1,6,11,16,22,27,32,37] / 40|0.72 GiB/1 file|0.39B|
-|Qwen3.5-4B|[z-lab/Qwen3.5-4B-DFlash](https://huggingface.co/z-lab/Qwen3.5-4B-DFlash)|6|2560|9216|32/8|16|5 SWA + 1 full|4096|[1,5,9,13,17,21,25,29] / 32|1.18 GiB/1 file|0.63B|
-|Qwen3.5-9B|[z-lab/Qwen3.5-9B-DFlash](https://huggingface.co/z-lab/Qwen3.5-9B-DFlash)|6|4096|12288|32/8|16|5 SWA + 1 full|4096|[1,5,9,13,17,21,25,29] / 32|2.41 GiB/1 file|1.29B|
-|Qwen3.5-27B|[z-lab/Qwen3.5-27B-DFlash](https://huggingface.co/z-lab/Qwen3.5-27B-DFlash)|6|5120|17408|32/8|16|5 SWA + 1 full|4096|[1,10,18,27,35,44,52,61] / 64|3.96 GiB/1 file|2.13B|
-|Qwen3.5-35B-A3B|[z-lab/Qwen3.5-35B-A3B-DFlash](https://huggingface.co/z-lab/Qwen3.5-35B-A3B-DFlash)|6|2048|6144|32/8|16|5 SWA + 1 full|4096|[1,6,11,16,22,27,32,37] / 40|0.72 GiB/1 file|0.39B|
-|Qwen3.5-122B-A10B|[z-lab/Qwen3.5-122B-A10B-DFlash](https://huggingface.co/z-lab/Qwen3.5-122B-A10B-DFlash)|6|3072|9216|32/8|16|5 SWA + 1 full|4096|[1,7,14,20,26,32,39,45] / 48|1.44 GiB/1 file|0.77B|
-|gpt-oss-20b|[z-lab/gpt-oss-20b-DFlash](https://huggingface.co/z-lab/gpt-oss-20b-DFlash)|8|2880|7680|64/8|8|8 full|-|[1,6,11,16,21] / 24|1.46 GiB/1 file|0.78B|
-|gpt-oss-120b|[z-lab/gpt-oss-120b-DFlash](https://huggingface.co/z-lab/gpt-oss-120b-DFlash)|8|2880|7680|64/8|10|8 full|-|[1,9,17,25,33] / 36|1.46 GiB/1 file|0.78B|
-|Qwen3-Coder-Next|[z-lab/Qwen3-Coder-Next-DFlash](https://huggingface.co/z-lab/Qwen3-Coder-Next-DFlash)|8|2048|6144|32/4|16|8 full|-|[3,11,23,35,43] / 48|0.88 GiB/1 file|0.47B|
-|Qwen3-4B (non-thinking)|[z-lab/Qwen3-4B-DFlash-b16](https://huggingface.co/z-lab/Qwen3-4B-DFlash-b16)|5|2560|9728|32/8|16|5 full|-|[1,9,17,25,33] / 36|1.00 GiB/1 file|0.54B|
-|Qwen3-8B (non-thinking)|[z-lab/Qwen3-8B-DFlash-b16](https://huggingface.co/z-lab/Qwen3-8B-DFlash-b16)|5|4096|12288|32/8|16|5 full|-|[1,9,17,25,33] / 36|1.95 GiB/1 file|1.05B|
-|Qwen3-Coder-30B-A3B|[z-lab/Qwen3-Coder-30B-A3B-DFlash](https://huggingface.co/z-lab/Qwen3-Coder-30B-A3B-DFlash)|8|2048|6144|32/4|16|8 full|-|[1,12,23,34,45] / 48|0.88 GiB/1 file|0.47B|
-|Llama-3.1-8B-Instruct|[z-lab/LLaMA3.1-8B-Instruct-DFlash-UltraChat](https://huggingface.co/z-lab/LLaMA3.1-8B-Instruct-DFlash-UltraChat)|5|4096|12288|32/8|10|5 full|-|[1,8,15,22,29] / 32|1.95 GiB/1 file|1.05B|
-
-表中 `粗估 core params` 按 decoder block + target hidden projection 估计，不把共享 target embedding / LM head 当作新增 draft 参数；实际 safetensors 体积还会受到 dtype、是否保存 embedding/head、配置实现差异影响。因此部署容量规划应优先看 `Weights`，结构分析看 `L/D/FFN/Attention/Block`。
-
-### 11.3 README 已列出但当前无法读取 config 的 gated/preview 模型
-
-|Target model|HF draft repo|Gated|权重元数据|说明|
-|---|---|---|---|---|
-|MiniMax-M2.7 (Preview)|[z-lab/MiniMax-M2.7-DFlash](https://huggingface.co/z-lab/MiniMax-M2.7-DFlash)|manual|1.04 GiB/1 file|config.json 存在，但未认证访问返回 401 gated repo|
-|MiniMax-M2.5 (Preview)|[z-lab/MiniMax-M2.5-DFlash](https://huggingface.co/z-lab/MiniMax-M2.5-DFlash)|manual|3.33 GiB/1 file|config.json 存在，但未认证访问返回 401 gated repo|
-|Kimi-K2.6 (Preview)|[z-lab/Kimi-K2.6-DFlash](https://huggingface.co/z-lab/Kimi-K2.6-DFlash)|manual|6.48 GiB/1 file|config.json 存在，但未认证访问返回 401 gated repo|
-
-### 11.4 结构规模的几个结论
-
-**1. DFlash draft 并不固定是论文里的 5-layer/b16。** 论文主设置里 Qwen3-4B/8B 是 5 层、block size 16；现在仓库里的新模型已经扩展到 6 层 SWA、8 层 full attention、block size 8/10/16 等多种规格。
-
-**2. Draft hidden size 往往跟 target 表示宽度或 active hidden size 对齐。** 例如 Qwen3.5-35B-A3B 与 Qwen3-Coder-30B-A3B 使用 `D=2048`，Qwen3.5-27B 使用 `D=5120`，Gemma-4-31B 使用 `D=5376`。这说明 DFlash 不是一个通用小模型复用到所有 target，而是按 target family 定制。
-
-**3. 新模型明显偏向 sliding-window draft attention。** Qwen3.5、Qwen3.6、Gemma-4 系列多为前 4-5 层 SWA + 最后一层 full attention，window 2048 或 4096。这是在长上下文 serving 中控制 draft KV/attention 成本的工程取舍。
-
-**4. Target hidden ids 数量从 5 增至 8。** Qwen3.5 系列常使用 8 个 target hidden layers，而论文 Qwen3 主实验是 5 个。结合论文消融“更多 target hidden features 提高 acceptance length”，这可能是新版本为了提高 draft 质量付出的额外 feature extraction / projection 成本。
-
-**5. 可读取配置的权重体积从约 0.72 GiB 到 6.48 GiB 不等。** 这比 7B 级 diffusion drafter 通常小，但已经不是“极小 adapter”。生产部署要把 draft weights、draft KV cache、target hidden extraction 和 verification block 开销一并计入显存预算。
-
-### 11.5 规格字段和参数估算公式
-
-对 Qwen3-style DFlash decoder，单层 core 参数可粗略拆成：
-
-$$  
-P_{\text{attn}} = D(Hd_h) + 2D(H_{kv}d_h) + (Hd_h)D,  
-$$
-
-  
-
-$$  
-P_{\text{mlp}} \approx 3DI,  
-$$
-
-  
-
-其中 D 是 hidden size，I 是 FFN intermediate size，H 是 attention heads，H_{kv} 是 KV heads，d_h 是 head dim。target hidden projection 为：
-
-$$  
-P_{W_c}=K D^2,  
-$$
-
-  
-
-其中 K=|\text{target\_layer\_ids}|。因此粗估 core 参数为：
-
-$$  
-P_{\text{core}} \approx L(P_{\text{attn}} + P_{\text{mlp}} + 2D) + KD^2 + D.  
-$$
-
-  
-
-这个公式用于比较不同 draft 规格大小，不能替代实际权重文件大小；实际发布权重是否包含 embedding/head、dtype 和 checkpoint shard 都会影响文件体积。
-
-## 10. 一句话判断
-
-DFlash 的核心价值不是“提出了一个更强的 diffusion LLM”，而是找到了 diffusion 并行生成在 LLM serving 中更可靠的使用位置：让小型 target-conditioned block diffusion model 负责快速 propose，让 frozen autoregressive target model 负责最终分布正确性。实验上，DFlash 在 Qwen3 主设置中确实把 EAGLE-3 约 2x 的速度上限推到约 4-5x，并在 serving backend 中保持可观收益；但其可复现性和生产迁移仍依赖训练 recipe 开源、backend 深度集成、以及高并发下的动态调度。
+DFlash 最可信的贡献是把 target-feature-conditioned block diffusion 变成一次并行 proposal，并用每层 KV injection 同时提高 acceptance，使 Qwen3 的 matched end-to-end speedup 显著超过 EAGLE-3；最大不确定性不是主结果是否存在，而是训练不可复现、系统增益仍有组件混杂，以及固定 block/高并发/开放式生成下的收益边界。

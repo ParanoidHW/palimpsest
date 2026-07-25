@@ -78,7 +78,7 @@ $$
 \mathrm{Speedup}\approx\frac{E[C]\,T_{AR-target}}{T_{round}}.
 $$
 
-$B$ 是 batch/load，$N_v$ 是 target 实际验证节点数。理想化上界假设 draft/pack/scheduler 免费且一次 target forward 与单 token 一样快，则 speedup 至多 $E[C]$；真实系统永远更低。JetSpec 明确展示 [tree budget 是负载相关旋钮](../papers/jetspec.md#47-serving-中-tree-budget-是负载相关旋钮)，D2SD 也指出 [更长 accepted prefix 可能被额外 draft/verify 成本抵消](../papers/d2sd.md#44-消融结论)。
+$B$ 是 batch/load，$N_v$ 是 target 实际验证节点数。理想化上界假设 draft/pack/scheduler 免费且一次 target forward 与单 token 一样快，则 speedup 至多 $E[C]$；真实系统永远更低。JetSpec 明确展示 [tree budget 是负载相关旋钮](../papers/jetspec.md#47-serving-中-tree-budget-是负载相关旋钮)，D²SD 也在[关键结论](../papers/d2sd.md#5-关键结论)和[Infra 需求分析](../papers/d2sd.md#8-infra-需求分析)中说明更长 accepted prefix 可能被额外 draft/verify 成本抵消。
 
 ### 2.1 应同时报告的指标
 
@@ -108,13 +108,13 @@ JetSpec 的 causal-parallel head 在一个 forward 内让 depth 位置具有 pre
 
 ### 3.3 Block / diffusion drafting
 
-block drafter 一次或少数步并行预测一段 token，target 仍按 token contract 验证。DFlash 用 block diffusion 解决 sequential drafter；其 [速度模型](../papers/dflash.md#31-速度模型与设计动机)、[推理流程](../papers/dflash.md#32-推理流程) 与 [serving 负载退化](../papers/dflash.md#43-serving-backend-中收益真实存在但高并发下下降) 展示算法和系统两侧。
+block drafter 一次或少数步并行预测一段 token，target 仍按 token contract 验证。DFlash 用 block diffusion 解决 sequential drafter；其[研究方法](../papers/dflash.md#4-研究方法)、[关键结论与 claim 证据矩阵](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵)与[Infra 需求分析](../papers/dflash.md#8-infra-需求分析)展示算法和系统两侧。
 
-DFlash 的局限是 block 内 prefix dependency 弱、首个 mismatch 后缀浪费。D2SD 用 confidence 定位潜在拒绝边界，再以 variable-prefix drafter 生成共享前缀分支；见 [D2SD 推理流程](../papers/d2sd.md#33-推理流程) 与 [DFlash scaling wall](../papers/d2sd.md#41-dflash-扩大-block-的-scaling-wall)。
+DFlash 的局限是 block 内 prefix dependency 弱、首个 mismatch 后缀浪费。D²SD 用 confidence 定位潜在拒绝边界，再以 variable-prefix drafter 生成共享前缀分支；见 [D²SD 研究方法](../papers/d2sd.md#4-研究方法)与[关键结论](../papers/d2sd.md#5-关键结论)。
 
 HyperDFlash 不是简单加深 vanilla DFlash，而是让 block drafter 的 hidden-state reducer 对齐 target 的 mHC 架构，并用 LM-head KL distillation 约束 logits；见 [Inherited HC-Gate](../papers/hyperdflash.md#33-关键公式inherited-hc-gate-reducer)、[KL distillation](../papers/hyperdflash.md#34-关键公式lm-head-kl-distillation) 与 [6-step matched result](../papers/hyperdflash.md#41-主结果同为-6-step-budgethyperdflash-明显优于-mtp-和-vanilla-dflash)。收益来自架构对齐 + distillation 的组合。
 
-DSpark 位于纯并行 block 与纯 AR draft 之间：semi-autoregressive groups 保留部分依赖，并用 confidence scheduling 动态决定何时 verify。其 [Semi-AR 机制](../papers/dspark.md#32-semi-autoregressive-generation)、[confidence scheduling](../papers/dspark.md#33-confidence-scheduled-verification) 与 [serving batch 分析](../papers/dspark.md#63-serving-侧-batch-capacity-与调度) 表明，动态 policy 必须与 load/scheduler 联合评估。
+DSpark 位于纯并行 block 与纯 AR draft 之间：semi-autoregressive groups 保留部分依赖，并用 confidence scheduling 动态决定何时 verify。其[研究方法](../papers/dspark.md#4-研究方法)、[关键结论与证据矩阵](../papers/dspark.md#5-关键结论与技术主张证据矩阵)与[Infra 需求分析](../papers/dspark.md#8-infra-需求分析)表明，动态 policy 必须与 load/scheduler 联合评估。
 
 ### 3.4 Reasoning-step / semantic proposals
 
@@ -162,7 +162,7 @@ tree staging 近似再加 $2L n_{kv}d_hN_vb$，paged KV 可减少碎片但不消
 - diffusion/block draft：block 内 attention 由 drafter 训练定义；target verify仍必须遵守 token因果性。
 - cascade tree：共享 prefix、不同 boundary/branch 需要稳定 node mapping 与 KV slot allocation。
 
-相关实现需求见 [DFlash 自定义算子](../papers/dflash.md#65-新算子与框架需求)、[JetSpec 调度/自定义算子](../papers/jetspec.md#64-调度serving自定义算子)、[DSpark serving engine 改造](../papers/dspark.md#65-新型自定义算子与-serving-engine-改造)。
+相关实现需求见 [DFlash Infra 需求分析](../papers/dflash.md#8-infra-需求分析)、[JetSpec 调度/自定义算子](../papers/jetspec.md#64-调度serving自定义算子)、[DSpark Infra 需求分析](../papers/dspark.md#8-infra-需求分析)。
 
 ### 5.3 Continuous batching 与负载
 

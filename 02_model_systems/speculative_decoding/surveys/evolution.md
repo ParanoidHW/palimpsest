@@ -13,7 +13,7 @@
 
 ## 精读证据入口
 
-[P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md) · [D2SD](../papers/d2sd.md) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md)
+[P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵) · [D²SD](../papers/d2sd.md#5-关键结论) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵)
 
 ## 资料获取与可追溯性
 
@@ -215,7 +215,7 @@ P-EAGLE 的出发点是：EAGLE 接受率高，但草稿 token 仍顺序生成�
 
 DFlash 的关键转向是把 diffusion model 从“最终生成器”改为“speculative drafter”。扩散模型独立生成质量不如 AR LLM 并不致命，因为最后由 target 验证。它的优势是：一个 forward 生成整个 block，draft latency 不随 block length 线性增长。
 
-![DFlash inference design|987](../assets/papers/dflash/fig2-inference-design.png)
+![DFlash inference design|987](../assets/papers/dflash/fig2-inference-design-caption.png)
 
 这张 DFlash 原理论文图说明了它的核心工程设计：target model 的 fused context feature 通过 KV 注入进入 diffusion drafter；block 内多个 mask token 在 draft layer 中并行预测，最后再由 target LM head/target model 做 speculative verification。也就是说，DFlash 不是让 diffusion model 独立生成最终答案，而是把 diffusion 当成低延迟 block proposal 模块。
 
@@ -226,7 +226,7 @@ AR drafter: draft token 1 -> token 2 -> ... -> token K
 DFlash:    一次 forward 生成 block 1..K
 ```
 
-本地精读显示，DFlash 在 Qwen3-8B 上多个 reasoning/code/chat benchmark 可达到约 4-5x 级别 speedup，accepted length 约 5.5-6.5；论文摘要报告部分设置超过 6x，并显著优于 EAGLE-3。
+本地精读显示，DFlash 在 Qwen3-8B 上多个 reasoning/code/chat benchmark 可达到约 4-5x 级别 speedup，accepted length 约 5.5-6.5；论文摘要报告部分设置超过 6x，并显著优于 EAGLE-3。精确实验边界与归因见 [DFlash 关键结论与 claim 证据矩阵](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵)。
 
 但 DFlash 留下两个新问题：
 
@@ -239,7 +239,7 @@ DDTree 试图用 DFlash 每个位置的分布构造 candidate tree，解决单�
 
 D2SD 则更有针对性：先由 DFlash 生成 block 和 confidence，估计最可能的拒绝边界，再用第二个 variable-prefix diffusion drafter 在这些边界重新生成后缀，形成共享前缀树。它的核心趋势是：
 
-![D2SD pipeline contrast|881](../assets/papers/d2sd/d2sd_pipeline_contrast.png)
+![D²SD pipeline contrast|881](../assets/papers/d2sd/fig1_pipeline_caption.png)
 
 这张 D2SD 原论文流程图非常清楚地展示了它相对 DFlash 的演进：左侧 DFlash 单条草稿在第一个 mismatch 后丢弃后缀；右侧 D2SD 先用 per-position confidence 预测最可能拒绝边界，再通过 Top-K Unmask 和 VP-Drafter 生成共享前缀分支，最后由 target model joint cascade tree verify，提交最长 accepted prefix。
 
@@ -247,7 +247,7 @@ D2SD 则更有针对性：先由 DFlash 生成 block 和 confidence，估计最�
 盲目加长 block / 随机多采样 -> 根据 confidence 把分支放在最可能出错的位置
 ```
 
-本地精读指出，D2SD 也提醒了一个重要原则：accepted length 不是唯一指标。额外层级可能提高接受长度，但如果 draft/verify 成本更高，speedup 反而下降。
+本地精读指出，D²SD 也提醒了一个重要原则：accepted length 不是唯一指标。额外层级可能提高接受长度，但如果 draft/verify 成本更高，speedup 反而下降。完整问题—方案闭环、系统成本与证据分类见 [D²SD 研究方法](../papers/d2sd.md#4-研究方法)、[关键结论](../papers/d2sd.md#5-关键结论)和[Infra 需求分析](../papers/d2sd.md#8-infra-需求分析)。
 
 ### 6.4 JetSpec：用 Causal-Parallel Head 修复扩散树路径不一致
 
@@ -270,6 +270,8 @@ JetSpec 的原论文图展示了三步机制：从 frozen target model 抽取多
 HyperDFlash 面向 DeepSeek-V4 Hyper-Connection，对齐 pre-collapse residual 和 gated residual reducer，说明 block drafter 正在变得 model-specific。
 
 DFlare 扩展 DFlash 的 target feature fusion 和 drafter capacity，说明 block diffusion 的下一步是提高条件信息和模型容量。
+
+DSpark 则在 parallel block 与 autoregressive draft 之间插入 lightweight sequential head，并以 confidence scheduler 动态裁剪验证前缀。截至 2026-07-25，官方 arXiv `2607.05147v1`、source、DeepSpec 代码与公开 checkpoint 均已核验；旧材料中“无 arXiv/source”的结论已失效。其 [研究方法](../papers/dspark.md#4-研究方法)、[关键结论与证据矩阵](../papers/dspark.md#5-关键结论与技术主张证据矩阵)与 [Infra/生产归因边界](../papers/dspark.md#8-infra-需求分析)明确区分离线 drafter 证据和 whole-stack 线上收益。
 
 BlockPilot、CaDDTree、EntMTP、WhiFlash 则显示另一个趋势：固定 speculation budget 正在被淘汰。系统需要根据当前样本、entropy、batch size、verification cost 和 drafter 类型选择策略。
 
