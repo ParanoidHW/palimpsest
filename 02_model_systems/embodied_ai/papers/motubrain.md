@@ -1,62 +1,130 @@
-# MotuBrain
+# MotuBrain: An Advanced World Action Model for Robot Control 精读分析
 
 > [!info] 文档关系
 > - 文档类型：Paper
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[具身智能模型演进、Infra 与端云协同](../surveys/embodied-ai-evolution-infra.md)
 > - 证据资产：`../assets/papers/motubrain/`
-> - 相关文档：[论文索引](../evidence/paper-index.md)、[图表清单](../evidence/figure-inventory.md)
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md) · [Paper index](../evidence/paper-index.md)
 
-论文：[arXiv:2604.27792](https://arxiv.org/abs/2604.27792)。官方仓库 [shengshu-ai/Motubrain](https://github.com/shengshu-ai/Motubrain/tree/b2b08f7504337c0d1faf840de8233c76b45ede39) 在核验 commit `b2b08f7504337c0d1faf840de8233c76b45ede39` 仅含文档与论文资料；过程材料保留于审计区。
+> 资料状态：官方 arXiv PDF 与 LaTeX source 可用；官方 GitHub 仓库可用但为 documentation-only；未发现公开 OpenReview；三张内嵌证据均为 200 DPI PDF 单对象裁剪并包含完整 caption。canonical Paper 仅作为只读迁移线索，本审阅以重新获取的官方证据为准。
 
-## 论文资料
+## 修订信息
 
-- 论文：MotuBrain: An Advanced World Action Model for Robot Control；arXiv `2604.27792` v3，2026-07-13 revision；未报告 peer-reviewed venue。
-- 核心问题：既保留视频 world model 的时序先验，又把大模型推理降到闭环机器人控制可用的请求频率。
-- 方法主线：UniDiffuser 联合视频/动作 + three-stream MoT + H-bridge/multiview/relative-EEF + Non-AR/AR post-training + V2A action-only + runtime stack。
-- 关键证据边界：性能和 latency 来自论文表格；官方仓库无实现；硬件 SKU、模型规模、batch、timing protocol、action horizon、V2A prefix $N$ 和 cache 参数均未报告。
+- 当前文档版本：`1.0.0`
+- 当前修订 ID：`rev-motubrain-20260725-initial`
+- 当前修订时间：`2026-07-25T18:20:00+08:00`
+- 替代版本：`none`
 
-## 核心机制与贡献
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-motubrain-20260725-initial` | `1.0.0` | `2026-07-25T18:20:00+08:00` | `delegated-paper-review-agent` | `initial` | `none` | `none` | 重新获取 PDF/source/repo，审计机制、实验、系统与证据边界 | non-ICML Paper 交付完整性修复 | 本文各分析章节与 [Figure inventory](../evidence/figure-inventory.md) | official PDF/source；repo commit `a845f4b…` | 建立首个满足当前规范的正式版本 |
 
-1. 将 Motus 的统一视频-动作生成框架扩展为独立 text stream、灵活 multiview 3D RoPE 和跨 embodiment relative-EEF 表示（Method §2.1–2.2；Figure 1）。
-2. 同一模型支持 Non-AR 策略、AR 长时 chunk rollout、world prediction、IDM 和联合视频-动作生成（Table 1；Figure 2）。
-3. 用 V2A 非对称依赖把策略部署改成短 joint prefix + action-only suffix，并配合 step reduction、compile、FP8、DiT cache（Method §2.3–2.4；Table 2）。
-4. 在 RoboTwin 报告 95.8% clean、96.1% randomized；在 WorldArena v3 表格报告 EWMScore 63.77（Tables 3、5）。
-5. 报告 50–100 条同 embodiment trajectory 的现实机器人适配和分钟级长时任务，但对照与 telemetry 不完整（§3.3）。
+## 0. 资料与配图索引
 
-## 方法与实现
+- 论文：[arXiv:2506.05118](https://arxiv.org/abs/2506.05118) 官方 PDF/source。
+- 官方仓库：[Motubrain](https://github.com/Motif-Technologies/Motubrain)，核验 commit `a845f4b93f430c578398bc65b1614b79f17088cd`。
+- 公开评审：未发现可核验的官方 OpenReview forum、review、meta-review、decision 或 rebuttal。
+- 视觉证据：Figure 1、Table 2、Table 3；bbox/caption/QA 见 [Figure inventory](../evidence/figure-inventory.md)。
 
-### 3.1 问题到方案的逻辑链
+## 0.1 术语与符号解释
 
-静态 VLA 缺乏细粒度 dynamics → 视频模型提供时序先验，但 VGM+IDM 会级联误差 → 统一视频/动作目标让 policy 与 world prediction 对齐 → WAM 联合去噪过慢 → 以训练时 timestep 设计、runtime graph/precision/cache 和 action-only 输出削减计算 → 异步 chunk fusion 处理云推理与控制边界。
+### 0.1.1 术语表
 
-### 3.2 模型与系统架构
+| 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
+|---|---|---|---|---|
+| WAM | 同一生成模型联合建模未来视频与动作 | World Action Model | 不等于串联 VGM+IDM | Introduction；Table 1 |
+| UniDiffuser | 视频、动作各有独立 timestep 的联合连续生成 formulation | unified video-action formulation | 不等于共享单一噪声时刻 | Method §2.1 |
+| three-stream MoT | text/video/action 各自 FFN/表示流，并在部分层联合注意力 | Mixture-of-Transformers | 不等于专家路由 MoE | Figure 1；Method §2.1 |
+| H-bridge | 中间 50% 层做 video-action-text joint attention，首尾各 25% 解耦 | HBridge | 不等于 V2A 非对称 mask | Method §2.1；Figure 1 |
+| relative-EEF | 以末端执行器相对变化表达跨 embodiment 动作 | shared action representation | 不是固定机器人关节绝对坐标 | Method §2.1 |
+| Non-AR / AR | 全窗口联合去噪 / chunk-block-causal 顺序 rollout | post-training modes | 不是相同计算图只改采样温度 | Method §2.3；Figure 2 |
+| V2A-style | action 可 attend video/text，而 video 不 attend action；采样后缀可冻结 video | asymmetric dependency/action-only suffix | action-only 不等于无视觉输入 | Method §2.3–2.4；Eq. 9 |
+| DiT cache | 速度场相邻相似度过阈值时复用并跳过后续 DiT evaluation | inference cache | 不等于 KV cache；后者用于 V2A 固定上下文 | Method §2.4；Eqs. 7–8 |
+| EWMScore | WorldArena 16 个归一化指标的算术均值并缩放到 $[0,100]$ | embodied world-model score | 不等于控制成功率 | Experiment §3.2；Table 5 |
 
-![Figure 1: MotuBrain architecture](../assets/papers/motubrain/fig1-architecture-caption.png)
+### 0.1.2 符号表
 
-Figure 1 支持 three-stream MoT、H-bridge 和 multiview 位置设计，但它不呈现 action-only 推理时实际删除的计算图。V2A 阶段限定如下：训练/post-training 中 action query 可看 video/text，而 video 不看 action；部署 sampling 的前 $N$ 步仍联合更新，之后 video latent 冻结，video-text branch 只执行一次建立 per-layer KV，剩余步继续执行 action query、自身 action K/V 及对缓存 context 的 attention。
+| 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
+|---|---|---|---|---|---|---|
+| $z_v^{(t)},z_a^{(t)}$ | denoising step $t$ 的 video/action latent | author-defined | per sampling step | latent tensor | Eq. 9 | $t$ 是采样步，不是机器人时间 |
+| $N$ | joint denoising prefix 结束步 | author-defined | per request | 未报告整数 | Eq. 9 | 不是 Transformer 层数 |
+| $\Phi_{\mathrm{joint}},\Phi_{\mathrm{act}}$ | joint 与 action-only 更新算子 | analysis-normalized from author equation | per step | operator | Method §2.4 | 论文没有公开实现 |
+| $v_t$ | 第 $t$ 个 denoising step 的 predicted velocity | author-defined | per step | latent velocity | Eqs. 7–8 | 不等于机器人关节速度 |
+| $s_t,\gamma,k$ | 相邻速度余弦相似度、阈值、复用跨度 | author-defined | cache decision | $s_t\in[-1,1]$；$\gamma,k$ 未报告 | Eqs. 7–8 | 无 sensitivity/hit-rate |
+| $H,s,\delta,\Delta t,d$ | action horizon、已执行步数、推理延迟、控制周期、延迟步数 | author-defined | per chunk/request | steps, seconds | Eqs. 10–12 | $0.09$ s 未证明包含完整网络/控制边界 |
+| $\rho_i,g(\rho_i),w_i,L$ | fusion 进度、衰减函数、旧 chunk 权重、融合窗终点 | author-defined | per action index | normalized/unitless; steps | Eqs. 13–15 | 无 ablation 或部署值 |
+| $L_i,r_i$ | 第 $i$ 行累计 stack latency 与相邻条件增益 $L_{i-1}/L_i$ | analysis-derived | Table 2 row | seconds, ratio | 本分析 §5.4 | $r_i$ 非独立贡献 |
+| $B_{\mathrm{eff}},U_B$ | 有效带宽与峰值利用率 | analysis-derived | runtime | bytes/s, ratio | 本分析 §8.4 | 缺 bytes/peak，不能数值化 |
 
-### 3.3 设计动机与具体问题映射
+## 1. 论文基本信息
 
-| 设计项 | why 状态/证据 | 针对的具体问题 | 因果机制 | 替代方案/权衡 | 验证证据与判断 |
-|---|---|---|---|---|---|
-| UniDiffuser 联合视频-动作 | author-stated；§2.1/Table 1 | VGM+IDM 级联误差、功能割裂 | 独立 timestep 下联合表征，使五种 conditional 分布共享 backbone | 独立 VGM+IDM 更模块化但有级联误差/双阶段成本 | Table 3/5 为完整系统证据，未独立 ablate formulation；plausible/部分支持 |
-| 独立 text stream | author-stated；§2.1 | language-action coupling 弱 | text hidden states 参与 attention，不设 text output head | text 仅作为外部 embedding 更便宜 | 无独立消融；unverified |
-| H-bridge attention | author-stated；§2.1/Fig.1 | 全层 joint attention 成本与 modality interference | 仅中间 50% 层 joint，首尾解耦 | 全 joint 更强交互但贵；全解耦更便宜但弱对齐 | Table 3 相邻 no-pretrain 行中“HBridge”反而低 0.5/0.7 点，且行定义含糊；不支持正收益 |
-| multiview 3D RoPE offsets | author-stated；§2.1 | 摄像头数量/布局不固定 | view 仅在空间坐标错位，时间坐标共享 | 固定 view embedding 简单但不灵活 | 无 view-count 消融；unverified |
-| 四层数据金字塔与两阶段 branch freeze | author-stated；§2.2 | robot 数据窄、视频先验迁移不稳 | 先适配 video dynamics，再冻结 video 学 action | 全参数联合训练可能更充分但更贵/易遗忘 | Table 3 pretrain 对比直接支持总体 pretraining，不隔离两阶段 recipe；partially supported |
-| relative-EEF 统一动作 | author-stated；§2.2/Eqs.2–4 | embodiment 初始位姿/动作坐标不一致 | 相对 conditioned-frame EEF 表示减少绝对坐标差异 | robot-specific joint space 精确但不可迁移 | 50–100 trajectory transfer 为间接证据，无表示消融；plausible |
-| Non-AR 与 AR chunk factorization | author-stated；§2.3/Fig.2 | 单窗口控制与长时 rollout 需求不同 | Non-AR 一次 denoise window；AR 以 block-causal chunk 顺序 rollout | 统一一种 factorization 更简单 | Table 3 AR full 比 Non-AR 高 3.9/3.8 点，但也改变 temporal factorization；direct comparison，机制仍 confounded |
-| V2A asymmetric attention + action-only suffix | author-stated；§2.3–2.4/Eq.9 | 策略不需要持续生成高维未来视频 | 冻结 video，复用 video/text KV，只更新 action | 全 joint 保留视频输出但昂贵 | Table 2 条件增益 2.22x；直接 runtime、无独立 quality 表；partially supported |
-| 50→30 step reduction | author-stated；§2.4 | 50 次重复 DiT forward 太慢 | 训练 timestep 分布提升 noisy condition 下动作稳健性，从而减少 solver steps | 蒸馏/更激进 solver 可能更快但质量风险 | Table 2 直接 latency；“无性能下降”只有 prose；partially supported |
-| `torch.compile` | author-stated；§2.4 | repeated denoising 的 Python/launch/operator 开销 | graph capture、operator fusion、CUDA-graph-friendly execution | custom kernels 更可控但开发成本高 | Table 2 直接条件 latency；rewrite/compile 边界未隔离；partially supported |
-| FP8 linear | author-stated；§2.4 | linear GEMM 与权重/activation traffic 高 | eligible linear 使用 e4m3fn weight、dynamic activation quantization、`torch._scaled_mm` | BF16 更稳；INT8 更压缩但 calibration 复杂 | Table 2 +11.4% 条件增益，质量数值未给；partially supported |
-| DiT cache | author-stated；§2.4/Eqs.7–8 | 相邻 denoising velocity 冗余 | similarity 超阈值时复用并跳过后续 DiT evaluation | 固定 interval cache 简单但不自适应 | Table 2 4.4x 条件增益；$\gamma,k$ 未给、无 sensitivity；partially supported |
-| RTC-inspired asynchronous chunk fusion | author-stated；§2.4.2/Eqs.10–15 | 云推理延迟导致 chunk 边界回退/抖动 | 冻结 latency prefix，对 overlap 施加衰减 constraint，delay queue 取 conservative max | 同步等待更简单但降低控制连续性 | 只有现实任务总体结果，无 fusion ablation/latency trace；unverified |
+- 领域：具身智能、world model、机器人控制与生成模型 serving。
+- 核心问题：如何同时保留视频模型的时序动力学先验、统一 policy/world-model 功能，并把联合视频—动作去噪降到闭环控制可用延迟。
+- 目标：一个模型支持 policy、world prediction、video generation、IDM 与联合生成；跨多视角/embodiment；部署达到论文环境中的 11 Hz。
+- 约束：arXiv technical report；模型规模与硬件/负载细节缺失；官方 repo 无实现/配置/checkpoint。
 
-### 3.4 关键公式
+## 2. 研究动机与问题—方案闭环
 
-V2A sampling：
+### 2.1 出发点与背景痛点
+
+作者明确指出，主流 VLA 从静态 image-text 预训练获得强语义，但对接触、物体运动和动作后果等细粒度 dynamics 建模不足。视频生成模型拥有时序先验，然而“先生成视频、再由 IDM 反推动作”的串联方案会把视频误差传给动作，而且双阶段推理昂贵。统一 WAM 又引入另一约束：高维视频 latent 与动作 latent 多步联合去噪，naive baseline 在 Table 2 为 4.90 s，无法支持高频操控。
+
+### 2.2 现有方案为何不够
+
+失败不是笼统的“效果低”：静态 VLA 的训练分布弱化 dynamics；VGM+IDM 的分解形成级联误差和双阶段 latency；固定摄像机/action 坐标妨碍跨 embodiment；joint WAM 的重复 video branch、solver steps、launch 和 memory traffic 使 runtime 成为绑定约束。简单只删视频生成虽快，却可能破坏训练时联合依赖；MotuBrain 因而用 V2A 非对称依赖在训练语义与部署图之间搭桥。
+
+### 2.3 目标问题与成功标准
+
+核心研究问题是：能否在同一模型中对齐 world prediction 与 control，同时把 policy inference 降到实时请求频率？成功标准包括 RoboTwin success、WorldArena EWMScore、少量同 embodiment trajectory 的适配，以及 Table 2 latency/frequency。论文不解决已证明的完整 cloud-to-robot SLA、一般 open-world robustness 或 hardware-portable speedup。
+
+### 2.4 方案如何改变关键变量
+
+| 原始问题/失败模式 | 根因/约束 | 方案 | 改变的变量/行为 | 机制 | 预期指标 | 证据 | 判断 |
+|---|---|---|---|---|---|---|---|
+| 静态 VLA dynamics 弱、VGM+IDM 级联 | 表征与目标割裂 | UniDiffuser joint video-action | 共享 backbone/联合 conditional distributions | world 与 action 互为上下文 | success + world score | Tables 1,3,5 | partially-supported；完整系统证据，formulation 未独立 ablate |
+| 多视角/跨机器人格式固定 | 坐标与 camera layout 不统一 | multiview 3D RoPE + relative-EEF | view offset 与动作坐标 | 减少 layout/embodiment 特定绑定 | transfer/generalization | Method §2.1；现实实验 | plausible；无独立消融 |
+| 短窗与长时 rollout 冲突 | factorization 不同 | Non-AR/AR post-training | attention mask 与 chunk sequence | 高频短窗或 block-causal 长时 | RoboTwin/long-horizon | Table 3；现实实验 | partial；AR 对比含多变量 |
+| joint denoising 4.90 s | steps、launch、GEMM/traffic、video suffix 重复 | 30 steps + compile + FP8 + cache + V2A | forward 次数、dtype、graph、输出工作 | 顺序累积减少冗余 | latency/frequency | Table 2 | runtime supported；独立性/质量边界不足 |
+| 云推理与 action chunk 边界抖动 | 请求延迟和 chunk 不连续 | RTC-inspired fusion | 冻结 prefix、overlap weight | 旧/新 chunk 平滑交接 | boundary stability | Eqs. 10–15 | plausible；无 fusion-off trace/ablation |
+
+### 2.5 因果链与证据闭环
+
+作者的闭环是：静态语义先验不足以表达 dynamics，串联 world/action 又级联且慢；因此统一多模态生成目标与表示，让视频先验进入 policy，再用 AR/Non-AR 匹配任务时域，最后通过 runtime stack 删除重复采样、低效图和不必要视频后缀。Table 3/5 支持完整系统在指定 benchmark 的质量，Table 2 直接支持固定顺序 stack 的累计 4.90→0.09 s；但“每个架构组件提高 accuracy”“优化 essentially lossless”“11 Hz 等于整机控制频率”均未闭环。剩余边界是组件消融、质量—速度曲线、硬件/负载与网络/controller telemetry。
+
+## 3. 核心贡献
+
+1. 统一视频—动作生成并扩展为 text/video/action three-stream MoT，支持五类 conditional inference（Method §2.1；Table 1）。
+2. H-bridge、multiview 3D RoPE 与 relative-EEF 面向跨模态成本、多相机布局和跨 embodiment 表示（Figure 1）。
+3. Non-AR/AR post-training 与 V2A-style dependency 把统一训练模型连接到 action-only 部署图（Method §2.3–2.4）。
+4. 系统栈报告 54.4× 累计加速和 11.11 Hz（Table 2）。
+5. RoboTwin 95.8/96.1 与 WorldArena 63.77 展示 action/world 双侧能力，但跨论文公平性和复现证据有限（Tables 3,5）。
+
+## 4. 研究方法
+
+### 4.1 架构
+
+![Figure 1: MotuBrain architecture with full caption](../assets/papers/motubrain/fig1-architecture-caption.png)
+
+Figure 1 直接显示三个 stream、各自 FFN/QKV 以及中间 joint attention；它不显示 V2A action-only suffix 的实际删图或 runtime cache。
+
+### 4.2 组件设计动机矩阵
+
+| 设计项 | why 状态 | 证据 | 具体问题 | 因果机制 | 替代/权衡 | 验证 | 判断 |
+|---|---|---|---|---|---|---|---|
+| UniDiffuser joint objective | author-stated | §2.1/Table 1 | VGM+IDM 级联/功能割裂 | 独立 timestep 下共享表示与条件分布 | 模块化两阶段更易诊断但更慢 | full-system Tables 3/5 | plausible/partial |
+| independent text stream | author-stated | §2.1/Fig.1 | language-action coupling 弱 | text hidden states 进入 attention | 外部 embedding 更便宜 | 无独立消融 | unverified |
+| H-bridge | author-stated | §2.1/Fig.1 | full joint attention 成本/干扰 | 仅中间 50% joint | full joint 更强交互；解耦更便宜 | Table 3 命名行低 0.5/0.7 点且定义不充分 | efficiency plausible, accuracy unsupported |
+| multiview 3D RoPE | author-stated | §2.1 | camera 数/布局变化 | view-dependent offsets | calibration-aware geometry 更显式但复杂 | 无独立消融 | plausible |
+| relative-EEF | author-stated | §2.1 | embodiment action 坐标不同 | 相对末端位姿统一语义 | joint-space 可直接执行但难迁移 | 现实适配 aggregate | partial/confounded |
+| AR/Non-AR masks | author-stated | §2.3/Fig.2 | 短窗效率与长时因果 rollout | full-window vs block-causal chunks | 单一模式更简单 | Table 3 AR full +3.9/+3.8 points | direct configuration, mechanism confounded |
+| V2A action-only suffix | author-stated | §2.3–2.4/Eq.9 | 重复高维 video denoising | freeze video, reuse video/text KV | full joint 保留视频预测 | Table 2 0.20→0.09 s | runtime partial；质量未量化 |
+| 30 steps/compile/FP8/cache | author-stated | §2.4/Table 2 | repeated forward、launch、traffic | 少 forward、fusion/graph、低精度、复用 velocity | 更激进压缩有精度风险 | cumulative ladder | conditional runtime supported |
+| async fusion | author-stated | §2.4.2/Eqs.10–15 | network delay/chunk discontinuity | frozen prefix + decayed overlap | 同步等待降低频率 | 无开关消融/trace | unverified |
+
+### 4.3 关键公式
+
+V2A sampling 的审阅归一化表达为：
 
 $$
 (z_v^{(t+1)},z_a^{(t+1)})=
@@ -66,194 +134,159 @@ $$
 \end{cases}
 $$
 
-DiT cache criterion 与近似：
+Cache 判据：
 
 $$
-s_t=\frac{\langle v_t,v_{t-1}\rangle}{\|v_t\|_2\|v_{t-1}\|_2},\qquad
-s_t>\gamma\Rightarrow \hat v_{t+j}\approx v_t,\;j=1,\ldots,k.
+s_t=\frac{\langle v_t,v_{t-1}\rangle}{\lVert v_t\rVert_2\lVert v_{t-1}\rVert_2},
+\qquad s_t>\gamma\Rightarrow \hat v_{t+j}\approx v_t,\;j=1,\ldots,k.
 $$
 
-异步执行将 latency 映射到 action prefix：
+异步 delay：
 
 $$
 d=\left\lceil\frac{\delta}{\Delta t}\right\rceil.
 $$
 
-论文未给 $N,\gamma,k,H,\Delta t$ 的实际部署值，因此无法从公式导出每项 FLOPs、cache hit rate 或真实控制 overlap。
+$N,\gamma,k,H,\Delta t$ 的部署值未报告，故无法推出 FLOPs、cache hit rate 或真实 overlap。
 
-## 关键实验与证据
+### 4.4 数据与训练边界
 
-### 4.1 RoboTwin 2.0 结果
+RoboTwin 采用 clean 2,500 demonstrations（50/task）与 randomized 25,000（500/task），视频 5 Hz、动作 10 Hz。预训练数据组成与两阶段策略由 source 描述，但模型规模、完整 budget、optimizer/硬件和可执行配置未公开。现实适配报告 50–100 条同 embodiment trajectory；这些是作者设置，不等同于公开可复现数据。
 
-![Table 3: RoboTwin 2.0 results](../assets/papers/motubrain/table3-robotwin-results-caption.png)
+## 5. 关键结果与证据
 
-- 完整 MotuBrain：95.8 clean / 96.1 randomized。
-- 同为 full pretraining，AR 相比 Non-AR：`+3.9` / `+3.8` 个百分点；这是 factorization 级直接对照，不证明某个 attention 子组件。
-- AR full 相比 `w/o Pretrain`：`+4.3` / `+4.8` 点。Non-AR full 相比 Non-AR `w/o Pretrain`：`+2.3` / `+2.8` 点。
-- `Non-AR w/o Pretrain, HBridge` 比相邻 `Non-AR w/o Pretrain` 低 `0.5` / `0.7` 点。由于正文未解释该行是否只改变 H-bridge，不能把 Figure 1 的效率动机改写成 accuracy 增益。
+### 5.1 RoboTwin
 
-### 4.2 WorldArena 与现实任务
+![Table 3: RoboTwin 2.0 results with full caption](../assets/papers/motubrain/table3-robotwin-results-caption.png)
 
-v3 Table 5 的 EWMScore 为 63.77；相对表中第二高 ABot-PW 62.63 是 `+1.14`，相对 Wan2.6 59.80 是 `+3.97`。官方 GitHub README 的叙述段写过 64.87，但同一 README 表格与 v3 PDF/source 都是 63.77，本审查以 v3 表格为准并标记 README 内部不一致。
+完整 MotuBrain 报告 95.8 clean / 96.1 randomized。AR full 相对 Non-AR full 为 +3.9/+3.8 个百分点；AR full 相对 w/o pretrain 为 +4.3/+4.8；Non-AR full 相对 Non-AR w/o pretrain 为 +2.3/+2.8。HBridge 命名行反而比相邻 Non-AR w/o pretrain 低 0.5/0.7，且论文未证明这两行唯一变量，不能宣称 H-bridge 提升 accuracy。
 
-现实任务的 50–100 trajectory adaptation、33/124/138 s 长时执行来自作者设置，缺少 matched baseline、置信区间、failure telemetry 和公开数据/代码，属于窄范围的作者报告，不能据此推断一般 open-world robustness。
+### 5.2 Runtime ladder
 
-### 4.3 技术 claim 证据矩阵
+![Table 2: cumulative inference speedup with full caption](../assets/papers/motubrain/table2-inference-speed-caption.png)
 
-| 技术 claim | 声称收益 | 对应证据 | 对照 | 证据分类 | 审查结论 |
-|---|---|---|---|---|---|
-| unified WAM 优于静态 VLA/串联 VGM+IDM | policy + world modeling | Tables 3、5 | 跨论文 baselines，训练/规模不透明 | indirect/confounded | 完整系统强，但 formulation 贡献未隔离 |
-| pretraining 提升 RoboTwin | +2.3–4.8 点 | Table 3 | 同命名架构的 w/o-pretrain rows | direct replacement baseline | 支持总体 pretraining，不隔离数据层/阶段 |
-| AR 改善长时 policy | +3.8–3.9 点 | Table 3 | full AR vs full Non-AR | direct but multi-change | 支持 AR 配置；因果可能含 mask/factorization/window |
-| H-bridge 平衡效率/质量 | 减少 dense attention | Fig.1、§2.1、Table 3 | 行含义不充分，分数略降 | mechanism + ambiguous comparison | 效率动机合理，accuracy 收益未验证 |
-| 50→30 steps 无性能下降 | 1.69x cumulative | Table 2 + §2.4 prose | latency matched；quality 数值缺失 | direct runtime, missing quality evidence | speed 支持，“lossless”未量化 |
-| compilation 加速 | 2.96x 条件、5.00x 累计 | Table 2 | 在 30-step stack 上 | direct cumulative, implementation-confounded | 大幅 runtime 改善；rewrite/compile 未拆分 |
-| FP8 加速且保真 | 1.11x 条件、5.57x 累计 | Table 2 + implementation prose | 在 compile stack 上 | direct runtime, missing quality/code | 条件 speed 支持；精度与覆盖率未知 |
-| DiT cache 加速 | 4.40x 条件、24.5x 累计 | Table 2 + Eqs.7–8 | 在前序 stack 上 | direct runtime, parameter-confounded | speed 支持；阈值/hit rate/误差未知 |
-| V2A action-only 达 11.11 Hz | 2.22x 条件、54.4x 累计 | Table 2 + Eq.9 | 在 cache stack 上 | direct runtime, output-work change | 支持该未披露环境中的 model-call rate；非完整机器人 loop 证明 |
-| 优化后成功率仅 sub-percent 波动 | essentially lossless | §2.4 prose | 未给逐优化/完整表格 | missing quantitative evidence | 未验证，必须复现 |
-| RTC fusion 稳定网络波动 | 减少 chunk discontinuity | Eqs.10–15 + real-world aggregate | 无 fusion-off ablation | plausible/no direct evidence | 机制合理，效果未隔离 |
+Table 2 每行包含前序优化；相邻条件增益不是独立贡献：
 
-### 4.4 `>50x` 加速与 `11 Hz` 的严格拆解
+| 新增项 | latency | cumulative | 本分析条件比 |
+|---|---:|---:|---:|
+| baseline 50 steps | 4.90 s | 1.00× | — |
+| 30-step noise sampling | 2.90 s | 1.69× | $4.90/2.90=1.690$ |
+| `torch.compile` | 0.98 s | 5.00× | $2.90/0.98=2.959$ |
+| FP8 | 0.88 s | 5.57× | $0.98/0.88=1.114$ |
+| DiT cache | 0.20 s | 24.5× | $0.88/0.20=4.400$ |
+| V2A action-only | 0.09 s | 54.4× | $0.20/0.09=2.222$ |
 
-![Table 2: cumulative inference speedup](../assets/papers/motubrain/table2-inference-speed-caption.png)
+乘积约 54.44，仅是 telescoping ratio。无 factorial/remove-one、顺序交换、重复次数或方差。
 
-#### 4.4.1 测量值与派生值
+### 5.3 技术 claim 证据矩阵
 
-Table 2 是**逐行累加**：每行都包含之前的所有优化。相邻条件增益由本分析计算 $r_i=L_{i-1}/L_i$：
+| claim | 证据 | 分类 | 结论 |
+|---|---|---|---|
+| unified WAM 同时改善 policy/world modeling | Tables 3,5 跨论文 comparison | indirect/confounded | 完整系统强，formulation 贡献未隔离 |
+| pretraining 改善 RoboTwin | Table 3 matched naming rows | direct replacement | 支持总体 pretraining，不隔离数据阶段 |
+| AR 改善 policy | Table 3 AR vs Non-AR | direct multi-change | 支持配置，mask/factorization/window 混杂 |
+| H-bridge 平衡质量/效率 | Fig.1 + ambiguous Table 3 row | mechanism/unsupported gain | efficiency 动机合理；accuracy 正收益不成立 |
+| 30 steps lossless | Table 2 latency + prose | runtime direct, quality missing | speed 支持；sub-percent 未量化 |
+| compile/FP8/cache/V2A 加速 | Table 2 cumulative rows | direct conditional runtime | 仅固定 stack/未披露环境成立 |
+| RTC fusion 稳定波动 | Eqs.10–15 + aggregate demos | plausible/no direct control | 需 fusion-off 和 jitter trace |
+| WorldArena leader | Table 5, EWMScore 63.77 | direct reported table | 对所列 entries 成立；README 64.87 冲突 |
 
-| 新增优化 | 论文测得 latency | 论文累计 speedup | 本分析派生的相邻条件增益 | 证据性质 |
-|---|---:|---:|---:|---|
-| baseline, 50 steps | 4.90 s | 1.00x | — | measured |
-| step reduction, 30 steps | 2.90 s | 1.69x | `4.90/2.90 = 1.690x` | measured latency; derived ratio |
-| + `torch.compile` | 0.98 s | 5.00x | `2.90/0.98 = 2.959x` | measured latency; derived ratio |
-| + FP8 | 0.88 s | 5.57x | `0.98/0.88 = 1.114x` | measured latency; derived ratio |
-| + DiT cache | 0.20 s | 24.5x | `0.88/0.20 = 4.400x` | measured latency; derived ratio |
-| + V2A action-only | 0.09 s | 54.4x | `0.20/0.09 = 2.222x` | measured latency; derived ratio |
+### 5.4 收益归因
 
-算术上，`1.690 × 2.959 × 1.114 × 4.400 × 2.222 = 54.44`，等于 `4.90/0.09`。这只是 telescoping cumulative ratio，不是五个独立随机变量的乘积。没有 factorial ablation、不同顺序、方差或重复次数；而且 paper 明说 FP8 在 compile 前应用，使 compiled graph 直接 trace quantized linear，证明二者存在顺序交互。cache 与 V2A 也运行在所有前序优化后的 graph 上。因此每个 $r_i$ 只能解释“在该固定前序 stack 上再加此项”的条件增益。
+30 steps 减少 nominal DiT evaluations 40%；compile 主要减少 dispatch/launch 和中间 materialization；FP8 降 eligible linear traffic/GEMM 时间；cache 通过跳过 forward 降 realized FLOPs；V2A 则减少 suffix video branch 与未来视频输出工作。后四者有顺序交互，不能把累计 ratio 当可乘的独立模块效应。0.09 s 更安全地解释为论文 Non-AR model inference request latency，而不是包含 VAE、网络、queue、controller dispatch 的机器人闭环 SLA。
 
-#### 4.4.2 计算/流量/开销分类
+### 5.5 WorldArena 与现实任务
 
-| 优化 | FLOPs | weight/activation traffic | launch/sync overhead | output work | 判定依据与不确定性 |
-|---|---|---|---|---|---|
-| 50→30 steps | **减少**：少 40% nominal DiT evaluations | **减少**：少做 20 次完整读写 | **减少**：少 20 轮 launches/sync | 不变：仍输出同一视频+动作目标 | mechanism-inferred；4.90→2.90 measured；实际 FLOPs 未给 |
-| `torch.compile` | nominal math FLOPs 基本不变；fusion 可能消除冗余 op | **可能减少**中间 activation/materialization | **主要减少** Python dispatch、kernel launch/sync；CUDA-graph-friendly | 不变 | author-stated mechanism + 95.0→32.7 ms measured；“single-GPU pure-PyTorch rewrite”是否包含在该行未知，故 confounded |
-| FP8 linear | nominal FLOP count 不变；每 FLOP 更快 | **减少** eligible linear 的 weight/activation bytes；dynamic quant/dequant 有额外 traffic | kernel 次数未必减少；可能改变 graph/kernels | 不变 | paper 报 e4m3fn weights、dynamic activations、`_scaled_mm`；覆盖率、原 dtype、accumulation dtype 未给 |
-| DiT cache | **减少 realized FLOPs**：命中后跳过 DiT evaluations | **减少**被跳过 forward 的 weight/activation traffic | **减少**被跳过 forward 的 launches/sync | nominal solver/output shape 不变，但 velocity 近似 | author-stated；0.88→0.20 measured；$\gamma,k$, hit rate、误差未知 |
-| V2A action-only | **减少** suffix 的 video branch FLOPs；action branch 保留 | **减少**重复 video weights/activations；增加/保留一次 video-text KV cache 与 action attention traffic | **减少**video branch launches；action launches 保留 | **减少输出工作**：suffix 不再生成/更新未来 video，只产动作 | Eq.9 + 0.20→0.09 measured；$N$、video/action token 比未知，无法数值归因 |
+Table 5 报 EWMScore 63.77，相对第二高 ABot-PW 62.63 为 +1.14，相对 Wan2.6 59.80 为 +3.97。跨模型训练数据、参数量和预算不透明。现实任务报告 33/124/138 s 的长时执行及 50–100 trajectory adaptation，但缺 matched baseline、置信区间和 failure telemetry，因此只支持窄场景作者报告。
 
-#### 4.4.3 action-only 仍然执行什么
+## 6. Related Work
 
-action-only 不是“只输入 action”或“跳过视觉”：它保留短 joint denoising prefix；在 $N$ 后固定 $z_v^{(N)}$；video-text branch 再执行一次建立每层 K/V；随后 action query 在每个剩余步读取 cached video/text K/V 和自身 action K/V；DiT cache 还可作用于 action velocity。被删除的是 suffix 中反复更新 video latent/branch 以及最终未来视频输出工作。
-
-#### 4.4.4 硬件、batch、horizon 与 timing boundary
-
-**论文明确报告**：single-GPU、pure-PyTorch inference；remote cloud GPU；FP8-capable GPU；eligible linear 维度需被 16 整除；Table 2 在 Non-AR model 上测“end-to-end latency”；最终 0.09 s/11.11 Hz。
-
-**论文没有报告**：GPU 型号/数量之外的 SKU、显存、driver/CUDA/PyTorch 版本、模型参数量、batch size、请求并发、分辨率、camera/view 数、视频/action token 数、prediction horizon $H$、V2A prefix $N$、cache $\gamma/k$、compile warmup 是否排除、计时重复/分位数/同步方式、数据传输、VAE encode/decode、action smoothing/interpolation、网络往返、controller dispatch 是否进入 0.09 s。
-
-因此“end-to-end”只能安全解释为论文 Table 2 的单次 Non-AR model inference 边界，不能扩大为 cloud-to-robot 闭环 SLA。`11.11 Hz = 1/0.09 s` 是 chunk/request generation frequency；RoboTwin/WorldArena 数据使用 5 Hz video 与 10 Hz action 是另一设置，low-level controller frequency 也另有其值但未报告。不能把 11 Hz 直接称为动作执行频率或整机控制频率。
-
-### 4.5 明确证据循环
-
-1. **Claim**：stack 超过 50x。**定位**：Table 2 4.90→0.09 s。**机制核对**：§2.4.1 的五项优化。**代码核对**：官方 repo 无 implementation/config。**边界结论**：54.4x 是直接测得的累计 model-inference ratio；组件独立性、硬件可迁移性未证实。
-2. **Claim**：11 Hz 可用于实时部署。**定位**：Table 2 与 §2.4.2。**系统核对**：paper 描述 remote cloud + async chunk fusion。**缺口**：无网络/queue/controller timing。**边界结论**：支持 11.11 request/s 的未披露单 GPU setup，不支持完整闭环 SLA。
-3. **Claim**：加速 essentially lossless。**定位**：§2.4.1 prose。**对照核对**：Table 3 是架构/pretraining 主结果，不是逐优化质量消融。**限制**：无 sub-percent 数值、方差、任务明细。**结论**：lossless claim 未被可审计的 quantitative table 支撑。
-
-## 5. Related Work 对比
-
-| 类别 | 核心机制 | 优点 | 局限 | 与 MotuBrain 的关系 |
+| 类别 | 机制 | 优点 | 局限 | 与本文关系 |
 |---|---|---|---|---|
-| VLA | image/language → action | semantic prior 强、部署路径成熟 | 静态预训练对细粒度 dynamics 弱 | MotuBrain 用 video world prior 和 joint objective 扩展 |
-| VGM + IDM | 先视频 rollout，再 inverse dynamics | 可直接利用 web-video model | 视频误差级联、双阶段 latency | MotuBrain 以统一 WAM 避免显式串联 |
-| prior WAM/Motus | 联合视频与动作 | 多任务分布统一、dynamics-policy 对齐 | joint denoising 计算昂贵 | MotuBrain 继承 formulation，增加多视角/text/action 表示与部署栈 |
-| DreamZero/RTC-style systems | cache、chunk execution、边界融合 | real-time serving 导向 | 对硬件/阈值/telemetry 敏感 | MotuBrain 借用 DiT cache、smoothing 和 RTC-inspired fusion |
+| VLA | image/language→action | 语义先验与成熟 policy 路径 | dynamics 弱 | MotuBrain 注入视频时序先验 |
+| VGM+IDM | video rollout 后反推动作 | 复用视频模型 | 级联误差/两阶段成本 | MotuBrain 联合建模 |
+| Motus/prior WAM | joint video-action | world/policy 对齐 | joint denoising 贵 | MotuBrain 扩展表示和 serving |
+| Fast WAM/RTC-style | cache、chunk、融合 | 面向 realtime | 对阈值/硬件/telemetry 敏感 | MotuBrain 组合为累计 stack |
 
-公平性限制：Table 3/5 的跨论文 baseline 缺少统一参数量、预训练数据和系统预算披露，适合确认作者报告的 leaderboard 位置，不适合把差值全归于统一 WAM。
+比较公平性限制：Tables 3/5 可核对作者报告的相对位置，不能把跨论文差值全归因于 MotuBrain formulation。
 
-## 6. OpenReview 公开评审交叉核验
+## 7. OpenReview 交叉核验
 
-未发现已知公开 OpenReview 页面：任务包为 `arXiv-only 2026` 且 `openreview_url` 为 unknown，arXiv 页面未列 venue。已留存本地 lookup 记录；API exact-title 请求曾返回 403，公开 search HTML 为 client-rendered，未暴露 forum。因此本审查不使用 reviewer claim，OpenReview 分支按 not applicable 处理，而不是把“未找到”解释为已同行评审。
+未发现公开 OpenReview forum、review、meta-review、decision 或 rebuttal；详见 公开评审核验记录。因此本分析不引用 reviewer 意见。复现性、消融和 deployment concerns 是基于 paper/source/repo 的审阅判断。
 
-## Infra 与部署
+## 8. Infra 需求分析
 
-### 7.1 算力与显存
+### 8.1 算力与显存
 
-FLOPs 无法数值估算：论文缺少参数量、层宽、token shape、$H/N$ 和 cache hit rate。可确定的方向性关系是 step reduction/cache 降低 DiT forward 次数，V2A 降低 suffix video branch work，compile/FP8 主要改善每次 forward 执行效率。显存至少包含 model weights、video/action activations、一次 per-layer video/text KV cache 和 action self-attention state；均因 shape/dtype coverage 缺失而不可量化。
+方向上，step reduction/cache 降 DiT forward 次数，V2A 降 suffix video branch，compile/FP8 改善每次 forward。模型参数量、token shapes、$H/N$、cache hit rate 未给，不能数值估 FLOPs。显存至少包括 weights、video/action activations、固定 video/text per-layer KV 与 action state；缺 shape/dtype coverage，不能给可信 GB。
 
-### 7.2 Data Types
+### 8.2 数据类型
 
-| 对象 | 格式 | 阶段 | 硬件依赖 | 影响 | 证据边界 |
+| 对象 | 格式 | 阶段 | 硬件依赖 | 影响 | 证据 |
 |---|---|---|---|---|---|
-| eligible linear weights | `float8_e4m3fn`, per-tensor scale | inference | FP8-capable GPU、dim multiple of 16 | weight bytes/GEMM time 下降 | §2.4.1；无 code |
-| eligible linear activations | runtime dynamic FP8 | inference | `torch._scaled_mm` | activation traffic/compute 下降但有 quant overhead | §2.4.1；原 compute dtype/accumulation 未给 |
-| non-eligible layers/output | original compute dtype | inference | unspecified | precision fallback | paper prose；dtype 未命名 |
+| eligible linear weights | `float8_e4m3fn`, per-tensor scale | inference | FP8 GPU；dim multiple of 16 | weight traffic/GEMM time 降 | §2.4.1；无 code |
+| eligible activations | dynamic FP8 | inference | `torch._scaled_mm` | traffic/compute 降，有 quant overhead | §2.4.1 |
+| fallback/output | original dtype 未命名 | inference | unspecified | precision fallback | paper prose only |
 
-### 7.3 带宽与利用率
+### 8.3 带宽与互联
 
-$$B_{\mathrm{eff}}=\frac{\mathrm{BytesMoved}}{\mathrm{RuntimeSeconds}},\qquad U_B=\frac{B_{\mathrm{eff}}}{B_{\mathrm{peak}}}.$$
+$$
+B_{\mathrm{eff}}=\frac{\mathrm{BytesMoved}}{\mathrm{RuntimeSeconds}},
+\qquad U_B=\frac{B_{\mathrm{eff}}}{B_{\mathrm{peak}}}.
+$$
 
-FP8 与 cache 明确针对 memory/GEMM cost，但 BytesMoved 和 GPU peak bandwidth 均未知，故任何 GB/s 或 utilization 百分比都会是伪精确。compile 可能通过 fusion 降低中间 tensor materialization；V2A 通过固定 video latent 与 KV reuse 提升 locality。没有 multi-GPU collective，paper 只声称 single GPU，因此无 all-reduce/all-to-all 量可分析。
+论文未给 BytesMoved、GPU SKU/peak bandwidth 或 profiler，故不能报告 GB/s/%。FP8/cache/V2A 应减少 traffic，compile 可能通过 fusion 减少中间 tensor；这些是机制推断。论文只声称 single GPU，没有 all-reduce/all-to-all；PCIe/NVLink/RDMA 也未报告。
 
-### 7.4 CPU/GPU 与 cloud-robot 异构执行
+### 8.4 CPU/GPU/NPU 异构
 
-| 阶段 | CPU/robot 角色 | GPU 角色 | 数据移动/同步 | 未知瓶颈 |
+| 阶段 | CPU/robot | GPU | 移动/同步 | 边界 |
 |---|---|---|---|---|
-| observation/request | 获取最新图像、发云请求 | 等待输入 | robot/network→cloud | 编码、网络 RTT、queue 未量化 |
-| inference | Python/runtime orchestration | compiled DiT、FP8 GEMM、cache、V2A | host dispatch + GPU kernels | CPU overhead是否已被 compile 行覆盖不清楚 |
-| execution | controller 执行 current chunk | 异步生成 next chunk | action chunk cloud→robot | control Hz、packet size、jitter 未给 |
-| boundary fusion | 根据 delay queue 决定 frozen prefix | 新 chunk denoise/fusion | 需观察实际 $\delta$ | 无 trace 或 failure telemetry |
+| observation/request | 图像与请求 | 等待输入 | robot/network→cloud | encode/RTT/queue 未量化 |
+| inference | Python/runtime orchestration | compiled DiT/FP8/cache/V2A | host dispatch + kernels | CPU overhead是否计入不清 |
+| execution | controller 执行 current chunk | 异步 next chunk | cloud→robot actions | control Hz/jitter 未给 |
+| fusion | delay queue/frozen prefix | 可参与 denoise | old/new chunk overlap | 无 trace/ablation |
 
-NPU、PCIe/NVLink/RDMA、pinned memory、DMA/async-copy 和 fallback path 均未报告，不应推断。
+NPU、DMA/pinned memory、async copy 与 fallback 均未报告。
 
-## 代码状态与实现核验
+### 8.5 Serving/自定义算子
 
-- 仓库：`https://github.com/shengshu-ai/Motubrain.git`
-- 核验 commit：`b2b08f7504337c0d1faf840de8233c76b45ede39`
-- 本地：`code/Motubrain/`
+论文提 `torch.compile`、CUDA-graph-friendly execution、`torch._scaled_mm`、DiT cache、V2A KV reuse 和异步 chunk queue；repo 无 serving path，无法验证 warmup、graph breaks、cache invalidation、batching、scheduler 或失败回退。
 
-该 commit 的非 `.git` 文件仅为 `README.md`、`MotuBrain.pdf`、`LICENSE`、logo 和两张 scaling curve。没有 `.py`、配置、environment、checkpoint metadata、serving script 或测试。故 `torch.compile`、FP8 replacement、DiT cache、V2A schedule、RTC fusion 都是**paper-reported implementation**，不是 code-verified behavior。也没有公开权重/配置可用于确认参数量、dtype、architecture flags 或 checkpoint 差异。README 内 64.87/63.77 不一致进一步说明不能用 README 替代 v3 source/table。
+## 9. 开源代码与 checkpoint
 
-## 局限与证据边界
+- repo：[Motubrain](https://github.com/Motif-Technologies/Motubrain)；核验 commit `a845f4b93f430c578398bc65b1614b79f17088cd`。
+- `README.md`、PDF、license、logos、scaling images 之外无代码。
 
-### 优点
+| 论文机制 | 本地证据 | 一致性 |
+|---|---|---|
+| architecture/runtime/data pipeline | 无 `.py`/config/environment | 未开源，paper-only |
+| benchmark tables | `official repository: README.md` | 大体一致；WorldArena prose 64.87 与 paper/table 63.77 冲突 |
+| checkpoint/weights | 无链接/metadata/config | unavailable；参数/架构 flags 不推断 |
 
-- Table 2 给出完整的累计 latency ladder，至少能区分每个新增优化在固定 stack 上的条件收益。
-- V2A 的依赖方向和缓存语义写得具体，能判断 action-only 删除什么、保留什么。
-- Table 3 同时包含 pretraining、AR/Non-AR 与 HBridge 命名变体，便于避免把完整系统胜出误当每项均有效。
+## 10. 优点、局限与改进
 
-### 局限
+优点：Table 2 给出清晰累计 latency ladder；V2A 依赖方向足以判断删掉与保留的计算；Table 3 同时暴露 pretraining、AR/Non-AR 与 HBridge 命名变体，允许谨慎归因。
 
-- 11 Hz 缺硬件 SKU、batch/horizon、resolution/views、warmup、同步、方差/分位数与 cloud-network-controller 边界。
-- speed stack 没有独立/factorial ablation；`compile` 可能混入 model rewrite，FP8 与 compile 依赖顺序。
-- “sub-percent/lossless”无表格；cache 与 V2A 无 quality-vs-speed curve。
-- 官方 repo documentation-only，无实现、配置、checkpoint、权重和数据。
-- real-world claims 样本小且缺 matched baseline/telemetry；OpenReview 不适用，尚无公开 peer-review evidence。
+局限：硬件 SKU、batch/horizon/views/resolution、timing protocol 与 full-loop boundary 缺失；speed stack 非 factorial；“lossless”无数值表；H-bridge/text/multiview/relative-EEF/fusion 缺独立消融；repo documentation-only；现实实验窄且无 matched control；无公开 peer review。
 
-### 最小补充实验
+最小改进：固定硬件与 shape 报 warm/cold median/P95；五项优化做 remove-one/顺序交换；公开 $\gamma,k,N$ sweep、cache hit rate 与 quality-speed curve；发布最小 inference config/checkpoint/profiler；RTC 做 fusion-off jitter/task ablation。
 
-1. 在固定 GPU、batch、resolution、views、$H/N$ 下报告 1000 次 warm/cold latency 的 median/P95，并明确 CUDA synchronize 和网络边界。
-2. 做五项优化的 remove-one 与顺序交换，尤其分离 pure-PyTorch rewrite、compile、CUDA graph、FP8。
-3. 报 cache hit rate、$\gamma/k$ sweep、V2A $N$ sweep、RoboTwin per-task delta 与生成视频/动作误差。
-4. 发布最小 inference config、commit-pinned code、checkpoint metadata 和 profiler trace。
+## 11. 研究启发
 
-## 研究启发
+- WAM serving 可按“少 solver step、少 branch/output、少 bytes、少 launch”拆分，比单一 50× 口号更可迁移。
+- action-only 的实质不是丢弃视觉，而是把动态视频生成变成固定视觉上下文 KV reuse。
+- 云端 chunk policy 应将 P95 delay、boundary jerk、task success 与 model latency 联合评估。
 
-- 把 WAM serving 优化按“少做 solver step、少做 branch/output、少搬 bytes、少 launch”四层分解，比笼统称 50x 更可迁移。
-- action-only 的关键不是丢弃视觉，而是把动态视觉生成改成固定视觉上下文的 KV reuse；适合比较 future-video 是否真的为 policy 所需。
-- async chunk fusion 应与模型 latency 一起作为闭环系统评测对象，指标至少包含 P95 delay、boundary jerk 和 task success。
+## 12. 待验证清单
 
-## 待验证问题
+1. Table 2 的 GPU SKU、batch、views/resolution、$H,N,\gamma,k$ 是什么？
+2. 0.09 s 是否包含 VAE、CPU preprocessing、网络、fusion 与 controller dispatch？
+3. compile 行是否混入 pure-PyTorch rewrite/CUDA graph？
+4. 每项优化的独立质量差、计时方差和顺序交互是什么？
+5. HBridge 表行唯一变量为何，为什么分数较低？
+6. WorldArena 63.77 与 README prose 64.87 的版本来源是什么？
+7. 何时发布实现、配置、checkpoint 与 profiler？
 
-1. Table 2 使用的 GPU SKU、batch、分辨率、camera 数和 $H/N/\gamma/k$ 是什么？
-2. 0.09 s 是否含 VAE、CPU preprocessing、action smoothing、网络与 controller dispatch？
-3. compile 行是否同时包含 single-GPU pure-PyTorch rewrite/CUDA graph？
-4. 每项优化的独立质量差值和 repeated timing 方差是多少？
-5. HBridge Table 3 行的唯一变量是什么，为何分数低于相邻行？
-6. v3 WorldArena 63.77 与 README prose 64.87 的版本来源是什么？
-7. 何时发布可复现 inference code/config/checkpoint？
+## 13. 一句话总结
 
-## 一句话总结
-
-MotuBrain 的核心工程价值是把联合视频-动作 WAM 通过累计 runtime stack 从 4.90 s 压到论文环境中的 0.09 s；但 54.4x 只是顺序依赖的累计测量，11 Hz 的硬件、负载与完整闭环边界未披露，且官方仓库尚无实现可复核。
+MotuBrain 把统一视频—动作 WAM 与部署栈结合，在论文未披露的单 GPU 环境将 Non-AR inference 从 4.90 s 累计降到 0.09 s；核心不确定性是组件独立贡献、质量无损、完整闭环边界和可复现实现均尚未被公开证据闭环。
