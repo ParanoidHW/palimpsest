@@ -9,11 +9,16 @@
 
 ## 修订信息
 
-- 当前版本：`1.0.0`
-- Revision ID：`rev-multimodal-diffusion-infra-initial`
-- 状态：initial
-- 核验日期：2026-07-12
-- 历史：`1.0.0` 为首次系统调研；没有被替代的旧 manifest。
+- 当前版本：`1.1.0`
+- Revision ID：`rev-multimodal-delivery-remediation-20260725`
+- 状态：evidence-and-link remediation
+- 核验日期：2026-07-25
+- 替代版本：`rev-multimodal-diffusion-infra-initial` / `1.0.0`
+
+| 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|
+| `rev-multimodal-diffusion-infra-initial` | `1.0.0` | `2026-07-12` | initial | 首次系统调研 | 初始 Paper 与 Survey 证据 | material |
+| `rev-multimodal-delivery-remediation-20260725` | `1.1.0` | `2026-07-25T23:30:00+08:00` | evidence-and-link remediation | 完成 13 篇 canonical Paper 的精确章节链接、跨论文比较、所有权去重、正式视觉与证据边界复核 | canonical Paper reviews、Figure inventory 与发布器校验 | material；不新增 Survey 范围外 Paper |
 
 ## 结论先行
 
@@ -83,7 +88,7 @@ request
 | Pipeline parallel | 模型层或长视频 block 流水 | denoise step 与噪声同步可能破坏 naive pipeline 并行 |
 | Expert parallel | Dense→MoE、MoT/模态 tower | token 类型与 step 改变 expert 分布，all-to-all 需容量规划 |
 
-[SwiftFusion](../papers/swiftfusion.md) 给出 topology-aware sequence parallel 的直接系统证据；[Cosmos 3 Infrastructure 分析](../papers/cosmos-3.md#8-infrastructure-分析)则展示 Ulysses、CFG parallel、cache 和 compile 在统一模型中的组合。二者共同说明并行选择不能只看通信字节，还要看链路层级、同步语义和可重叠窗口。
+[SwiftFusion](../papers/swiftfusion.md#25-完整因果链与证据闭环) 给出 topology-aware sequence parallel 的直接系统证据；[Cosmos 3 Infrastructure 分析](../papers/cosmos-3.md#8-infrastructure-分析)则展示 Ulysses、CFG parallel、cache 和 compile 在统一模型中的组合。二者共同说明并行选择不能只看通信字节，还要看链路层级、同步语义和可重叠窗口。
 
 ### 2.5 负载特性
 
@@ -150,7 +155,7 @@ stream diffusion 又不同：chunk history、noisy context、frame deadline 与 
 
 ### 4.3 统一理解生成：Transfusion → BAGEL → Cosmos 3
 
-[Transfusion](../papers/transfusion.md) 证明一个 transformer 可以同时优化 AR 与 image diffusion，但 shared parameter 会接收不同 loss，且 noised image → text 会产生条件冲突。[BAGEL 研究方法](../papers/bagel.md#4-研究方法)进一步用 full MoT hard routing 分离理解/生成参数，并通过 clean VAE/ViT context、noise-aware mask 支持多轮内容。[Cosmos 3](../papers/cosmos-3.md) 把这一路线扩到 language/image/video/audio/action：AR reasoner 不读取 noisy generator token，generator 可读取 reasoner 和自身 token；3D mRoPE 按物理时间对齐不同 FPS/TPS。
+[Transfusion 的问题—方案闭环](../papers/transfusion.md#2-研究动机与问题方案闭环)证明一个 transformer 可以同时优化 AR 与 image diffusion，但 shared parameter 会接收不同 loss，且 noised image → text 会产生条件冲突。[BAGEL 研究方法](../papers/bagel.md#4-研究方法)进一步用 full MoT hard routing 分离理解/生成参数，并通过 clean VAE/ViT context、noise-aware mask 支持多轮内容。[Cosmos 3](../papers/cosmos-3.md) 把这一路线扩到 language/image/video/audio/action：AR reasoner 不读取 noisy generator token，generator 可读取 reasoner 和自身 token；3D mRoPE 按物理时间对齐不同 FPS/TPS。
 
 ![BAGEL Figure 2：理解与生成 MoT。原论文图及完整 caption，PDF p.4。](../assets/papers/bagel/fig2-mot-architecture-caption.png)
 
@@ -233,7 +238,7 @@ progressive/consistency/rectified-flow distillation、少步 sampler 和 causal 
 
 ### 6.3 低比特 attention
 
-低比特可减少 bandwidth 和 Tensor Core 成本，但依赖硬件原生 dtype、head dimension 和 scale 策略。[Sparse VideoGen](../papers/sparse-videogen.md) 报告 FP8 为 HunyuanVideo 栈带来 1.21x incremental gain，同时指出对另一 head dimension 不一定有效。因此 runtime 应按模型/head/step 选择精度，而不是全局开关。
+低比特可减少 bandwidth 和 Tensor Core 成本，但依赖硬件原生 dtype、head dimension 和 scale 策略。[Sparse VideoGen](../papers/sparse-videogen.md#83-data-types--数值格式) 报告 FP8 为 HunyuanVideo 栈带来 1.21x incremental gain，同时指出对另一 head dimension 不一定有效。因此 runtime 应按模型/head/step 选择精度，而不是全局开关。
 
 ### 6.4 稀疏 attention
 
@@ -246,7 +251,7 @@ window、tile、block-sparse、head-specific pattern 和 dynamic profiling 都�
 - fallback dense 与质量阈值；
 - GPU/NPU 都有等价 kernel，而非只在论文 H100 配置有效。
 
-[Sparse VideoGen](../papers/sparse-videogen.md) 的 1.7x layout 增益说明内存连续性与算法稀疏率同等重要；[HunyuanVideo 1.5](../papers/hunyuanvideo-1-5.md#52-ssta-直接消融) 的 SSTA 则提醒 paper/code mask 语义必须版本化核验。
+[Sparse VideoGen](../papers/sparse-videogen.md#54-收益来源归因) 的 1.7x layout 增益说明内存连续性与算法稀疏率同等重要；[HunyuanVideo 1.5](../papers/hunyuanvideo-1-5.md#52-ssta-直接消融) 的 SSTA 则提醒 paper/code mask 语义必须版本化核验。
 
 ![Sparse VideoGen Figure 7：稀疏、layout、kernel 与 FP8 的端到端收益分解。原论文图，PDF p.8。](../assets/papers/sparse-videogen/fig7-end-to-end-breakdown.png)
 
@@ -267,9 +272,9 @@ DiT cache 重用相邻 step 的 attention/MLP/transformer feature，不是 LLM K
 
 ### 6.6 分布式单步加速
 
-[SwiftFusion](../papers/swiftfusion.md) 说明多机 DiT 的核心是拓扑感知：慢链路承载更少的通信量，并用 staged attention 与 one-sided communication 创建重叠窗口。硬件规格应关注：机内/跨机带宽比、NIC 注入率、GPU direct RDMA、collective progress 占用的 SM、head divisibility 和小消息延迟，而不只看峰值 FLOPS。
+[SwiftFusion](../papers/swiftfusion.md#54-收益来源归因) 说明多机 DiT 的核心是拓扑感知：慢链路承载更少的通信量，并用 staged attention 与 one-sided communication 创建重叠窗口。硬件规格应关注：机内/跨机带宽比、NIC 注入率、GPU direct RDMA、collective progress 占用的 SM、head divisibility 和小消息延迟，而不只看峰值 FLOPS。
 
-![SwiftFusion Figure 6：Torus Attention 的分阶段通信/计算重叠。原论文图，PDF p.7。](../assets/papers/swiftfusion/fig6-torus-scheduling.png)
+![SwiftFusion Figure 6：Torus Attention 的分阶段通信/计算重叠。原论文图，PDF p.6。](../assets/papers/swiftfusion/fig6-torus-scheduling-caption.png)
 
 ## 7. 未来趋势与 AI Infra 路线判断
 

@@ -6,6 +6,17 @@
 > - 证据资产：`../assets/surveys/diffusion-evolution/`
 > - 相关文档：[MAGI-1](../papers/magi-1.md)，[Cosmos 3](../papers/cosmos-3.md)，[Model pipeline](../topics/model-pipeline.md)
 
+## 修订信息
+
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-diffusion-evolution-delivery-remediation-20260725`
+- 当前修订时间：`2026-07-25T23:30:00+08:00`
+- 替代版本：生成日期 `2026-07-02`
+
+| 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|
+| `rev-diffusion-evolution-delivery-remediation-20260725` | `1.1.0` | `2026-07-25T23:30:00+08:00` | evidence-and-link remediation | 补齐 canonical Paper 精确章节链接、MAGI-1 chunk/serving 边界与资料范围 | canonical Paper reviews、Figure inventory 与发布器校验 | minor；不扩展演进主线 |
+
 ## 资料边界
 
 - 生成日期：2026-07-02。
