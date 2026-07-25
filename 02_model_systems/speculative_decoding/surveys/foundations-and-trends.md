@@ -7,6 +7,17 @@
 > - 证据资产：无
 > - 相关文档：[P-EAGLE](../papers/p-eagle.md)，[DFlash](../papers/dflash.md)，[D2SD](../papers/d2sd.md)，[JetSpec](../papers/jetspec.md)，[HyperDFlash](../papers/hyperdflash.md)，[DSpark](../papers/dspark.md)
 
+## 修订信息
+
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-spec-foundations-delivery-remediation-20260725`
+- 当前修订时间：`2026-07-25T23:30:00+08:00`
+- 替代版本：初始 foundations/trends 交付
+
+| 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|
+| `rev-spec-foundations-delivery-remediation-20260725` | `1.1.0` | `2026-07-25T23:30:00+08:00` | evidence-and-link remediation | 明确 correctness contract、accepted-length/成本模型、六篇 canonical Paper 证据入口与 lossy 边界 | canonical Paper reviews 与发布器校验 | minor；不改变 lossless 合同 |
+
 ## 资料边界与阅读分工
 
 本文只回答三件事：什么叫 lossless speculative decoding；接受率、draft/verify 成本与 speedup 上限如何联系；token/tree/block/reasoning-level 方法分别改变哪个合同。时间顺序和 2023--2026 演进只在 [Evolution](evolution.md) 维护，本文不复制时间线。
@@ -59,7 +70,7 @@ E[A]=\sum_{i=1}^{\gamma}P(A\ge i)=\sum_{i=1}^{\gamma}\alpha^i
 =\frac{\alpha(1-\alpha^\gamma)}{1-\alpha}.
 $$
 
-若 verifier 在全部 $gamma$ 个 token 都接受时额外从 target 提交一个 token，则期望提交数为
+若 verifier 在全部 $\gamma$ 个 token 都接受时额外从 target 提交一个 token，则期望提交数为
 
 $$
 E[C]=1+E[A]=\frac{1-\alpha^{\gamma+1}}{1-\alpha}.

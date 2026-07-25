@@ -9,6 +9,17 @@
 > 调研日期：2026-07-02  
 > 说明：本文参考本领域精读材料与 [Foundations and trends](foundations-and-trends.md) 的问题线索，并按新的论文检索、arXiv 元数据和 deep-research 六阶段结果重新组织。
 
+## 修订信息
+
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-spec-evolution-delivery-remediation-20260725`
+- 当前修订时间：`2026-07-25T23:30:00+08:00`
+- 替代版本：调研日期 `2026-07-02`
+
+| 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|
+| `rev-spec-evolution-delivery-remediation-20260725` | `1.1.0` | `2026-07-25T23:30:00+08:00` | evidence-and-link remediation | 更新六篇 canonical Paper 的精确证据入口、时间线边界与跨论文结论限制 | canonical Paper reviews、Figure inventory 与发布器校验 | minor；不新增 backlog Paper |
+
 本文是 canonical timeline；lossless acceptance/correction 公式、accepted-length 上限、draft/verify 成本和 KV/serving 合同只在 [Foundations and trends](foundations-and-trends.md#1-lossless-correctness-contract) 维护，避免两篇 Survey 重复。
 
 ## 精读证据入口
