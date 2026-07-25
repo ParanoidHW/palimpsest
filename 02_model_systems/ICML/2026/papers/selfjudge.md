@@ -214,13 +214,13 @@ Table 3：单 A100 的 SelfJudge-F 吞吐，GSM8K 137.37 vs SD 111.21（+23.5%�
 
 ## 5. Related Work
 
-| 类别 | 机制 | 优点 | 局限 | 与本文关系 |
-|---|---|---|---|---|
-| Standard SD | p/q rejection | 分布等价 | 词面过度拒绝 | alignment 兜底 |
-| JudgeDecoding | 人工 token 标签 | 可放语义近似 | 主观且昂贵 | target 自监督替代 |
-| AutoJudge | 替换后验证答案 | math/code 可靠 | 依赖 ground truth | suffix likelihood 扩域 |
-| Top-k | target top-k 即接受 | 简单、m 高 | 质量损失大 | 宽松基线 |
-| Medusa/EAGLE | 改 drafting | 提高候选命中 | 额外结构训练 | SelfJudge 改 verification |
+| 类别            | 机制               | 优点           | 局限              | 与本文关系                    |
+| ------------- | ---------------- | ------------ | --------------- | ------------------------ |
+| Standard SD   | p/q rejection    | 分布等价         | 词面过度拒绝          | alignment 兜底             |
+| JudgeDecoding | 人工 token 标签      | 可放语义近似       | 主观且昂贵           | target 自监督替代             |
+| AutoJudge     | 替换后验证答案          | math/code 可靠 | 依赖 ground truth | suffix likelihood 扩域     |
+| Top-k         | target top-k 即接受 | 简单、m 高       | 质量损失大           | 宽松基线                     |
+| Medusa/EAGLE  | 改 drafting       | 提高候选命中       | 额外结构训练          | SelfJudge 改 verification |
 
 ## 6. OpenReview 交叉核验
 

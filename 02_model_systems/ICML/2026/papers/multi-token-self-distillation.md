@@ -124,16 +124,16 @@ NTP 单 token 延迟 -> 多 token 独立采样会组合出不相容序列 -> 用
 
 ### 3.2 设计动机与具体问题映射
 
-| 设计项 | why 状态 | 原文证据 | 针对问题 | 因果机制 | 替代/权衡 | 验证证据 | 判断 |
-|---|---|---|---|---|---|---|---|
-| Student-forced teacher chain loss | author-stated | Sec.3.3 Eq.(2–3) | offline CE 独立监督导致 panda-meat/lion-bamboo 组合 | teacher 对学生实际 rollout 按链评分，错误组合得到低权重 | ground-truth CE 简单但忽略 joint coherence | Tables/Figs.13–14、Table4 | partially-supported |
-| Hard teacher argmax | author-stated | Sec.3.3, App.B | soft teacher 熵高、监督信号不清 | one-hot 目标推动 student 熵降低 | soft teacher 保留不确定性但收敛慢 | Table4–5 | supported for chosen setup |
-| 同 checkpoint 初始化 | author-stated/inferred | Sec.3.3 | k=1 初始蒸馏不稳定 | teacher/student 初始输出一致，loss 从 0 附近开始 | 独立 student 可扩大能力差异但训练更难 | 仅论证，无 matched init ablation | plausible |
-| 随机 offset 与 k∈[2,16] | author-stated | Sec.4.1–4.2, Fig.3 | 固定 span 只覆盖少数 prefix/window | 一个 batch 暴露多个位置和窗口，增强泛化 | curriculum 或固定 k 更易编译 | Table4–5、Fig.3 | partially-supported |
-| causal blocked mask | author-stated | Sec.4.2, Fig.3 | bidirectional mask 造成 train/inference shift | 保留 pretrained causal inductive bias，并跳过 MTP span | full/bidirectional 可能略高准确但 runtime/shift 更差 | Appendix Table4 | supported but small lift |
-| ConfAdapt | author-stated/inferred | Sec.4.3, Fig.6 | 固定 k 的质量/速度折中粗糙 | 仅保留连续高置信 token，把 hard token 留给单步 forward | verifier 可 lossless 但复杂；ConfAdapt 无 lossless 保证 | Fig.4, Tables1–2 | partially-supported |
-| KV cache crop/rewrite | author-stated | App.B；`transformers_local/{llama,qwen3}/modeling_*.py` | mask token 不应污染 cache、需标准 causal inference | HF 路径以 `past_key_values.crop(cache_position[0])` 删除 stale mask KV，再按新 cache positions 写入生成 token 与新 mask | verifier cache 更复杂但可校正；动态 k 会重算位置 | commit `167413e` 直接代码证据 | supported |
-| SGLang homogeneous query-length batching | author-stated | App.C.3 | 动态 k 产生 query length 组合爆炸 | 只编译 query length×batch size 交叉并同长度调度 | 异构 batch 提升利用率但需更多 CUDA graphs | Fig.12, App.C.3 | supported for prototype limitation |
+| 设计项                                      | why 状态                 | 原文证据                                                   | 针对问题                                        | 因果机制                                                                                                     | 替代/权衡                                           | 验证证据                        | 判断                                 |
+| ---------------------------------------- | ---------------------- | ------------------------------------------------------ | ------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | --------------------------- | ---------------------------------- |
+| Student-forced teacher chain loss        | author-stated          | Sec.3.3 Eq.(2–3)                                       | offline CE 独立监督导致 panda-meat/lion-bamboo 组合 | teacher 对学生实际 rollout 按链评分，错误组合得到低权重                                                                     | ground-truth CE 简单但忽略 joint coherence           | Tables/Figs.13–14、Table4    | partially-supported                |
+| Hard teacher argmax                      | author-stated          | Sec.3.3, App.B                                         | soft teacher 熵高、监督信号不清                      | one-hot 目标推动 student 熵降低                                                                                 | soft teacher 保留不确定性但收敛慢                         | Table4–5                    | supported for chosen setup         |
+| 同 checkpoint 初始化                         | author-stated/inferred | Sec.3.3                                                | k=1 初始蒸馏不稳定                                 | teacher/student 初始输出一致，loss 从 0 附近开始                                                                     | 独立 student 可扩大能力差异但训练更难                         | 仅论证，无 matched init ablation | plausible                          |
+| 随机 offset 与 k∈[2,16]                     | author-stated          | Sec.4.1–4.2, Fig.3                                     | 固定 span 只覆盖少数 prefix/window                 | 一个 batch 暴露多个位置和窗口，增强泛化                                                                                  | curriculum 或固定 k 更易编译                           | Table4–5、Fig.3              | partially-supported                |
+| causal blocked mask                      | author-stated          | Sec.4.2, Fig.3                                         | bidirectional mask 造成 train/inference shift | 保留 pretrained causal inductive bias，并跳过 MTP span                                                         | full/bidirectional 可能略高准确但 runtime/shift 更差     | Appendix Table4             | supported but small lift           |
+| ConfAdapt                                | author-stated/inferred | Sec.4.3, Fig.6                                         | 固定 k 的质量/速度折中粗糙                             | 仅保留连续高置信 token，把 hard token 留给单步 forward                                                                 | verifier 可 lossless 但复杂；ConfAdapt 无 lossless 保证 | Fig.4, Tables1–2            | partially-supported                |
+| KV cache crop/rewrite                    | author-stated          | App.B；`transformers_local/{llama,qwen3}/modeling_*.py` | mask token 不应污染 cache、需标准 causal inference  | HF 路径以 `past_key_values.crop(cache_position[0])` 删除 stale mask KV，再按新 cache positions 写入生成 token 与新 mask | verifier cache 更复杂但可校正；动态 k 会重算位置               | commit `167413e` 直接代码证据     | supported                          |
+| SGLang homogeneous query-length batching | author-stated          | App.C.3                                                | 动态 k 产生 query length 组合爆炸                   | 只编译 query length×batch size 交叉并同长度调度                                                                     | 异构 batch 提升利用率但需更多 CUDA graphs                  | Fig.12, App.C.3             | supported for prototype limitation |
 
 ### 3.3 模型/系统架构
 
@@ -204,12 +204,12 @@ Fig.12/Appendix C.3 报告 static $k=3$ 在 c=1 下与 EAGLE-3 竞争；ConfAdap
 
 ## 5. Related Work 对比
 
-| 类别 | 机制 | 优点 | 局限 | 本文差异 |
-|---|---|---|---|---|
-| Speculative decoding / EAGLE-3 | draft model 先生成，target verifier 并行接受 | 可 lossless，成熟 serving 路线 | 额外模型、校验与 scheduler | 本文将能力吸收进主模型，无二次 verifier；但有质量损失且需 finetune |
-| Medusa/MTP heads | 主模型外加多头作为 speculator | 训练成本较低 | 仍需验证，head 与 serving 专用 | 本文训练完整主模型为 standalone MTP |
-| FastMTP/self-distilled heads | self-distillation 对齐 MTP 预测 | 预测更接近 baseline | 重点仍是 draft/verification | 本文用 on-policy teacher score 学联合连贯性 |
-| Parallel/Jacobi forcing | future token/迭代并行求解 | 可覆盖长跨度 | 迭代收敛和 mask 复杂 | 本文一次 forward、greedy/ConfAdapt，工程路径更简单 |
+| 类别                             | 机制                                   | 优点                       | 局限                      | 本文差异                                       |
+| ------------------------------ | ------------------------------------ | ------------------------ | ----------------------- | ------------------------------------------ |
+| Speculative decoding / EAGLE-3 | draft model 先生成，target verifier 并行接受 | 可 lossless，成熟 serving 路线 | 额外模型、校验与 scheduler      | 本文将能力吸收进主模型，无二次 verifier；但有质量损失且需 finetune |
+| Medusa/MTP heads               | 主模型外加多头作为 speculator                 | 训练成本较低                   | 仍需验证，head 与 serving 专用  | 本文训练完整主模型为 standalone MTP                  |
+| FastMTP/self-distilled heads   | self-distillation 对齐 MTP 预测          | 预测更接近 baseline           | 重点仍是 draft/verification | 本文用 on-policy teacher score 学联合连贯性         |
+| Parallel/Jacobi forcing        | future token/迭代并行求解                  | 可覆盖长跨度                   | 迭代收敛和 mask 复杂           | 本文一次 forward、greedy/ConfAdapt，工程路径更简单      |
 
 ## 6. OpenReview 公开评审 × 论文内容交叉核验
 

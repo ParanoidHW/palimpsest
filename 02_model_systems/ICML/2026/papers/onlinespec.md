@@ -136,13 +136,13 @@ $$
 
 其下界依赖 $\sqrt{\mathrm{Reg}_T/T}$、$k$、$\alpha$。这条链条是论文最重要的概念贡献，但依赖 i.i.d. candidate 与有界梯度等强假设。
 
-| 设计项 | why 状态 | 针对问题 | 因果机制 | 替代/权衡 | 证据判断 |
-|---|---|---|---|---|---|
-| 在线反馈抽象 | author-stated（§2） | offline draft 随域漂移失配 | 每轮 target verification 产出可训练信号 | 继续 offline distill 成本低但不能适应 | 理论 + Algorithm 1，直接 |
-| OGD / Online-LR | author-stated（§3.1） | 需要通用 loss 接口；reasoning 不是 token error | DPO preference pair 将语义反馈转成梯度 | OSD token distillation 对 reasoning 失配 | Table 2 是受控的 LR/OSD-LR/Online-LR 对比，部分支持 |
-| optimism | author-stated + inferred temporal locality | 当前梯度 noisy/滞后 | 用上一轮梯度预测当前，若 hint 误差 $\delta_T$ 小则 regret 降低 | 需要 locality；错误 hint 会放大更新 | Cor. 2 + Table 1/3，机制有间接证据 |
-| ensemble Hedge | author-stated | 单一 η 无法同时适应平稳/快速漂移 | 多学习率 base + 权重追踪最优 base | 多份 draft head 带来显存与更新开销 | Cor. 3 + Table 1，未隔离 head 数与融合成本 |
-| 训练预算 1000 warm-up + 4000 online | author-stated（§4.1） | 冷启动与在线适应 | 先有可用 draft 再累积 feedback | 更长 warm-up 降低服务可用性 | Table 3 仅验证 $T$ 趋势，未给总成本全景 |
+| 设计项                             | why 状态                                     | 针对问题                                  | 因果机制                                         | 替代/权衡                                 | 证据判断                                     |
+| ------------------------------- | ------------------------------------------ | ------------------------------------- | -------------------------------------------- | ------------------------------------- | ---------------------------------------- |
+| 在线反馈抽象                          | author-stated（§2）                          | offline draft 随域漂移失配                  | 每轮 target verification 产出可训练信号               | 继续 offline distill 成本低但不能适应           | 理论 + Algorithm 1，直接                      |
+| OGD / Online-LR                 | author-stated（§3.1）                        | 需要通用 loss 接口；reasoning 不是 token error | DPO preference pair 将语义反馈转成梯度                | OSD token distillation 对 reasoning 失配 | Table 2 是受控的 LR/OSD-LR/Online-LR 对比，部分支持 |
+| optimism                        | author-stated + inferred temporal locality | 当前梯度 noisy/滞后                         | 用上一轮梯度预测当前，若 hint 误差 $\delta_T$ 小则 regret 降低 | 需要 locality；错误 hint 会放大更新             | Cor. 2 + Table 1/3，机制有间接证据               |
+| ensemble Hedge                  | author-stated                              | 单一 η 无法同时适应平稳/快速漂移                    | 多学习率 base + 权重追踪最优 base                      | 多份 draft head 带来显存与更新开销               | Cor. 3 + Table 1，未隔离 head 数与融合成本         |
+| 训练预算 1000 warm-up + 4000 online | author-stated（§4.1）                        | 冷启动与在线适应                              | 先有可用 draft 再累积 feedback                      | 更长 warm-up 降低服务可用性                    | Table 3 仅验证 $T$ 趋势，未给总成本全景               |
 
 ### 3.3 算法实现阶段边界
 
