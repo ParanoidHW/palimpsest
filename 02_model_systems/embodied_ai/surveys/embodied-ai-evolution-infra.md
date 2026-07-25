@@ -9,13 +9,21 @@
 
 这份调研把具身智能视为从传感器到执行器的实时系统，而不是把机器人上的视觉语言模型等同于中心侧多模态服务。覆盖 2023--2026 年的 12 篇锚点工作：3D 感知、操作、导航、VLA、world model 与 WAM 各两篇。所有具体数字、公式、图表与代码核验均回到对应 Paper；这里仅保留跨工作比较和工程判断。
 
+## 修订信息
+
+- 当前版本：`1.1.0`
+- 修订日期：`2026-07-25`
+- 资料范围：只综合本领域 README 已索引的 12 篇 canonical Paper，不新增 Survey 尚未覆盖的精读。
+- 本轮修复：逐批把概括性旧锚点替换为 Paper 的动机闭环、方法、技术 claim 证据矩阵、Infra 与局限精确章节；同步代码、checkpoint 与 OpenReview 的当前可用边界。
+- 结论边界：Survey 保留跨论文比较，不复制 Paper 全文；系统吞吐、离线生成、仿真成功率和闭环控制安全不得跨协议直接比较。
+
 ## 结论先行
 
 1. **首要约束是 deadline 与状态连续性。** 低层控制通常要求 20--100 Hz，高层 VLA/WAM 更适合 1--10 Hz 的动作块；均值吞吐不能替代 p95 deadline、过期观测与 fallback 设计。RT-2 的远程 serving、NaVILA 的双频结构和 MotuBrain 的频率声明都必须在各自边界内阅读，见 [RT-2 的 Infra 与部署](../papers/rt-2.md#infra-与部署)、[NaVILA 的 Infra 与部署](../papers/navila.md#infra-与部署)、[MotuBrain 的 Infra 与部署](../papers/motubrain.md#infra-与部署)。
-2. **3D/4D 与 world model 的瓶颈正转向显存、token/activation 带宽和互联。** VGGT 的帧数-显存测量、Cosmos 的长上下文并行以及 WAM4D 的训练期几何分支说明，这类模型不能按端侧 TOPS 单独估算，[VGGT 实验](../papers/vggt.md#关键实验与证据)、[Cosmos 部署](../papers/cosmos-world-foundation-model.md#infra-与部署)、[WAM4D 部署](../papers/wam4d.md#infra-与部署)给出原始边界。
-3. **action chunk、receding horizon、KV/feature cache 与 action-only 是把大模型接入控制环的共同接口。** ACT 和 Diffusion Policy 分别用 chunk/ensemble 与多步去噪处理操作；OpenVLA、RT-2 使用 action token；MotuBrain 把重复视频输出裁成 action suffix。它们并不消除视觉前缀和安全闭环成本，见 [ACT 核心机制](../papers/act.md#核心机制与贡献)、[Diffusion Policy 方法](../papers/diffusion-policy.md#方法与实现)、[OpenVLA 部署](../papers/openvla.md#infra-与部署)、[MotuBrain 核心机制](../papers/motubrain.md#核心机制与贡献)。
+2. **3D/4D 与 world model 的瓶颈正转向显存、token/activation 带宽和互联。** VGGT 的帧数-显存测量、Cosmos 的长上下文并行以及 WAM4D 的训练期几何分支说明，这类模型不能按端侧 TOPS 单独估算，[VGGT 实验](../papers/vggt.md#关键实验与证据)、[Cosmos Infra](../papers/cosmos-world-foundation-model.md#8-infra-需求分析)、[WAM4D 部署](../papers/wam4d.md#infra-与部署)给出原始边界。
+3. **action chunk、receding horizon、KV/feature cache 与 action-only 是把大模型接入控制环的共同接口。** ACT 和 Diffusion Policy 分别用 chunk/ensemble 与多步去噪处理操作；OpenVLA、RT-2 使用 action token；MotuBrain 把重复视频输出裁成 action suffix。它们并不消除视觉前缀和安全闭环成本，见 [ACT 研究方法](../papers/act.md#4-研究方法)、[Diffusion Policy 方法](../papers/diffusion-policy.md#4-研究方法)、[OpenVLA 部署](../papers/openvla.md#infra-与部署)、[MotuBrain 核心机制](../papers/motubrain.md#核心机制与贡献)。
 4. **量化主要节省权重/激活流量与显存，并不自动降低所有计算。** OpenVLA 的 int4 和 NaVILA 的 W4A16 都有直接的容量、延迟或成功率测量，但真实收益取决于 fusion、算子覆盖和 fallback，[OpenVLA 实验](../papers/openvla.md#关键实验与证据)、[NaVILA 实验](../papers/navila.md#关键实验与证据)。
-5. **“能生成未来”与“能安全控制”是两条证据链。** Genie 和 Cosmos 对 latent action、视频预测和数据生成有证据，但秒级视频生成不是在线伺服；WAM4D 的训练几何分支可移除，但缺少匹配的 on/off 延迟消融，[Genie 实验](../papers/genie.md#关键实验与证据)、[Cosmos 实验](../papers/cosmos-world-foundation-model.md#关键实验与证据)、[WAM4D 局限](../papers/wam4d.md#局限与证据边界)。
+5. **“能生成未来”与“能安全控制”是两条证据链。** Genie 和 Cosmos 对 latent action、视频预测和数据生成有证据，但秒级视频生成不是在线伺服；WAM4D 的训练几何分支可移除，但缺少匹配的 on/off 延迟消融，[Genie 实验](../papers/genie.md#关键实验与证据)、[Cosmos 技术 claim 矩阵](../papers/cosmos-world-foundation-model.md#5-关键结论与技术-claim-证据矩阵)、[WAM4D 局限](../papers/wam4d.md#局限与证据边界)。
 
 ## 范围与比较规则
 
@@ -33,7 +41,7 @@ EmbodiedScan 将 RGB-D、文本、3D detection/grounding/occupancy 放入统一�
 
 ### 操作：平滑、长时域与多峰动作
 
-[ACT](../papers/act.md#核心机制与贡献)以 CVAE、action chunk 与 temporal ensemble 降低决策频率并平滑执行。chunk 越长，GPU 调用越少，但观测越旧、纠错越慢。[Diffusion Policy](../papers/diffusion-policy.md#核心机制与贡献)将未来动作序列从噪声迭代还原，用多次 denoiser forward 表达多峰行为；其部署成本近似随采样步数增加，[关键实验](../papers/diffusion-policy.md#关键实验与证据)和[部署分析](../papers/diffusion-policy.md#infra-与部署)必须一起阅读。
+[ACT](../papers/act.md#2-研究动机与问题方案闭环)以 CVAE、action chunk 与 temporal ensemble 降低决策频率并平滑执行。chunk 越长，GPU 调用越少，但观测越旧、纠错越慢；代码核验还表明当前无-TE 路径仍每控制步搬运四幅 float32 图像，不能把 forward 降频直接外推为 H2D 同比例下降，见[技术 claim 证据矩阵](../papers/act.md#52-技术-claim-证据矩阵消融和机制证据)。[Diffusion Policy](../papers/diffusion-policy.md#2-研究动机与问题方案闭环)将未来动作序列从噪声迭代还原，用多次 denoiser forward 表达多峰行为；其部署成本近似随采样步数增加，[技术点证据矩阵](../papers/diffusion-policy.md#52-技术点证据矩阵)和[部署分析](../papers/diffusion-policy.md#8-infra-需求分析)必须一起阅读。
 
 两者共同指向“高层块状规划 + 低层连续控制”：一次视觉编码、短期动作缓存、replanning 与动作插值往往比只缩小网络更重要。
 
@@ -51,7 +59,7 @@ EmbodiedScan 将 RGB-D、文本、3D detection/grounding/occupancy 放入统一�
 
 ### World model：从 latent interactive environment 到 Physical AI 平台
 
-[Genie](../papers/genie.md#核心机制与贡献)在无动作标签视频中学习离散 latent action，并以 tokenizer 与 dynamics 组成可控生成环境；[其系统分析](../papers/genie.md#infra-与部署)表明长视频 token、迭代采样和训练规模更接近数据生成/交互平台。[Cosmos](../papers/cosmos-world-foundation-model.md#核心机制与贡献)进一步提供 curator、连续/离散 tokenizer、diffusion/AR WFM、后训练与 guardrail；[训练并行和 AR latency](../papers/cosmos-world-foundation-model.md#关键实验与证据)说明高质量生成不能直接进入在线伺服。
+[Genie](../papers/genie.md#核心机制与贡献)在无动作标签视频中学习离散 latent action，并以 tokenizer 与 dynamics 组成可控生成环境；[其系统分析](../papers/genie.md#infra-与部署)表明长视频 token、迭代采样和训练规模更接近数据生成/交互平台。[Cosmos](../papers/cosmos-world-foundation-model.md#4-研究方法)进一步提供 curator、连续/离散 tokenizer、diffusion/AR WFM、后训练与 guardrail；[主结果与证据矩阵](../papers/cosmos-world-foundation-model.md#5-关键结论与技术-claim-证据矩阵)说明高质量生成不能直接进入在线伺服。
 
 world model 的价值在于预测、数据闭环、候选分支与不确定性，而非自动构成安全 policy。内容 guardrail 也不能代替碰撞、力矩限制和急停。
 

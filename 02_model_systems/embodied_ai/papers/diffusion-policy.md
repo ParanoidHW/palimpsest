@@ -1,291 +1,398 @@
-# Diffusion Policy
+# Diffusion Policy: Visuomotor Policy Learning via Action Diffusion 精读分析
 
 > [!info] 文档关系
 > - 文档类型：Paper
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[具身智能模型演进、Infra 与端云协同](../surveys/embodied-ai-evolution-infra.md)
 > - 证据资产：`../assets/papers/diffusion-policy/`
-> - 相关文档：[论文索引](../evidence/paper-index.md)、[图表清单](../evidence/figure-inventory.md)
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md) · [Paper index](../evidence/paper-index.md)
 
-论文：[arXiv:2303.04137](https://arxiv.org/abs/2303.04137)。代码核验固定于 [real-stanford/diffusion_policy](https://github.com/real-stanford/diffusion_policy/tree/5ba07ac6661db573af695b419a7947ecb704690f) 的 `5ba07ac6661db573af695b419a7947ecb704690f`；过程材料保留于审计区。
+> 资料状态：主证据为 arXiv v5 PDF/LaTeX source；RSS 2023 proceedings PDF/page 用于核对会议版本与 DOI；官方代码固定于 commit `5ba07ac6661db573af695b419a7947ecb704690f`。两张内嵌图片均为 180 DPI PDF 裁剪，包含完整 caption，并通过 contact-sheet 与逐图原分辨率 QA。
 
-## 论文资料
+## 修订信息
 
-- 作者：Cheng Chi、Zhenjia Xu、Siyuan Feng、Eric Cousineau、Yilun Du、Benjamin Burchfiel、Russ Tedrake、Shuran Song。
-- 领域：机器人模仿学习、视觉运动策略、生成式动作建模。
-- 核心问题：单步回归容易平均多个有效动作，离散/混合分布难扩展到高维连续动作，隐式能量策略训练和搜索不稳定。
-- 目标：用条件扩散直接表示 $p(\mathbf A_t\mid\mathbf O_t)$，同时满足多模态、动作平滑、闭环响应和真实机器人延迟约束。
-- 实验范围：arXiv v5 报告 15 个任务；RSS 原会议页面摘要为 12 个任务，扩展版增加了三项双臂任务。
+- 当前文档版本：`1.0.0`
+- 当前修订 ID：`rev-diffusion-policy-initial`
+- 当前修订时间：`2026-07-25T17:10:27+08:00`
+- 替代版本：无；这是本 process delivery 的 `initial`。既有 canonical Paper 仅作为迁移输入，未发现可作为 predecessor 的旧 deliverable manifest。
 
-## 核心机制与贡献
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-diffusion-policy-initial` | `1.0.0` | `2026-07-25T17:10:27+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从官方 PDF/source、RSS 页面、固定代码和重新 QA 的图证建立完整单篇精读 | Diffusion Policy 单篇交付完整性修复 | 本文、[Figure inventory](../evidence/figure-inventory.md)、来源与公开评审边界 | 官方论文/source、固定代码提交、15 项语义验证 | material |
 
-1. **动作分布表示**：以噪声预测训练条件 score/denoiser，并从高斯动作序列迭代采样。公式和代码直接支持“实现了什么”；“任意 normalizable 分布”来自 score-model 理论直觉，本文没有机器人任务上的完备性证明。
-2. **动作序列 + receding horizon**：联合预测未来动作并执行一段后重规划，试图兼顾平滑与响应。Figure 5 对 $T_a$ 有直接敏感性证据。
-3. **视觉条件计算复用**：观测不属于扩散输出，encoder 在去噪循环外运行一次。源码和代码直接支持计算路径；论文没有逐阶段 latency profile。
-4. **CNN/Transformer 两种 denoiser**：FiLM U-Net 提供稳定默认方案，causal cross-attention Transformer 针对高频/velocity action。跨任务结果支持架构依赖任务，但不是完全匹配的机制隔离。
-5. **广泛行为克隆结果**：论文按每任务最佳 baseline 与最佳 DP 变体计算相对提升，平均 $0.46858\approx46.9\%$。这是跨任务宏平均，不是单一统一设置下的 46.9 个百分点。
+## 0. 资料与配图索引
 
-## 方法与实现
+- 主论文与源码：[arXiv:2303.04137v5](https://arxiv.org/abs/2303.04137v5)，19 页。
+- 会议版本：[RSS 2023](https://www.roboticsproceedings.org/rss19/p026.html)；DOI `10.15607/RSS.2023.XIX.026`。
+- 开源代码：[real-stanford/diffusion_policy](https://github.com/real-stanford/diffusion_policy/tree/5ba07ac6661db573af695b419a7947ecb704690f)，固定提交 `5ba07ac…`。
+- 公开评审：未发现该 RSS 论文的公开 OpenReview forum；尝试和边界见 公开评审核验记录。
+- 机制图：`../assets/papers/diffusion-policy/fig2-diffusion-policy-overview-caption.png`。
+- 结果/消融图：`../assets/papers/diffusion-policy/fig5-action-horizon-latency-ablation-caption.png`。
+- AI 生成分析示意图：未生成，分类为 `visual-evidence-skip`；该可选辅助图缺口不影响论文原图、公式、实验与代码证据。
 
-### 3.1 问题到方案的逻辑链
+## 0.1 术语与符号解释
 
-多模态演示 + 高维连续动作 + 物理控制延迟 -> 单步显式回归/离散化/EBM 各有失效模式 -> 学习条件动作序列的噪声场 -> 迭代采样保留多模态 -> 只执行前段动作并重规划 -> 将视觉特征移出内循环并用 DDIM 减少真实机器人迭代数。
+### 0.1.1 术语表
 
-### 3.2 设计动机与具体问题映射
+| 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
+|---|---|---|---|---|
+| Diffusion Policy | 以观测为条件，在动作序列空间迭代去噪的行为克隆策略 | action diffusion policy | 不是对未来图像/状态做联合 trajectory diffusion | Sec. 1、2.3；Fig. 2 |
+| action score | 论文用来解释噪声预测器的动作分布梯度场 | score gradient | 训练代码直接优化的是 noise MSE，不是任务 reward 或成功率 | Sec. 1–2；Eq. 4–5；`compute_loss()` |
+| closed-loop action-sequence prediction | 每次预测未来动作块，只执行前 $T_a$ 步后重新观测与规划 | receding-horizon execution | 不是一次生成整条轨迹并 open-loop 执行 | Sec. 2.3、4.3；Fig. 2、5 |
+| observation horizon | 策略输入的最近观测步数 $T_o$ | `n_obs_steps` | 不等于 prediction horizon $T_p$ | Fig. 2；README interface |
+| prediction horizon | 去噪模型联合生成的动作序列长度 $T_p$ | code `horizon` | 不等于实际执行动作数 $T_a$ | Sec. 2.3；Fig. 2；configs |
+| action horizon | 每轮实际承诺/执行后再规划的动作数 $T_a$ | `n_action_steps` | 不等于 diffusion inference steps $K$ | Sec. 2.3、4.3；Fig. 5 |
+| visual conditioning | 图像先编码为条件，特征在一次决策的 $K$ 次去噪中复用 | global conditioning / FiLM conditioning | 不是把未来视觉状态加入扩散输出 | Sec. 2.3、3.2；Eq. 4–5；code |
+| time-series diffusion transformer | 用 causal action self-attention 与 observation cross-attention 预测动作噪声的 denoiser | DP-T | “causal”只描述 denoiser 内 action token mask，不是控制调度 | Sec. 3.1；Fig. 2 |
+| CNN-based Diffusion Policy | 1D temporal U-Net，以 FiLM 注入 observation 与 timestep 条件 | DP-C | CNN 低频归纳偏置不等于必然平滑所有任务 | Sec. 3.1；Fig. 2；code |
+| DDIM acceleration | 训练 100 步而真实推理用更少去噪步的采样路径 | reduced-step inference | 不改变训练目标；10、16、8 三种口径不能混为一个事实 | Sec. 3.4；supplement；real script/config |
+| position control | 输出绝对/目标位置类 action，由下游插值与控制器执行 | positional action space | 不等于 velocity/delta action；跨方法各取最佳 action space 会混杂归因 | Sec. 4.2；Fig. 4–5 |
+| multimodality | 同一观测下存在多个有效短期路径或不同子目标顺序 | short-/long-horizon multimodality | 个案轨迹分叉不等于经过校准的 mode coverage | Sec. 4.1；Fig. 3；Table 4 |
 
-| 设计项 | why 状态与来源 | 针对的具体问题 | 因果机制 | 替代方案/权衡 | 验证证据 | 判断 |
+### 0.1.2 符号表
+
+| 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
-| 条件动作扩散 + noise MSE | author-stated；Sec. 1、2.1-2.3，Eq. 4-5 | 回归平均模式；离散动作维度爆炸；EBM negative sampling 不稳 | 学习多噪声尺度下的动作 score，采样可落入不同 mode | GMM/BET/IBC 单次推理更便宜；扩散需要 $K$ 次网络调用 | Figure 3 多模态可视化、Tables 1-4 replacement baselines、Figure 6 稳定性 | partially supported：行为证据强，但表示能力、目标和性能同时变化，无法单独归因。 |
-| action sequence + receding horizon | author-stated；Sec. 2.3、4.3 | 单步动作近视/不平滑；完整长序列又反应迟缓 | 序列联合建模提高时间一致性，只执行 $T_a<T_p$ 后重规划 | $T_a=1$ 响应快但抖动；更长 $T_a$ 平滑但 stale | Figure 5 action-horizon sensitivity 与 latency ablation | supported：直接敏感性，但任务级最优值不普适。 |
-| 观测作为条件、encoder 移出内循环 | author-stated；Sec. 2.3、3.2；Eq. 4-5 | 若联合生成未来观测，视觉 encoder/decoder 进入每个去噪步，实时开销高 | 每个决策仅编码 $T_o$ 个观测一次，特征在 $K$ 次 denoising 中复用 | joint trajectory diffusion 能建模未来状态但更贵；条件式不提供显式 dynamics | Figure 2、代码路径；无 matched latency ablation | plausible/partially supported：执行路径直接，速度增益未隔离测量。 |
-| temporal CNN + FiLM | author-stated；Sec. 3.1 | 需要稳定、易调的序列 denoiser 与逐层条件注入 | 1D U-Net 提供多尺度时间感受野，FiLM 将 observation/timestep 注入残差层 | 频率偏置会过平滑快速 velocity change；参数量较大 | Tables 1-2、Figure 4、代码 | partially supported：位置控制/架构/容量存在耦合。 |
-| causal cross-attention Transformer | author-stated；Sec. 3.1、Figure 2 | CNN 低频偏置不利于快速、尖锐动作变化 | causal self-attention + observation cross-attention 不强制局部平滑 | 更难训练、attention dropout/weight decay 更敏感 | BlockPush velocity 结果、Table 5 及附录调参描述 | partially supported：任务表现支持，但没有只改变 causal mask 的消融。 |
-| cosine noise schedule + DDIM 加速 | author-stated；Sec. 3.3-3.4 | $K=100$ 真实机器人 latency 过高 | cosine schedule 分配噪声尺度；DDIM 解耦训练/推理步数 | 更少步降低 latency，可能损失采样质量；可用更快 solver/consistency model | 正文 0.1 s/RTX 3080；附录与代码路径 | plausible：无 step-count quality/latency curve，且 10/16/8 口径冲突。 |
-| position-control action space | author-stated；Sec. 4.2、5.3 | velocity error 积累与 latency 敏感；高精度末端状态难保持 | 绝对位置目标不会逐步积分预测误差，interpolator 平滑执行 | velocity 更适合部分 baseline/动态任务；跨方法最佳 action space 降低公平性 | Figure 4 replacement comparison、Figure 5 latency panel | supported for DP 内部选择；confounded for DP-vs-baseline 总增益。 |
-| GroupNorm + EMA | author-stated；Sec. 3.2 | 小批/EMA 与 BatchNorm running statistics 交互导致不稳 | GroupNorm 无 batch running state，EMA 参数可直接评估 | 额外实现约束；论文未提供独立 GN/EMA 表 | code/config evidence；论文文字 | unverified benefit：实现明确，缺直接消融。 |
+| $\mathbf O_t$ | 时刻 $t$ 可用的最近观测序列 | author-defined | 长度 $T_o$ | 图像/状态 | Eq. 4–5；Fig. 2 | 不是扩散输出 |
+| $\mathbf A_t^k$ | 去噪迭代 $k$ 的动作序列样本 | author-defined | $k=K,\ldots,0$ | normalized action | Eq. 4；Fig. 2 | 上标是 diffusion step，不是时间步 |
+| $\mathbf A_t^0$ | 最终去噪动作序列 | author-defined | 一次 policy decision | action sequence | Eq. 4–5 | 只取其中一段执行 |
+| $\boldsymbol\epsilon^k$ | 训练时注入的高斯噪声 | author-defined | sample/diffusion step | normalized action units | Eq. 3、5 | 与模型预测 $\epsilon_\theta$ 区分 |
+| $\epsilon_\theta$ | 参数为 $\theta$ 的噪声预测网络 | author-defined | 每个 denoising call | noise estimate | Eq. 3–5 | 论文也用 score 解释，但代码 prediction type 为 epsilon |
+| $k$ | diffusion iteration/timestep | author-defined | $0\ldots K$ | integer | Sec. 2；Eq. 1–5 | 不等于 robot time $t$ |
+| $K$ | 一次采样的 denoising network calls | author-defined | per decision | 100 train；real 10/16/8 口径 | Sec. 3.4；code | 不等于 action horizon |
+| $T_o$ | observation horizon | author-defined | per policy config | steps，常见 2 | Sec. 2.3；Table 7 | code `n_obs_steps` |
+| $T_p$ | prediction horizon | author-defined | per policy config | steps，常见 16 | Sec. 2.3；Table 7 | code `horizon` |
+| $T_a$ | action execution horizon | author-defined | per control cycle | steps，常见 6/8 | Sec. 2.3；Fig. 5 | code `n_action_steps` 或 CLI `steps_per_inference` 的语义需区分 |
+| $\alpha,\gamma,\sigma$ | 论文抽象反向更新的 schedule 系数 | author-defined | diffusion step dependent | scalar schedules | Eq. 1、4；Sec. 3.3 | 代码由 Diffusers scheduler 具体化 |
+| $\mathcal L$ | noise-prediction mean-squared error | author-defined | training batch | squared normalized noise error | Eq. 3、5 | 不直接等于 task success objective |
+| $P$ | 模型参数量 | analysis-derived | per model | parameters | analysis §8.2 | paper 分列 denoiser 与 vision 参数 |
+| $M_{\mathrm{weights}}$ | 权重存储下限 | analysis-derived | per model | bytes | analysis §8.2 | 不含 activations/allocator |
+| $B_{\mathrm{H2D}}$ | 单次决策图像输入的 host-to-device bytes | analysis-derived | per decision | bytes | analysis §8.4 | 未包含 framework overhead |
+| $T_{\mathrm{decision}}$ | 一次 policy decision 的端到端延迟分解 | analysis-derived | per decision | seconds | analysis §8.1 | 论文仅给一个 0.1 s endpoint |
+| $\mathrm{EffectiveBandwidth}$ | 搬运字节数除以 runtime | analysis-derived | runtime path | bytes/s | analysis §8.4 | 缺 profiler 时不可数值化 |
+| $\mathrm{Utilization}$ | 有效带宽除以峰值带宽 | analysis-derived | runtime path | ratio | analysis §8.4 | 不能由 raw bytes 单独推出 |
 
-### 3.3 架构与执行语义
+## 1. 论文基本信息
 
-![Figure 2: Diffusion Policy overview](../assets/papers/diffusion-policy/fig2_diffusion_policy_overview_caption.png)
+- 标题：Diffusion Policy: Visuomotor Policy Learning via Action Diffusion。
+- 作者：Cheng Chi、Zhenjia Xu、Siyuan Feng、Eric Cousineau、Yilun Du、Benjamin Burchfiel、Russ Tedrake、Shuran Song（arXiv 扩展版作者列表）。
+- 会议：Robotics: Science and Systems XIX，2023；扩展版 arXiv v5，2024。
+- 研究领域：机器人模仿学习、视觉运动策略、条件生成式动作建模。
+- 核心问题：让行为克隆同时处理多模态连续动作、高维动作序列、时序一致性、高精度与真实机器人时延。
+- 关键约束：只能从 demonstrations 学习；实时闭环要求视觉与多步去噪不能超出控制预算；实验 action space 和架构选择彼此耦合。
 
-Figure 2 把三个阶段分清：观测序列先编码；动作序列从 $\mathbf A_t^K$ 迭代到 $\mathbf A_t^0$；receding horizon 只把一段动作交给控制器。CNN 路径用 FiLM，Transformer 路径用 observation cross-attention 和 action causal attention。这里的“causal”仅属于 Transformer denoiser 内的 action-token attention，不是机器人执行调度或 DDIM scheduler。
+## 2. 研究动机与问题—方案闭环
 
-代码的精确推理路径（commit `5ba07ac...`）：
+### 2.1 出发点与背景痛点
 
-1. `predict_action()` 在 [`diffusion_unet_hybrid_image_policy.py#L215-L263`](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py#L215-L263) 归一化观测、一次运行视觉 encoder，并构建 action trajectory。
-2. `conditional_sample()` 在同文件 [L175-L212](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py#L175-L212) 设置 scheduler timesteps，逐步调用 denoiser 和 `scheduler.step()`；因此 $N_{\mathrm{calls}}=K$。
-3. 输出切片在同文件 [L269-L277](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py#L269-L277)，从 `To-1` 开始返回 `n_action_steps`。
-4. 真实机器人脚本在 [`eval_real_robot.py#L93-L105`](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/eval_real_robot.py#L93-L105) 强制 16 个 DDIM step；默认 10 Hz、每 6 个动作步重规划见 [L58-L65](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/eval_real_robot.py#L58-L65) 和 [L284-L405](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/eval_real_robot.py#L284-L405)。
-5. CPU 按时间戳提交 waypoint，125 Hz RTDE 进程做 pose interpolation 与 `servoL`，见 [`real_env.py#L309-L335`](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/real_world/real_env.py#L309-L335) 和 [`rtde_interpolation_controller.py#L243-L339`](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/real_world/rtde_interpolation_controller.py#L243-L339)。
+作者明确指出，机器人行为克隆并非普通的单值监督回归：同一观测可能对应多个有效动作，连续动作要求高精度，连续控制又有强时序相关性。若直接以 MSE 做单步回归，预测会倾向于模式平均；若用固定数量 mixture 或离散 bins，模型容量和调参会随动作维度与 mode 数增长；若用 IBC 式 EBM，则训练需要 negative samples，推理也要在能量面上搜索。这一动机是 `author-stated`，来源是 Introduction、Related Work 与 Figure 1。
 
-### 3.4 关键公式
+扩展版还把问题推进到真实部署：即使 diffusion 有表示优势，$K$ 次 denoiser 调用、视觉编码和控制网络时延也可能破坏闭环。如果只生成很长动作并全部执行，策略会变陈旧；如果每次只生成一步，动作可能抖动且容易过拟合 demonstration 中的 idle actions。
 
-条件动作去噪：
+### 2.2 现有方案为何不够
+
+可观察失败模式有三类。第一，LSTM-GMM 与单步显式回归可能 mode collapse 或在有效模式之间平均；BET 的离散聚类可表达多模态，但 cluster 数与量化方案固定，Figure 3 中还出现跨 mode 抖动。第二，IBC 理论上灵活，却受 negative sampling 和 checkpoint instability 影响；Figure 6 是机制相关但并非全面公平的训练稳定性证据。第三，Diffuser 类 joint state-action trajectory diffusion 需要预测未来状态；对图像而言这会把昂贵视觉生成放进采样目标。
+
+根因判断分层如下：模式平均、离散化扩展与 EBM negative sampling 是 `author-stated`；“所有总体增益都来自 score representation”并未被论文证明，因为 action space、架构、sequence prediction 和 runtime recipe 同时改变。
+
+### 2.3 论文计划解决的问题与成功标准
+
+- 核心研究问题：能否用条件动作扩散得到多模态、高维、稳定且可闭环执行的 visuomotor policy。
+- 目标对象：state 或 RGB observation 下的 2DoF–6DoF manipulation，以及真实 UR5/Franka/双臂任务。
+- 成功标准：在相同 task metric 上优于 LSTM-GMM、BET、IBC；展示短/长程 multimodality；action horizon 与 latency sensitivity 支持闭环设计；真实机器人达到可执行 latency。
+- 约束：不得把视觉未来状态作为必须生成的对象；每轮只能执行动作序列的一部分；真实系统需处理 camera、GPU inference、timestamp scheduling 与 servo。
+- 明确不解决：任务级 reward optimization、跨机器人 foundation pretraining、严格概率校准、完整系统 profiler、一步采样。
+
+### 2.4 核心方案如何解决并优化问题
+
+![Figure 2: Diffusion Policy overview with complete caption](../assets/papers/diffusion-policy/fig2-diffusion-policy-overview-caption.png)
+
+> 原论文 Figure 2（PDF 裁剪，完整 caption）。图中 action denoising、visual conditioning、CNN/Transformer denoiser 与 prediction/action horizons 是论文级因果链的机制证据。
+
+| 原始问题/失败模式 | 根因或约束 | 对应方案设计 | 改变的变量/系统行为 | 作用机制 | 预期优化及指标 | 证据来源 | 判断 |
+|---|---|---|---|---|---|---|---|
+| 单步回归平均多个有效动作 | $p(\mathbf A\mid\mathbf O)$ 多峰 | 条件 action diffusion + noise MSE | 从一次 point estimate 变为由随机初始化经 $K$ 步采样 | 学习多噪声尺度下的去噪场，不要求固定 mode 数 | mode commitment、task success | Sec. 1–2；Fig. 3；Tables 1–4 | partially-supported：完整系统结果强，diffusion-only 归因有混杂 |
+| 单步动作缺少时间一致性；长 open-loop 又不响应 | temporal correlation 与扰动响应冲突 | action sequence + receding horizon | 联合生成 $T_p$，仅执行 $T_a<T_p$ | 块内一致，执行一段后重新观测 | 平滑、成功率、latency robustness | Sec. 2.3、4.3；Fig. 5 | supported in tested tasks |
+| 视觉生成放大每步采样成本 | 图像维度高且未来状态难生成 | observation as condition | vision encoder 每决策运行一次，feature 在 $K$ 次 denoising 中复用 | 只扩散 action，不扩散 future image/state | inference latency、可端到端训练 | Sec. 2.3、3.2；Fig. 2；code | mechanism confirmed；speedup 未隔离 |
+| CNN 过平滑高频 velocity change | local convolution 的低频偏置 | causal/cross-attention transformer | action token 可跨时间 attention，observation 作为 cross-attention memory | 减少固定局部平滑偏置 | BlockPush 等高频任务 performance | Sec. 3.1；Tables 1、4 | plausible/partial：缺 causal-mask-only 消融 |
+| 100-step DDPM 不满足实时闭环 | 每决策网络调用数过多 | reduced-step DDIM | eval $K$ 从 100 降到 10/16/8 | sampler 解耦 train/eval step count | 0.1 s endpoint、deadline feasibility | Sec. 3.4；supplement；code | runtime endpoint supported；quality retention unverified |
+
+### 2.5 完整因果链与证据闭环
+
+论文的闭环不是“diffusion 所以更好”这一句话，而是：demonstrations 含多峰连续动作与时间相关性；单步显式回归、固定 mixture/cluster 与 negative-sampled EBM 各有具体失效模式；条件动作 diffusion 把输出改为随机初始化下的动作序列去噪，sequence prediction 改变时间一致性，receding horizon 改变承诺长度，visual conditioning 改变 $K$ 次循环内的视觉计算次数，DDIM 改变实际网络调用数。成功率、Figure 3 mode visualization、Figure 5 action-horizon/latency sensitivity 和真实任务共同测量这些变化。
+
+直接证据最强的是完整 DP 对 replacement baselines、action-horizon sensitivity、position/velocity comparison 和执行代码。间接证据是单个对称 Push-T 状态的 mode trajectories、CNN/Transformer 跨任务差异和 0.1 s 单 endpoint。未闭合环节包括：固定 architecture/action space/compute 的 diffusion-only 对照、mode coverage/calibration、$K$–quality–latency 联合曲线、逐阶段 profiler，以及 10/16/8-step 口径统一。因此总体判断是 `partially-supported`：论文证明了一个有效 action-diffusion control system，未证明每个组件独立贡献或任意可归一化动作分布的经验完备性。
+
+![Figure 5: action-horizon and latency ablation with complete caption](../assets/papers/diffusion-policy/fig5-action-horizon-latency-ablation-caption.png)
+
+> 原论文 Figure 5（PDF 裁剪，完整 caption）。左图直接支持 $T_a$ 的一致性—响应权衡；右图只支持论文模拟的有限 step-latency 范围，不等于任意网络 jitter 或真实 p95 latency。
+
+## 3. 核心贡献与创新点
+
+1. 把 conditional denoising diffusion 直接用作连续 action-sequence policy，并在多类 manipulation benchmark 上展示完整系统收益。
+2. 将 action-sequence generation 与 receding-horizon execution 结合，使生成式策略能在闭环中平衡时间一致性和响应性。
+3. 将 observation 作为 condition 而非 diffusion output，使视觉 encoder 可在一次决策内复用。
+4. 给出 CNN-FiLM 与 time-series Transformer 两条 denoiser 路径，并讨论 action frequency/architecture trade-off。
+5. 将真实机器人执行分成低频 GPU policy、timestamped waypoint scheduling 与高频 pose interpolation，证明方法可落地，但系统 telemetry 不完整。
+
+## 4. 研究方法
+
+### 4.1 方法总览
+
+输入是最近 $T_o$ 个 observations。策略先编码 observation，再从高斯动作序列 $\mathbf A_t^K$ 出发调用 denoiser/scheduler $K$ 次，得到 $\mathbf A_t^0$。模型联合预测长度 $T_p$ 的 action trajectory，返回从 observation 对齐点开始的 $T_a$ 个动作；真实控制脚本按时间戳提交其中一段，随后重新观测和规划。
+
+### 4.2 组件级设计动机与具体问题映射
+
+| 设计项 | why 状态 | 原文证据 | 针对的具体问题 | 因果机制 | 替代方案/权衡 | 验证证据 | 判断 |
+|---|---|---|---|---|---|---|---|
+| conditional action diffusion + epsilon MSE | author-stated | Sec. 1、2.1–2.3；Eq. 4–5 | mode averaging、固定 mode 数、EBM negatives | 多噪声尺度 denoising 产生随机条件样本 | GMM/BET/IBC 推理较短；diffusion 需 $K$ calls | Tables 1–4；Fig. 3、6 | partially-supported |
+| action-sequence output | author-stated | Sec. 1、2.3、4.3 | 单步 action 近视、抖动、idle overfit | 联合表示时序相关 action | 更高输出维度与训练/推理成本 | Fig. 5 horizon sweep | supported |
+| receding-horizon execution | author-stated | Sec. 2.3、4.3 | 长 open-loop 对新 observation 不响应 | 执行 $T_a$ 后重规划 | $T_a$ 太小抖动，太大 stale | Fig. 5 | supported within tested range |
+| visual features outside denoising output | author-stated | Sec. 2.3、3.2；Eq. 4–5 | future-image diffusion 太贵 | 每决策 encode once，$K$ 次复用 | 不显式建模 future dynamics | Fig. 2；`predict_action()` | implementation supported；latency gain unisolated |
+| temporal CNN + FiLM | author-stated | Sec. 3.1；Fig. 2 | 需要稳定序列 denoiser 和逐层 conditioning | U-Net 多尺度时间感受野；FiLM 注入 condition | 高频变化可能被过平滑 | Tables 1–2；code | partially-supported |
+| causal cross-attention Transformer | author-stated | Sec. 3.1；Fig. 2 | 高频/velocity action 下 CNN 偏置 | action causal attention + observation cross-attention | 更敏感、更难调 | BlockPush result；code | partially-supported |
+| cosine noise schedule | author-stated | Sec. 3.3 | noise-frequency allocation 影响 action signal | schedule 分配不同噪声尺度 | linear/sigmoid schedule | 仅作者经验和 config | unverified benefit |
+| reduced-step DDIM | author-stated | Sec. 3.4 | $K=100$ latency 过高 | train/eval steps 解耦 | fewer steps 可能损失 sample quality | 0.1 s endpoint；real script | partially-supported |
+| position-control action space | author-stated | Sec. 4.2；Fig. 4–5 | velocity error accumulation 与 latency sensitivity | 绝对目标避免逐步积分误差 | baseline 常在 velocity space 更好 | Fig. 4–5 | supported for DP internal choice；cross-method confounded |
+| GroupNorm + EMA | author-stated | Sec. 3.2；code | BatchNorm running state 与 EMA 交互 | GroupNorm 无 batch running statistics | 额外 implementation constraint | code/config；无 ablation | plausible/unverified benefit |
+
+### 4.3 模型与执行语义
+
+CNN 路径使用 1D Conditional U-Net。`predict_action()` 在 `diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py:215-277` 先归一化并编码 observation；`conditional_sample()` 在同文件 `:175-212` 为每个 scheduler timestep 调用一次 denoiser；`compute_loss()` 在 `:284-340` 采样 timestep、加噪并按 `prediction_type` 选择 epsilon 或 sample target。
+
+Transformer 路径的“causal”是 denoiser 内 action-token self-attention mask；不是 robot execution causal scheduler。真实执行在 `eval_real_robot.py:93-105` 将 DDIM steps 设为 16，在 `:284-405` 按 10 Hz timeline 和 `steps_per_inference=6` 过滤/提交动作；`real_env.py:309-335` 与 `rtde_interpolation_controller.py:243-339` 通过独立 RTDE 进程做 125 Hz 插值与 `servoL`。
+
+### 4.4 关键公式
+
+论文的条件反向更新抽象为：
 
 $$
-\mathbf A_t^{k-1}=\alpha\left(\mathbf A_t^k-\gamma\epsilon_\theta(\mathbf O_t,\mathbf A_t^k,k)+\mathcal N(0,\sigma^2I)\right).
+\mathbf A_t^{k-1}
+=\alpha\left(
+\mathbf A_t^k-\gamma\epsilon_\theta(\mathbf O_t,\mathbf A_t^k,k)
++\mathcal N(0,\sigma^2I)
+\right).
 $$
 
-训练目标：
+训练目标为：
 
 $$
-\mathcal L=\operatorname{MSE}\left(\boldsymbol\epsilon^k,
-\epsilon_\theta(\mathbf O_t,\mathbf A_t^0+\boldsymbol\epsilon^k,k)\right).
+\mathcal L
+=\operatorname{MSE}\left(
+\boldsymbol\epsilon^k,
+\epsilon_\theta(\mathbf O_t,\mathbf A_t^0+\boldsymbol\epsilon^k,k)
+\right).
 $$
 
-注意：训练直接最小化噪声 MSE，不直接优化任务成功率或控制 cost。论文用能量梯度解释 $\epsilon_\theta$，但代码语义由 scheduler 的 `prediction_type: epsilon` 决定。
+代码对 clean trajectory 调用 scheduler `add_noise()`，网络预测 noise residual，并在 `prediction_type: epsilon` 下把 target 设为实际 noise。任务成功率只用于 evaluation；它不进入 $\mathcal L$。
 
-### 3.5 训练与评测设置
+### 4.5 训练、评测与公平性
 
-- 图像策略使用 batch 64；state 策略 batch 256；cosine learning-rate schedule，CNN warmup 500 steps，Transformer 1000 steps（Appendix A）。
-- CNN image policy 常用 $T_o=2,T_a=8,T_p=16$；real Push-T 为 $T_a=6$。模拟训练/推理均 100 diffusion steps；附录真实任务为 train 100/eval 16。
-- 当前代码 real hybrid config 是 DDIM train 100、config eval 8、$T_p=16,T_o=2,T_a=8$，但 `eval_real_robot.py` 运行时覆盖为 16；这说明 config 值不是最终真实机器人执行值。
-- simulation baseline 采用各自最佳 action space：DP position、baseline velocity。它提高了“各方法最佳性能”的实用公平性，但削弱了把全部差异归因给 diffusion representation 的因果公平性。
-- 论文披露 robomimic evaluation bug：仅用了 22 个 environment initializations；所有方法共用该错误，方向性结论可能保留，但不恢复样本独立性或置信区间。
+- 扩展版覆盖 15 tasks/4 benchmarks；RSS conference abstract 是 12 tasks，差异来自扩展版增加三项双臂任务。
+- state policy batch 256，image policy batch 64；CNN warmup 500 steps、Transformer 1000 steps（Appendix）。
+- 常见 image CNN config 是 $T_o=2,T_p=16,T_a=8$；real Push-T 报告/脚本使用 6-step commitment。
+- simulation 训练/推理多为 100 diffusion steps；正文 real endpoint 写 10，appendix/脚本 16，current real config 又有 8。只能分别报告。
+- 每个 baseline 采用其最佳 action space：DP position、baseline velocity。这是 best-system fairness，不是 diffusion-representation causal fairness。
+- robomimic evaluation bug 只使用 22 个 environment initializations。各方法共享 bug 可能保留方向性，但不能恢复预定样本数或置信区间。
 
-## 关键实验与证据
+## 5. 关键结论与收益归因
 
-### 4.1 主结果与多模态证据
+### 5.1 主结果
 
-![Table 4: multi-stage state-observation results](../assets/papers/diffusion-policy/table4_multistage_results_caption.png)
+作者报告跨任务平均相对 improvement 46.9%。这是按每任务最佳 DP 变体与最佳 baseline 的宏平均，不是单一统一模型的 +46.9 percentage points。
 
-Table 4 的强证据是困难子目标指标：BlockPush $p2$ 上 DP-T 为 0.94、最佳 baseline BET 为 0.71，绝对 +0.23、相对约 +32.4%；Kitchen $p4$ 上 DP-C 为 0.99、最佳 baseline BET 为 0.44，绝对 +0.55、相对 125%。正文写“213% improvement”与表中数值不相符：若按 $(0.99-0.44)/0.44$ 是 125%，若按 ratio 是 225%。因此本审阅不复述 213%。
+Multi-stage Table 4 中，BlockPush $p2$ 的 DP-T 为 0.94、BET 为 0.71：绝对 +0.23，相对约 +32.4%。Kitchen $p4$ 的 DP-C 为 0.99、BET 为 0.44：绝对 +0.55，相对 125%。正文写 213% 与表值不一致；按 ratio 是 225%，按 relative improvement 是 125%，因此不能无条件复述 213%。
 
-这张表支持“多阶段任务成功指标更高”，但不单独证明 score sampling 是唯一原因。Figure 3 提供同一 Push-T 对称状态下左右轨迹 mode 的机制可视化，是 multimodality 的间接证据；它没有报告分布校准、mode coverage 或与 $K$ 的受控关系。
+### 5.2 技术点证据矩阵
 
-### 4.2 技术点证据矩阵
+| 技术点 | 声称收益 | 对应证据 | 对照是否受控 | 指标变化 | 证据强度 | 结论 |
+|---|---|---|---|---|---|---|
+| conditional action diffusion | 多模态、高维、稳定 | Tables 1–4；Fig. 3、6 | architecture/action space 部分耦合 | 多任务领先 | replacement baseline + indirect visualization | system-level supported；component partial |
+| action sequence + RHC | 一致且响应 | Fig. 5 left | 相对匹配 | $T_a=8$ 附近最好 | sensitivity | supported within tested tasks |
+| position control | 精度与 latency robustness | Fig. 4–5 | DP 内较直接 | positive vs negative relative changes | direct ablation | supported for DP；总增益 confounded |
+| visual conditioning outside loop | 降低计算 | Fig. 2；Eq. 4–5；code | 无 joint-generation matched runtime | 未报告 isolated delta | code/mechanism | implementation confirmed |
+| Transformer 缓解过平滑 | 高频 task 更好 | BlockPush；architecture tables | 与 capacity/task 耦合 | task-dependent | indirect | plausible |
+| cosine schedule | 更适合 tasks | Sec. 3.3 | 无 schedule sweep | 无 | none beyond statement/config | unverified |
+| reduced-step DDIM | 实时 | 0.1 s RTX 3080；script 16 steps | 无 $K$–quality curve | endpoint only | measured endpoint + code | feasibility partial |
+| GroupNorm + EMA | 稳定 | prose + code | 无移除实验 | 无 | code-only | plausible/unverified |
 
-| 技术点 | 声称收益 | 对照/证据 | 控制度 | 证据强度 | 结论 |
-|---|---|---|---|---|---|
-| 条件扩散动作表示 | 多模态、高维、稳定 | Tables 1-4 vs LSTM-GMM/IBC/BET；Fig. 3/6 | representation、architecture、action space 部分耦合 | replacement baseline + indirect visualization | supported at system level；组件归因部分支持。 |
-| action-sequence prediction | 平滑且不近视 | Fig. 5 左，改变 $T_a$ | 相对匹配 | sensitivity | supported；多数任务最优 8，不代表所有任务。 |
-| receding horizon 抗 latency | 推理时仍可执行未来目标 | Fig. 5 simulated latency | position/velocity 差异同时出现 | direct sensitivity | supported up to paper-tested 4 steps；不等于任意网络抖动。 |
-| visual conditioning outside loop | 降低实时计算 | Eq. 4-5、Fig. 2、代码路径 | 无 joint-generation matched runtime | code + mechanism | implementation confirmed；speedup unisolated。 |
-| Transformer 缓解过平滑 | 高频 velocity task 更好 | BlockPush DP-T vs DP-C；Fig. 4 | architecture/action-space/task 耦合 | indirect | plausible；缺 causal-mask/频谱消融。 |
-| cosine noise schedule | 任务上最好 | Sec. 3.3 作者经验 | 未给 schedule table/curve | none beyond statement/config | unverified benefit。 |
-| DDIM 10/16 steps | 真实控制更快 | 0.1 s on RTX 3080；附录/脚本 16 | 无 $K$-quality-latency sweep | measured endpoint + code | runtime feasibility supported，质量保持程度未验证，数值口径冲突。 |
-| position control | 更准、抗延迟 | Fig. 4/5 | DP 内对照较直接 | direct ablation | supported for DP；跨方法总增益 confounded。 |
-| GN + EMA | 稳定训练 | 论文解释、config/code | 无移除实验 | code-only | plausible but unverified。 |
-| 46.9% 平均提升 | 跨任务总体领先 | Tables 1/2/4；Appendix 公式 | 按任务挑最佳 DP 与 baseline | derived by authors | 算法可复核；不是统一模型的百分点提升。 |
+### 5.3 是否验证核心假设
 
-### 4.3 显式证据闭环
+“完整 Diffusion Policy 系统优于所选 baselines”有广泛任务证据；“action horizon 存在一致性—响应权衡”有直接 sensitivity；“position control 更适合 DP”有 direct comparison。相反，“score model 任意表达能力导致全部任务增益”、“cosine schedule 必要”、“Transformer 的 causal mask 本身导致高频优势”、“10/16-step DDIM 不损害 mode coverage”没有 matched ablation。
 
-| Claim | Source | Mechanism | Observable evidence | Boundary/limitation |
+### 5.4 收益来源归因
+
+| 组件/变化 | 对比基线 | 指标变化 | 影响路径 | 证据强度 |
 |---|---|---|---|---|
-| DP 能保留多种有效动作 | Sec. 2；Fig. 3 | score-based iterative sampling | 对称 Push-T 轨迹分成左右 mode；多阶段指标领先 | 缺 mode coverage/calibration；完整方法与 baseline 同时变化。 |
-| sequence + RHC 平衡平滑和响应 | Sec. 2.3/4.3 | 预测 $T_p$、执行 $T_a$、再规划 | Fig. 5 对 $T_a$ 呈最优区间 | 只在给定任务/频率验证。 |
-| 真实机器人满足实时闭环 | Sec. 3.4/6.1；代码 | vision once + reduced-step DDIM + 10 Hz waypoints + 125 Hz interpolation | 论文 0.1 s/RTX 3080；real script 调度 | 无端到端 latency percentile、stage profile、bandwidth telemetry；10/16/8 冲突。 |
+| 完整 DP-T | BET，BlockPush $p2$ | +0.23 absolute；+32.4% relative | 长程子目标完成 | matched task result，但不是 diffusion-only |
+| 完整 DP-C | BET，Kitchen $p4$ | +0.55 absolute；+125% relative | 多阶段完成 | matched task result；组件捆绑 |
+| $T_a$ sweep | 每任务自身最大值 | Fig. 5 显示 8 附近峰值 | temporal consistency vs stale response | direct sensitivity |
+| position vs velocity | 同类 policy action space | Fig. 4 relative changes | error accumulation/precision | direct within DP；cross-method confounded |
+| reduced DDIM | 100 train -> 10/16 eval | 0.1 s endpoint | latency | runtime endpoint；quality delta missing |
 
-### 4.4 收益归因
+最低限度的缺失实验是：固定 network、data、action space、parameter count 与 compute，只替换 regression/GMM/BET/EBM/diffusion objective；再联合扫描 $K$、mode coverage、success、p50/p95 latency 与 deadline misses。
 
-| 组件 | 对比 | 指标变化 | 影响路径 | 证据判断 |
+## 6. Related Work 对比
+
+| 类别 | 方法核心 | 优点 | 局限 | 与本文关系/公平性 |
 |---|---|---|---|---|
-| 完整 DP-T | BET on BlockPush $p2$ | +0.23 absolute；+32.4% relative | 长程子目标顺序/行为质量 | matched task result，但架构与表示成套变化。 |
-| 完整 DP-C | BET on Kitchen $p4$ | +0.55 absolute；+125% relative | 多阶段完成质量 | matched task result；不是 diffusion-only 消融。 |
-| action horizon | $T_a$ sweep | optimum near 8（论文定性） | temporal consistency vs stale response | direct sensitivity；图未给统一数值表。 |
-| reduced DDIM steps | 100-step training -> 10/16-step real inference | 论文报告 0.1 s（10 step） | latency | runtime endpoint；没有质量 delta，不能归因多模态收益。 |
+| LSTM-GMM / MDN | recurrent mixture regression | 单次前向、时序建模直接 | component 数固定、mode collapse | DP 用迭代计算换分布灵活性；参数/latency 未匹配 |
+| BET | action clustering + offset | 多模态且一次生成 | quantization/cluster 依赖、mode consistency 问题 | Table 4 是强 replacement baseline |
+| IBC | energy model + action optimization | 灵活隐式分布 | negative sampling、训练/搜索不稳 | DP 学 denoising gradient，避免 InfoNCE negatives |
+| Diffuser / trajectory diffusion | joint state-action trajectory generation | 显式 planning trajectory | future visual state generation 很贵、偏 open-loop | DP 只扩散 action，observation 作 condition |
+| concurrent diffusion policies | goal-conditioned/RL/simulation diffusion policy | 快 sampler、guidance、RL 应用 | 目标和 benchmark 不同 | 本文重点是 visuomotor、RHC、action space 与真实机器人 |
 
-因此，多模态收益来自完整 action-diffusion policy 的行为证据；runtime cost 来自每决策 $K$ 次 denoiser。论文没有实验把“mode quality 随 $K$ 变化”和“latency 随 $K$ 变化”放在同一受控曲线上，两者不能互相解释。
+论文把 concurrent works 与自己的差异描述为互补，这比“首次 diffusion policy”更准确。
 
-## 5. Related Work 对比
+## 7. OpenReview 公开评审 × 论文内容交叉核验
 
-| 类别 | 机制 | 优点 | 局限 | 与本文关系/公平性 |
-|---|---|---|---|---|
-| LSTM-GMM / explicit MDN | 单次前向预测 mixture | 推理便宜、时序建模直接 | mode collapse、component 数固定 | DP 用更多迭代计算换更灵活分布；总性能比较包含 action-space 差异。 |
-| BET / discretize + offset | 动作聚类、类别与残差 | 多模态且一次生成 | 量化/cluster 依赖，维度扩展困难 | Table 4 是强 replacement baseline，但未匹配参数/latency。 |
-| IBC / EBM | 搜索低能量动作 | 灵活隐式分布 | negative sampling 与在线优化不稳/贵 | DP 学 score 避免 InfoNCE negatives；两者推理均非单次回归。 |
-| Diffuser / trajectory diffusion | 联合生成 state-action trajectory 并条件规划 | 显式未来轨迹 | 视觉未来状态生成成本高，偏 open-loop planning | DP 只扩散 action，观测作为条件，并嵌入 receding horizon。 |
-| concurrent diffusion policies | diffusion policy/RL/goal conditioning | 共享生成式动作思想 | 多为 simulation 或不同目标 | 本文主要增量是 visuomotor、真实机器人与系统设计；不应声称独占“首次 diffusion policy”概念。 |
+- OpenReview 链接：未发现。
+- 访问日期：2026-07-25。
+- decision/meta-review/rebuttal：公开不可用。
+- preserved attempts：公开评审核验记录、`qa/openreview-api2-title-query.json`。
 
-## 6. OpenReview 公开评审交叉核验
+RSS 官方页面没有 public review trail，OpenReview exact-title API2 请求返回 403。故不能做 reviewer concern cross-check，也不能推断分数、confidence 或 rebuttal。本文所有批评均来自 PDF/source/code 内部一致性审计，而非虚构 reviewer opinion。
 
-未发现可核验的公开 OpenReview 页面。`openreview_reviews.md` 记录 exact-title API 的 HTTP 403 和 RSS 官方页面无 forum/review 链接；不把“未发现”写成“没有评审”。本节不产生 reviewer-derived claim。
+## 8. Infra 需求分析
 
-## Infra 与部署
+### 8.1 算力与延迟
 
-### 7.1 每次控制决策的精确工作量
-
-论文/代码口径如下：
-
-| 场景 | $T_o$ | $T_p$ | 承诺/重规划动作 | train/eval denoise | 策略/servo 频率 | 证据状态 |
-|---|---:|---:|---:|---:|---|---|
-| simulation typical | 2 | 16（CNN）或 10/16（T） | 8 | 100/100 | benchmark runner | paper-reported，Table 7。 |
-| real Push-T paper appendix | 2 | 16 | 6 | 100/16 | 10 Hz command，125 Hz interpolation | paper-reported，Table 7、Sec. 6.1。 |
-| paper Sec. 3.4 endpoint | 未单列 | 未单列 | 未单列 | 100/10 | 0.1 s on Nvidia 3080 | paper-reported；与附录冲突。 |
-| inspected real script | config 2 | config 16 | CLI `steps_per_inference=6`；policy internally exposes 15 future actions | runtime override 16 | 10 Hz policy timeline，125 Hz RTDE | code-defined。 |
-| current real config | 2 | 16 | 8 | 100/8 | CUDA device | code-defined，但被 eval script 覆盖。 |
-
-每次决策延迟可分解为：
+一次决策可分解为：
 
 $$
-T_{\mathrm{decision}}=T_{\mathrm{CPU\ prep}}+T_{\mathrm{H2D}}+T_{\mathrm{vision}}
-+K(T_{\mathrm{denoiser}}+T_{\mathrm{scheduler}})+T_{\mathrm{D2H}}+T_{\mathrm{schedule}}.
+T_{\mathrm{decision}}
+=T_{\mathrm{CPUprep}}+T_{\mathrm{H2D}}+T_{\mathrm{vision}}
++K\left(T_{\mathrm{denoiser}}+T_{\mathrm{scheduler}}\right)
++T_{\mathrm{D2H}}+T_{\mathrm{schedule}}.
 $$
 
-**推断而非实测**：因为视觉 encoder 只运行一次、denoiser 运行 $K=16$ 次，且 real CNN 论文报告 denoiser 67M 参数、vision 22M 参数，重复 denoiser 很可能占主要 GPU compute；scheduler 是逐步 tensor update，可能次之或更小。论文和代码没有 profiler，不能给三者百分比或断言 scheduler 不重要。
+论文只报告 10-step DDIM 在 RTX 3080 上约 0.1 s；appendix 与 real script 使用 16 steps。代码确认 vision encoder 在 global-condition 路径每决策运行一次，而 denoiser 每 timestep 运行一次。无 profiler 时不能给各项百分比，也不能把 scheduler、H2D 或 CPU scheduling 视为零。
 
-### 7.2 参数与显存
+### 8.2 显存与存储
 
-论文 Table 7 报告 real CNN 为 67M diffusion + 22M vision = 89M 参数，real Transformer 为 80M + 22M = 102M。代码未启用 autocast/half，输入显式 float32，故以下按 fp32 推导：
+Table 7 报告 real CNN 为 67M denoiser + 22M vision = 89M parameters；real Transformer 为 80M + 22M = 102M。按 fp32 推导：
 
 $$
 M_{\mathrm{weights}}=4P,
-\quad M_{\mathrm{Adam,base}}\approx(4_{w}+4_{g}+8_{m,v})P=16P.
+\qquad
+M_{\mathrm{Adam,base}}\approx(4_w+4_g+8_{m,v})P=16P.
 $$
 
-| 模型 | paper-reported 参数 | derived fp32 weights | derived Adam+grad+weights 下限 | EMA 额外 | 未计入 |
+| 模型 | 参数 | fp32 weights | Adam+grad+weights 下限 | EMA 额外 | 边界 |
 |---|---:|---:|---:|---:|---|
-| real CNN | 89M | 356 MB | 1.424 GB | 356 MB | activations、optimizer implementation overhead、allocator。 |
-| real Transformer | 102M | 408 MB | 1.632 GB | 408 MB | 同上。 |
+| real CNN | 89M | 356 MB | 1.424 GB | 356 MB | 不含 activations/allocator |
+| real Transformer | 102M | 408 MB | 1.632 GB | 408 MB | 不含 activations/attention workspace |
 
-这些是容量下限，不是实测 peak memory。推理还保存长度 16 的 action trajectory 和中间 activations；无 KV cache、无 autoregressive serving cache。
+这些是 derived lower bounds，不是 measured peak memory。动作 trajectory 长度 16，远小于模型 weights；无 autoregressive KV cache。
 
-### 7.3 Data Types / 数值格式
+### 8.3 Data Types / 数值格式
 
 | 对象 | 格式 | 阶段 | 硬件依赖 | 影响 | 证据 |
 |---|---|---|---|---|---|
-| 相机输入 | NumPy float32，$[0,1]$ | real inference CPU -> GPU | CPU + CUDA copy | 每像素 4 bytes；未量化 | `real_env.py:80-88`、`eval_real_robot.py:297-303`。 |
-| 模型参数/activation | 默认 PyTorch fp32（未见 autocast/half） | train/infer | CUDA GPU | 内存和带宽高于 fp16；没有 tensor-core dtype 声明 | repo-wide dtype inspection。 |
-| action/pose scheduling | NumPy float64 arrays in script | CPU scheduling | CPU/RTDE | 体量很小，精度高 | `eval_real_robot.py:316-323`。 |
-| diffusion timestep | torch long | denoiser conditioning | GPU | 小体量；U-Net 中若 scalar 会构造/扩展 tensor | `conditional_unet1d.py:188-196`。 |
+| camera tensor | NumPy/torch float32，$[0,1]$ | real inference | CPU -> CUDA | 每像素 4 bytes | `eval_real_robot.py:147-150,297-303` |
+| weights/activations | 默认 PyTorch fp32；未见 autocast/half | train/infer | CUDA GPU | 未使用低精度节省 | repo-wide inspection |
+| diffusion timestep | torch long | denoiser | GPU | 小体量 conditioning | policy code |
+| action/pose scheduling | NumPy float64 | CPU controller | CPU/RTDE | 体量小 | `eval_real_robot.py:316-323` |
 
-没有 fp16/bf16/fp8/int8、quantization、packing 或 NPU-specific operator 证据；任何低精度加速都属于未验证扩展。
+无 fp16/bf16/fp8/int8、quantization、packing 或 NPU operator 证据；任何低精度收益均是未验证扩展。
 
-### 7.4 带宽、互联与利用率
+### 8.4 带宽、互联与利用率
 
-real Push-T 输入按 2 camera、2 observation steps、RGB 320 x 240、float32 推导：
-
-$$
-B_{\mathrm{H2D}}=2\times2\times3\times320\times240\times4
-=3{,}686{,}400\ \mathrm{bytes}\approx3.52\ \mathrm{MiB/decision}.
-$$
-
-默认每 6 个 10 Hz action step 重规划，即 $r_{\mathrm{decision}}=10/6\approx1.667$ Hz；仅输入 tensor 的平均 H2D 需求约：
+对 real Push-T 的 2 cameras、2 observation steps、RGB 320 × 240、float32，输入 tensor 为：
 
 $$
-BW_{\mathrm{H2D,input}}=B_{\mathrm{H2D}}r_{\mathrm{decision}}
-\approx6.14\ \mathrm{MB/s}.
+B_{\mathrm{H2D}}
+=2\times2\times3\times320\times240\times4
+=3{,}686{,}400\ \mathrm{bytes}
+\approx3.52\ \mathrm{MiB/decision}.
 $$
 
-| 路径 | 数据量/频率 | 有效带宽/利用率 | 瓶颈判断 | 证据边界 |
+若 10 Hz action timeline 每 6 steps 重规划，平均 decision rate 约 1.667 Hz，仅 input tensor 约 6.14 MB/s。该数远不足以证明 end-to-end 不受 transfer/synchronization 影响，因为 runtime 和 peak PCIe 未报告。
+
+$$
+\mathrm{EffectiveBandwidth}
+=\frac{\mathrm{BytesMoved}}{\mathrm{RuntimeSeconds}},
+\qquad
+\mathrm{Utilization}
+=\frac{\mathrm{EffectiveBandwidth}}{\mathrm{PeakBandwidth}}.
+$$
+
+论文没有 HBM bytes、kernel trace、PCIe generation、peak bandwidth 或 copy runtime，因此 utilization 不可数值化。无 multi-GPU all-reduce、NVLink、RDMA 或 serving batching。
+
+### 8.5 CPU/GPU/NPU 异构执行
+
+| 阶段 | CPU 角色 | GPU/NPU 角色 | 数据移动/同步 | 潜在瓶颈 |
 |---|---|---|---|---|
-| CPU -> GPU image tensor | derived 3.69 MB/decision；约 6.14 MB/s average | peak PCIe、copy runtime 未报告，利用率不可算 | unlikely raw-link-bandwidth bound；可能受同步/预处理开销影响 | 输入尺寸与代码直接；runtime 未测。 |
-| GPU HBM denoising | 16 次模型 forward/decision | bytes moved 与 kernel runtime 未 profile | likely compute/activation-memory dominated，结论仅推断 | 67M denoiser + loop structure。 |
-| camera shared memory | 2 cameras, capture 30 Hz；raw recording 1280 x 720 | 未测 | CPU memory/camera pipeline 可能并行 | `real_env.py:53-54,123-140`。 |
-| CPU -> UR5 RTDE | 125 Hz pose target | payload 极小；网络 telemetry 未报告 | control timing/jitter 比吞吐更重要 | `real_env.py:158-173`。 |
+| capture/preprocess | RealSense、resize、shared memory、float32 | 无 | shared buffer -> tensor | timestamps/copy |
+| policy | 构建 observation、计时 | vision once + $K$ denoiser/scheduler steps | synchronous H2D/D2H | repeated denoiser |
+| schedule | 过滤过期 action、生成 timestamps | 无 | GPU result -> CPU queue | deadline miss |
+| servo | RTDE 125 Hz interpolation/servoL | 无 | Ethernet waypoint | jitter/safety limits |
 
-论文无 GPU peak bandwidth、PCIe generation、bytes moved、kernel trace，故
-$\mathrm{Utilization}=\mathrm{EffectiveBandwidth}/\mathrm{PeakBandwidth}$ 无法数值化。也没有 multi-GPU all-reduce、NVLink 或 RDMA 路径。
+没有 NPU path 或 CPU inference fallback。training DataLoader 使用 pinned memory/non-blocking transfer；real script 未见 explicit async stream 或 CUDA graph。
 
-### 7.5 CPU/GPU/NPU 异构执行
+### 8.6 调度、Serving 与自定义算子
 
-| 阶段 | CPU | GPU/加速器 | 数据移动与同步 | 潜在瓶颈 |
-|---|---|---|---|---|
-| capture/preprocess | RealSense 30 Hz、resize、float32、shared memory | 无 | CPU shared buffers -> NumPy | camera timestamp alignment、copy。 |
-| policy | 构建 dict/tensor，计时 | vision once + 16 denoiser/scheduler steps | synchronous `.to(cuda)`；结果 `.to(cpu).numpy()` | repeated denoiser；缺 async overlap。 |
-| schedule | 过滤过期 action、生成 timestamps | 无 | D2H 后 CPU queue | 若 inference 超预算会丢弃旧动作并安排下一可用 step。 |
-| servo | RTDE 独立进程 125 Hz interpolation | 无 | Ethernet/RTDE waypoint | real-time jitter/robot network；soft real-time 默认 false。 |
+依赖标准 PyTorch、Hugging Face Diffusers DDPM/DDIM scheduler、Robomimic encoder 与 Python/NumPy/RTDE。未见 custom CUDA kernel、TensorRT、operator fusion、CUDA graph 或 multi-request serving scheduler。控制安全依赖 timestamp filtering、过期动作丢弃、速度限制和高频插值，不依赖 diffusion sampler 内部。
 
-没有 NPU 路径或 CPU fallback policy。training config 使用单个 `cuda:0`，DataLoader 开启 pinned memory 和 non-blocking batch transfer，但真实机器人推理代码没有显式 pinned-memory/async stream overlap。
+## 9. 开源代码与 checkpoint 对照
 
-### 7.6 调度与自定义算子
+| 论文机制 | 本地路径（commit `5ba07ac...`） | 一致性 |
+|---|---|---|
+| Eq. 5 noise MSE | `diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py:284-340` | 一致；epsilon target 由 scheduler config 决定 |
+| $K$ 次 denoising | 同文件 `:175-212` | 一致；每个 scheduler timestep 一次 model call |
+| vision once/global condition | 同文件 `:237-263` | 一致；feature 在 loop 外生成 |
+| 1D U-Net/FiLM | `diffusion_policy/model/diffusion/conditional_unet1d.py` | 一致 |
+| Transformer causal/cross attention | `diffusion_policy/model/diffusion/transformer_for_diffusion.py` | 一致 |
+| real DDIM override | `eval_real_robot.py:93-105` | 16 steps；与正文 10 和 config 8 不一致 |
+| timestamped control | `eval_real_robot.py:284-405`；`real_world/real_env.py:309-335` | 与 RHC 部署语义一致 |
+| 125 Hz interpolation | `real_world/rtde_interpolation_controller.py:243-339` | 一致 |
 
-runtime 依赖标准 PyTorch、Hugging Face Diffusers DDPM/DDIM scheduler、Robomimic encoder 和 Python/NumPy 控制循环；未见 CUDA graph、custom CUDA kernel、operator fusion、TensorRT 或 batching serving。控制安全来自 timestamp filtering、过期动作丢弃、速度限制和 125 Hz 插值，不来自扩散模型内部。
+公开 checkpoint 在 README 中存在，但本次未下载近 1 GB 文件并反序列化内部 config/weights。故 checkpoint revision、实际 parameter count 和 flags 标为未验证；配置结论来自 commit-pinned YAML/code，不把 README 文件名当 metadata。
 
-## 代码状态与实现核验
-
-| 论文机制 | 本地路径 | commit-pinned 证据 | 一致性 |
-|---|---|---|---|
-| Eq. 5 noise MSE | `diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py` | [L284-L340](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py#L284-L340) | 一致。 |
-| $K$ 次 denoising | 同上 | [L175-L212](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py#L175-L212) | 一致；scheduler 实现论文抽象公式。 |
-| vision once/global condition | 同上 | [L237-L263](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py#L237-L263) | 一致。 |
-| 1D U-Net/FiLM | `diffusion_policy/model/diffusion/conditional_unet1d.py` | [file](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/diffusion/conditional_unet1d.py) | 一致；存在 published-checkpoint compatibility 保留的 local-cond 分支注释。 |
-| Transformer causal/cross attention | `diffusion_policy/model/diffusion/transformer_for_diffusion.py` | [file](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/diffusion/transformer_for_diffusion.py) | 一致。 |
-| real DDIM/control | `eval_real_robot.py`、`real_env.py`、`rtde_interpolation_controller.py` | 上述 pinned links | 执行路径一致；数字口径与正文/config 不完全一致。 |
-
-### 8.1 Checkpoint/config 对照
-
-README 给出的 Push-T lowdim checkpoint URL 可访问，HEAD 元数据为 `Content-Length: 1,044,185,793` bytes、`Last-Modified: 2023-03-01T21:58:18Z`。因单文件约 995 MiB，未下载并反序列化内部 `cfg`/weights；因此 checkpoint 内部 revision、参数量和 flags 标为未验证。本审阅的配置判断来自 commit-pinned YAML 与代码，不把 README 文件名当作 checkpoint metadata。
-
-## 局限与证据边界
+## 10. 优点、局限与改进
 
 ### 优点
 
-- 把动作分布、时间一致性和真实控制调度放在一个可复现系统中，而不是只展示 simulation generative model。
-- 论文源码明确披露平均提升公式、evaluation bug、参数表和 real latency endpoint，便于审计。
-- 代码把 vision、denoising、action slicing、timestamp scheduling 和 servo interpolation 分层，执行语义可定位。
+- 把多模态 action representation、sequence consistency、visual conditioning 与真实控制调度放进一个可运行系统。
+- source 明确披露平均提升口径、evaluation bug、参数表与 latency endpoint，审计条件较好。
+- 代码层次能定位 vision、denoising、action slicing、timestamp scheduling 和 servo interpolation。
 
 ### 局限
 
-- 关键 runtime 数值冲突：正文 10 DDIM steps，附录/脚本 16，当前 real config 8；0.1 s 只对应正文的 10-step RTX 3080 endpoint。
-- 没有逐阶段 latency、p50/p95、GPU utilization、memory peak 或 bandwidth trace，无法回答视觉/U-Net/scheduler 的实测占比。
-- baseline 使用各自最佳 action space，适合比较最佳系统，但无法把 46.9% 全归因给 diffusion representation。
-- 多模态证据以个案轨迹和任务成功为主，缺 mode coverage、calibration、diversity-quality 曲线。
-- 组件如 cosine schedule、GN+EMA、causal mask 缺独立消融。
-- 公开大 checkpoint 未做内部 metadata 检查；复现配置以代码 snapshot 为准。
+- 10/16/8 denoising-step 口径冲突，0.1 s 只绑定正文 10-step RTX 3080 endpoint。
+- 缺 p50/p95 latency、stage profile、GPU utilization、peak memory、bandwidth trace 与 deadline miss rate。
+- baseline 各用最佳 action space，适合 best-system comparison，不适合把 46.9% 全归因给 diffusion。
+- 多模态证据缺 mode coverage、calibration 与 diversity-quality curves。
+- cosine schedule、GN+EMA、causal mask 缺独立消融。
+- Kitchen $p4$ 的 213% prose 与 Table 4 数字不一致。
+- checkpoint metadata 未验证，训练/benchmark 未复跑。
 
 ### 可改进实验
 
-1. 固定 architecture/action space/data，比较 regression、GMM、BET、EBM、diffusion 的 matched compute/parameter baseline。
-2. 扫描 $K\in\{1,2,4,8,10,16,32,100\}$，同时报告 task success、mode coverage、p50/p95 latency、GPU energy 和 deadline miss rate。
-3. 用 profiler 分解 vision、denoiser、scheduler、H2D/D2H 与 CPU scheduling；报告 RTX 3080 的 kernel/HBM/PCIe utilization。
-4. 独立消融 FiLM vs inpainting、GN/EMA、causal mask、position vs velocity，避免多个改变捆绑。
+1. 固定 architecture/action space/data/parameter/compute，仅替换 policy representation 与 loss。
+2. 扫描 $K\in\{1,2,4,8,10,16,32,100\}$，同时报告 success、mode coverage、latency、energy 与 deadline misses。
+3. 用 profiler 分解 vision、denoiser、scheduler、H2D/D2H 与 CPU scheduling。
+4. 独立消融 FiLM/global conditioning、causal mask、GN/EMA、noise schedule 和 position/velocity。
+5. 按任务公开完整 checkpoint config 与 exact eval step count。
 
-## 研究启发
+## 11. 研究启发
 
-- 将慢生成策略与快控制器解耦：低频生成未来参考序列，高频确定性插值/跟踪。
-- 对 embodied policy，推理步数应视为质量-时延-能耗三目标预算，而非固定超参数。
-- multimodality 评估应从“能完成任务”扩展到 mode coverage、决策一致性和 perturbation 后 mode switching。
+- 慢生成策略与快控制器可分层：低频生成未来 reference sequence，高频确定性插值/跟踪。
+- diffusion step count 是质量—延迟—能耗预算，不只是 sampler 超参数。
+- embodied multimodality 应同时测 mode coverage、mode commitment、扰动后的 mode switching 与任务成功。
+- best-system leaderboard 与 mechanism attribution 应分开设计，避免 action space、backbone 和 runtime bundle。
 
-## 待验证问题
+## 12. 解读问题/待验证清单
 
-1. arXiv v5 最终真实实验到底统一使用 10、16 还是不同任务不同 step？能否从发布 checkpoint 的 `cfg` 逐个恢复？
-2. 0.1 s latency 是否包含图像预处理、H2D/D2H 和 scheduler，还是只包含 GPU policy forward？
-3. 把 DP 与 baseline 统一到 position control 后，46.9% 中有多少仍然保留？
-4. Table 4 Kitchen $p4$ 的正文 213% 与表值为何不一致？
-5. 16-step DDIM 相对 100-step iDDPM 的 mode coverage 与 success 损失是多少？
-6. local-condition compatibility 注释对应哪些已发布 checkpoint，是否影响论文 Figure 2 所示语义？
+1. 最终各真实任务究竟使用 10、16 还是不同 checkpoint 的 8 steps？
+2. 0.1 s 是否包括图像处理、H2D/D2H、scheduler 和 CPU scheduling？
+3. 统一 position control 后，46.9% 中多少仍来自 diffusion representation？
+4. Table 4 Kitchen $p4$ 的 213% 如何计算？
+5. 16-step DDIM 相对 100-step sampling 的 mode coverage 与 success 损失是多少？
+6. CNN/Transformer 的差异有多少来自 parameter capacity、action space 与 tuning budget？
+7. GroupNorm+EMA 和 cosine schedule 的最小独立消融结果是什么？
+8. 公开 checkpoint 内的 exact config 是否能统一 paper、appendix、script 与 YAML 的 step counts？
 
-## 一句话总结
+## 13. 一句话总结
 
-Diffusion Policy 的核心价值是把条件动作扩散与 receding-horizon 执行组合成可在真实机器人上运行的多模态行为克隆系统；最大不确定性不是“是否实现了迭代去噪”，而是各组件对质量增益的独立贡献，以及 10/16/8-step 运行口径和真实系统成本缺少统一 profiler 证据。
+Diffusion Policy 的核心价值是把条件动作扩散、action chunk 与 receding-horizon execution 组合成可在真实机器人上运行的多模态行为克隆系统；最大不确定性是组件独立归因与真实系统成本仍缺 matched ablation、统一 step 口径和 profiler 证据。
