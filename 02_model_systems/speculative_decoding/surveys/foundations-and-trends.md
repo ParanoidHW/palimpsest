@@ -98,13 +98,13 @@ $B$ 是 batch/load，$N_v$ 是 target 实际验证节点数。理想化上界假
 
 独立小 drafter 或 feature drafter 自回归产生 $\gamma$ 个 token，target 一次并行评分。优点是 contract 清晰、实现成熟；瓶颈是 drafter 自身仍串行，且 $\alpha^i$ 使长 prefix 概率衰减。EAGLE 类方法通过 target hidden states 提高 $q\approx p$，但仍有 sequential draft latency。
 
-P-EAGLE 把 feature drafter 改成 parallel MTP：冻结 target，复用 hidden states，一次预测多个位置；其 mask precomputation 和 sequence partitioning 处理长上下文训练。具体机制见 [P-EAGLE 架构](../papers/p-eagle.md#32-模型系统架构)，接受与 vLLM OTPS 见 [主结果](../papers/p-eagle.md#43-acceptance-length-主结果) 和 [vLLM 结果](../papers/p-eagle.md#44-vllm-otps-主结果)。它改变的是 draft latency，不改变 target verify contract。
+P-EAGLE 把 feature drafter 改成 parallel MTP：冻结 target，复用 hidden states，一次预测多个位置；其 mask precomputation 和 sequence partitioning 处理长上下文训练。具体机制见 [P-EAGLE 架构](../papers/p-eagle.md#41-架构)，接受与 vLLM OTPS 见 [Acceptance length](../papers/p-eagle.md#51-acceptance-length) 和 [OTPS](../papers/p-eagle.md#52-otps)。它改变的是 draft latency，不改变 target verify contract；已合并的 vLLM 支持属于论文后的 runtime 证据，不能替代训练代码。
 
 ### 3.2 Token-tree drafting
 
 tree 一轮提供多条候选路径，target 用 tree-causal mask 评分全部节点，再提交最长 accepted path。它把预算从“加深一条链”改成“增加 breadth/depth”，提高覆盖率；代价是 $N_v$、tree KV/layout、packing 和 scheduler 成本。
 
-JetSpec 的 causal-parallel head 在一个 forward 内让 depth 位置具有 prefix conditioning，避免把 branch-agnostic per-position marginals 随意拼成路径。其 [方法公式与 tree flow](../papers/jetspec.md#32-关键公式)、[high-budget 优势](../papers/jetspec.md#42-high-budget-是-jetspec-的主要优势区) 与 [收益归因](../papers/jetspec.md#45-收益来源归因tree-覆盖是大头causal-head-是高预算边际增益) 说明：tree coverage 是主要来源，causal head 在高预算区提供边际改善，不能把全部 speedup 归给 head。
+JetSpec 的 causal-parallel head 在一个 forward 内为 depth 位置建立因果依赖，最强证据支持 rank-1 主干保真；off-argmax 分支仍共享深度 logits，不能概括为完整 branch conditioning。其 [方法与阶段边界](../papers/jetspec.md#6-方法重建与阶段边界)、[high-budget 主结果](../papers/jetspec.md#9-主结果高预算扩展) 与 [消融和收益归因](../papers/jetspec.md#10-消融技术点证据矩阵与收益归因) 说明：tree coverage 是主要来源，causal head 的直接优势是降低对深度损失权重的敏感性，不能把全部 speedup 归给 head。
 
 ### 3.3 Block / diffusion drafting
 
@@ -112,7 +112,7 @@ block drafter 一次或少数步并行预测一段 token，target 仍按 token c
 
 DFlash 的局限是 block 内 prefix dependency 弱、首个 mismatch 后缀浪费。D²SD 用 confidence 定位潜在拒绝边界，再以 variable-prefix drafter 生成共享前缀分支；见 [D²SD 研究方法](../papers/d2sd.md#4-研究方法)与[关键结论](../papers/d2sd.md#5-关键结论)。
 
-HyperDFlash 不是简单加深 vanilla DFlash，而是让 block drafter 的 hidden-state reducer 对齐 target 的 mHC 架构，并用 LM-head KL distillation 约束 logits；见 [Inherited HC-Gate](../papers/hyperdflash.md#33-关键公式inherited-hc-gate-reducer)、[KL distillation](../papers/hyperdflash.md#34-关键公式lm-head-kl-distillation) 与 [6-step matched result](../papers/hyperdflash.md#41-主结果同为-6-step-budgethyperdflash-明显优于-mtp-和-vanilla-dflash)。收益来自架构对齐 + distillation 的组合。
+HyperDFlash 不是简单加深 vanilla DFlash，而是让 block drafter 的 hidden-state reducer 对齐 target 的 mHC 架构，并用 LM-head KL distillation 约束前两个位置；见 [关键公式](../papers/hyperdflash.md#44-关键公式)、[主结果](../papers/hyperdflash.md#51-主结果) 与 [收益归因](../papers/hyperdflash.md#54-收益来源归因)。matched six-step 对比支持完整 bundle 的优势，但组件消融缺失，因此“架构对齐 + distillation”只能作为组合机制解释，不能拆分量化。
 
 DSpark 位于纯并行 block 与纯 AR draft 之间：semi-autoregressive groups 保留部分依赖，并用 confidence scheduling 动态决定何时 verify。其[研究方法](../papers/dspark.md#4-研究方法)、[关键结论与证据矩阵](../papers/dspark.md#5-关键结论与技术主张证据矩阵)与[Infra 需求分析](../papers/dspark.md#8-infra-需求分析)表明，动态 policy 必须与 load/scheduler 联合评估。
 

@@ -199,7 +199,7 @@ SparseSpec 从系统角度回答长 CoT 的问题。reasoning model 输出很长
 
 P-EAGLE 的出发点是：EAGLE 接受率高，但草稿 token 仍顺序生成。P-EAGLE 用 parallel MTP drafter 一次预测多个 token，并用 mask pre-computation、dependency-preserving sequence partitioning 解决 reasoning 长上下文训练成本。
 
-![P-EAGLE parallel drafter architecture|692](../assets/papers/p-eagle/fig2-architecture.png)
+![P-EAGLE parallel drafter architecture|692](../assets/papers/p-eagle/fig2-architecture-caption.png)
 
 这张原论文结构图展示了 P-EAGLE 的关键机制：target model 冻结并提供 hidden states，P-EAGLE drafter 将 NTP 位置和多个 MTP 位置放进同一次输入构造中，用共享可学习 hidden state `h_shared` 和 mask token embedding 一次性预测多个未来 token。这正是它区别于顺序 EAGLE drafter 的地方。
 
@@ -209,7 +209,7 @@ P-EAGLE 的出发点是：EAGLE 接受率高，但草稿 token 仍顺序生成�
 高接受率 feature drafter -> 保留 target feature 优势，同时降低 draft latency
 ```
 
-局限是工程可复现性：本地精读记录中未发现完整官方代码仓库，vLLM 集成细节仍需源码验证。
+工程边界需要按时间区分：论文训练代码仍未公开，但截至 2026-07-25，vLLM 已合并 P-EAGLE 推理支持并发布官方实现说明，三个公开 drafter checkpoint 也已核验；这些是论文发布后的 runtime 证据，不应倒推为论文训练可复现性。详见 [代码与 checkpoint 对照](../papers/p-eagle.md#9-开源代码与-checkpoint-对照)。
 
 ### 6.2 DFlash：用 Block Diffusion 让草稿一轮并行生成
 
@@ -255,19 +255,19 @@ JetSpec 直接瞄准 DDTree/DFlash-style tree 的问题：并行 diffusion head 
 
 JetSpec 的方案是在 draft head 的 depth 维引入 causal conditioning，同时保持 one-forward drafting。它希望得到：
 
-![JetSpec design overview|975](../assets/papers/jetspec/jetspec_fig3_architecture_caption.png)
+![JetSpec design overview|975](../assets/papers/jetspec/fig3-jetspec-design-caption.png)
 
-JetSpec 的原论文图展示了三步机制：从 frozen target model 抽取多层 hidden states 并融合；用 causal-parallel draft head 一次生成 candidate tree；再用 tree-causal attention mask 让 target model 并行验证树中节点。它的关键差异是把 branch-wise causal conditioning 放进并行 draft head，从而缓解 DFlash/DDTree per-position marginal 拼出不一致路径的问题。
+JetSpec 的原论文图展示了三步机制：从 frozen target model 抽取多层 hidden states并融合；用 causal-parallel draft head 一次产生候选分数；再构树并让 target model 并行验证。深度因果 mask 最直接锚定的是 rank-1/argmax 主干，不足以证明所有 off-argmax 分支都按各自祖先条件化；因此它缓解 per-position marginal 拼接不一致，但不等于完整 branch-wise causal drafting。详见 [条件性边界](../papers/jetspec.md#62-因果并行到底条件于什么)。
 
 ```text
 并行 draft 的低成本 + AR path conditioning 的路径一致性
 ```
 
-本地精读显示，JetSpec 在 Qwen3-8B、H100、tree budget 256 下，MATH-500 报告 9.64x speedup / accepted length 10.76，MT-Bench 报告 4.58x / 5.94。它代表 2026 年 high-budget tree scaling 的重要方向。
+本地精读显示，JetSpec 在 Qwen3-8B、H100、tree budget 256 下，MATH-500 报告 9.64x speedup / accepted length 10.76，MT-Bench 报告 4.58x / 5.94。固定公共 vLLM 路径只支持 greedy tree decoding，temperature 1 的 lossless 路径不能由该代码复现；所以它代表 high-budget tree scaling 的重要方向，但非贪心结论仍依赖论文环境。
 
 ### 6.5 HyperDFlash / DFlare / BlockPilot：从通用 block draft 到模型/样本/系统自适应
 
-HyperDFlash 面向 DeepSeek-V4 Hyper-Connection，对齐 pre-collapse residual 和 gated residual reducer，说明 block drafter 正在变得 model-specific。
+HyperDFlash 面向 DeepSeek-V4 Hyper-Connection，对齐 pre-collapse residual 和 gated residual reducer，并加入前两个位置的 KL distillation，说明 block drafter 正在变得 model-specific。其 matched six-step 结果支持完整 bundle 的优势，但没有 reducer-only、KL on/off 或 runtime decomposition，不能把全部收益拆分归因给单一组件；详见 [收益来源归因](../papers/hyperdflash.md#54-收益来源归因)。
 
 DFlare 扩展 DFlash 的 target feature fusion 和 drafter capacity，说明 block diffusion 的下一步是提高条件信息和模型容量。
 
