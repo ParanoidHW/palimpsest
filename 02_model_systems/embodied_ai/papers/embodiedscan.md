@@ -1,237 +1,260 @@
-# EmbodiedScan
+# EmbodiedScan: A Holistic Multi-Modal 3D Perception Suite Towards Embodied AI 精读分析
 
 > [!info] 文档关系
 > - 文档类型：Paper
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[具身智能模型演进、Infra 与端云协同](../surveys/embodied-ai-evolution-infra.md)
 > - 证据资产：`../assets/papers/embodiedscan/`
-> - 相关文档：[论文索引](../evidence/paper-index.md)、[图表清单](../evidence/figure-inventory.md)
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md) · [Paper index](../evidence/paper-index.md)
 
-论文：[arXiv:2312.16170](https://arxiv.org/abs/2312.16170)。代码核验固定于 [InternRobotics/EmbodiedScan](https://github.com/InternRobotics/EmbodiedScan/tree/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c) 的 `fe26e4bc3f3fb706fd7e33788766f61f8857fc3c`；过程材料保留于审计区。
+> 资料状态：已核验 CVF 正式 PDF、arXiv 2312.16170 源码与附录、官方代码 commit `fe26e4bc3f3fb706fd7e33788766f61f8857fc3c`。两张内嵌图均为 250-DPI source-build PDF 裁剪，包含完整 caption；不是生成图。公开 OpenReview 未找到，checkpoint 仅核验 HTTP metadata。
 
-## 论文资料
+## 修订信息
 
-- 作者：Tai Wang 等；Shanghai AI Laboratory、SJTU、HKU、CUHK、Tsinghua。
-- 发表：CVPR 2024，pp. 19757-19767；arXiv 2312.16170。
-- 核心问题：如何从第一视角 RGB-D 序列建立可被语言定位的、场景级几何与语义 3D 表示。
-- 数据规模（paper-reported）：5,185 scans、890k images、160k objects、762 box categories、970k prompts；occupancy benchmark 80 类。
-- 关键假设：相机内外参可用；多视角可以转换到一个预先对齐地面/墙面的 global coordinate；训练/评测可通过有限视角采样近似探索过程。
+- 当前文档版本：`1.0.0`
+- 当前修订 ID：`rev-embodiedscan-1.0.0`
+- 当前修订时间：`2026-07-25T17:30:00+08:00`
+- 替代版本：无；这是新冻结 review delivery。既有 canonical Paper 仅作为只读迁移线索，不是先前 deliverable manifest。
 
-## 核心机制与贡献
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-embodiedscan-1.0.0` | `1.0.0` | `2026-07-25T17:30:00+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从一手 PDF/source/code 重建精读并核验既有 canonical claims | EmbodiedScan 单篇交付完整性修复 | 本文、[Figure inventory](../evidence/figure-inventory.md)、来源与公开评审边界 | CVF PDF、arXiv source、固定代码、视觉 QA | material |
 
-1. 将三套真实室内 RGB-D 数据统一为 ego-centric multi-view suite，并扩充 oriented box、occupancy 和 language annotation。规模由 Table 1 与 Sec. 3 直接记录，但 annotation quality 主要是流程说明，没有独立 inter-annotator agreement。
-2. 提出 Embodied Perceptron：稀疏多层融合服务 detection/grounding，稠密 grid 融合服务 occupancy。Fig. 4、Sec. 4 与代码直接支持结构存在。
-3. 建立 continuous、multi-view、monocular、grounding benchmark。Table 2-5 给主结果，Table 6-14/附录给设置与消融。
-4. 关键收益不是都被同等验证：dense fusion 与 box decoder 有直接消融；VL fusion、contrastive loss、多尺度监督缺少逐组件 matched ablation。
+## 0. 资料与配图索引
 
-## 方法与实现
+- 论文与源码：[arXiv:2312.16170](https://arxiv.org/abs/2312.16170)；CVPR 2024, pp. 19757–19767；DOI 10.1109/CVPR52733.2024.01868。
+- 开源代码：[InternRobotics/EmbodiedScan](https://github.com/InternRobotics/EmbodiedScan/tree/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c)，固定提交 `fe26e4b…`。
+- OpenReview：未发现公开 forum；尝试与边界见 公开评审核验记录。
+- Figure 4：`../assets/papers/embodiedscan/fig4-embodied-perceptron-caption.png`。
+- Table 12：`../assets/papers/embodiedscan/table12-dense-fusion-ablation-caption.png`。
+- AI 生成分析示意图：未生成，分类为 `visual-evidence-skip`；该可选辅助图缺口不影响论文原图、公式、实验与代码证据。
 
-### 3.1 问题到方案的逻辑链
+## 0.1 术语与符号解释
 
-真实 RGB-D/pose 异构 -> 统一帧采样与 global frame -> depth 转点并聚合 -> 2D ResNet 与 sparse MinkResNet 并行编码 -> 对 box/grounding 做层级对应的 sparse projection fusion，对 occupancy 做固定网格 dense fusion -> task-specific decoder -> AP/AR、mIoU 或 grounding success 评测。
+### 0.1.1 术语表
 
-### 3.2 模型与系统架构
+| 术语 | 本文特定含义 | 别名 | 不等于/易混项 | 证据来源 |
+|---|---|---|---|---|
+| EmbodiedScan | 由 ScanNet、3RScan、Matterport3D 的真实 ego-centric RGB-D/pose 统一构成，并新增 9-DoF box、occupancy、language prompt 的数据与 benchmark suite | dataset/suite | 不是新的在线机器人采集平台；初版不含 ARKitScenes | Sec. 3；Table 1 |
+| Embodied Perceptron | 面向该 suite 的 baseline：2D/3D/text encoder，sparse/dense fusion，task-specific decoder | baseline framework | 不是单一共享 decoder 或在线 recurrent world model | Sec. 4；Fig. 4 |
+| continuous setting | 按 1 到 $N$ 个有序视角构造多个前缀样本，评估随观察增加的预测 | continuous perception | 不是跨时刻维护隐藏状态的 streaming inference | Appendix A；`multiview.py:113-169` |
+| multi-view setting | 从一个 scan 采样固定数量视角，聚合到共同 global coordinate 后一次预测 | MV | 不是同步多机位；Matterport3D 可是随机视角 | Sec. 3.1, 4.1 |
+| isomorphic sparse fusion | 每个 MinkResNet sparse level 投影到对应尺度 2D feature，再在相同 sparse coordinate map 上拼接 | level-wise sparse fusion | 不是 input painting，也不是单个 FPN feature 投影到所有层 | Sec. 4.1；`sparse_featfusion_single_stage.py:150-219` |
+| dense fusion | 对固定 occupancy grid 的每个点采样 2D FPN feature，并与 densified 3D feature volume 拼接 | dense grid fusion | 不是 sparse painting | Sec. 4.1；Table 12；`dense_fusion_occ.py:120-259` |
+| grounding AP | 论文表中的 IoU-threshold grounding 指标 | AP25/AP50 | 当前代码实现是 top-10 any-hit ratio，语义不能自动视为标准 PR-area AP | Table 5；`grounding_metric.py` |
 
-![Figure 4: Embodied Perceptron](../assets/papers/embodiedscan/fig4-embodied-perceptron-caption.png)
+### 0.1.2 符号表
 
-Figure 4 直接显示三条输出路径。代码进一步确认 sparse fusion 并非简单 concatenate 原图：每层 voxel coordinate 乘 voxel size 回到物理坐标，投影至各视角同层 feature，`grid_sample` 后按有效视角平均，再以相同 coordinate map 拼回 Minkowski sparse tensor。Dense occupancy 则对 40x40x16 prior grid 投影图像 feature，同时把 MinkResNet 最后一层 densify，形成 256+512=768 channel volume。
-
-### 3.3 设计动机与具体问题映射
-
-| 设计项 | why 状态/来源 | 针对问题 | 因果机制 | 替代方案/权衡 | 验证证据 | 判断 |
+| 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
-| 复用三套真实 RGB-D 数据并统一格式 | author-stated；Sec. 3.1 | 单一 indoor dataset 场景/类别不足，渲染有 domain gap | 保留真实 first-person sensor stream，同时扩展场景覆盖 | 新采集更一致但成本高；复用带来传感器/采样异质性 | Table 1、Table 7、Table 8 | partially supported |
-| SAM-assisted oriented box annotation | author-stated；Sec. 3.2、Fig. 3a | 原标注缺 orientation、小物体与长尾类别 | keyframe SAM mask 提供初始化，再由正交视图人工调整 | 全人工慢；SAM bias 与 QC 未量化 | Fig. 3、Fig. 6、数据统计 | plausible，缺质量受控实验 |
-| global coordinate 对齐 | author-stated；Sec. 3.1 | 多视角聚合需要共同 reference，跨源分布不一致 | floor/wall 对齐降低 pose distribution variance | 在线 agent 未必有该先验；SLAM frame 更真实但噪声大 | 论文仅称 slight improvement，无数字 | unverified |
-| 可变视角采样与有效视角平均 | author-stated；Sec. 4.1 | 输入顺序/数量变化 | 坐标投影后对有效视角 feature 求平均，保持 permutation invariance | attention/visibility weighting 更灵活但更耗算 | Fig. 7；code `point_fusion.py:257-309` | supported for sampled range；continuous 曲线受 GT 变化混杂 |
-| isomorphic sparse multi-level fusion | author-stated；Sec. 4.1 | FPN/raw-image query 与 sparse levels 不一致，梯度不稳定 | 每个 voxel level 对应同尺度 2D feature，避免单尺度错配 | painting 简单；FPN fusion 显存更高 | Table 2 bridge baseline；附录报告约 25G vs 59G | partially supported，缺单独 level-matching 消融表 |
-| dense grid fusion | author-stated；Sec. 4.1 | occupancy 需要细密、规则 3D prediction | 每个 grid point 投影到 2D FPN，并与 densified 3D feature concat | painting 丢失 dense information；coarse MinkUNet 分辨率不足 | Table 12 direct ablation | supported |
-| sparse/dense task-specific decoder | author-stated；Sec. 4.2 | box 是 sparse instances，occupancy 是 dense field | 分别使用 FCAF-style sparse head 与 3D FPN multi-scale head | 更统一 decoder 可做 multi-task，但尚未探索 | task results；无统一 decoder 对照 | plausible |
-| 6D rotation + weighted disentangled corner loss | author-stated；Sec. 4.2、Eq. 1-2 | Euler L1 难优化且 9-DoF box 参数耦合 | 用 corners 把 center/size/orientation 映射到几何误差，并分组监督 | 7-DoF IoU loss更贴 AP50 但近似且不可覆盖完整旋转 | Table 2、Table 13 | supported；最佳 AP25/AP50 方案并不完全一致 |
-| occupancy 多尺度监督 | author-stated；Sec. 4.2、Appendix A.1 | 细粒度 occupancy 需要低层 detail | 3D FPN 三尺度输出，训练时逐级衰减权重 | 单尺度省算力；权重敏感性未给 | code/config 与总体结果，无独立消融 | unverified |
-| VL transformer + contrastive alignment | author-stated；Sec. 4.1-4.2、Appendix Eq. 3-5 | prompt 与 sparse 3D object feature 需交互 | self-attention 建模空间关系，cross-attention/contrastive loss 对齐 token-object | detector proposals + late fusion 更模块化 | Table 5 仅整模型对比 | plausible but confounded |
-| 复杂 prompt 拼接 | author-stated；Appendix B.3 | 密集同类对象使单关系 prompt 有歧义 | 拼接同一 target 的多条空间关系收缩候选集 | 可能引入语言模板偏差；人工自然语言更真实 | 论文无 matched ablation；README 后续结果不是 paper evidence | unverified |
+| $N_i$ | 输入图像/视角数量 | author-defined | 每个 scan/sample | 训练常见 20，测试常见 50 | Sec. 4.1；Appendix A | “任意数量”指结构可接受变长，不表示成本不随 $N_i$ 增长 |
+| $N_p$ | 聚合点数量 | author-defined | 每个 sample | point count；config 上限 100,000 | Sec. 4.1；detection config line 2 | voxel active count $N_{V_k}$ 与它不同 |
+| $V_k$ | 第 $k$ 个 sparse voxel feature level | author-defined | $k=1,\ldots,K$ | shape $C_k\times N_{V_k}$ | Sec. 4.1 | 不是 dense occupancy volume |
+| $F_s$ | 第 $s$ 个 2D image feature level | author-defined | $s=1,\ldots,S$ | shape $C_s\times H_s\times W_s$ | Sec. 4.1 | dense path 使用 FPN 输出 $F_{up}$ |
+| $\mathbf c,\mathbf l,\mathbf\Theta$ | 3D box center、size、ZXY Euler orientation | author-defined | 每个 box | meter、meter、angle | Sec. 4.2, Eq. 1–2 | 论文是 9-DoF box，不等同于 yaw-only 7-DoF |
+| $L_{\mathbf c},L_{\mathbf l},L_{\mathbf\Theta},L_{pred}$ | 分别替换一个参数组或全部预测的 corner distance loss | author-defined | 每个 matched box | scalar loss | Eq. 1–2 | 下标表示被替换为预测值的组 |
+| $M_{img}$ | raw RGB tensor memory lower bound | analysis-derived | 一次 sample | bytes | §8.2 推导 | 不含 feature、gradient、allocator overhead |
+| $B_{eff},U_B$ | effective bandwidth 与相对 peak utilization | analysis-derived | 指定数据路径 | byte/s、ratio | §8.4 推导 | 论文没有 runtime/bytes telemetry，不能实测 |
 
-### 3.4 关键公式
+## 1. 论文基本信息
 
-Box 解耦定位损失：
+- 作者：Tai Wang、Xiaohan Mao、Chenming Zhu 等。
+- 发表：CVPR 2024；arXiv 2312.16170。
+- 领域：ego-centric multi-modal indoor 3D perception。
+- 核心问题：如何用数量可变的第一视角 RGB-D 与 pose 构建兼顾 geometry、semantics、object pose 与 language grounding 的 scene-level 3D 表示。
+- 关键约束：相机内外参可用；不同视角可映射到预先 floor/wall-aligned 的 global coordinate；训练和评估对视角进行采样而非在线维护状态。
+- 数据规模（paper-reported）：5,185 scans、约 890k/1M RGB-D views、160k oriented boxes、762 categories、约 970k/1M prompts；occupancy benchmark 80 类。不同段落使用近似数，精确表值优先于摘要取整。
+
+## 2. 研究动机与问题—方案闭环
+
+### 2.1 出发点与背景痛点
+
+作者明确指出，embodied agent 在探索过程中接收的是第一视角、逐步到来的 RGB-D observations，并需要把场景几何和语义连接到语言指令；传统 indoor 3D benchmark 更常以完整 reconstructed scene 或 global point cloud 为输入，输出类别范围、orientation 和 language task 也较窄（Introduction，author-stated）。这造成训练/评价接口与真实 embodied observation loop 之间的错位。
+
+### 2.2 现有方案为何不够
+
+失败模式不是简单“精度低”，而是数据与表示约束不匹配：单数据集类别和场景有限；已有 boxes 常缺完整 orientation 和小物体；scene-level point cloud 隐藏了 view coverage；sparse painting 会在 dense occupancy 中丢失细粒度信息；一个单尺度 image feature 与多个 sparse levels 对齐会造成 feature inconsistency 和不稳定梯度（Sec. 3–4，author-stated）。同时，已有 grounding 常依赖重建场景或候选框，不能直接检验从 ego-centric observations 到 box 的端到端能力。
+
+### 2.3 目标问题与成功标准
+
+目标是建立统一数据/benchmark，并给出一个能处理可变视角 RGB-D、输出 detection/occupancy/grounding 的可运行 baseline。成功标准分别是 detection AP/AR@0.25/0.5、occupancy mIoU、grounding IoU-threshold success，以及随 view count 与 training-data composition 的稳定趋势。论文不解决无 global alignment 的 noisy online SLAM、实时 latency/energy、active view selection 或 closed-loop control。
+
+### 2.4 问题—方案映射
+
+| 原始问题/失败模式 | 根因/约束 | 方案设计 | 改变的变量/系统行为 | 作用机制 | 预期优化及指标 | 证据 | 判断 |
+|---|---|---|---|---|---|---|---|
+| 跨数据源输入/标注异构 | frame rate、scene granularity、pose/label schema 不同 | 统一 frame selection、scene division、global frame 与 annotation | 数据分布与坐标参考 | 让多源 RGB-D 可被同一 pipeline 聚合 | 更广场景/类别及跨域训练收益 | Sec. 3；Table 1, 14 | partially supported；规模与域多样性混杂 |
+| sparse/scene-level 输入不能支撑 dense occupancy | sparse point sampling 丢失 dense image semantics | 固定 $40\times40\times16$ grid 的 dense 2D/3D fusion | grid coverage 与 feature density | 每个 grid point 采样 FPN，再拼接 densified 3D volume | occupancy mIoU | Sec. 4.1；Table 12 | supported |
+| 多层 sparse 3D feature 与单层 2D feature 错配 | feature semantics/stride 不一致 | isomorphic level-wise projection | 每层 voxel 对应同尺度 image feature | 减少错配并按有效视角平均 | detection AP 与训练稳定性 | Sec. 4.1；Fig. 4；Table 2 bridge baseline | partially supported；缺单点正交消融 |
+| 9-DoF box 参数难优化 | Euler、size、center 耦合，IoU 不易微分 | 6D rotation + weighted disentangled corner loss | loss geometry 与参数耦合 | 以 box corners 传递几何误差并分组监督 | AP25/AP50 | Eq. 1–2；Table 2, 13 | supported，但最佳 AP50 是 7-DoF IoU variant |
+| 密集同类 object 的语言歧义 | 单关系 prompt 候选过多 | 多关系 prompt + VL transformer/contrastive alignment | prompt specificity 与 token-object interaction | 收缩候选并对齐 object/text feature | grounding AP/success | Sec. 3.2, 4.2；Table 5 | plausible/confounded |
+
+### 2.5 完整因果链与证据边界
+
+背景触发是 embodied agent 的 ego-centric observation；可观察痛点是现有 global-scene benchmark、窄标注和 representation 与该输入不一致；论文把约束归因为数据源、坐标、视角覆盖、dense/sparse task 需求和 oriented-box optimization。它先统一真实 RGB-D 数据及标注，再用 view aggregation、task-specific sparse/dense fusion、oriented decoder 和 VL fusion改变输入覆盖、feature density/scale alignment、box loss geometry 与语言交互，期望改善 AP/AR、mIoU 和 grounding success。Table 2、12、13、14 与 Figure 7支持 dense fusion、decoder、数据组合和 view-count趋势；VL fusion、contrastive loss、复杂 prompt 以及 global alignment 的单独贡献仍未被 matched ablation 闭环。因而论文级闭环总体为 `partially-supported`：benchmark 与若干核心机制成立，但不能外推为在线部署效率或每个组件的独立因果收益。
+
+## 3. 核心贡献与创新点
+
+1. 构建真实 ego-centric RGB-D 多任务 suite，扩充 9-DoF box、80-class occupancy 与约 1M spatial prompts（Sec. 3、Table 1）。
+2. 给出数量可变视角的 multi-modal baseline，并按 task 区分 sparse object pathway 与 dense occupancy pathway（Fig. 4、Sec. 4）。
+3. 对 oriented detection 提出 rotation representation 与 disentangled corner loss（Eq. 1–2、Table 13）。
+4. 建立 continuous/multi-view/monocular/grounding benchmarks，并通过 appendix 分析 view count、fusion、decoder 与 data composition（Tables 2–14、Fig. 7）。
+
+## 4. 研究方法
+
+### 4.1 方法总览
+
+RGB-D frames 经相机外参变换到 global frame，depth points 聚合并 voxelize；ResNet50 提取每视角 2D features，MinkResNet34 提取 4-level sparse 3D features，BERT/transformer 处理 text。Detection/grounding 走 level-wise sparse projection + sparse decoder；occupancy 走 FPN grid projection + densified point volume + 3D neck。代码将 multi-view feature sampling实现为 `grid_sample` 后对有效视角求和并除以 valid count（`point_fusion.py:257-309`）。
+
+![Figure 4：Embodied Perceptron 原论文机制图，含完整 caption。](../assets/papers/embodiedscan/fig4-embodied-perceptron-caption.png)
+
+### 4.2 组件级设计动机矩阵
+
+| 设计项 | why 状态/来源 | 具体问题 | 因果机制 | 替代/权衡 | 验证证据 | 判断 |
+|---|---|---|---|---|---|---|
+| 三源真实 RGB-D 复用与统一 | author-stated；Sec. 3.1 | 单源覆盖有限、synthetic domain gap | 保留真实 sensor stream 并扩大 scene/domain | 新采集一致但昂贵；复用带来异质性 | Table 1, 7, 8, 14 | partially supported |
+| SAM-assisted oriented boxes | author-stated；Sec. 3.2 | orientation、小物体、长尾缺失 | mask 初始化 + orthographic manual adjustment | 全人工更慢；SAM bias 未量化 | Fig. 3、统计 | plausible |
+| floor/wall-aligned global frame | author-stated；Sec. 3.1 | 多视角需共同 reference | 降低 pose distribution variance | noisy SLAM 更真实但误差大 | 仅称 slight improvement | unverified |
+| view sampling + valid-view average | author-stated；Sec. 4.1 | view 数量/顺序变化 | projection 后平均，获得 permutation invariance | learned attention 可加权但更耗算 | Fig. 7；代码 | supported in sampled range |
+| sparse level-wise fusion | author-stated；Sec. 4.1 | 单尺度投影造成不一致和不稳定 | 同层 2D/3D semantics 对齐 | painting/FPN 更简单或更贵 | Fig. 4；Table 2 bridge | partially supported |
+| dense grid fusion | author-stated；Sec. 4.1 | occupancy 需规则 dense prediction | grid projection + dense 3D concat | painting/MinkUNet | Table 12 direct ablation | supported |
+| task-specific decoders | author-stated；Sec. 4.2 | box 与 field 输出结构不同 | sparse instance head / dense 3D FPN | unified multitask decoder | task results，无统一对照 | plausible |
+| weighted disentangled corner loss | author-stated；Eq. 1–2 | 9-DoF 参数耦合 | 分组替换并在 corners 上监督 | yaw-only IoU更贴 AP50 | Table 13 | supported with metric trade-off |
+| occupancy multi-scale supervision | author-stated；Appendix A.1 | 低层 detail | 三尺度输出与衰减权重 | 单尺度更省算 | config + overall result | unverified，缺独立消融 |
+| VL transformer + contrastive loss | author-stated；Sec. 4.2 | token-object alignment | self/cross attention + contrastive embedding | proposal-based late fusion | Table 5 full-model comparison | confounded |
+
+### 4.3 关键公式
+
+以 $\hat{\cdot}$ 表示真值，$\mathbf B$ 将 center/size/orientation 映射为八角点：
 
 $$
-L_{\mathbf c}=L_{CD}\left(\mathbf B(\mathbf c,\hat{\mathbf l},\hat{\mathbf\Theta}),\hat{\mathbf B}\right),
+L_{\mathbf c}=L_{CD}\left(\mathbf B(\mathbf c,\hat{\mathbf l},\hat{\mathbf\Theta}),\hat{\mathbf B}\right).
 $$
+
+其他两组同理，最终：
 
 $$
 L_{loc}=0.2L_{\mathbf c}+0.2L_{\mathbf l}+0.2L_{\mathbf\Theta}+0.4L_{pred}.
 $$
 
-它把三个参数组分别替换为预测、其余保持真值，再叠加整体 box corner loss。Table 13 表明 weighted decoupling 的 mAP25 为 21.70，但 7-DoF IoU loss 的 mAP50 为 14.43，高于 weighted decoupling 的 12.53；因此“几何解耦最优”只对部分指标成立。
+它直接监督几何 corners，但 Table 13 显示 weighted decoupling 的 mAP25 为 21.70，而 yaw-only 7-DoF IoU loss 的 mAP50 为 14.43，高于其 12.53；“更优”依赖 metric。
 
-## 关键实验与证据
+## 5. 关键结论与收益归因
 
-### 4.1 技术 claim 证据矩阵
+### 5.1 技术 claim 证据矩阵
 
-| 技术 claim | 论文证据 | 控制情况 | 证据分类 | 结论 |
+| 技术点 | 声称收益 | 实验/对照 | 指标变化 | 证据强度 | 结论 |
+|---|---|---|---|---|---|
+| RGB-D multimodality | 融合 geometry/semantics | Table 2 camera/depth/RGB-D | continuous AP25 12.80/17.16/19.07 | direct-to-partial | detection 由 depth 主导，RGB 提供增益 |
+| sparse multi-level fusion | 优于 painting | Table 2 bridge | AP25 15.10→16.85，+1.75，+11.6% | indirect/confounded | 支持完整 sparse方案，不隔离同层匹配 |
+| dense fusion | 保存 dense information | Table 12 | painting 20.33→27.65 mIoU，+7.32，+36.0% | direct ablation | 强支持整体 dense path |
+| oriented decoder | 改善 9-DoF detection | Table 2/13 | FCAF3D 9.07→14.80 AP25；不同 loss 21.70/22.13 | direct/bridge | 强支持 decoder；子损失有 metric trade-off |
+| variable view count | 少视角可训练、多视角可推理 | Fig. 7 | 20 views 后趋于饱和 | sensitivity；continuous GT混杂 | 有界范围支持 |
+| more training data | 提高 detection | Table 14 | EmbodiedScan val 10.92→13.91→16.85 | direct trend/confounded | dataset组合有效，不能分离 sample count/domain |
+| VL fusion/contrastive | grounding 增益 | Table 5 | 完整模型优于 baseline | confounded | 单组件未验证 |
+| in-the-wild generalization | 跨 Kinect/environment | qualitative video statement | 无定量 | indirect | 仅示例 |
+
+### 5.2 结果/消融视觉证据
+
+![Table 12：dense fusion 消融，含完整 caption。](../assets/papers/embodiedscan/table12-dense-fusion-ablation-caption.png)
+
+Table 12 在同一 multi-view occupancy setting 下替换表示：Ours 相对 painting +7.32 mIoU，相对 MinkUNet +3.12（+12.7%），相对 w/o FPN +6.49（+30.7%）。它验证的是 fine partition、FPN image feature 与 dense concat 的组合；不是完全正交 factorial design，不能把 +7.32 分给单一子组件。
+
+### 5.3 假设与归因
+
+最可信的归因是 dense fusion 与 oriented decoder；data composition 和 sparse fusion 是 bridge/trend evidence；VL components、complex prompts、multi-scale occupancy supervision 没有 matched ablation。continuous curve 同时改变 observed views 与 visible ground truth，因而不能解释为纯 model scaling。所有相对增益均为本分析由表值计算，不是论文报告的方差分解。
+
+## 6. Related Work 对比
+
+| 类别 | 代表 | 机制/优点 | 局限 | 与本文关系 |
 |---|---|---|---|---|
-| RGB-D 优于单模态 | Table 2/3 的 camera/depth/RGB-D rows | 架构分支相近但 modality-specific behavior 不完全等价 | direct-to-partial | detection 中 depth 主导；occupancy 中 RGB 带来更大 semantic 增益 |
-| sparse multi-level fusion 优于 painting | Table 2：painting AP25 15.10，Ours 16.85 | 在相同 dataset/task 的 bridge baseline 上比较，但完整 ours 可能含多处实现差异 | indirect/confounded | 支持总体方案，不完全隔离“同层匹配”单点因果 |
-| dense fusion 设计有效 | Table 12：20.33/24.53/21.16/27.65 mIoU | 同一 RGB-D occupancy setting，替换 fusion/backbone choice | direct ablation | 强证据 |
-| weighted corner decoder 改善 oriented detection | Table 2：FCAF3D 9.07 -> +decoder 14.80 AP25；Table 13 | bridge baseline + 细粒度 loss ablation | direct ablation | 强证据，但 AP50 偏好 IoU-like loss |
-| 任意视角数量具有可扩展性 | Fig. 7 | multi-view inference/training曲线较直接；continuous GT 随视角变化 | direct + confounded | 20 views 后趋于饱和；“任意”仅是结构性质，不是无界成本 |
-| 数据规模带来增益 | Table 14：ScanNet -> +3RScan -> +Matterport3D | 模型固定、训练数据递增，但域组成与样本数同时变化 | direct trend, scale/domain confounded | 增益存在；不能只归因样本数线性增长 |
-| VL fusion/contrastive loss带来 grounding 增益 | Table 5 只比较完整方法与其他模型 | 架构、encoder、training recipe 同时变化 | confounded | 不能归因到单个 VL component |
-| in-the-wild 泛化良好 | Appendix qualitative/video statement | 无定量、无 sensor/domain split、作者称 no cherry-picking 但不可审计 | indirect | 仅示例性证据 |
+| indoor RGB-D datasets | ScanNet、3RScan、Matterport3D | 真实扫描、成熟 pose/annotation | task/category/ego setup 有限 | 本文复用三者，不是独立新采集域 |
+| synthetic embodied data | HM3D、HSSD | 可交互、可规模化 | render-to-real gap | 本文强调真实 sensor observations |
+| sparse 3D detection | VoteNet、FCAF3D | sparse point/voxel efficiency | 多为 axis/yaw 与窄类别 | 本文适配 9-DoF、284 类 |
+| occupancy | OccNet、SurroundOcc、TPVFormer | dense scene representation | 多为 driving/camera setup | 本文改为 indoor RGB-D grid |
+| 3D grounding | ScanRefer、BUTD-DETR、L3Det | text-object localization | 常依赖 reconstructed scene/proposals | 本文端到端 ego RGB-D，更难但 evaluator 语义需核验 |
 
-### 4.2 消融、机制证据与收益归因
+## 7. OpenReview 交叉核验
 
-![Table 12: dense fusion ablation](../assets/papers/embodiedscan/table12-dense-fusion-ablation-caption.png)
+未发现公开 OpenReview 页面。官方 CVF 页面无 forum 链接，精确标题搜索无结果，API2 exact-title 请求为 403。故不能核对 review/meta-review/decision/rebuttal；本报告未把任何 reviewer opinion 当作事实。详见 公开评审核验记录。
 
-Table 12 是最干净的 model-design 证据：相对 painting，最终 dense fusion 从 20.33 提升到 27.65 mIoU，绝对 +7.32，约 +36.0% 相对提升；相对 MinkUNet 为 +3.12（+12.7%），相对 w/o FPN 为 +6.49（+30.7%）。这些数字支持“fine-grained point partition + FPN image feature + dense volume concat”整体，但表中没有完全正交的 factorial design，不能把 +7.32 独立分配给某一个子模块。
+## 8. Infra 需求分析
 
-### 4.3 哪些结果隔离模型设计，哪些隔离数据规模
+### 8.1 算力与显存
 
-- 模型设计：Table 2 的 `FCAF3D -> +our decoder -> +painting -> Ours` 是固定 EmbodiedScan setting 的 bridge comparison；Table 12 固定 occupancy task 比较 dense fusion；Table 13 固定 detector 比较 loss 组合。这三组最适合回答设计贡献。
-- 数据规模：Table 14 固定模型与验证集，逐步加入 ScanNet、3RScan、Matterport3D。它隔离的是“训练数据组合”而非模型设计；但 scan 数量与 domain diversity 同时变化，所以不是纯 sample-count experiment。
-- 传感器：Table 2/3 的 RGB、Depth、RGB-D rows 主要隔离 modality；不能把它们直接当作 architecture ablation。
-
-### 4.4 显式证据闭环
-
-1. 问题：scene-level reconstructed point cloud benchmark 与真实 first-person RGB-D deployment 有输入鸿沟（Introduction）。
-2. 假设：相机 pose/global frame 足以把多视角 depth 与 image feature 映射到共同 3D 表示（Sec. 3-4）。
-3. 方法：multi-view aggregation + sparse/dense projection fusion（Fig. 4；代码路径见第 8 节）。
-4. 测量：AP/AR、mIoU、view-count curve、fusion/decoder/data ablation（Tables 2-14）。
-5. 结论：RGB-D fusion、oriented decoder 与更多真实数据均改善对应 benchmark。
-6. 局限：global alignment 是额外先验；continuous GT 会随视角数量改变；代码提交与 paper-time split 不同；无 latency/bandwidth telemetry；因此不能把 benchmark gain 直接外推为在线 embodied system gain。
-
-## 5. Related Work 对比
-
-| 类别 | 代表方法/数据 | 机制/优点 | 局限 | 与本文关系/公平性 |
-|---|---|---|---|---|
-| indoor 3D datasets | ScanNet、3RScan、Matterport3D、ARKitScenes | 真实扫描、成熟 annotation | 类别/任务或 ego-centric setup 有限 | EmbodiedScan 复用前三者，因此不是完全独立新域；Table 1 的 annotation breadth 对比有效 |
-| synthetic/mesh embodied data | HM3D、HSSD | 可交互、规模大 | mesh/render domain gap | 本文强调真实 RGB-D；Table 7 直接显示 render-to-real drop，但只在 ScanNet 子集 |
-| sparse 3D detection | VoteNet、FCAF3D | point/voxel sparse efficiency | 原设定多为 axis/yaw-aligned、类别较少 | 本文改为 9-DoF 和 284 类；直接复用可能不公平，因此提供 decoder adaptation |
-| occupancy | OccNet、SurroundOcc、TPVFormer | dense structured representation | 多来自 autonomous driving camera setup | 本文改为 indoor RGB-D grid；task/domain adaptation 同时变化，跨方法结果是 baseline 而非严格原论文复现 |
-| 3D grounding | ScanRefer、BUTD-DETR、L3Det | text-object alignment | 常依赖 reconstructed scene/proposals、prompt 较简单 | 本文端到端多视角 RGB-D 更难；但 current code metric 与论文 AP 命名存在语义风险 |
-
-## 6. OpenReview 公开评审交叉核验
-
-任务包未提供 OpenReview URL；官方 CVF 页面仅链接论文与 supplement，没有 OpenReview。精确标题 OpenReview API 请求返回 403，故无法完成公开 review/meta-review/rebuttal cross-check。详见 `openreview_reviews.md`。本报告没有引用任何 reviewer opinion；该缺口不改变论文/代码证据判断，但不能断言不存在隐藏或未索引 forum。
-
-## Infra 与部署
-
-### 7.1 证据分级总览
-
-| 级别 | 结论 | 证据 |
-|---|---|---|
-| 论文实测/报告 | sparse 最终方案约 25G 显存，保留 FPN/其他替代约 59G；detection/grounding train/test 20/50 views，occupancy 10/20；点数上限 100k；所有主实验以 8 GPUs 训练（grounding baselines 部分 4 GPUs） | Appendix A/C；configs |
-| 公式推导 | 20/50 张 480x480 RGB 的 fp32 input 分别至少 52.73/131.84 MiB；occupancy 768x40x40x16 fp32 fused volume 约 75 MiB；20-view dense projection 临时 sampled feature 逻辑尺寸约 500 MiB | 论文 shape/channel + code tensor path，本节公式 |
-| 工程推断 | 显存主导项不是 100k XYZ raw points，而是多视角 2D pyramid、projection sampled tensors、3D activations与反向图；CPU data pipeline 和 host-to-device 可能成为输入瓶颈；无 NPU path | 由 tensor shapes/code path 推断，未 profiler 测量 |
-
-### 7.2 算力、显存与主要表示
-
-图像输入下限：
+论文附录报告 sparse 最终方案约 25 GB 显存，保留 FPN/替代 fusion 约 59 GB；主实验通常 8 GPUs，未给 GPU 型号、step time 或 FLOPs。raw RGB fp32 下限：
 
 $$
-M_{img}=N_i\cdot3\cdot480\cdot480\cdot4\ \text{bytes}.
+M_{img}=N_i\cdot3\cdot480\cdot480\cdot4\ \mathrm{bytes}.
 $$
 
-得到 20 views 为 55,296,000 bytes（52.73 MiB），50 views 为 131.84 MiB，尚不含 feature/gradient。按 sparse ResNet 的通道 `{128,256,512,1024}` 和标准 `{120,60,30,15}` 空间层级推导，每 view 2D pyramid 约 13.18 MiB fp32，20/50 views 约 263.67/659.18 MiB。
-
-Sparse projection 的 `grid_sample` 会先形成 `N_i x C_k x N_{V_k}` sampled tensor 再按 view 求和。若第一级 active voxels 接近 100k，上限级逻辑临时量为：
+$N_i=20/50$ 时为 52.73/131.84 MiB，仅是 input tensor。occupancy concat volume 的下限为：
 
 $$
-20\cdot128\cdot100000\cdot4\approx976.56\ \text{MiB},
+M_{dense}=40\cdot40\cdot16\cdot(256+512)\cdot4=75\ \mathrm{MiB}.
 $$
 
-50 views 时约 2.38 GiB。实际 $N_{V_k}$ 会因 1 cm voxelization 和层级下采样而变化；这是 shape-derived upper-bound，不是 profiler peak。
+在聚合前，20-view、256-channel grid sampling 的逻辑 tensor 为 $20\cdot25600\cdot256\cdot4=500$ MiB。sparse projection 的复杂度/traffic 近似随 $O(N_i\sum_k N_{V_k}C_k)$ 增长；实际 peak 需 profiler。
 
-Occupancy 的 dense fused volume：
+### 8.2 Data types
+
+代码把 image/depth-derived points 和 evaluator tensors 主要处理为 float32；默认 config 使用 `OptimWrapper`，只有 CLI `--amp` 才切换 `AmpOptimWrapper`（`tools/train.py:85-97`）。论文未报告 fp16/bf16/fp8/int8、量化、packing 或 accumulation precision，不能把可选 AMP 当作 paper-run 事实。
+
+### 8.3 带宽、互联与异构执行
 
 $$
-M_{dense}=40\cdot40\cdot16\cdot(256+512)\cdot4=75\ \text{MiB}.
+B_{eff}=\frac{\mathrm{BytesMoved}}{\mathrm{RuntimeSeconds}},\qquad
+U_B=\frac{B_{eff}}{B_{peak}}.
 $$
 
-20-view dense image projection 在求和前的逻辑 tensor 为 $20\cdot25600\cdot256\cdot4=500$ MiB；这解释了为什么 view count、FPN 与 dense volume 容易主导 memory。相对地，100k XYZ fp32 points 只有约 1.14 MiB，坐标/稀疏 activation 才是后续成本。
+论文没有 HBM bytes、PCIe/NVLink/RDMA traffic、runtime 或 peak bandwidth，因此 $B_{eff}$ 和 $U_B$ 不可实测。推断的高流量路径是多视角 image pyramid、projection `grid_sample`、valid-mask reduction、sparse concat 与 dense volume。8-GPU 训练意味着 gradient synchronization，但未给 all-reduce volume、interconnect 或 overlap。
 
-### 7.3 Data Types / 数值格式
+CPU 负责 RGB-D decode/resize、view sampling、depth-to-point 与 pose transform；GPU 执行 ResNet、MinkowskiEngine、projection 和 3D heads。无 NPU kernel/fallback。代码依赖 CUDA、MinkowskiEngine、PyTorch3D/compiled ops；没有 pinned-memory/DMA/serving scheduler telemetry。
 
-| 对象 | 格式 | 阶段 | 证据/判断 |
+## 9. 开源代码与 checkpoint 对照
+
+| 论文机制 | 本地路径 | commit 固定 URL | 判断 |
 |---|---|---|---|
-| depth-derived points | float32 | load/preprocess | `loading.py:285-294` |
-| images | 显式 cast 到 float32 | model preprocess | `data_preprocessor.py:249-264, 281-305` |
-| box/eval tensors | float32 | evaluation | `euler_box3d.py:29-33` |
-| default training | fp32 default；AMP 仅 CLI `--amp` opt-in | training | configs 使用 `OptimWrapper`；`tools/train.py:85-97` 才动态改为 `AmpOptimWrapper` |
-| sparse indices/masks | integer/bool | voxel/eval | voxelization/evaluator code |
+| view sampling/global aggregation | repo `embodiedscan/datasets/transforms/multiview.py:28-169` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/datasets/transforms/multiview.py#L28 | random/ordered sampling 与 global transform 实现 |
+| valid-view projection average | repo `embodiedscan/models/layers/fusion_layers/point_fusion.py:208-311` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/models/layers/fusion_layers/point_fusion.py#L208 | `grid_sample` 后按 valid count 平均 |
+| sparse level-wise fusion | repo `embodiedscan/models/detectors/sparse_featfusion_single_stage.py:86-221` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/models/detectors/sparse_featfusion_single_stage.py#L86 | 四层对应投影并共享 sparse coordinate map |
+| dense occupancy fusion | repo `embodiedscan/models/detectors/dense_fusion_occ.py:120-259` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/models/detectors/dense_fusion_occ.py#L120 | 2D grid volume + densified 3D feature |
+| detection config/loss | repo `configs/detection/mv-det3d_8xb4_embodiedscan-3d-284class-9dof.py:17-58` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/configs/detection/mv-det3d_8xb4_embodiedscan-3d-284class-9dof.py#L17 | 284 类、1 cm voxel、weighted decouple |
+| occupancy config | repo `configs/occupancy/mv-occ_8xb1_embodiedscan-occ-80class.py:1-52` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/configs/occupancy/mv-occ_8xb1_embodiedscan-occ-80class.py#L1 | 40×40×16、256+512 channels |
 
-论文没有报告 fp16/bf16/fp8/int8、量化或 accumulation precision。不能把 AMP 可选支持当作论文实验使用事实。
+当前 grounding evaluator 的 top-10 any-hit ratio 与论文表中的“AP”命名有语义风险；occupancy evaluator index 0 实际计算 occupied-vs-empty geometry IoU，却打印为 `empty` 并纳入 mean。由于 commit 晚于论文且 README 说明 split 改动，不能声称逐数字复现。公开 detection checkpoint 可访问，约 991 MiB；未下载，内部 config/parameter count 未验证。没有数据、MinkowskiEngine runtime 与 paper-time logs，因此未运行训练/评估。
 
-### 7.4 带宽、互联与利用率
+## 10. 优点、局限与改进
 
-$$
-\mathrm{EffectiveBandwidth}=\frac{\mathrm{BytesMoved}}{\mathrm{RuntimeSeconds}},\qquad
-\mathrm{Utilization}=\frac{\mathrm{EffectiveBandwidth}}{\mathrm{PeakBandwidth}}.
-$$
+优点：数据、任务与 baseline 构成较完整 suite；sparse/dense responsibilities 清楚；Table 12/13/14 给出了少见的表示、loss 与数据组合证据；代码实现与 Fig. 4 基本一致。
 
-论文与代码日志没有 runtime、HBM bytes、PCIe/NVLink traffic 或 GPU 型号/peak bandwidth，故两者均不可实测。可以推断 projection 的 memory traffic 随 $O(N_i\sum_k N_{V_k}C_k)$ 增长；`grid_sample`、valid mask、跨视角求和和 sparse concat 是主要数据移动路径。8-GPU 训练暗示 distributed gradient synchronization，但未报告 interconnect、all-reduce volume、scaling efficiency 或 overlap，不能判断 NVLink/RDMA 利用率。
+局限：
 
-### 7.5 CPU/GPU/NPU 异构执行
+- “continuous” 是 prefix/batch evaluation，不是 stateful online perception。
+- global floor/wall alignment 是部署先验。
+- annotation quality 缺 inter-annotator agreement 与系统误差量化。
+- sparse level matching、VL fusion、contrastive loss、complex prompt、多尺度 occupancy 缺独立消融。
+- paper-time evaluator/split/commit 不可恢复，当前 evaluator 名称存在语义风险。
+- 无 latency、throughput、power、HBM/PCIe/NVLink telemetry；无法证明实时性。
+- 无公开 OpenReview；checkpoint 未内部检查；训练/评估未复现。
 
-- 代码直接证据：dataset workers 读取/resize RGB-D、采样 views、将 depth 转 points、用相机外参聚合到 global frame；GPU 执行 ResNet、MinkowskiEngine、projection sampling、3D heads。
-- 工程推断：20-50 张图的 decode/resize 与 depth-to-point 会产生显著 CPU 与 host-device input pressure；但仓库没有 pinned-memory、async DMA 或 pipeline profiler 证据。
-- NVIDIA/CUDA 依赖由 README、MinkowskiEngine、PyTorch3D 明确；无 NPU kernel、NPU fallback 或混合 CPU/GPU/NPU placement 路径。
-- 自定义/编译依赖：MinkowskiEngine 与 PyTorch3D；voxelization 包含 extension binding。论文未给 kernel-level throughput。
+最小改进是：固定同一 data/budget 做正交 fusion ablation；发布 paper-time commit/config/log；在 noisy online pose 与无 axis alignment 下测试；报告 annotation agreement；用 profiler 分解 CPU preprocessing、projection、sparse/dense activations 与 communication；明确 grounding/occupancy metric semantics。
 
-## 代码状态与实现核验
+## 11. 研究启发
 
-统一 commit：`fe26e4bc3f3fb706fd7e33788766f61f8857fc3c`。
+1. 用 task topology 决定 representation：instance detection 适合 sparse hierarchy，occupancy 适合 dense grid，但共享 encoder/coordinate contract。
+2. 评估“数据规模”时应分离 sample count、source domain、label coverage；Table 14 只能证明组合趋势。
+3. embodied benchmark 必须显式区分 observation prefix、online state、active exploration 与 closed-loop control。
 
-| 论文机制 | 本地路径与行 | 固定 commit URL | 核验结论 |
-|---|---|---|---|
-| view 采样/相机参数组织 | `code/EmbodiedScan/embodiedscan/datasets/transforms/multiview.py:28-109` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/datasets/transforms/multiview.py#L28 | random/ordered views 与 intrinsics/extrinsics 同步 |
-| depth points 转 global frame | `.../multiview.py:113-169` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/datasets/transforms/multiview.py#L113 | 对外参线性求解后拼接 points |
-| multi-view projection 与平均 | `code/EmbodiedScan/embodiedscan/models/layers/fusion_layers/point_fusion.py:208-311` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/models/layers/fusion_layers/point_fusion.py#L208 | `grid_sample` 后按有效 view 数平均 |
-| sparse level-wise fusion | `code/EmbodiedScan/embodiedscan/models/detectors/sparse_featfusion_single_stage.py:86-221` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/models/detectors/sparse_featfusion_single_stage.py#L86 | voxelize -> MinkResNet -> same-level image projection -> sparse concat |
-| dense occupancy fusion | `code/EmbodiedScan/embodiedscan/models/detectors/dense_fusion_occ.py:120-259` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/models/detectors/dense_fusion_occ.py#L120 | grid image volume + densified point volume -> 3D neck |
-| grounding fusion | `code/EmbodiedScan/embodiedscan/models/detectors/sparse_featfusion_grounder.py:176-320` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/models/detectors/sparse_featfusion_grounder.py#L176 | 复用 sparse fusion，再送入 transformer decoder |
-| detection evaluation | `code/EmbodiedScan/embodiedscan/eval/metrics/det_metric.py:36-99`、`indoor_eval.py:224-326` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/eval/metrics/det_metric.py#L36 | AP/AR at IoU 0.25/0.5，与论文定义一致 |
-| occupancy evaluation | `code/EmbodiedScan/embodiedscan/eval/metrics/occupancy_metric.py:33-115` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/eval/metrics/occupancy_metric.py#L33 | per-class IoU；index 0 被实现为 occupied-vs-empty geometry IoU，printed mean 语义需谨慎 |
-| grounding evaluation | `code/EmbodiedScan/embodiedscan/eval/metrics/grounding_metric.py:36-152` | https://github.com/InternRobotics/EmbodiedScan/blob/fe26e4bc3f3fb706fd7e33788766f61f8857fc3c/embodiedscan/eval/metrics/grounding_metric.py#L36 | top-10 any-hit success，不是标准 PR-area AP；与论文命名有歧义 |
+## 12. 待验证清单
 
-Checkpoint URL 可访问且约 991.44 MiB，但未下载；参数量与 checkpoint 内部 config 未验证。仓库没有独立 tests 目录，且本地没有数据、MinkowskiEngine runtime 或权重，因此未运行训练/评测复现。
+1. paper-time grounding metric 是标准 PR-area AP 还是当前 top-10 any-hit success？
+2. paper mIoU 是否包含 geometry IoU/index 0？
+3. 无 floor/wall alignment、带 pose noise 时性能下降多少？
+4. same-level matching、channel reduction、FPN removal 和 view average 的独立贡献是多少？
+5. 复杂 prompt 的收益来自 disambiguation 还是模板/数据量增加？
+6. 25/59 GB 的硬件、batch、precision 与 peak-memory 测量条件是什么？
 
-## 局限与证据边界
+## 13. 一句话总结
 
-### 优点
-
-- 数据、任务与 baseline 形成较完整 3D perception suite，且论文提供比常见 benchmark paper 更丰富的 appendix ablation。
-- 稀疏与稠密 representation 的职责划分合理，代码路径与 Fig. 4 基本一致。
-- Table 12/13 与 Table 14 分别提供 model-design 和 data-composition 证据，便于避免混淆归因。
-
-### 局限
-
-- “continuous” 不是在线 recurrent/stateful perception；是不同 view prefix 的 batch 化评测。
-- global floor/wall aligned coordinate 是部署时可能不存在的先验。
-- 数据规模与 domain diversity 同时增长，不能证明严格线性 scaling law。
-- VL fusion、contrastive loss、多尺度 occupancy supervision 缺少独立 ablation。
-- current code 为 2025 commit，README 明示公开 split 与论文结果略有不同；不能保证逐数字复现。
-- grounding/occupancy evaluator 的当前实现语义与论文表格名存在风险，需 paper-time commit/log 才能闭环。
-- 无 GPU 型号、latency、throughput、power、HBM/PCIe/NVLink telemetry；所有带宽结论只能是 shape-derived 或 inferred。
-- 无公开 OpenReview 交叉核验；checkpoint 未下载；未运行训练/评测。
-
-### 待验证清单
-
-1. paper-time evaluator 是否用标准 grounding AP，还是当前 top-10 any-hit success？
-2. occupancy mIoU 是否包含 geometry IoU/empty 项，论文数字由哪个 exact commit 产生？
-3. 在无 floor/wall alignment、仅 noisy online pose 的设置下性能下降多少？
-4. 对 sparse fusion 做正交消融：same-level matching、FPN、view aggregation、channel reduction 各自贡献多少？
-5. 用 profiler 分解 image pyramid、projection sampled tensor、Minkowski activations 与 3D dense volume 的 peak memory/latency。
-6. complex prompt 拼接的收益来自 disambiguation 还是模板/数据量增加？
-
-## 研究启发
-
-1. **哪些 3D 表示和 sensor input 主导 memory/preprocessing？** 论文实测 sparse 最终方案约 25G，替代 fusion 约 59G；代码与 shape 推导表明多视角 480x480 RGB feature pyramid、跨视角 `grid_sample` 临时 tensor，以及 occupancy 的 768-channel dense volume 主导显存，100k XYZ raw points 本身仅约 1.14 MiB。CPU 侧主要是 20-50 帧 RGB-D decode/resize、depth-to-point、pose transform、global aggregation 和 resampling。Depth 对 detection 几何贡献更大，RGB 对 occupancy semantic 类别贡献更大。
-2. **哪些 benchmark 结果把 model design 与 data scale 分开？** Table 2 bridge baseline、Table 12 dense-fusion ablation、Table 13 sparse-decoder loss ablation固定数据并改设计；Table 14 固定模型逐步加入 ScanNet/3RScan/Matterport3D，隔离训练数据组合。后者仍混合 sample count 与 domain diversity，不能称纯规模实验。
-3. **哪些代码路径实现 point/voxel/image fusion 与 evaluation？** 数据入口是 `multiview.py:28-169`；投影/有效视角平均是 `point_fusion.py:208-311`；稀疏 detection/grounding 分别是 `sparse_featfusion_single_stage.py:86-221`、`sparse_featfusion_grounder.py:176-320`；dense occupancy 是 `dense_fusion_occ.py:120-259`；评测是 `det_metric.py` + `indoor_eval.py`、`occupancy_metric.py`、`grounding_metric.py`。所有路径均对应 commit `fe26e4bc...f8857fc3c`。
-
-## 待验证问题
-
-EmbodiedScan 的核心价值是把真实第一视角 RGB-D、丰富 3D annotation 与 sparse/dense/language benchmark 串成可运行 suite；最强证据来自 dense fusion、oriented decoder 与数据组合消融，而在线连续性、评测语义和系统效率仍缺 paper-time code 与 profiler 级闭环。
+EmbodiedScan 的核心价值是把真实 ego-centric RGB-D、多样 3D annotation 与 detection/occupancy/grounding benchmark 串成可运行 suite；dense fusion、oriented decoder 与数据组合有较强证据，但在线连续性、组件归因、paper-time metric semantics 与系统效率仍未闭环。

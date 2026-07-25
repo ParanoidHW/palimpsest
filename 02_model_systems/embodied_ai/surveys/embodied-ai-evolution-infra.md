@@ -35,7 +35,7 @@
 
 ### 3D 感知：从任务融合到多视图 token backbone
 
-EmbodiedScan 将 RGB-D、文本、3D detection/grounding/occupancy 放入统一多视图 benchmark；稀疏与稠密融合分别服务不同输出。[其核心机制](../papers/embodiedscan.md#核心机制与贡献)与[密集融合消融](../papers/embodiedscan.md#关键实验与证据)说明多视图投影和 feature volume 是实际负担。VGGT 进一步将相机、深度、点图和 tracking 压入 feed-forward transformer，frame/global alternating attention 仅降低全局注意力常数，并未消除随帧数增长的 activation，[方法](../papers/vggt.md#方法与实现)和[运行时实验](../papers/vggt.md#关键实验与证据)给出边界。
+EmbodiedScan 将 RGB-D、文本、3D detection/grounding/occupancy 放入统一多视图 benchmark；稀疏与稠密融合分别服务不同输出。[研究方法](../papers/embodiedscan.md#4-研究方法)与[技术 claim 证据矩阵](../papers/embodiedscan.md#51-技术-claim-证据矩阵)说明多视图投影和 feature volume 是实际负担，同时 grounding evaluator 的 AP 语义仍有实现级边界。VGGT 进一步将相机、深度、点图和 tracking 压入 feed-forward transformer，frame/global alternating attention 仅降低全局注意力常数，并未消除随帧数增长的 activation，[方法](../papers/vggt.md#方法与实现)和[运行时实验](../papers/vggt.md#关键实验与证据)给出边界。
 
 趋势是把 3D 从独立感知结果转成可对齐语言、动作与历史状态的 token 前缀；训练期的 4D 几何监督会增加显存和互联压力，而部署期通常尝试裁掉 decoder。
 

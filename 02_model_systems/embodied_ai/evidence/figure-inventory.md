@@ -34,15 +34,15 @@
 
 | Object | Source | Caption（完整中文转述） | Crop / usage | QA |
 | --- | --- | --- | --- | --- |
-| Figure 4 | PDF p.5，1870 x 2420；`(120,190,1630,830)` | Embodied Perceptron 接收任意视图数的 RGB-D 序列和文本，多模态编码后以 dense 与 isomorphic sparse fusion 连接不同预测 decoder；融合文本的稀疏 3D 特征可用于语言 grounding。 | [asset](../assets/papers/embodiedscan/fig4-embodied-perceptron-caption.png)；支撑 [核心机制](../papers/embodiedscan.md#核心机制与贡献)。 | passed：单一对象、完整 caption、100% 原分辨率检查。 |
-| Table 12 | PDF p.16，1870 x 2420；`(120,735,1630,207)` | dense fusion 的消融研究。 | [asset](../assets/papers/embodiedscan/table12-dense-fusion-ablation-caption.png)；支撑 [关键实验](../papers/embodiedscan.md#关键实验与证据)。 | passed：完整行列与 caption、100% 原分辨率检查。 |
+| Figure 4 | source-compiled PDF p.5，`2125×2750`；`(120,15,1885,1147)` | “Figure 4. Embodied Perceptron accepts RGB-D sequence with any number of views along with texts as multi-modal input. It uses classical encoders to extract features for each modality and adopts dense and isomorphic sparse fusion with corresponding decoders for different predictions. The 3D features integrated with the text feature can be further used for language-grounded understanding.” | [asset](../assets/papers/embodiedscan/fig4-embodied-perceptron-caption.png)；支撑[研究方法](../papers/embodiedscan.md#4-研究方法)。 | passed：单一 Figure 4、完整 caption，contact-sheet + `1885×1147` 原分辨率 QA。 |
+| Table 12 | source-compiled PDF p.16，`2125×2750`；`(160,835,1810,240)` | “Table 12. Ablation studies for dense fusion.” | [asset](../assets/papers/embodiedscan/table12-dense-fusion-ablation-caption.png)；支撑[技术 claim 证据矩阵](../papers/embodiedscan.md#51-技术-claim-证据矩阵)。 | passed：完整行列与 caption，contact-sheet + `1810×240` 原分辨率 QA。 |
 
 ## Genie
 
 | Object | Source | Caption（完整中文转述） | Crop / usage | QA |
 | --- | --- | --- | --- | --- |
-| Figure 3 | PDF p.4，1819 x 2573；`(180,225,1460,550)` | Genie 训练：输入 T 帧视频，经 video tokenizer 变成离散 token z，latent action model 推断帧间 latent action；二者送进 dynamics model，迭代预测下一帧。 | [asset](../assets/papers/genie/fig3-genie-training-mechanism-caption.png)；支撑 [核心机制](../papers/genie.md#核心机制与贡献)。 | passed：单一对象、caption/labels 完整，原 1460 x 550 可读。 |
-| Figure 9 | PDF p.6，1819 x 2573；`(180,255,1460,490)` | scaling results：左为不同模型规模训练曲线，中为最近 300 次更新平均的最终训练损失，右为 2.3B 模型不同 batch size 的最终训练损失。 | [asset](../assets/papers/genie/fig9-scaling-results-caption.png)；支撑 [关键实验](../papers/genie.md#关键实验与证据)。 | passed：轴、legend、caption 完整，原 1460 x 490 可读。 |
+| Figure 3 | PDF p.4，`1489×2105`；`(145,190,1199,460)` | “Genie model training: Genie takes in $T$ frames of video as input, tokenizes them into discrete tokens $z$ via the video tokenizer, and infers the latent actions $\tilde a$ between each frame with the latent action model. Both are then passed to the dynamics model to generate predictions for the next frames in an iterative manner.” | [asset](../assets/papers/genie/fig3-genie-training-mechanism-caption.png)；支撑 [核心机制](../papers/genie.md#核心机制与贡献)。 | passed：单一 Figure 3、完整 caption，contact-sheet + `1199×460` 原分辨率 QA。 |
+| Table 2 | PDF p.9，`1489×2105`；`(758,1030,600,258)` | “Latent action model input ablation. We see that Genie achieves higher controllability.” | [asset](../assets/papers/genie/table2-lam-input-ablation-caption.png)；支撑 [技术点证据矩阵](../papers/genie.md#42-技术点证据矩阵)。 | passed：单一 Table 2、完整行列与 caption，contact-sheet + `600×258` 原分辨率 QA。 |
 
 ## OpenVLA
 

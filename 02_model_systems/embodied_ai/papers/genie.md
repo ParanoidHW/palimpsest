@@ -5,9 +5,65 @@
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[具身智能模型演进、Infra 与端云协同](../surveys/embodied-ai-evolution-infra.md)
 > - 证据资产：`../assets/papers/genie/`
-> - 相关文档：[论文索引](../evidence/paper-index.md)、[图表清单](../evidence/figure-inventory.md)
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md) · [Paper index](../evidence/paper-index.md)
 
-论文：[arXiv:2402.15391](https://arxiv.org/abs/2402.15391)。PDF、源码、提取文本与图表审计过程保留于审计区。
+> 资料状态：官方 arXiv PDF 与 LaTeX source 已于 2026-07-25 重新核验；正式图表均为从论文 PDF 提取、保留完整 caption 且通过原分辨率 QA 的证据对象。未发现官方代码或 checkpoint。OpenReview forum/API 分别返回 HTTP 429/403，公开评审内容不可读取。
+
+## 修订信息
+
+- 当前文档版本：`2.0.0`
+- 当前修订 ID：`rev-migration-20260725-genie`
+- 当前修订时间：`2026-07-25T17:34:59+08:00`
+- 替代版本：legacy manifest `036fb34a611df022bc51863278ef539eeb33cf2fcc19a07c4162994bd875c09a`（legacy version `1.0.0`, revision `rev-initial-20260714`）
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-migration-20260725-genie` | `2.0.0` | `2026-07-25T17:34:59+08:00` | `delegated-paper-review-agent` | `migration` | legacy `rev-initial-20260714` / `1.0.0` / manifest `036fb34a611df022bc51863278ef539eeb33cf2fcc19a07c4162994bd875c09a` | 无 unresolved migration | 重新获取官方 PDF/source，独立核验 canonical claims，重做 mechanism 与 ablation crops，补齐术语/符号、论文级问题—方案闭环、15 项语义验证与 delegated provenance | non-ICML Paper 交付完整性修复 | 本文各分析章节、[Figure inventory](../evidence/figure-inventory.md)与公开评审边界 | official arXiv/PMLR/DeepMind source；legacy manifest；原 canonical Paper 仅作 claim inventory | minor：核心判断保持，证据边界与机器可审计性增强 |
+
+## 0. 资料与配图索引
+
+- 论文：[arXiv PDF](https://arxiv.org/pdf/2402.15391)，核验 SHA-256 `94c63a5ced89355326706c88236591c2972ced12f3dece4f8982f020110c81f3`
+- LaTeX/source：[arXiv 2402.15391](https://arxiv.org/abs/2402.15391) 官方 source（`main.tex`、`appendix.tex`）
+- 发表版本：[PMLR 235](https://proceedings.mlr.press/v235/bruce24a.html)
+- 公开评审：公开评审核验记录；内容访问受阻，未推断 scores/rebuttal
+- 开源代码/checkpoint：未发现官方发布；第三方实现不作为作者实现证据
+- 机制图：`../assets/papers/genie/fig3-genie-training-mechanism-caption.png`
+- 消融表：`../assets/papers/genie/table2-lam-input-ablation-caption.png`
+- 图表审计：[Figure inventory](../evidence/figure-inventory.md)
+
+## 0.1 术语与符号解释
+
+### 0.1.1 术语表
+
+| 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
+|---|---|---|---|---|
+| Generative interactive environment | 从 prompt frame 启动、由用户逐帧选择 latent action、模型生成后续帧的环境模型 | Genie paradigm | 不是显式游戏代码、物理引擎或已识别的真实动作空间 | `arXiv source: main.tex:102-116`, Table 1 |
+| Latent Action Model | 训练时从过去帧与下一帧推断离散变化 code，并以重建未来帧获得监督的 VQ 模型 | LAM | 推理阶段的 user action lookup 只保留 codebook，不运行完整 LAM；也不等于 ground-truth action label | `arXiv source: main.tex:166-181` |
+| latent action | LAM VQ codebook 中的离散 index/embedding，主实验有 8 个 codes | action code, $\tilde a_t$ / $a_t$ | 不保证与键盘动作、机器人 command 或因果干预一一对应 | `arXiv source: main.tex:166-181, 217-225`; `arXiv source: appendix.tex:66-86` |
+| ST-transformer | 交替执行每帧空间 attention 与同空间位置时间 attention、每 block 仅一个 FFW 的 factorized transformer | spatiotemporal transformer | 不等于 full space-time attention；也不等于 spatial-only ViT | `arXiv source: main.tex:149-157`, Figure 4 |
+| ST-ViViT | 在 video tokenizer encoder/decoder 中使用因果 ST-transformer 的 temporal-aware VQ tokenizer | Genie tokenizer architecture | 与 Phenaki 的 C-ViViT 和 spatial-only ViT 是 Table 3 的替代方案 | `arXiv source: main.tex:184-192, 356-374` |
+| dynamics model | 接收历史 video tokens 与 stop-gradient latent actions，预测下一帧 masked tokens 的 decoder-only MaskGIT transformer | world dynamics | 不是 LAM；其 autoregressive 单位是 frame，而 frame 内使用 iterative masked-token refinement | `arXiv source: main.tex:196-202` |
+| $\Delta_t\mathrm{PSNR}$ | ground-truth-inferred actions 与随机 actions 两种生成相对真实帧的 PSNR 差，用作 action influence/controllability proxy | controllability metric | 不测 action semantic accuracy、causal identification 或长期任务成功 | `arXiv source: main.tex:237-245` |
+| Platformers | 从公开互联网 2D platformer 视频过滤而得的训练集；初始 55M clips，curated 6.8M clips | Internet gaming dataset | 不是公开可复现的数据发布，也不代表通用现实视频 | `arXiv source: main.tex:229-234`; `arXiv source: appendix.tex:27-60` |
+| rollout serving | 用户选 action code，dynamics 做 25 次 MaskGIT refinement，tokenizer decoder 回像素并逐帧继续 | interactive inference | 与训练-time joint LAM/dynamics 流程不同；论文未给优化过的 scheduler/cache/kernel | `arXiv source: main.tex:205-225, 248, 392` |
+
+### 0.1.2 符号表
+
+| 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
+|---|---|---|---|---|---|---|
+| $T$ | 视频序列帧数 | author-defined | per sequence | 主训练为 16 frames | `arXiv source: main.tex:149-157, 184-192, 248` | 训练数据 clip 有 160 frames，但模型 context 取 16 |
+| $H,W,C$ | 帧高、宽、channel | author-defined | per frame | Platformers 160×90，channel 未显式列值 | `arXiv source: main.tex:184-192, 229-234` | $H,W$ 也用于 attention token grid；pixel 与 token grid 不同 |
+| $S$ | 每帧空间 token 数 | analysis-derived | per tokenized frame | nominal $S\approx HW/p^2$ | 本文 Infra 推导 | 90 不能被 patch size 4 整除，实际 padding/crop 未报 |
+| $x_t,\hat x_t,\hat x'_t$ | 真实帧、推断 action 生成帧、随机 action 生成帧 | author-defined | frame $t$ | pixel frame | `arXiv source: main.tex:237-245` | $\hat x'_t$ 不是另一条 ground truth |
+| $z_t,\hat z_t$ | tokenizer 离散 frame tokens 与 dynamics 预测 tokens | author-defined | frame/token index | 1024-way main codebook | `arXiv source: main.tex:184-200,248` | $z$ 属于 video tokenizer，不是 action code |
+| $a_t,\tilde a_t$ | 离散 action index 与对应 continuous/quantized embedding | author-defined | transition $t\to t+1$ | $a_t\in[0,|A|)$，主实验 $|A|=8$ | `arXiv source: main.tex:166-181,217-225` | 论文排版对 $a$ 与 $\tilde a$ 使用并不总完全一致 |
+| $|A|$ | latent action vocabulary size | author-defined | global codebook | 8（主实验） | `arXiv source: main.tex:173-175` | code 数增加可提升能力但降低 playability，未给完整 curve |
+| $\mathcal M_t$ | frame $t$ 被 mask 的 token index 集 | analysis-derived | per frame | mask rate uniform in $[0.5,1]$ | 由 `arXiv source: main.tex:196-202` 显式化 | 论文未给该集合符号或完整 loss 等式 |
+| $\mathcal L_{\mathrm{dyn}}$ | masked next-token cross-entropy | analysis-derived | train objective | dimensionless loss | 由 `arXiv source: main.tex:196-202` 显式化 | 不是作者印刷公式 |
+| $\Delta_t\mathrm{PSNR}$ | controllability proxy | author-defined | $t=4$ for reported experiments | dB difference | `arXiv source: main.tex:237-245` | “更高”只表明随机 action 使输出更偏离 ground truth |
+| $C_{\mathrm{full}},C_{\mathrm{ST}}$ | full 与 factorized attention score-element complexity | analysis-derived | per layer/head/sample | score elements | 本文 Infra 推导，依据 `arXiv source: main.tex:149-157` | 实际 fused attention memory 可低于 materialized-score estimate |
+| $P,b_w,b_g,b_{m_1},b_{m_2},b_{\mathrm{master}}$ | 参数量及各 model-state element bytes | analysis-derived | training state | parameters / bytes | 本文 memory 公式 | optimizer-state dtype 未报，因此不代入精确总显存 |
+| $B,N,d_{\mathrm{model}},b$ | batch、tokens/sequence、hidden width、element bytes | analysis-derived | tensor-parallel communication estimate | counts / bytes | Appendix Table 12 与本文 Infra 推导 | 缺 mesh/collective 次数，不能给 measured traffic |
 
 ## 论文资料
 
@@ -18,6 +74,47 @@
 - 核心问题：互联网视频通常没有 action labels，如何仍学习一个按帧可控、可从新图像提示启动的生成环境？
 - 研究目标：将视频压成时空 tokens，从相邻帧自动发现少量离散 actions，再用 action-conditioned dynamics 逐帧生成。
 - 关键约束：约 `O(10^4)` 时空 tokens、16-frame context、10 FPS training data、25 MaskGIT iterations/frame、最终约 1 FPS；主训练数据和权重不公开。
+
+## 研究动机与问题—方案闭环
+
+### 出发点与背景痛点
+
+作者的明确出发点（`author-stated`）不是再做一个只能一次性生成片段的视频模型，而是把大规模互联网视频转成用户可逐帧操纵的生成环境。普通 world model 依赖 environment interaction 记录的真实 actions；互联网视频虽规模大，却通常没有 action labels。普通 video model 又多以 text 或初始帧为条件，只提供 video-level control，不能在每一帧接受 agent/user action。`arXiv source: main.tex:102-116,166-169` 和 Table 1 把这一“规模—控制监督”矛盾写得很清楚。
+
+第二个约束来自系统规模（`author-stated`）：视频序列可有约 $O(10^4)$ tokens，full self-attention 对总 token 数平方增长。若不改变 attention 结构，LAM、tokenizer 和 dynamics 都难以在较长视频和十亿级模型上共同扩展。这里的目标并非证明一个物理上完备的世界模型，而是在可承受算力内得到“视频-only、frame-level controllable、可从未见图像 prompt 启动”的生成原型。
+
+### 现有方案为何不够
+
+现有 action-conditioned world models 的失败模式是数据门槛：它们需要真实 action logs，难以直接吸收互联网视频；其根因是控制变量在训练样本中缺失。纯 video generation 的失败模式是控制粒度：模型能生成后续内容，却没有稳定的逐帧 action interface。简单地把文本条件加到视频模型并不能恢复每个 transition 的动作变量；简单地使用全时空 attention 又会把 token 序列成本推到难以扩展的水平。
+
+另外，直接从 tokenizer tokens 推断 actions 可能丢失运动细节。Table 2 显示 token-input LAM 在两个域的 $\Delta_t\mathrm{PSNR}$ 都低于 pixel-input，Robotics 上 FVD 也明显恶化。这是对“representation compression 会伤害 action inference”的直接替代基线证据，但 Platformers 两个 LAM 的参数量不同，因此该域归因有混杂。
+
+### 目标问题与成功标准
+
+- 核心研究问题：无 action/text annotations 的视频能否训练出按帧可控的生成环境？
+- 适用对象：主要是 2D Platformers Internet videos，并以 Robotics 与 CoinRun 做跨域/agent-use 检查。
+- 必须满足的约束：video-only training、少量且可供人选择的离散 actions、可扩展 video token processing。
+- 成功标准：生成 fidelity（FVD）、action influence（$\Delta_t\mathrm{PSNR}$）、跨 prompt action consistency、CoinRun imitation utility，以及 scaling training loss；系统上至少能完成交互 rollout。
+- 明确不解决：真实动作的可识别性、长时持久状态、实时高帧率 serving、开放数据/权重复现、以及完整物理因果建模。
+
+### 核心方案如何解决并优化问题
+
+Genie 先训练 temporal-aware VQ tokenizer，把像素压成离散 $z$；随后让 LAM 从视频 transition 中以未来重建 bottleneck 学出小型离散 action codebook；dynamics 以历史 $z$ 与 stop-gradient latent actions 预测下一帧 tokens。推理时用户直接选 code，LAM 主体被移除，dynamics 对下一帧做 MaskGIT refinement，再由 tokenizer decoder 回到像素。与此同时，三个组件都用 factorized ST blocks，把空间与时间 attention 分开，以支持更长 token 序列和更大模型。
+
+| 原始问题/失败模式 | 根因或约束 | 对应方案设计 | 改变的变量/系统行为 | 作用机制 | 预期优化及指标 | 证据来源 | 判断 |
+|---|---|---|---|---|---|---|---|
+| Internet video 缺 action labels | transition control 未被观测 | VQ LAM + future reconstruction | 把连续帧间变化压成 8-way discrete code | decoder 只能用 history+code 重建 future，迫使 code 携带未来相关变化 | frame-level controllability、$\Delta_t\mathrm{PSNR}$、CoinRun transfer | Sec. 2；Figures 5/13/15；Table 2 | partially supported：存在控制效用，但不证明因果动作识别 |
+| video model 缺逐帧交互接口 | text/initial-frame conditioning 不能逐 transition 干预 | action-conditioned dynamics + user code lookup | 每帧预测显式接收一个 latent action | action embedding 调制 masked next-frame token distribution | consistent action response、interactive rollout | Sec. 2.2；Figure 8；qualitative trajectories | supported for prototype interaction，长期一致性不足 |
+| raw video token 序列昂贵 | full attention 对 $TS$ tokens 二次增长 | factorized spatial/temporal attention | score work 由 $(TS)^2$ 变为 $TS^2+ST^2$ | 每帧空间 attention + 同位置时间 attention | 可扩展训练 memory/compute；Table 3 memory/FVD | Sec. 2；Figure 4；Table 3 | supported for tokenizer tested setup；全组件 quality attribution partial |
+| token compression 可能损失 motion | tokenizer 优化重建，不必保留 action cues | pixel-input LAM | action encoder 直接观察 pixels | 保留被离散 video codes 抹掉的细节 | 更高 $\Delta_t\mathrm{PSNR}$，Robotics 更低 FVD | Sec. 3.4；Table 2 crop | supported with Platformers capacity caveat |
+| 大规模训练数据含菜单/主播脸/低质片段 | nuisance variation 污染 dynamics learning | 10k 人工标签 + 11M ResNet18 curation | 训练分布由 55M 降为 6.8M 高质量 clips | 去掉 distractors，提高有效 data quality | FVD 降低 | Appendix B，Table 4 | directly supported for matched 580M setting |
+| 下一帧高维 tokens 难以一次预测 | 并行生成需要迭代修正 | decoder-only MaskGIT + random masking | 每帧用 25 次 masked refinement | 并行补全与多轮 refinement 近似条件分布 | generation fidelity | Sec. 2/3 | plausible but no objective/step-count ablation |
+
+### 完整因果链与证据闭环
+
+作者从“视频生成缺交互性、world models 又依赖昂贵 actions”出发，把根因定位为 transition-level control supervision 缺失，并用 LAM 把视频变化压成 latent actions；tokenizer 降低像素维度，dynamics 将 actions 转化为 next-frame conditional generation；ST factorization 则缓解三个模块的 token 成本。预期结果是既能吸收大规模 video-only data，又能让用户/agent 每帧控制输出。Table 2/3、dataset curation ablation、scaling curves、Robotics qualitative consistency 和 CoinRun behavioral cloning 分别测到 representation choice、tokenizer choice、data quality、optimization scaling 与 task utility。
+
+证据闭环是 **partially supported**。直接证据覆盖 pixel-vs-token LAM、tokenizer replacement 和 data curation；间接证据覆盖 OOD prompting、latent-action consistency 与 model scaling。缺口是 latent action identifiability、single-FFW/additive embedding/stop-gradient/MaskGIT 的 isolated ablations、scaling 对 FVD/任务性能的传递、16-frame 之外的长期状态，以及 1 FPS serving 的 runtime 分解。因此结果支持“在测试域形成可用 latent control interface”，不支持“已得到实时、通用、物理因果正确的 foundation world simulator”。
 
 ## 核心机制与贡献
 
@@ -102,7 +199,9 @@ $$
 
 ### 4.1 主结果与系统数字
 
-![Figure 9: Genie scaling results](../assets/papers/genie/fig9-scaling-results-caption.png)
+![Table 2: LAM input ablation](../assets/papers/genie/table2-lam-input-ablation-caption.png)
+
+Table 2 直接支持 pixel-input LAM 的 controllability 选择：Platformers 的 $\Delta_t\mathrm{PSNR}$ 从 1.33 到 1.91，但参数量从 2.3B 到 2.5B；Robotics 在同为 1B 时从 1.65 到 2.07，FVD 从 257.8 降到 136.4。因而 Robotics 是较干净的 replacement evidence，Platformers 结论带 capacity confound。
 
 Figure 9 的可接受结论是：在作者测试的 dynamics model sizes (`41M` 至 `2.7B`) 中，固定 750B tokens/200k steps 时 final training loss 单调下降；固定 2.3B architecture 时，batch `128/256/448` 对应曲线也下降。它没有报告同图上的 FVD、Delta PSNR、latency 或 throughput，所以“更大一定更可玩/更快”不是数据结论。
 
@@ -180,8 +279,12 @@ Paper-reported system numbers：
 
 - OpenReview：`https://openreview.net/forum?id=bJbSbJskOS`
 - 访问日期：`2026-07-14`
-- decision/meta-review/rebuttal/discussion：**blocked**。两个 API endpoint 均 HTTP 403；网页要求 Cloudflare Turnstile。详见 `openreview_access.md`。
+- decision/meta-review/rebuttal/discussion：**blocked**。API 返回 HTTP 403，forum browser retrieval 返回 HTTP 429。详见 公开评审核验记录。
 - 处理原则：不推测评分、评审意见或 rebuttal 结论，也不把无法读取等同于“无问题”。
+
+| 来源 | 评审观点/约束/潜在问题 | 对应论文 claim/实验 | 论文/appendix/rebuttal/代码证据 | 状态 | 交叉核验后的判断 |
+|---|---|---|---|---|---|
+| OpenReview forum/API | review、decision rationale、rebuttal 与讨论不可访问 | 全文外部审查 | API 403；forum 429；公开评审核验记录 | unclear | 不能形成 reviewer-specific 结论；论文内部证据分析仍有效，但无法判断评审期问题是否解决 |
 
 影响：消融缺口、指标适用性、数据许可和 reproducibility 的判断仅来自论文内部证据；无法确认评审阶段是否提出或解决同类问题。这是外部交叉核验限制，不影响 PDF 内方法/表格事实的可读性。
 
@@ -279,7 +382,7 @@ $$
 
 **Deployment interpretation**：1 FPS / 25 MaskGIT steps implies an end-to-end average budget of roughly `40 ms` per refinement if all 25 are sequential and other work is ignored.这是 derived budget，不是 measured kernel latency。论文没有 inference hardware、batching、SLA、tail latency 或 concurrent users，因而不能判断 production throughput。达到 30 FPS 若其它条件不变需要约 30x end-to-end speedup；这只是 arithmetic target，不是论文结论。
 
-## 代码状态与实现核验
+## 开源代码与 checkpoint 状态及实现核验
 
 - 官方代码：未发布/未链接；paper 使用 internal DeepMind JAX ecosystem（`main.tex:404`）。
 - 官方 commit：不可用。
@@ -345,7 +448,7 @@ Appendix H 的 single-device CoinRun case study 给出 data size、model sizes�
 11. OpenReview reviewers 是否指出 metric、baseline、data 或 reproducibility 问题，rebuttal 是否提供新增证据？当前 access-blocked。
 12. official code/checkpoint 若未来发布，需核验 exact dtype、TP mesh、mask schedule、token padding、cache 和 inference kernels。
 
-## 一句话总结
+## 关键解读问题
 
 ### 12.1 时空 latent tokens 如何决定 attention 和 memory cost？
 
