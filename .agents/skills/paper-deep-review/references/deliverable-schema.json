@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agent-wushu.local/schemas/paper-deep-review-deliverable-1.3.0.json",
+  "$id": "https://agent-wushu.local/schemas/paper-deep-review-deliverable-1.4.0.json",
   "title": "Paper Deep Review Deliverable Manifest",
   "description": "Machine-readable manifest for one paper-deep-review delivery.",
   "type": "object",
@@ -17,12 +17,13 @@
     "artifacts",
     "visual_evidence",
     "terminology_and_symbols",
+    "paper_problem_solution",
     "design_rationales",
     "evidence_checks",
     "limitations"
   ],
   "properties": {
-    "schema_version": { "const": "1.3.0" },
+    "schema_version": { "const": "1.4.0" },
     "deliverable_type": { "const": "paper-deep-review" },
     "invocation_mode": { "enum": ["standalone", "delegated"] },
     "paper": {
@@ -99,6 +100,7 @@
       }
     },
     "terminology_and_symbols": { "$ref": "#/$defs/terminologyAndSymbols" },
+    "paper_problem_solution": { "$ref": "#/$defs/paperProblemSolution" },
     "design_rationales": {
       "type": "array",
       "items": { "$ref": "#/$defs/designRationale" }
@@ -108,6 +110,7 @@
       "additionalProperties": false,
       "required": [
         "claim_matrix",
+        "paper_problem_solution",
         "design_rationale_analysis",
         "symbol_table",
         "evidence_loop",
@@ -118,6 +121,7 @@
       ],
       "properties": {
         "claim_matrix": { "$ref": "#/$defs/checkStatus" },
+        "paper_problem_solution": { "$ref": "#/$defs/checkStatus" },
         "design_rationale_analysis": { "$ref": "#/$defs/checkStatus" },
         "symbol_table": { "$ref": "#/$defs/checkStatus" },
         "evidence_loop": { "$ref": "#/$defs/checkStatus" },
@@ -197,6 +201,8 @@
                   "unresolved_migrations_resolved": { "const": true },
                   "terminology_symbol_section_consistency": { "const": true },
                   "key_term_symbol_coverage": { "const": true },
+                  "paper_problem_solution_section_consistency": { "const": true },
+                  "paper_problem_solution_evidence_chain": { "const": true },
                   "design_rationale_evidence_consistency": { "const": true },
                   "design_rationale_core_design_coverage": { "const": true },
                   "visual_count_sum": { "const": true },
@@ -218,6 +224,7 @@
           "evidence_checks": {
             "properties": {
               "claim_matrix": { "const": "passed" },
+              "paper_problem_solution": { "const": "passed" },
               "design_rationale_analysis": { "const": "passed" },
               "symbol_table": { "const": "passed" },
               "evidence_loop": { "const": "passed" },
@@ -234,6 +241,12 @@
                   "ambiguities": { "const": "passed" }
                 }
               }
+            }
+          },
+          "paper_problem_solution": {
+            "properties": {
+              "solution_steps": { "minItems": 1 },
+              "overall_judgment": { "enum": ["supported", "partially-supported", "plausible"] }
             }
           },
           "design_rationales": { "minItems": 1 }
@@ -454,6 +467,8 @@
             "unresolved_migrations_resolved",
             "terminology_symbol_section_consistency",
             "key_term_symbol_coverage",
+            "paper_problem_solution_section_consistency",
+            "paper_problem_solution_evidence_chain",
             "design_rationale_evidence_consistency",
             "design_rationale_core_design_coverage",
             "visual_count_sum",
@@ -469,6 +484,8 @@
             "unresolved_migrations_resolved": { "type": "boolean" },
             "terminology_symbol_section_consistency": { "type": "boolean" },
             "key_term_symbol_coverage": { "type": "boolean" },
+            "paper_problem_solution_section_consistency": { "type": "boolean" },
+            "paper_problem_solution_evidence_chain": { "type": "boolean" },
             "design_rationale_evidence_consistency": { "type": "boolean" },
             "design_rationale_core_design_coverage": { "type": "boolean" },
             "visual_count_sum": { "type": "boolean" },
@@ -483,6 +500,94 @@
         {
           "if": { "properties": { "status": { "const": "passed" } } },
           "then": { "properties": { "errors": { "maxItems": 0 } } }
+        }
+      ]
+    },
+    "paperProblemSolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "section_heading",
+        "motivation",
+        "prior_failure",
+        "root_cause_or_constraint",
+        "target_problem",
+        "success_criteria",
+        "solution_steps",
+        "causal_chain",
+        "evidence_boundary",
+        "overall_judgment"
+      ],
+      "properties": {
+        "section_heading": { "type": "string", "minLength": 1 },
+        "motivation": { "$ref": "#/$defs/sourcedStatement" },
+        "prior_failure": { "$ref": "#/$defs/sourcedStatement" },
+        "root_cause_or_constraint": { "$ref": "#/$defs/sourcedStatement" },
+        "target_problem": { "$ref": "#/$defs/sourcedStatement" },
+        "success_criteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/sourcedStatement" }
+        },
+        "solution_steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "problem_or_failure",
+              "design",
+              "changed_variable_or_behavior",
+              "causal_mechanism",
+              "expected_optimization",
+              "evidence_sources",
+              "judgment"
+            ],
+            "properties": {
+              "problem_or_failure": { "type": "string", "minLength": 1 },
+              "design": { "type": "string", "minLength": 1 },
+              "changed_variable_or_behavior": { "type": "string", "minLength": 1 },
+              "causal_mechanism": { "type": "string", "minLength": 1 },
+              "expected_optimization": { "type": "string", "minLength": 1 },
+              "evidence_sources": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "judgment": {
+                "enum": ["supported", "partially-supported", "plausible", "unverified"]
+              }
+            }
+          }
+        },
+        "causal_chain": { "type": "string", "minLength": 1 },
+        "evidence_boundary": { "type": "string", "minLength": 1 },
+        "overall_judgment": {
+          "enum": ["supported", "partially-supported", "plausible", "unverified", "blocked"]
+        }
+      }
+    },
+    "sourcedStatement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "status", "sources"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["author-stated", "inferred", "not-stated", "unavailable"] },
+        "sources": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": { "enum": ["not-stated", "unavailable"] }
+            }
+          },
+          "then": { "properties": { "sources": { "maxItems": 0 } } },
+          "else": { "properties": { "sources": { "minItems": 1 } } }
         }
       ]
     },

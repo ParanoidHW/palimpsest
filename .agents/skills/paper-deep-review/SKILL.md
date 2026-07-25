@@ -1,6 +1,6 @@
 ---
 name: paper-deep-review
-description: Rigorous academic paper and technical-report review workflow for one paper, arXiv article, OpenReview submission, PDF, LaTeX source, whitepaper, or model/system report. Produce auditable Markdown with classified checks, original figures, formulas, evidence chains, related-work and public-review analysis, infrastructure and source-code cross-checks, isolated-agent provenance, and optional promotion into a governed project knowledge base through $research-knowledge-publisher.
+description: Rigorous academic paper and technical-report review workflow for one paper, arXiv article, OpenReview submission, PDF, LaTeX source, whitepaper, or model/system report. Produce auditable Markdown that explicitly reconstructs why the work was proposed, what problem it targets, how the solution addresses and optimizes that problem, and whether the evidence validates the causal chain, together with classified checks, original figures, formulas, related-work and public-review analysis, infrastructure and source-code cross-checks, isolated-agent provenance, and optional promotion into a governed project knowledge base through $research-knowledge-publisher.
 ---
 
 # Paper Deep Review
@@ -32,6 +32,7 @@ Treat this skill as a required workflow rather than optional guidance.
 - In delegated runs, verify parent-owned `task_packet.yaml` and do not modify it. Verify the complete skill-tree hash and agent-contract hash before analysis.
 - After all analysis and diagram work, finalize delivery with the two-pass freeze protocol below. Validate both JSON Schema structure and the manifest's required semantic checks; set the delivery to `blocked` instead of claiming completion when either validation fails or cannot run.
 - Classify unavailable PDFs, source, code, reviews, model metadata, tools, API keys, and network access precisely. Do not silently weaken the workflow or substitute unsupported claims.
+- Treat the paper-level **motivation -> target problem -> solution mechanism -> expected optimization -> measured evidence** narrative as a mandatory deliverable, not as an optional summary or a substitute for the component-level design-rationale matrix.
 - Before reporting completion, reread `review_checklist.md` and verify that no mandatory item is pending or unclassified. Completion is determined by artifacts and checks, not by a prose summary.
 
 ## Workflow
@@ -80,7 +81,13 @@ Treat this skill as a required workflow rather than optional guidance.
 
 4. **Read with evidence discipline.**
    - Map every important claim to a paper section, figure, table, appendix, or code path.
-   - Explain the logic chain: problem -> assumption -> method -> measurement -> conclusion.
+   - Analyze rationale at two distinct levels:
+     1. **Paper-level problem-solution rationale:** why the work was initiated, which concrete limitation in prior practice motivates it, what target problem and success criteria it chooses, how the proposed solution changes the relevant causal variables, what improvement should follow, and whether measurements support that chain.
+     2. **Component-level design rationale:** why each module, objective, data step, training choice, inference procedure, or runtime optimization was selected.
+   - Write the paper-level rationale as a coherent narrative, not only an arrow chain or component table. Cover: background trigger -> observed pain point -> prior-method failure mode -> root cause or binding constraint -> target problem -> success criterion -> core solution steps -> causal mechanism -> expected optimization -> measured evidence -> remaining boundary.
+   - State separately what the authors explicitly claim, what is reconstructed from equations/figures/experiments/code, and what remains unstated. Do not manufacture author intent when the source is unavailable or silent.
+   - For every core solution step, name both the variable or system behavior it changes and the downstream metric or capability expected to improve. Distinguish “the method contains this component” from “this component resolves the motivating problem.”
+   - Explain the complete logic chain: motivation -> problem -> assumption/root cause -> method -> changed variable -> expected optimization -> measurement -> conclusion/limit.
    - Do not stop at describing what the method does. Build a **design-rationale matrix** for every core component, architecture choice, loss/objective, data construction step, training recipe, inference procedure, and system/runtime optimization.
    - For each design, state whether the paper explicitly explains why it was chosen. Cite the exact section/equation/figure when the rationale is `author-stated`; otherwise label it `inferred` or `not-stated` rather than presenting reviewer inference as author intent.
    - Identify the concrete failure mode, bottleneck, ambiguity, constraint, or baseline weakness the design is meant to solve, then explain the causal mechanism by which the design could address that problem. Include alternatives/trade-offs and whether ablations or controlled evidence validate the rationale.
@@ -149,6 +156,8 @@ Treat this skill as a required workflow rather than optional guidance.
    - Include a source/figure inventory near the top.
    - Include OpenReview public-review cross-check when available, combining reviewer concerns with paper content, rebuttal, appendix, experiments, and code evidence instead of listing reviews separately.
    - Include the technical-claim evidence matrix before or inside the key-results section, so claimed technical points are visibly tied to ablation/mechanism evidence or marked as unsupported.
+   - Include the mandatory early chapter **研究动机与问题—方案闭环** before contributions and method details. It must contain explanatory prose plus a problem-solution mapping table; a one-line arrow chain, abstract paraphrase, contribution list, or component matrix alone does not satisfy this requirement.
+   - Keep the paper-level problem-solution chapter distinct from the component-level design-rationale matrix. The former explains why the whole paper exists and how its main approach resolves the motivating problem; the latter audits why each design choice was made.
    - Include the design-rationale matrix in the method section. A component description without its stated/inferred rationale, concrete target problem, causal mechanism, and evidence status is incomplete.
    - Include one centralized terminology-and-symbol chapter near the top before the method section. Put both the term table and symbol table inside it, and make every manifest entry traceable to this chapter and its paper/code source or explicit reviewer derivation.
    - Include images inline near the discussion they support.
@@ -190,6 +199,7 @@ Before finishing:
 - Use the contact sheet for crop triage, then open every selected crop individually at 100% scale. Confirm exactly one numbered figure/table with its full caption, recorded source-page dimensions/bounding box, tight margins, and no next paragraph, page chrome, section heading, neighboring content, unrelated equation, excessive whitespace, or truncated caption.
 - Confirm every key number in the review maps to a paper section/table/figure or a clearly stated calculation.
 - Confirm every claimed technical point has been checked for ablation/control/mechanism evidence and unsupported claims are explicitly marked.
+- Confirm `analysis.md` contains a substantive paper-level motivation/problem-solution chapter that explicitly covers the starting pain point, prior-method failure and root cause, target problem and success criteria, solution steps, changed variables, expected optimization, measured evidence, and remaining boundary. Reject a contribution list, abstract paraphrase, component table, or one-line arrow chain as insufficient.
 - Confirm every core design has a design-rationale entry separating author-stated rationale from inference, naming the concrete problem it targets, explaining the causal mechanism, and checking whether evidence supports that explanation.
 - If `$openrouter-icu-image` was available, confirm `analysis.md` was passed as the `responses-doc --input-file` reference document, the generated analysis diagram exists, and it is linked from `analysis.md`; if unavailable or failed, state the limitation.
 - Confirm code claims include file paths and commit hashes.
@@ -205,8 +215,8 @@ Before finishing:
 
 ## Resources
 
-- `references/markdown-template.md`: reusable Chinese Markdown structure, including the standard paper review sections and "解读问题/待验证清单".
-- `references/deliverable-schema.json`: Draft 2020-12 schema for the required paper-level `deliverable_manifest.json`.
+- `references/markdown-template.md`: reusable Chinese Markdown structure, including the mandatory paper-level motivation/problem-solution chapter, component-level rationale audit, and "解读问题/待验证清单".
+- `references/deliverable-schema.json`: Draft 2020-12 schema for the required paper-level `deliverable_manifest.json`, including machine-checkable problem-solution evidence-chain fields.
 - `references/review-checklist-template.md`: mandatory per-paper execution and quality checklist; copy it into the paper folder before substantive analysis and preserve every item.
 - `scripts/extract_pdf_assets.py`: optional helper to extract PDF text and render page PNGs for offline papers.
 - `scripts/crop_pdf_figures.py`: optional helper to batch crop figures/tables from page PNGs and create a contact sheet for QA.
