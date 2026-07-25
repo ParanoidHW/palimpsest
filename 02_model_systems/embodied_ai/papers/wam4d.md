@@ -1,228 +1,426 @@
-# WAM4D
+# WAM4D: Fast 4D World Action Model via Spatial Register Tokens 精读分析
 
 > [!info] 文档关系
 > - 文档类型：Paper
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[具身智能模型演进、Infra 与端云协同](../surveys/embodied-ai-evolution-infra.md)
 > - 证据资产：`../assets/papers/wam4d/`
-> - 相关文档：[论文索引](../evidence/paper-index.md)、[图表清单](../evidence/figure-inventory.md)
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md) · [Paper index](../evidence/paper-index.md)
 
-论文：[arXiv:2606.14048](https://arxiv.org/abs/2606.14048)。论文作者给出 [myendless1/wam4d](https://github.com/myendless1/wam4d) 仓库入口，但本次未获得可固定的实现 commit；PDF、提取文本与图表审计过程保留于审计区。
+> 资料状态：官方 arXiv:2606.14048v3 PDF 与 TeX source 已核验；论文给出的 GitHub 地址匿名访问为 404，无法固定代码 commit、配置或 checkpoint；未发现精确标题的公开 OpenReview 记录。本文嵌入的三张图表均为官方 PDF 证据对象，包含完整 caption 并通过原分辨率 QA。
 
-## 论文资料
+## 修订信息
 
-- 领域：具身 AI、world action model、机器人操作、4D 几何建模。
-- 论文：Ying Li 等，*WAM4D: Fast 4D World Action Model via Spatial Register Tokens*，arXiv:2606.14048v3，2026-07-07 online / PDF 标注 2026-07-08；arXiv-only。
-- 核心问题：2D/latent WAM 的视频外观可能物理合理但几何和接触不一致；显式 dense 4D 解码又会拖慢动作生成。
-- 目标：用训练时几何监督塑造 action 所用的历史视频特征，部署时保持轻量 observation-to-action 路径。
-- 关键假设：未来深度能由历史视频特征通过 registers 读取；因果可见性可阻止未来泄漏；几何 branch 可完全去除而保留策略收益。
+- 当前文档版本：`1.0.0`
+- 当前修订 ID：`rev-wam4d-1.0.0`
+- 当前修订时间：`2026-07-25T20:24:01+08:00`
+- 替代版本：无；本工作区是全新的独立交付，类型为 `initial`
 
-## 核心机制与贡献
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-wam4d-1.0.0` | `1.0.0` | `2026-07-25T20:24:01+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从官方 PDF/source 独立重建证据链、图表 QA、系统分析与代码/评审边界 | non-ICML Paper 交付完整性修复 | 本文各分析章节与 [Figure inventory](../evidence/figure-inventory.md) | arXiv v3 PDF/source、作者代码链接访问结果与公开评审检索 | material |
 
-1. spatial registers：以未来时间 × 三视图 mosaic 网格复制出的 960 个查询读取历史视频特征，连接预训练几何先验与 WAM hidden state（Eq. (6)-(8)，Fig. 2）。
-2. causal mixture attention：future action 只能看历史视频、历史动作和自身加噪 action；register 只能看 register 和历史视频（§3.3、Fig. 2），避免 geometry/future-video shortcut。
-3. trainable pretrained DA3 head + SmoothL1 depth loss：在共享 video-action backbone 上增加几何监督（Eq. (9)-(10)、Table 8）。
-4. 训练/部署解耦：部署去掉 registers、DepthBlocks、投影层和 geometric head，仅保留 video-action action generation（§3.3、Algorithm 1、§4.7）。
-5. 评测覆盖 RoboTwin 2.0、AstriBot S1 四类真实操作和 10-task ablations；报告 SR、视频/深度/点云质量、latency 和 VRAM（Tables 1-9）。
+## 0. 资料与配图索引
 
-## 方法与实现
+- 论文：[arXiv:2606.14048v3](https://arxiv.org/abs/2606.14048) 官方 PDF/source。
+- 开源代码：作者给出 `https://github.com/myendless1/wam4d`；2026-07-25 匿名访问 404，无可验证 commit。
+- OpenReview：未发现；查询边界见 公开评审核验记录。
+- Figure 2：`../assets/papers/wam4d/fig2-wam4d-architecture-causal-visibility-caption.png`。
+- Table 7：`../assets/papers/wam4d/table7-register-interface-placement-visibility-caption.png`。
+- Table 9：`../assets/papers/wam4d/table9-deployment-latency-memory-caption.png`。
 
-### 3.1 问题到方案的逻辑链
+## 0.1 术语与符号解释
 
-2D rollout 隐藏接触几何 -> dense 4D inference 成本高 -> registers 只在训练时从 history video 查询 future depth -> depth loss 更新共享特征 -> causal MoT 阻止 future tokens 反向泄漏 -> inference 删除 geometry branch，保留 action-only path。
+### 0.1.1 术语表
 
-### 3.2 设计动机与具体问题映射
+| 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
+|---|---|---|---|---|
+| WAM4D | 在因果 video-action WAM 上增加训练期未来深度读出，把几何先验压入共享特征；默认部署删除几何支路 | Fast 4D World Action Model | 不等于部署时持续维护 dense 4D state | Abstract、§1、§3.3、§4.7 |
+| world action model (WAM) | 联合建模未来观察与可执行 action 的视频-动作生成模型 | video-action model | 不等于只做 inverse dynamics 的视频世界模型 | §1、§2 |
+| spatial registers | 按未来时间和三视图 mosaic 空间格复制的可学习 geometry queries；默认 960 个 | register tokens | 不等于 action token、未来视频 token 或部署状态 | §3.2、§3.5 |
+| causal mixture attention | 针对 video、action、register 三类 token 定义的可见性规则 | causal MoT attention | 不是已验证的 block-sparse/fused kernel | §3.3、Figure 2 |
+| DepthBlock | 以 register 为 query、以 register 与合法 history-video tokens 为 key/value 的几何提取 block | depth extraction block | 不等于 DA3 head，也不进入默认 inference | Eq. (7)、Figure 2 |
+| pretrained geometric head | DA3-GIANT-1.1 DualDPT 初始化的 future-depth decoder，最终设置允许训练 | DA3 head | 不等于固定 teacher；Table 8 区分 fixed 与 trainable | §3.2、§3.5、Table 8 |
+| training-only geometry readout | registers、DepthBlocks、projection、geometric head、future depth 与 depth loss 的训练支路 | geometry branch | 不等于部署时的几何传感输入/输出 | §3.3、Figure 3、Algorithm 1、§4.7 |
+| three-view mosaic | head camera 与左右 wrist cameras 拼成单一 RGB canvas，再与 register grid 对齐 | multi-view RGB mosaic | 不等于三条独立 transformer stream | §3.5 |
+| F-score-T | 对跨时间点云一致性的 F-score 指标 | temporal F-score | 论文未在正文给出完整实现/阈值，不能跨工作直接比较 | Tables 6–8 |
 
-| 设计项 | why 状态/来源 | 针对的具体问题 | 因果机制 | 替代方案/权衡 | 验证证据 | 判断 |
+### 0.1.2 符号表
+
+| 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
-| spatial registers 读取 history video | author-stated（§1、§3.2） | dense 4D inference 慢；2D latent 缺少接触/遮挡几何 | query 只读取 history features，深度误差反传到 action 所用特征 | 直接预测 RGB-D/未来 VAE depth；register 额外训练算力和激活 | Table 7 interface 对比；Table 6/8 geometry metrics | 部分支持：几何质量改善，训练成本未量化 |
-| causal mixture visibility | author-stated（§3.3） | future video/geometry 可能形成 non-causal shortcut | action queries 禁止 future video/register；register 不进入 policy path | bidirectional register visibility；更密集全注意力会增加信息/算力 | Table 7 bidirectional 行是 confounded（层位也改变）；无独立 mask-only ablation | 部分支持/未完全隔离 |
-| SmoothL1 future-depth loss | author-stated（§3.4） | action-only supervision 对空间结构弱 | 有效像素平均的深度误差塑造 shared video hidden | 其他 depth loss 或无深度；没有 loss-type sweep | No-depth vs register rows；Table 8 | 部分支持，不能分离 loss 类型贡献 |
-| trainable pretrained DA3 head | author-stated（§4.4.3） | 普通 depth head 不能提供强几何先验；fixed head 不能适配 | 预训练初始化提供 prior，继续训练适配机器人域 | random-init / fixed-pretrained | Table 8：Train. DA3 80.1/75.4 clean/random SR，geometry 指标最佳 | 直接支持相对两种 head 设置 |
-| middle register layers 12/14/16/18 | author-stated + inferred（§4.4.2） | 早层/晚层在视觉去噪与几何抽象间有冲突 | 中间层在视觉结构和几何抽象间平衡 | shallow/deep/uniform/bidirectional | Table 7；middle 的 AbsRel 0.053、F-score 0.685、F-score-T 0.825，控制 SR 75.2 | 部分支持；多指标 trade-off，不是单一最佳 |
-| three-view mosaic/register grid | author-stated geometry alignment（§3.2、§3.5） | 多相机特征与深度像素需要空间对应 | 32x32 输入 cell 对齐到 12x10 grid，每 8 future frames 共 960 registers | 直接用全局 latent 或单视角 query；register 数量增加训练显存 | §3.5 的结构说明；无 grid-size sweep | 机制合理但未独立验证 |
-| deployment branch removal + KV cache | author-stated（§3.3、Algorithm 1、§4.7） | 几何解码拖慢 causal action | 删除 R/DepthBlocks/$P_g$/$G_\phi$，仅编码 observation queue、更新 video/action KV cache | 保留 geometry 做 closed-loop rollout；会更重但可输出 depth | Table 9 absolute latency/VRAM；无 branch on/off matched pair | latency 结果支持部署可行性，不支持因果加速量 |
+| $t$ | 当前决策步 | author-defined | per decision | step | §3.1 | 与 flow-matching time 不应混读 |
+| $\mathcal C_t$ | 语言、历史 RGB mosaic 与历史 action 组成的因果上下文 | author-defined | per decision | set | Eq. (1) | future RGB/action 是 target，不是额外 causal input |
+| $L_a$ | 历史 action 长度 | author-defined | per sample | steps | Eq. (1) | 论文未给本符号的最终数值 |
+| $H_a$ | action prediction horizon | author-defined | per decision | 32 actions | Eq. (1)、§3.5 | 不等于实际每次执行的 4 actions |
+| $\mathbf Z_t^{hist},\mathbf Z_t^{fut}$ | VAE 编码后的历史与未来视频 latent tokens | author-defined | per decision/token | latent | Eq. (2) | $\tilde{\mathbf Z}^{fut}$ 是加噪 flow state |
+| $\mathbf A_t^{hist},\tilde{\mathbf A}_t^{fut}$ | 历史 action embedding 与加噪 future action state | author-defined | per decision/token | embedding | Eq. (3) | future action state 仍受 causal mask |
+| $\mathbf M_{VA}$ | video-action 主流的 causal visibility mask | author-defined | per attention block | Boolean/additive mask | Eq. (5)、§3.3 | 不等价于特定 sparse kernel |
+| $\mathbf R_\star,\mathbf R_t^\ell$ | 共享 register grid 与第 $\ell$ 层的复制后 register tokens | author-defined | future time × mosaic cell × layer | default total 960 tokens | Eq. (6)–(7)、§3.5 | $\mathbf R_\star$ 是模板，$\mathbf R_t^0$ 是时间复制实例 |
+| $\mathcal T_t$ | 有 future-depth supervision 的时间索引集合 | author-defined | per sample | 8 future frames in default | Eq. (6)、§3.5 | 不等于 action horizon |
+| $\mathcal L_r$ | 插入 DepthBlock 的 backbone 层集合 | author-defined | backbone | default $\{12,14,16,18\}$ | Eq. (8)、§3.5 | Table 7 的其他配置不同 |
+| $\mathcal P_g,\mathcal G_\phi$ | register projection 与 pretrained geometric head | author-defined | training geometry branch | operators | Eq. (8) | 两者部署均删除 |
+| $\hat{\mathbf D}_t^{fut},\mathbf D_t^{fut}$ | 预测与监督的 future depth | author-defined | per future frame/pixel | depth | Eq. (8)–(9) | RoboTwin/real depth来源需按 §4.1 阅读 |
+| $\Omega_\tau$ | 第 $\tau$ 帧有效 depth pixels | author-defined | per future frame | pixel set | Eq. (9) | 无效像素不进入均值 |
+| $\lambda_{act},\lambda_{depth}$ | action 与 depth loss 权重 | author-defined | training | 均为 1 | Eq. (10)、§3.5 | video loss 的隐含系数为 1 |
+| $N_R,d,b,n_\ell$ | 本分析用于 register activation 的 token 数、hidden width、每元素字节与保存层数 | analysis-derived | training | $N_R=960$；其余未报告 | 本文 §8.2 | 不能由此得出数值显存 |
+| $B_{eff},U_B$ | 有效带宽与峰值利用率 | analysis-derived | measured data path | bytes/s、ratio | 本文 §8.4 | 论文缺 bytes moved 与 runtime breakdown，无法求值 |
 
-### 3.3 模型/系统架构
+## 1. 论文基本信息
+
+- 题目：*WAM4D: Fast 4D World Action Model via Spatial Register Tokens*。
+- 作者：Ying Li 等 13 人；arXiv:2606.14048v3，初发 2026-06-12，更新 2026-07-07；arXiv-only，主分类 cs.CV。
+- 领域：具身 AI、world action model、机器人操作、4D 几何监督。
+- 核心问题：2D/latent WAM 可能生成视觉合理但接触与遮挡几何错误的 future；显式 dense 4D decoding 又增加 action inference 成本。
+- 目标：让几何先验在训练期塑形 causal history-video features，部署仍保留轻量 observation-to-action interface。
+- 关键约束：几何 readout 不能形成 future-video/register 到 action 的 non-causal shortcut；部署可删除整条几何支路。
+
+## 2. 研究动机与问题—方案闭环
+
+### 2.1 出发点与背景痛点
+
+作者明确指出，操作不是只凭外观选择 action：精确抓取、插入、遮挡后的接触与自由空间判断需要 3D/4D 结构。现有 WAM 虽将视频先验与动作生成放在同一模型中，但多数仍把 future state 表示为 2D 视频或 latent；外观 plausibility 不能保证接触几何正确（`author-stated`，§1）。
+
+另一端的显式 4D world model 会在 inference 解码 depth、normal、point cloud 或优化场景结构。作者把其约束概括为 deployment latency 与 objective drift：dense geometry target 会增加 action loop 成本，也可能让模型更偏向 reconstruction 而非因果 video-action coupling（`author-stated`，§1）。这构成论文真正的双目标，而不是单纯“增加 depth loss”。
+
+### 2.2 现有方案为何不够
+
+2D WAM 的可观察失败模式是视觉 future 可以在像素层合理，却隐藏物体 extent、occluded surface、free space 与 contact error；其根因是 action/video objective 对 metric geometry 的约束弱。直接把 dense geometry 作为 inference input/output 能补结构，但会让每个 action decision 支付几何 decoding/optimization 成本（`author-stated`，§1、Figure 1）。
+
+本文进一步重建出一个 leakage 约束：如果 future action 能读取 future-video target 或由 future-depth target塑形出的 register states，训练目标可能通过不可部署的信息捷径降低损失（`inferred`，由 §3.3 visibility rule 反推）。因此几何监督不仅要“存在”，还必须只通过合法 history-video representation 影响 action。
+
+### 2.3 论文计划解决的问题与成功标准
+
+- 核心研究问题：如何把 pretrained geometric prior 注入 causal video-action backbone，同时让默认部署不预测 dense geometry？
+- 目标场景：多视角机器人操作，尤其是 contact-rich、遮挡与长时序任务。
+- 约束：register 只读自己与合法 history video；future action 不读 future video/register；geometry branch 可完全删除。
+- 成功标准：几何/点云指标改善；action success 不退化且在真实机器人上有支持；单 A800 latency/VRAM 可报告；关键设计有消融。
+- 明确不解决：长期 object memory、代码级 sparse attention/kernel、训练 wall-clock 与 geometry-on/off 同模型部署归因。
+
+### 2.4 核心方案如何解决并优化问题
+
+WAM4D 先把三相机图像拼成 mosaic，再把可学习 register grid 按未来 depth frame 复制。中间层 DepthBlocks 让 registers 只查询历史 video features，随后经投影与 DA3 head 预测 future depth；depth loss 回传到共享 history-video representation。主干的 modality-specific mask 阻止 future action 看 future video 或 register。训练结束后删除 register、DepthBlocks、projection、DA3 与 depth output，只保留被几何监督塑形过的 video-action backbone。
+
+| 原始问题/失败模式 | 根因或约束 | 对应方案设计 | 改变的变量/系统行为 | 作用机制 | 预期优化及指标 | 证据来源 | 判断 |
+|---|---|---|---|---|---|---|---|
+| 2D rollout 缺接触/遮挡几何 | action/video loss 对 metric depth 约束弱 | spatial registers + future-depth loss | history-video hidden 必须支持未来深度读出 | depth gradient 经 register query 回到 action 共用特征 | AbsRel、$\delta_1$、CD、F-score、SR | Eq. (6)–(10)、Tables 7–8 | partially-supported |
+| future target 形成训练捷径 | future video/register 部署不可见 | causal mixture attention | action 的可见 token 集合受限 | 阻断 future-video/register 到 action 的直接信息流 | 可部署因果 action | §3.3、Figure 2 | plausible；无 mask-only 消融 |
+| dense 4D inference 过重 | 几何 decoder 每步占算力/显存 | training-only branch removal | inference graph 删除 $R$/DepthBlocks/$\mathcal P_g$/$\mathcal G_\phi$ | 几何知识仅以共享权重更新保留 | latency、VRAM | Figure 3、Algorithm 1、Table 9 | partially-supported；无 on/off pair |
+| geometry prior 不适配机器人域 | random head 弱，fixed head 不适配 | trainable pretrained DA3 | head 从 prior 初始化并共同优化 | 同时保留 prior 与 domain adaptation | SR 与 geometry metrics | Table 8 | supported |
+| early/late feature trade-off | 不同层的视觉去噪/几何抽象状态不同 | middle layer placement | depth gradient 注入层位改变 | 平衡 visual feature preservation 与 geometry readout | SR、FVD、depth/point metrics | Table 7 | partially-supported |
+
+### 2.5 完整因果链与证据闭环
+
+论文的闭环是：操作需要 3D/4D 约束，而 2D WAM 的 future appearance 不保证 contact geometry；显式 dense 4D 又让 action loop 承担 decoder 成本；因此作者用只能查询 causal history video 的 spatial registers 读取未来 depth，令 depth gradient 改变 shared history representation，并用 causal mixture mask 切断不可部署信息到 action 的捷径；若该表示确实更几何化，则 depth/point metrics 与 manipulation SR 应改善；若 branch removal 生效，默认 inference 应不再持有几何 tensors。
+
+被直接支持的环节包括：Table 8 的 trainable-pretrained head 对比、Table 7 的 register interface/layer replacement、Algorithm 1/§4.7 的删除边界，以及 Table 9 的 absolute latency/VRAM。仅间接或混杂支持的环节包括：causal mask 的独立收益（bidirectional 行同时改层位）、geometry branch 对 action success 的纯贡献（多个变化捆绑）、删除 branch 带来的净 latency/VRAM（无同模型 on/off）。完全缺失的是训练 wall-clock/FLOPs/peak memory、kernel/bandwidth telemetry，以及 deployment action-only state 的直接 4D consistency measurement。整体判断为 `partially-supported`。
+
+## 3. 核心贡献与创新点
+
+1. 用 spatial registers 把 pretrained geometry head 变成训练期 readout，而不是部署时的 dense output（§3.2–§3.3）。
+2. 在 video/action/register 间定义 causal visibility，明确 future action 的合法信息边界（§3.3、Figure 2）。
+3. 把训练与部署图分离：默认 action inference 删除整个 geometry branch（Figure 3、Algorithm 1、§4.7）。
+4. 在 RoboTwin 50-task、真实 AstriBot S1、10-task ablation 和单 A800 系统表上同时报告 control、video、depth、point-cloud 与成本证据（Tables 1–9）。
+
+## 4. 研究方法
+
+### 4.1 方法总览
+
+训练输入是 instruction、三视图历史 RGB mosaic、历史 actions，以及作为 flow-matching states 的加噪 future video/action tokens。30 层 video-action MoT 同时预测 future video flow 与 action flow。默认在层 12/14/16/18 后接四个 DepthBlocks；960 registers 读取合法 history-video features，经投影与 trainable pretrained DA3-GIANT-1.1 DualDPT head 预测 8 个 future depth frames。总损失联合 video、action、depth。默认 inference 只保留 VAE、video-action backbone、action head、observation/action history 与 KV cache，不生成 depth。
+
+### 4.2 组件级设计动机与具体问题映射
+
+| 设计项 | why 状态 | 原文证据 | 针对的具体问题 | 因果机制 | 替代/权衡 | 验证证据 | 判断 |
+|---|---|---|---|---|---|---|---|
+| causal video-action MoT backbone | author-stated | §3.1 | joint future/action modeling 且 action 必须因果 | shared sequence 建模视觉动态与 action | direct VLA 更快；explicit simulator 更重 | full-suite 结果，非 backbone ablation | plausible |
+| spatial register grid | author-stated | §3.2、§3.5 | dense depth readout 与 action feature 接口不匹配 | geometry queries 从 history features抽取可解码结构 | future-video hidden depth head | Table 7 replacement | partially-supported |
+| future-time register replication | author-stated | Eq. (6) | 单一 history feature 需监督多 future frames | 每个 future time 有对应 geometry query | global register；更少 token | 无 temporal-count sweep | plausible |
+| three-view mosaic alignment | author-stated | §3.2、§3.5 | register 与多相机 pixel region 对齐 | 32×32 input cell 对应 register，三视图拼 12×10 grid | 独立 camera streams | 结构说明，无 grid/view ablation | unverified |
+| four middle DepthBlocks | author-stated + inferred | §3.5、Table 7 | early/late layer在去噪与几何抽象间冲突 | 中层注入 geometry gradient | shallow/deep/uniform | replacement baseline | partially-supported |
+| causal mixture visibility | author-stated | §3.3、Figure 2 | non-causal future/register shortcut | 限制 action 与 register 的 K/V 可见集合 | bidirectional visibility；计算更大 | confounded Table 7 | plausible |
+| RoPE with future time/mosaic coordinates | author-stated | §3.2 | query 需携带时空位置 | attention score 获得时间与 mosaic coordinate | learned embeddings/3D RoPE | 无 ablation | unverified |
+| trainable pretrained DA3 head | author-stated | §4.4.3、Table 8 | random head prior弱，fixed head不适配 | pretrained initialization + finetuning | random-init/fixed-pretrained | direct ablation | supported |
+| valid-pixel SmoothL1 depth loss | author-stated | Eq. (9) | depth target有无效 pixel 与 outlier | 有效区域归一化并用 robust loss | L1/L2/scale-invariant loss | no loss-type ablation | plausible |
+| branch removal + KV cache action inference | author-stated | Figure 3、Algorithm 1、§4.7 | dense geometry阻塞 action loop | 删除 geometry ops，只维护 observation/action cache | 保留 geometry 供解释；更重 | absolute Table 9，无 on/off | partially-supported |
+
+### 4.3 模型/系统架构
 
 ![Figure 2 WAM4D architecture and causal visibility pattern](../assets/papers/wam4d/fig2-wam4d-architecture-causal-visibility-caption.png)
 
-Fig. 2 的左侧把 history RGB/actions 输入 30 层 video-action MoT；register 支路在若干层读取 history video，经四个 DepthBlocks 和预训练几何头得到 future depth。右侧的 VA self-attention 使 future action 只能看历史视频/历史动作/自身 action noise；Depth cross-attention 使 geometry query 读取合法历史上下文。图示是机制证据，不等价于实现了稀疏或融合 attention kernel。
+Figure 2 左侧明确区分 VA backbone 与 Depth Extraction Module；火焰标记表示训练更新。右侧 visibility matrix 是信息流语义证据：future action 可看历史 video/action 与自身 noised future-action state，但不可看 future video/register；depth query 可看 history video 与 registers。图本身没有证明 mask 使用 block-sparse、fusion 或 custom kernel。
 
-### 3.4 训练/推理边界：哪些张量和算子留下
+训练与部署对象边界如下：
 
-| 对象 | 训练 | 默认 inference | 证据/判断 |
+| 对象 | 训练 | 默认 inference | 证据 |
 |---|---|---|---|
-| learnable spatial register grid $R^\star$、复制后的 $R_t^0$、960 register tokens | 存在，按未来时间和 mosaic 坐标复制 | 移除，不进入 action KV cache | §3.2、§3.5、§4.7（直接） |
-| DepthBlock 1-4，层 12/14/16/18 cross-attention | 存在，Q=register，K/V=register+history video | 移除 | Eq. (7)、Fig. 2、§4.7（直接） |
-| 四个 linear adapters $P_g$ 与 DA3-GIANT-1.1 DualDPT head $G_\phi$ | 存在；最终 head 为 trainable pretrained | 移除 | Eq. (8)、Table 8、§4.7（直接） |
-| future depth $\hat D$、$\mathcal L_{depth}$、pseudo-depth target | 训练监督和反传 | 不生成、不缓存 | Eq. (9)-(10)、Algorithm 1（直接） |
-| shared video-action MoT 参数（含被深度损失塑形后的 history features） | 更新 | 保留 | §1、§3.2（直接）；“几何先验以权重形式留下”是跨段落推导 |
-| VAE、history RGB latent、history-action embedding、future action denoising、action head、text cross-attention、KV cache | 存在 | 保留 | §3.5、Algorithm 1（直接） |
-| future video flow path | 训练有未来 video noise 和 $ℒ_{video}$ | Algorithm 1 只写 action prediction；部署 geometry branch 明确移除 | 部署是否仍运行 video generation 未被代码核验；不得把未报告路径当作事实 |
+| $\mathbf R_\star,\mathbf R_t^\ell$、960 registers | 保留并更新 | 删除 | §3.2、§3.5、§4.7 |
+| 4 DepthBlocks、$\mathcal P_g$、$\mathcal G_\phi$ | 保留并更新 | 删除 | Eq. (7)–(10)、§4.7 |
+| future depth、$\mathcal L_{depth}$ | 生成并反传 | 不生成 | Eq. (8)–(10)、Algorithm 1 |
+| shared VA backbone | 接收三项 loss 的梯度 | 保留 | §3.1–§3.4 |
+| VAE、history/action embedding、action denoising、KV cache | 保留 | 保留 | §3.5、Algorithm 1 |
+| future-video generation path | 训练存在 | Algorithm 1 的 default action path 未写显式 video rollout | Eq. (2)–(5)、Algorithm 1；代码不可核验 |
 
-因此，“4D”是训练期几何塑形和可选 qualitative rollout 能力，不是部署时持久的 dense 4D tensor。推理端留下的是被 geometry loss 影响过的 video-action 参数和普通 observation/action cache；这是由 §1、§3.3 和 §4.7 共同推出的 derived interpretation。
+### 4.4 关键公式
 
-### 3.5 关键公式
+因果上下文与主干输入：
 
-主干 token 序列和 register 更新为：
+$$
+\mathcal C_t=\{l,O_t^{hist},a_{t-L_a:t-1}\},
+$$
 
-$$X_t^{(0)}=[Z_t^{hist},\tilde Z_t^{fut},A_t^{hist},\tilde A_t^{fut}],\qquad
-R_t^{\ell+1}=\operatorname{DepthBlock}_\ell(Q=R_t^\ell,K,V=[R_t^\ell,Z_t^{hist,\ell}]).$$
+$$
+\mathbf X_t^{(0)}=
+[\mathbf Z_t^{hist},\tilde{\mathbf Z}_t^{fut},
+\mathbf A_t^{hist},\tilde{\mathbf A}_t^{fut}],
+\qquad
+\mathbf X_t^{(\ell+1)}=\mathrm{VABlock}_{\ell}
+(\mathbf X_t^{(\ell)};\mathbf M_{VA}).
+$$
 
-深度读出和目标为：
+register 复制、更新与深度读出：
 
-$$G_t=P_g(\{R_t^{\ell+1}\}_{\ell\in\mathcal L_r}),\qquad \hat D_t^{fut}=G_\phi(G_t),$$
+$$
+\mathbf R_t^0=\mathrm{Repeat}_{\tau\in\mathcal T_t}(\mathbf R_\star),
+$$
 
-$$\mathcal L_{depth}=\frac{1}{\sum_{\tau\in T_t}|\Omega_\tau|}\sum_{\tau\in T_t}\sum_{p\in\Omega_\tau}
-\operatorname{SmoothL1}(\hat D_{\tau,p},D_{\tau,p}),$$
+$$
+\mathbf R_t^{\ell+1}=
+\mathrm{DepthBlock}_{\ell}
+\left(
+Q=\mathbf R_t^\ell,\;
+K,V=[\mathbf R_t^\ell,\mathbf Z_t^{hist,\ell}]
+\right),
+$$
 
-$$\mathcal L=\mathcal L_{video}+\lambda_{act}\mathcal L_{action}+\lambda_{depth}\mathcal L_{depth},\qquad \lambda_{act}=\lambda_{depth}=1.$$
+$$
+\mathbf G_t=\mathcal P_g
+\left(\{\mathbf R_t^{\ell+1}\}_{\ell\in\mathcal L_r}\right),
+\qquad
+\hat{\mathbf D}_t^{fut}=\mathcal G_\phi(\mathbf G_t).
+$$
 
-这些公式直接说明 depth loss 的梯度路径；它们不提供 FLOPs、带宽或训练 wall-clock。
+有效像素上的 depth 与总目标：
 
-### 3.6 训练/实验/部署设计
+$$
+\mathcal L_{depth}=
+\frac{1}{\sum_{\tau\in\mathcal T_t}|\Omega_\tau|}
+\sum_{\tau\in\mathcal T_t}\sum_{p\in\Omega_\tau}
+\mathrm{SmoothL1}(\hat D_{\tau,p},D_{\tau,p}),
+$$
 
-- 数据：RoboTwin 2.0 每任务 50 clean、500 randomized trajectories；真实 AstriBot S1 四任务各 100 demonstrations，10 physical rollouts/task。真实和 RoboTwin depth 均通过 offline Depth Anything 3 pseudo-depth pipeline 获得。
-- 输入：三视图（head + 两 wrist）mosaic；main 256x320、wrist 128x160；VAE stride 16 + 2x2 latent grouping 对应 32x32 register cell；最多 17 帧，8 future video/depth frames；action chunk 32，16-D absolute end-effector action。
-- 训练：LingBot-VA 初始化、Wan2.2 VAE、AdamW、$2\times10^{-5}/N$ 学习率（$N$ 为 machine 数）、10 warmup、clip 2.0、bf16 参数；main 50k steps、ablation 10k steps。机器型号/数量、batch、训练时间、峰值训练显存未报告。
-- 部署：单步维护 observation queue 和 executed-action history；VAE 编码后替换 video KV cache，action KV cache 追加历史，10 action denoising steps，执行 action chunk；每 4 actions 采集一个 observation。
+$$
+\mathcal L=\mathcal L_{video}
++\lambda_{act}\mathcal L_{action}
++\lambda_{depth}\mathcal L_{depth},
+\qquad
+\lambda_{act}=\lambda_{depth}=1.
+$$
 
-## 关键实验与证据
+这些式子证明 depth gradient 存在从 head/register 回到 history-video features 的路径；它们没有给出梯度对 action success 的充分因果性，也没有给训练 FLOPs。
 
-### 4.1 主结果
+### 4.5 训练、数据与部署设计
 
-Table 1：WAM4D clean 93.8%、randomized 89.9%、平均 91.8%；Fast-WAM 为 91.9/91.8/91.8，LingBot-VA 为 92.9/91.6/92.3。WAM4D 在 clean 比 Fast-WAM 高 1.9 个百分点，在 randomized 低 1.9 个百分点，平均相同；不能据此说 action quality 全面领先。
+- RoboTwin 2.0：每任务 50 clean 与 500 randomized demonstrations；full suite 50 tasks。几何监督使用带 depth annotation 的重采数据。
+- 真实 AstriBot S1：四类任务各 100 demonstrations，每任务 10 physical rollouts；sub-action 是顺序计分，前一步失败后后续记 0。
+- 观察：head + 两 wrist cameras；main 256×320、wrist 128×160，拼 mosaic。
+- temporal/action：最多 17 帧，8 future depth/video frames；action chunk 32，16-D absolute end-effector action；每执行 4 actions 获取新 observation。
+- 模型：LingBot-VA 初始化、Wan2.2 VAE；30 VA blocks；默认 960 registers。
+- 优化：AdamW，学习率 $2\times10^{-5}/N$（$N$ 是 machine 数），10 warmup steps，gradient clip 2.0，bf16 parameters；main 50k steps，ablation 10k。
+- 缺口：machine 型号/数量、batch、训练 wall-clock、optimizer state dtype、activation dtype、peak train memory、data preprocessing code 未报告/未开源。
 
-Table 2：AstriBot 四任务 sub-action 平均 WAM4D 0.90，优于 π0.5 0.74、LingBot-VA 0.84、Fast-WAM 0.80；每任务仅 10 rollouts，是真实机器人支持性证据而非大样本统计验证。
+## 5. 关键结论与技术 claim 证据矩阵
 
-### 4.2 消融和机制证据
+### 5.1 主结果
 
-![Table 7 register interface, placement, and visibility ablation](../assets/papers/wam4d/table7-register-interface-placement-visibility-caption.png)
+RoboTwin full suite：WAM4D clean 93.82%、randomized 89.86%、平均 91.84%；Fast-WAM 91.88/91.78，平均 91.83；LingBot-VA 92.90/91.50，平均 92.20。按论文 Table 1/3 的精确均值，WAM4D 相比 Fast-WAM clean +1.94 个百分点、randomized -1.92 个百分点，平均几乎相同；相比 LingBot-VA clean +0.92、randomized -1.64、平均更低。因此“competitive”成立，“全面优于现有 WAM”不成立。
 
-Table 7 在固定 depth head、10-task split 下比较接口/层位/可见性。No depth clean SR 71.7；middle registers 75.2，AbsRel 0.053、$\delta_1$ 0.945、CD1 0.0108、F-score 0.685、F-score-T 0.825；bidirectional SR 76.6 最高，但几何指标较 middle 多数下降，且其层位也改为 6/12/18/24，因此 visibility-only 因果效果未被完全隔离。VAE depth head 的几何指标弱于 register 变体，支持 register interface 选择，但同时改变了 head/interface。
+真实机器人 Table 2：WAM4D sub-action 平均 0.90，优于 $\pi_{0.5}$ 0.74、LingBot-VA 0.84、Fast-WAM 0.80。每任务只有 10 rollouts，且 sequential sub-action metric 不是独立 Bernoulli task success；这是支持性而非高统计功效证据。
 
-Table 8：trainable pretrained DA3 比 random-init/fixed-pretrained 在 10-task split 上获得最佳 selected metrics（clean SR 80.1、FVD 164.5、AbsRel 0.049、F-score-T 0.848），但这是 head 初始化与可训练性组合的直接对比，不拆分两者各自贡献。
+系统 Table 9：单 A800 80GB、10 action denoising steps 下，WAM4D 525.43±5.64 ms/chunk、9.71 GiB；Fast-WAM 425.53±6.01 ms、11.55 GiB；$\pi_{0.5}$ 72.03±0.06 ms、8.45 GiB。WAM4D 比 Fast-WAM 慢约 23.48%，但峰值显存少约 15.93%；论文结论也承认 WAM 仍慢于 VLA。
 
-### 4.3 技术点证据矩阵
+![Table 9 compute and latency comparison](../assets/papers/wam4d/table9-deployment-latency-memory-caption.png)
 
-| 技术点 | 声称收益 | 证据 | 是否受控 | 分类 | 结论 |
-|---|---|---|---|---|---|
-| geometry branch / spatial registers | 几何一致性和 action features | Table 7、Table 6 No-depth vs register；Fig. 5 attention | 大体 matched；接口/层位会共同变化 | direct ablation + mechanism visualization | 部分支持 |
-| causal visibility 防 future shortcut | 因果 action generation | Fig. 2、§3.3；Table 7 bidirectional | visibility 行同时改层位 | confounded/indirect | 机制明确，隔离证据不足 |
-| middle insertion layers | geometry/control balance | Table 7 shallow/middle/deep/uniform | 固定 head、数据和预算；多指标 trade-off | replacement baseline | 部分支持 |
-| pretrained trainable DA3 | 强几何先验和适配 | Table 8 | random/fixed/pretrained 设置直接对照 | direct ablation | 支持，但未拆 init 与 finetune |
-| deployment geometry removal | 低 inference cost | Algorithm 1、Table 9 | 没有同一模型 geometry on/off pair | direct deployment measurement, causal effect missing | absolute cost 有证据；加速归因未隔离 |
-| training efficiency | 轻量/快速总体训练 | 50k/10k budgets、Table 6 params | 无 wall-clock/FLOPs/train-memory | missing | 不可建立 |
+### 5.2 消融和机制证据
 
-### 4.4 四个核验问题的结论
+![Table 7 register interface, placement and visibility ablation](../assets/papers/wam4d/table7-register-interface-placement-visibility-caption.png)
 
-1. **训练-only geometry 与 inference tensors：明确。** 训练有 $R$、DepthBlocks、$P_g$、$G_\phi$、depth targets/loss；部署删除它们。保留的是共享 video-action backbone 的权重、VAE、history video/action tokens、future action denoising 和 KV cache。不存在论文证据表明部署保留显式 depth tensor。
-2. **Causal mixture attention 的 operator/memory 后果：机制级明确，kernel 级未知。** mask 限定信息流，训练额外运行 register-to-history cross-attention（960 queries、4 blocks）和 DA3 head；推理删除该分支，减少 branch 的参数/激活/KV。因果 mask 本身不自动等价于 block-sparse/fused kernel，源码不可用所以不能声称算子复杂度或带宽利用率变化。
-3. **4D consistency 是否单独建立：部分建立。** Table 6-8 的 AbsRel、$\delta$、Chamfer、F-score、F-score-T 和 Fig. 6 qualitative rollout 直接评估几何/时序点云质量；但这些结果来自可保留 geometry branch 的分析路径，部署 action-only policy 的“4D consistency”没有单独测试。
-4. **action、训练开销、deployment latency 是否分别建立：** action quality 有 full-suite、real-robot 和 matched 10-task ablations；training overhead 只有参数量结构差异（default 5.690B vs no-depth 5.089B，+0.601B、约 +11.8%）和训练 step budget，缺 wall-clock/FLOPs/peak train memory；deployment latency/VRAM 有 Table 1/9 单 A800 测量，但没有同一 WAM4D geometry on/off 配对，因此不能把 525.43 ms 的差异全部归因于删除 geometry branch。
+Table 7 在 fixed depth head 与 10-task split 下比较接口/层位。No depth clean SR 71.7；middle registers 75.2，同时取得最佳 unidirectional AbsRel 0.053、$\delta_1$ 0.945、CD1 0.0108、F-score 0.685、F-score-T 0.825。VAE depth head SR 70.7 且 geometry metrics 更弱，支持 register interface，但 VAE head 与 pretrained geometric head 也一起变化，不能把差异纯归因于 query interface。
 
-### 4.5 收益来源归因
+Bidirectional registers 的 clean SR 76.6 最高，却把层位同时改成 6/12/18/24，geometry metrics 多数低于 middle；因此不能据此隔离 visibility 的作用。Table 8 更干净：同 register interface 下，trainable pretrained DA3 的 clean SR 80.1、FVD 164.5、AbsRel 0.049、F-score-T 0.848，优于 random-init 与 fixed-pretrained，直接支持“pretraining + adaptation”组合，但仍不能单独分解初始化和训练性的交互。
+
+### 5.3 技术 claim 证据矩阵
+
+| 技术点 | 声称收益 | 对应证据 | 对照 | 指标变化 | 证据强度 | 结论 |
+|---|---|---|---|---|---|---|
+| spatial register geometry branch | geometry-aware action features | Tables 6–8、Figure 5 | no-depth / VAE head / placements | no-depth 71.7 SR；trainable DA3 80.1 | direct but bundled | partially-supported |
+| causal mixture visibility | 阻止 non-causal shortcut | Figure 2、§3.3、Table 7 bi-dir | visibility 与层位同时变化 | bi-dir SR 高、geometry 较差 | confounded + mechanism | plausible，未隔离 |
+| middle-layer placement | geometry/control balance | Table 7 | shallow/middle/deep/uniform | middle 最佳 unidirectional geometry/control balance | replacement baseline | partially-supported |
+| trainable pretrained DA3 | prior + domain adaptation | Table 8 | random/fixed/trainable | selected metrics 全面最佳 | direct ablation | supported |
+| three-view aligned grid | spatial correspondence | §3.5 | 无 grid/view sweep | 无独立 delta | mechanism-only | unverified |
+| SmoothL1 valid-pixel objective | robust depth supervision | Eq. (9) | 无 loss sweep | 无独立 delta | none beyond formulation | plausible |
+| branch removal | lightweight action inference | Figure 3、§4.7、Table 9 | 无 WAM4D geometry on/off | absolute 525.43 ms/9.71 GiB | direct system measurement, causal missing | partially-supported |
+| “fast 4D” | 比显式 4D deployment 更轻 | Figure 1、Table 9 | 无 TesserAct/X-WAM matched table | 仅跨模型成本 | indirect/confounded | 范围应收窄 |
+| long-term 4D consistency | occlusion 后保持 identity | Figure 7 | failure case | 明确失败 | direct qualitative counterexample | unsupported as general claim |
+
+### 5.4 收益来源归因
 
 | 组件/变化 | 对比基线 | 指标变化 | 影响路径 | 证据强度 |
 |---|---|---|---|---|
-| trainable pretrained DA3 + registers | No depth（Table 6） | clean SR 71.7 -> 80.1；random SR 69.1 -> 75.4；F-score-T 0.685 -> 0.848 | geometry feature shaping + head adaptation | direct but bundled |
-| middle placement | shallow/deep/uniform | middle AbsRel 0.053、F-score 0.685、F-score-T 0.825；shallow RGB metrics better | geometry/control vs denoising trade-off | matched replacement baseline |
-| bidirectional register visibility | default middle unidirectional | SR 76.6 vs 75.2，但 F-score 0.579 vs 0.685 | register->VA information and changed insertion layers | confounded; rough comparison only |
-| geometry removal at serving | WAM4D 525.43 ms / 9.71 GiB vs Fast-WAM 425.53 ms / 11.55 GiB | WAM4D +23.48% latency, -15.93% VRAM | full model/runtime differences, not only geometry branch | direct system table; causal attribution missing |
+| full trainable-pretrained register branch | no depth | clean SR 71.7→80.1，random SR 69.1→75.4，F-score-T 无→0.848 | geometry supervision + head prior/adaptation + capacity | direct but bundled |
+| trainable pretrained head | fixed pretrained | clean SR 75.2→80.1，AbsRel 0.053→0.049，F-score-T 0.825→0.848 | domain adaptation of head and shared features | matched direct ablation |
+| middle placement | shallow | clean SR 72.5→75.2，AbsRel 0.058→0.053；FVD 168.8→179.8 | geometry/control improves while RGB generation worsens | replacement baseline |
+| bidirectional setting | middle unidirectional | clean SR 75.2→76.6，F-score 0.685→0.579 | visibility plus changed layer set | rough/confounded |
+| default inference | Fast-WAM | latency +99.90 ms (+23.48%)，VRAM -1.84 GiB (-15.93%) | whole-model/runtime differences | direct table, not component attribution |
 
-## 5. Related Work 对比
+不能把 71.7→80.1 全部归因于“register tokens”，因为该 bridge 同时改变 head prior、head trainability、parameter count 与 depth loss。最小补实验应固定 backbone/head/capacity，仅替换 readout interface；另固定 6/12/18/24 层，只切 unidirectional/bidirectional mask；最后做同 checkpoint geometry branch on/off 的 latency/FLOPs/memory。
 
-| 类别 | 方法核心 | 本文差异 | 公平性/局限 |
-|---|---|---|---|
-| 2D WAM | LingBot-VA、Fast-WAM、Motus 联合视频/动作或 latent imagination | WAM4D 增加 training-only geometry prior；部署 action-only | Table 1 统一 denoising setting，但部分 baseline 数字来自既有报告（Table 3 caption） |
-| 显式 4D world model | TesserAct、Kinema4D、X-WAM 生成/拼接 geometry 或 RGB-D future | WAM4D 不把 dense geometry 作为部署目标 | Fig. 1 是概念对比，不是同预算实验 |
-| geometric foundation | DA3/Dust3R/VGGT 类 depth/point prior | 作为 teacher/head，经 registers 反向塑造 WAM features | DA3 pseudo-depth 数据管线和 head 训练状态影响结果 |
-| spatial VLA | SpatialVLA、PointVLA、GeoVLA 等把 geometry 注入直接 policy | WAM4D 预测 future video+action，并用 geometry 作为辅助监督 | 任务、数据和模型范式不同，不能直接横比 |
+## 6. Related Work 对比
 
-## 6. OpenReview 公开评审 × 论文内容交叉核验
+| 类别 | 方法核心 | 优点 | 局限 | 与 WAM4D 的关系 |
+|---|---|---|---|---|
+| direct VLA / spatial VLA | observation-language 直接到 action，或注入 3D input/prior | action loop 短 | future dynamics 隐式 | WAM4D 同时训练 future video/action，并用 future depth辅助 |
+| 2D/latent WAM | LingBot-VA、Fast-WAM、MotuBrain 联合或训练期建模 video/action | 利用视频先验 | contact geometry 隐含 | WAM4D 加 training-only geometry readout |
+| explicit 4D WAM | TesserAct、Kinema4D、X-WAM 输出/拼接 geometry 或 RGB-D | 可观察 dense future state | inference decoding/optimization 成本 | WAM4D 默认部署删除 geometry |
+| geometric foundation model | DA3、DUSt3R、VGGT 等恢复 depth/point/camera | 强几何 prior | 不直接产生 robot action | WAM4D 将 DA3 head 作为可训练 readout |
 
-未发现该 arXiv-only 条目的公开 OpenReview 页面；任务包也给出 `openreview_url: unknown`。因此没有 reviewer claim、decision 或 rebuttal 可交叉核验。此项为 not-applicable，不代表未来转投版本没有评审。
+公平性边界：Figure 1 是概念路径对比，不是同模型、同数据、同 denoising steps 的系统基准；Table 1 的部分 baseline 数字来自各自报告。不同范式的 latency/quality 不应做单因果排名。
 
-## Infra 与部署
+## 7. OpenReview 公开评审 × 论文内容交叉核验
 
-### 7.1 算力和参数
+- OpenReview 链接：未发现。
+- 访问日期：2026-07-25。
+- decision/meta-review/rebuttal：未发现。
+- 精确标题 API 匹配：0；原始 broad response 与筛选边界见 公开评审核验记录。
 
-Paper-reported：5.690B default transformer parameters（Table 6），no-depth 5.089B；default geometry training 还包括 DA3 head、4 DepthBlocks、adapters。训练 50k main / 10k ablation steps，bf16 parameters，AdamW；设备与 step time 未报告。
+因此本节为 `skipped-with-reason`。没有 reviewer claim 被当作证据；“无匹配”也不证明未来、私有或改题投稿不存在。
 
-Derived：参数差 $0.601$B，约 $(5.690-5.089)/5.089=11.8\%$。这只是模型规模差异，不是训练 FLOPs 或时间差；DA3 head 参数是否计入 “Transformer Params” 也未澄清。
+## 8. Infra 需求分析
 
-### 7.2 显存与存储
+### 8.1 算力与参数
 
-Table 9 single A800 80GB inference：WAM4D 9.71 GiB、Fast-WAM 11.55 GiB、LingBot-VA 12.97 GiB。WAM4D 比 Fast-WAM 少 1.84 GiB（15.93%），比 LingBot-VA 少 3.26 GiB（25.13%）。训练 register activations、DA3 activations、optimizer states 的峰值显存没有报告；960 registers 只给出 token 数，hidden width、dtype/layout 未给出，无法可靠换算 bytes。
+Paper-reported：default transformer parameters 5.690B，no-depth 5.089B，bidirectional 5.841B，VAE depth head 5.744B（Table 6）。默认与 no-depth 差 $0.601$B，约 11.81%；这是 transformer capacity delta，不是几何 head 完整参数或训练 FLOPs。
 
-### 7.3 Data Types / 数值格式
+训练期 register cross-attention 的主要 score 规模可写为：
 
-| 对象 | 格式 | 阶段 | 硬件依赖 | 影响 | 证据 |
+$$
+\mathrm{Scores}_\ell\propto N_R(N_R+N_H),
+$$
+
+其中 $N_R=960$，$N_H$ 是合法 history-video token 数；论文未给 hidden width、heads、batch 或 kernel，不能数值化 FLOPs。部署删除该项，但缺同模型 profile。
+
+### 8.2 显存与存储
+
+register activation 下界形式为：
+
+$$
+\mathrm{Bytes}_{register}\approx N_R\,d\,b\,n_\ell,
+\qquad N_R=960,
+$$
+
+但 $d$、activation dtype $b$、saved tensors 与 checkpointing 均未知。bf16 只明确用于 parameters；不能自动假定所有 activation、optimizer state、DA3 head 都是 bf16。
+
+Table 9 只报告 inference peak allocated memory：WAM4D 9.71 GiB，Fast-WAM 11.55 GiB，LingBot-VA 12.97 GiB。训练 peak、optimizer state、DA3 feature pyramid 与 register attention matrix 未报告。
+
+### 8.3 Data Types / 数值格式
+
+| 对象 | 数据类型/格式 | 阶段 | 硬件依赖 | 影响 | 证据 |
 |---|---|---|---|---|---|
-| model parameters | bf16 | training | accelerator support implied, exact kernel unknown | 可能降低 memory/compute，但数值收益未测 | §3.5 |
-| VAE/latent/depth/attention activations | 未报告 | train/infer | unknown | 不能据此估算 bandwidth 或 cache bytes | §3.5/Algorithm 1 |
-| actions | normalized float range [-1,1] | train/infer | none stated | 16-D action representation | §3.5 |
-| depth targets | DA3 pseudo-depth / real depth annotations | training | offline preprocessing | geometry supervision only; no deployment tensor | §4.1 |
+| model parameters | bf16 | training | accelerator bf16 support | 减少参数/计算流量的可能性，但收益未测 | §3.5 |
+| RGB input | pixels，经 Wan2.2 VAE latent | train/infer | VAE kernel unknown | 决定 video token 数 | §3.1、§3.5 |
+| action | normalized float，16-D absolute end-effector | train/infer | 未说明 | action embedding/denoising | §3.5 |
+| depth target | metric/pseudo depth，有效 pixel mask | training only | offline DA3 pipeline | geometry supervision | Eq. (9)、§4.1 |
+| attention/activation/KV | 未报告 | train/infer | unknown | 无法求 cache/带宽 | arXiv source: code unavailable |
+| quantization | 未报告 | any | unknown | 不可声称 int8/fp8 收益 | paper/source |
 
-### 7.4 带宽、互联与高效利用
+### 8.4 带宽、互联与利用率
 
-论文没有 bytes moved、runtime breakdown、peak/achieved HBM bandwidth、PCIe/NVLink/RDMA 统计。可写出的结构公式仅为：
+定义：
 
-$$\text{register activation bytes}\approx N_R\times d\times b\times n_{layers},\quad N_R=960,$$
+$$
+B_{eff}=\frac{\mathrm{BytesMoved}}{\mathrm{RuntimeSeconds}},
+\qquad
+U_B=\frac{B_{eff}}{B_{peak}}.
+$$
 
-其中 hidden width $d$、每元素字节数 $b$、保存的 activation 层数均未报告，所以不能给出数值 bandwidth/utilization。训练为 multi-machine（学习率除以 $N$），但 all-reduce、通信拓扑、overlap、CPU staging 和 kernel fusion 未说明。部署 KV-cache 替换是论文报告的逻辑操作，不等于已测得的 memory bandwidth 优化。
+论文没有 bytes moved、HBM peak/achieved bandwidth、PCIe/NVLink/RDMA、all-reduce volume、kernel timeline 或 operator fusion，因此 $B_{eff}$ 与 $U_B$ 都不可求。训练学习率按 machine 数 $N$ 缩放只说明可能多机，不提供拓扑、data/model parallel 方式或通信 overlap。部署 KV-cache 替换是算法描述，不是 cache locality 或 bandwidth telemetry。
 
-### 7.5 CPU/GPU/NPU 异构执行
+| 路径 | 数据量 | 峰值/有效带宽 | 优化机制 | 瓶颈判断 | 证据 |
+|---|---:|---:|---|---|---|
+| register↔history attention | $O(N_R(N_R+N_H))$ scores | 未报告 | 默认部署整支路删除 | training compute/HBM，无法细分 | Eq. (7)、§4.7 |
+| VAE→VA tokens | 未报告 | 未报告 | observation queue / video KV replacement | VAE 或 HBM 可能瓶颈，未测 | Algorithm 1 |
+| action denoising | 10 steps | 未报告 | action KV append | compute/runtime，未分解 | Table 9、Algorithm 1 |
+| multi-machine training | 未报告 | 未报告 | 未说明 | communication unknown | §3.5 |
 
-latency/VRAM 仅在单 A800 80GB GPU 上报告；没有 NPU、CPU/GPU 分工、DMA、pinned memory、异步 copy、fallback 或 scheduler telemetry。VAE 编码、动作 cache 更新和物理机器人 I/O 在算法上必需，但具体落在哪个处理器及是否 overlap 均未知。不能将单 GPU 数字外推到异构部署。
+### 8.5 CPU/GPU/NPU 异构执行
 
-### 7.6 调度/Serving/自定义算子
+系统测量仅覆盖单 A800 80GB。论文没有 CPU preprocessing、camera I/O、host-device transfer、DMA/pinned memory、async copy、NPU kernel、fallback 或 scheduler placement。真实机器人闭环必然含相机、控制器和 GPU 之间的 I/O，但论文未计入 chunk latency 的边界，不能把 525 ms 解释为 end-to-end control SLA。
 
-Algorithm 1 明确了 observation queue、video/action KV cache、10 action denoising steps 和每 4 actions 采样一次 observation；未给 batching、CUDA graph、custom attention kernel、quantization、request scheduler 或 multi-stream。Causal mask 的 operator 级实现需源码确认。
+### 8.6 调度、Serving 与自定义算子
 
-## 代码状态与实现核验
+Algorithm 1 描述 observation queue、video/action KV cache、10-step action denoising，以及每 4 actions 重新观测；未报告 batch size、concurrent requests、CUDA Graph、FlashAttention、custom mask kernel、quantization 或 tail latency。causal mixture attention 是语义 mask；代码不可用，不能断言 dense masked attention、block sparse 或 fusion。
 
-- 仓库：PDF 作者块中的 `https://github.com/myendless1/wam4d`。
-- commit：unavailable；未 clone/访问（source 429 后按要求 local-only）。
-- 结论：论文级实现路径可以列出 `DepthBlock`、`DA3-GIANT-1.1 DualDPT`、`KV-cache` 等概念，但不能声称对应代码文件、kernel、checkpoint 或 release。任何“默认代码实现”的推断均不采用。
+## 9. 开源代码与 checkpoint 对照
 
-## 局限与证据边界
+- 作者声明仓库：`https://github.com/myendless1/wam4d`。
+- 匿名状态：HTTP 404；`git ls-remote` 无可用 HEAD。
+- commit / local snapshot / release / checkpoint revision：无。
+
+| 论文机制 | 代码路径 | commit 链接 | 一致性判断 |
+|---|---|---|---|
+| causal mask | unavailable | unavailable | 未核验 |
+| spatial register grid / DepthBlock | unavailable | unavailable | 未核验 |
+| DA3 adapter/head | unavailable | unavailable | 未核验 |
+| data/evaluation | unavailable | unavailable | 未核验 |
+| Algorithm 1 KV cache serving | unavailable | unavailable | 未核验 |
+
+权重与配置均未公开验证；5.690B 等只按 Table 6 记录，不推断 architecture class、hidden width、layers 之外的配置或 checkpoint 文件。
+
+## 10. 优点与局限
 
 ### 优点
 
-- 清楚把 geometry supervision 与 deployment geometry tensor 分开；§3.3/§4.7 对移除边界明确。
-- 表 7/8 同时报告 SR、视频、深度和点云指标，避免只以 depth loss 宣称 manipulation 改善。
-- Table 9 提供 A800 latency/VRAM 的可复核系统锚点；Table 2 提供真实机器人长时序任务的支持性证据。
+- 训练期 geometry 与部署 action interface 的边界写得清楚，避免把 dense 4D tensor 偷渡到 serving。
+- 同时报告 action、video、depth、point-cloud、latency 与 VRAM，证据类型比单一 SR 更完整。
+- Table 7/8 对接口、层位和 head prior 做了实际消融，并暴露 quality/control trade-off。
+- Figure 7 主动给出长 rollout 的 identity inconsistency failure。
 
 ### 局限
 
-- 没有 geometry branch on/off 的同模型 latency、FLOPs、训练 wall-clock、训练显存或带宽 breakdown，因而“fast”主要是部署配置的绝对结果和 WAM 间比较。
-- Table 7 bidirectional 对照同时改变 register 层位；causal mask 的独立因果作用未被完全隔离。
-- 4D consistency 指标来自 geometry-enabled analysis path；action-only deployment 的空间一致性没有单独 telemetry。
-- 10-task ablation 与真实任务样本有限；部分 baseline 结果来自既有报告，且训练数据/预算复现实况需代码核验。
-- 长 autoregressive rollout 无显式 long-term object memory，遮挡后可能出现 identity-inconsistent completion（Fig. 7；§4.6）。
-- TeX source、官方代码、权重和配置未核验，复现路径不完整。
+- “fast”缺同模型 geometry-on/off、训练 wall-clock/FLOPs/peak memory 与显式 4D baseline 的 matched profile。
+- causal visibility 对照被层位改变混杂；mask 的独立效果未证明。
+- 4D metrics 来自保留 geometry branch 的 analysis path，默认 action-only deployment 不维护可观测 4D state。
+- full-suite WAM4D 并未在平均 SR 上明显优于强 WAM；真实机器人每任务仅 10 rollouts。
+- paper/code/config/checkpoint 不一致无法核验；GitHub 链接在访问日 404。
+- 无长期 object memory，严重遮挡后 future rollout 会 object identity drift。
 
-## 研究启发
+### 可改进之处
 
-- 用严格的 same-backbone branch on/off 实验分别测训练 FLOPs、peak memory、latency、action SR 和 geometry metrics。
-- 固定 register 层位，只切换 visibility mask，隔离 causal mixture attention 的贡献。
-- 报告 inference geometry-on qualitative/geometry telemetry 与 action-only control 的关系，避免把 training readout 的 4D 能力外推为 deployment 4D state。
-- 开源 attention mask、register grid、DA3 adapter、KV-cache 和训练配置，并提供 commit-pinned checkpoint。
-- 在遮挡长时序加入 object memory/scene-state tracking，验证是否改进 Fig. 7 failure 而不恢复 dense geometry deployment。
+1. 固定 checkpoint/batch/denoising steps，报告 geometry on/off 的 operator time、FLOPs、peak train/infer memory 和 p50/p95 latency。
+2. 固定 6/12/18/24 层，仅切 visibility；固定 head/capacity，仅切 register vs future-video hidden。
+3. 公开 token shapes、dtype、mask、DA3 adapter、KV-cache 与完整 checkpoint metadata。
+4. 将 per-sample geometry quality 与 closed-loop action success 关联，检验“几何改善导致控制改善”的中间因果环。
+5. 增加 persistent object memory，并在遮挡分层 benchmark 上测 long rollout 与 control。
 
-## 待验证问题
+## 11. 研究启发
 
-1. default Train. DA3 的 5.690B 参数是否包含 geometric head；参数表的容量变化需 checkpoint/config 核验。
-2. geometry branch on/off 是否在同一 WAM4D backbone、同 batch、同 denoising steps 下测过训练和推理开销？
-3. Table 7 bidirectional 结果中，成功率提升来自 visibility 还是层位变化？
-4. causal mask 是否由 dense masked attention、block-sparse kernel 还是其他实现执行？
-5. action-only deployment 是否仍运行 future-video flow path，还是只运行 action denoising？论文 Algorithm 1 偏向后者，但代码不可核验。
-6. pseudo-depth 的 DA3 误差、深度尺度和真实传感器标定如何影响 AbsRel/point-cloud metrics？
-7. RoboTwin baseline 是否真正使用同一重采样数据、训练步数、相机和模型容量？
-8. 4D rollout 的 geometry quality 与 closed-loop action success 是否存在可测的样本级相关性？
+- training-only auxiliary readout 是把昂贵 foundation prior 注入低延迟 policy 的可迁移范式，但必须做 branch-removal 的 matched systems audit。
+- “causal”既是信息论边界，也是部署可用性边界；应把 visibility semantics 与 kernel implementation 分开报告。
+- 多目标模型应同时画 quality Pareto 与 systems Pareto，避免用一个 SR 或一个 latency 总结。
+- 4D capability 应分成 training readout、optional analysis rollout 和 default deployment state 三个层级。
 
-## 一句话总结
+## 12. 解读问题/待验证清单
 
-WAM4D 的关键桥接是训练时用 spatial registers 和 causal visibility 将 DA3 几何先验压入 video-action backbone，部署时完全移除 geometry branch；论文对几何/动作质量和部署绝对成本有证据，但没有隔离训练开销，也没有证明 branch removal 本身造成了多少 latency/memory 收益。
+1. Table 6 的 transformer parameter 是否包含完整 DA3 head？
+2. geometry branch on/off 的同模型训练与推理成本是多少？
+3. bidirectional 提升来自 visibility 还是 6/12/18/24 层位？
+4. causal mask 的实际 kernel 是 dense、block-sparse 还是 fused？
+5. default action inference 是否仍运行 future-video flow，还是只做 action denoising？
+6. pseudo-depth 的尺度、有效 mask 与 DA3 error 如何影响 AbsRel/point metrics？
+7. baseline 是否在完全相同数据、重采样、训练 budget 和 evaluation seed 下复现？
+8. 4D quality 与 action success 在样本级是否相关？
+9. chunk latency 是否包含 VAE、camera I/O、controller 与 host-device transfer？
+10. 未公开代码何时能固定 commit/checkpoint？
+
+## 13. 一句话总结
+
+WAM4D 的核心价值是把 future-depth 几何监督通过 causal spatial registers 压入共享 video-action features，并在默认部署删除整个 geometry branch；论文对几何、控制和绝对系统成本给出有用证据，但尚未隔离 causal mask、register bridge 与 branch removal 各自的收益，也没有可验证代码或训练成本闭环。

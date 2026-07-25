@@ -20,10 +20,10 @@
 ## 结论先行
 
 1. **首要约束是 deadline 与状态连续性。** 低层控制通常要求 20--100 Hz，高层 VLA/WAM 更适合 1--10 Hz 的动作块；均值吞吐不能替代 p95 deadline、过期观测与 fallback 设计。RT-2 的远程 serving、NaVILA 的双频结构和 MotuBrain 的频率声明都必须在各自边界内阅读，见 [RT-2 的 Infra 分析](../papers/rt-2.md#8-infra-需求分析)、[NaVILA 的 Infra 需求分析](../papers/navila.md#8-infra-需求分析)、[MotuBrain 的 Infra 分析](../papers/motubrain.md#8-infra-需求分析)。
-2. **3D/4D 与 world model 的瓶颈正转向显存、token/activation 带宽和互联。** VGGT 的帧数-显存测量、Cosmos 的长上下文并行以及 WAM4D 的训练期几何分支说明，这类模型不能按端侧 TOPS 单独估算，[VGGT 实验](../papers/vggt.md#关键实验与证据)、[Cosmos Infra](../papers/cosmos-world-foundation-model.md#8-infra-需求分析)、[WAM4D 部署](../papers/wam4d.md#infra-与部署)给出原始边界。
+2. **3D/4D 与 world model 的瓶颈正转向显存、token/activation 带宽和互联。** VGGT 的帧数-显存测量、Cosmos 的长上下文并行以及 WAM4D 的训练期几何分支说明，这类模型不能按端侧 TOPS 单独估算，[VGGT 技术点证据矩阵](../papers/vggt.md#52-技术点证据矩阵与消融机制证据)、[Cosmos Infra](../papers/cosmos-world-foundation-model.md#8-infra-需求分析)、[WAM4D Infra](../papers/wam4d.md#8-infra-需求分析)给出原始边界。
 3. **action chunk、receding horizon、KV/feature cache 与 action-only 是把大模型接入控制环的共同接口。** ACT 和 Diffusion Policy 分别用 chunk/ensemble 与多步去噪处理操作；OpenVLA、RT-2 使用 action token；MotuBrain 把重复视频输出裁成 action suffix。它们并不消除视觉前缀和安全闭环成本，见 [ACT 研究方法](../papers/act.md#4-研究方法)、[Diffusion Policy 方法](../papers/diffusion-policy.md#4-研究方法)、[OpenVLA Infra](../papers/openvla.md#8-infra-需求分析)、[MotuBrain 研究方法](../papers/motubrain.md#4-研究方法)。
 4. **量化主要节省权重/激活流量与显存，并不自动降低所有计算。** OpenVLA 的 int4 和 NaVILA 的 W4A16 都有直接的容量、延迟或成功率测量，但真实收益取决于 fusion、算子覆盖和 fallback，[OpenVLA 技术点证据矩阵](../papers/openvla.md#52-技术点证据矩阵)、[NaVILA 技术点证据矩阵](../papers/navila.md#52-技术点证据矩阵与消融机制证据)。
-5. **“能生成未来”与“能安全控制”是两条证据链。** Genie 和 Cosmos 对 latent action、视频预测和数据生成有证据，但秒级视频生成不是在线伺服；WAM4D 的训练几何分支可移除，但缺少匹配的 on/off 延迟消融，[Genie 实验](../papers/genie.md#关键实验与证据)、[Cosmos 技术 claim 矩阵](../papers/cosmos-world-foundation-model.md#5-关键结论与技术-claim-证据矩阵)、[WAM4D 局限](../papers/wam4d.md#局限与证据边界)。
+5. **“能生成未来”与“能安全控制”是两条证据链。** Genie 和 Cosmos 对 latent action、视频预测和数据生成有证据，但秒级视频生成不是在线伺服；WAM4D 的训练几何分支可移除，但缺少匹配的 on/off 延迟消融，[Genie 实验](../papers/genie.md#关键实验与证据)、[Cosmos 技术 claim 矩阵](../papers/cosmos-world-foundation-model.md#5-关键结论与技术-claim-证据矩阵)、[WAM4D 局限](../papers/wam4d.md#10-优点与局限)。
 
 ## 范围与比较规则
 
@@ -35,7 +35,7 @@
 
 ### 3D 感知：从任务融合到多视图 token backbone
 
-EmbodiedScan 将 RGB-D、文本、3D detection/grounding/occupancy 放入统一多视图 benchmark；稀疏与稠密融合分别服务不同输出。[研究方法](../papers/embodiedscan.md#4-研究方法)与[技术 claim 证据矩阵](../papers/embodiedscan.md#51-技术-claim-证据矩阵)说明多视图投影和 feature volume 是实际负担，同时 grounding evaluator 的 AP 语义仍有实现级边界。VGGT 进一步将相机、深度、点图和 tracking 压入 feed-forward transformer，frame/global alternating attention 仅降低全局注意力常数，并未消除随帧数增长的 activation，[方法](../papers/vggt.md#方法与实现)和[运行时实验](../papers/vggt.md#关键实验与证据)给出边界。
+EmbodiedScan 将 RGB-D、文本、3D detection/grounding/occupancy 放入统一多视图 benchmark；稀疏与稠密融合分别服务不同输出。[研究方法](../papers/embodiedscan.md#4-研究方法)与[技术 claim 证据矩阵](../papers/embodiedscan.md#51-技术-claim-证据矩阵)说明多视图投影和 feature volume 是实际负担，同时 grounding evaluator 的 AP 语义仍有实现级边界。VGGT 进一步将相机、深度、点图和 tracking 压入 feed-forward transformer，frame/global alternating attention 仅降低全局注意力常数，并未消除随帧数增长的 activation，[研究方法](../papers/vggt.md#4-研究方法)和[技术点证据矩阵](../papers/vggt.md#52-技术点证据矩阵与消融机制证据)给出边界。
 
 趋势是把 3D 从独立感知结果转成可对齐语言、动作与历史状态的 token 前缀；训练期的 4D 几何监督会增加显存和互联压力，而部署期通常尝试裁掉 decoder。
 
@@ -47,7 +47,7 @@ EmbodiedScan 将 RGB-D、文本、3D detection/grounding/occupancy 放入统一�
 
 ### 导航：模块化异构 pipeline 到双频控制
 
-[VLFM](../papers/vlfm.md#核心机制与贡献)串联 VLM 分数、地图、frontier、检测和 PointNav；其工程瓶颈可能是同步 RPC、CPU map 更新、序列化和模型等待，而非单个 GPU kernel，[部署边界](../papers/vlfm.md#infra-与部署)没有 profiler 支撑，需保持推断性质。[NaVILA](../papers/navila.md#4-研究方法)显式把语言中层动作交给低层腿式策略执行；RTX 4090 单样本量化 latency 不能推成实机 50 Hz，[技术点证据矩阵](../papers/navila.md#52-技术点证据矩阵与消融机制证据)明确了这一界限。
+[VLFM](../papers/vlfm.md#4-研究方法)串联 VLM 分数、地图、frontier、检测和 PointNav；其工程瓶颈可能是同步 RPC、CPU map 更新、序列化和模型等待，而非单个 GPU kernel，[Infra 边界](../papers/vlfm.md#8-infra-需求分析)没有 profiler 支撑，需保持推断性质。[NaVILA](../papers/navila.md#4-研究方法)显式把语言中层动作交给低层腿式策略执行；RTX 4090 单样本量化 latency 不能推成实机 50 Hz，[技术点证据矩阵](../papers/navila.md#52-技术点证据矩阵与消融机制证据)明确了这一界限。
 
 稳定设计是语义决策与低层执行分频，并将地图、历史观测、失败恢复作为持续状态，而不是每次调用重新建立上下文。
 
@@ -65,7 +65,7 @@ world model 的价值在于预测、数据闭环、候选分支与不确定性�
 
 ### WAM：统一视频动作和 4D 几何的早期形态
 
-[MotuBrain](../papers/motubrain.md#4-研究方法)统一视频、文本与动作流，累积使用步数缩减、compile、FP8、cache 与 action-only；其表格是按顺序堆叠的累计测量，单项增益不可相乘，[Infra 边界](../papers/motubrain.md#8-infra-需求分析)也未公开完整 runtime 条件。[WAM4D](../papers/wam4d.md#核心机制与贡献)以 spatial register 与因果可见性把训练期几何监督连到动作主干；默认推理移除几何 head，但 register attention 仍有 token 成本，[实验](../papers/wam4d.md#关键实验与证据)尚不能证明“几何收益零延迟”。
+[MotuBrain](../papers/motubrain.md#4-研究方法)统一视频、文本与动作流，累积使用步数缩减、compile、FP8、cache 与 action-only；其表格是按顺序堆叠的累计测量，单项增益不可相乘，[Infra 边界](../papers/motubrain.md#8-infra-需求分析)也未公开完整 runtime 条件。[WAM4D](../papers/wam4d.md#4-研究方法)以 spatial register 与因果可见性把训练期几何监督连到动作主干；默认推理移除几何 head，但 register attention 仍有 token 成本，[技术 claim 证据矩阵](../papers/wam4d.md#53-技术-claim-证据矩阵)尚不能证明“几何收益零延迟”。
 
 ## 负载分解与部署
 
