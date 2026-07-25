@@ -15,8 +15,8 @@
 
 ## 资产说明
 
-- `assets/papers/deepseek-v4/`：DeepSeek-V4 精读正文实际嵌入的源码图。
-- DeepSeek-V4 表格已整理为 Markdown 摘录，不再保留零引用的 caption/table 截图副本。
+- `assets/papers/deepseek-v4/`：DeepSeek-V4 精读正文实际嵌入、带完整 caption 且通过原分辨率 QA 的论文图表。
+- PDF、源码、页面渲染、裁剪过程和 QA 日志仅保留在过程工作区；正式目录不保留未引用的 legacy 图。
 
 ## 维护规则
 

@@ -4,7 +4,14 @@
 > - 文档类型：Survey
 > - 领域入口：[README](../README.md)
 > - 证据资产：无
-> - 相关文档：[DeepSeek-V4 精读](../papers/deepseek-v4.md)
+> - 相关文档：[DeepSeek-V4 精读](../papers/deepseek-v4.md) · [Figure inventory](../evidence/figure-inventory.md)
+
+## 修订信息
+
+- 当前版本：`1.1.0`
+- 修订日期：`2026-07-25`
+- 变更：补齐 DeepSeek-V4 精读的精确章节链接、公开实现边界和证据清单；模型规模主表不扩展到 Survey 未覆盖的新 Paper。
+- 结论影响：DeepSeek-V4 的公开 checkpoint/config 已核验，旧稿中“访问失败、无法独立核验”的边界不再成立；组件级因果归因仍受消融不足限制。
 
 ## 资料边界
 
@@ -12,7 +19,7 @@
 - 用途：横向梳理云侧和开权重大模型的公开参数量、精度、结构和 Attention 类型。
 - 证据边界：只填官方文档、模型卡、技术报告公开信息；未披露字段不做第三方猜测。
 
-其中 DeepSeek-V4 的 1M context、CSA/HCA、MoE overlap 与 KV cache 系统含义另见 [DeepSeek-V4 精读的 Infra 需求分析](../papers/deepseek-v4.md#6-infra-需求分析)。
+其中 DeepSeek-V4 的论文级动机闭环见[问题—方案闭环](../papers/deepseek-v4.md#2-研究动机与问题方案闭环)，CSA/HCA、mHC、MoE overlap 与 KV cache 系统含义见[研究方法](../papers/deepseek-v4.md#4-研究方法)和 [Infra 需求分析](../papers/deepseek-v4.md#8-infra-需求分析)，组件证据边界见[技术 claim 证据矩阵](../papers/deepseek-v4.md#52-技术-claim-证据矩阵消融和机制证据)与[收益来源归因](../papers/deepseek-v4.md#54-收益来源归因)。
 
 口径：最近半年按 `2026-01-06 ~ 2026-07-06`；只填官方文档、模型卡、技术报告公开的信息，未披露的不做第三方猜测。`Attn 类型` 指注意力机制本身，例如 `GQA`、`MLA`、具体稀疏 Attention 名称；`FlashAttention` 这类 kernel 不作为 Attn 类型。
 
