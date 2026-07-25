@@ -11,6 +11,17 @@
 > **范围**：高分辨率 VLM 理解、视频/世界模型生成、理解-生成统一模型；论文与源码证据以 NVIDIA CUDA 为主，另含面向非 SIMT DSA 的工程推演。
 > **证据包**：[选篇与图表证据](../evidence/selection.md)。原论文图均保留完整 caption；图的结论不替代正文和源码核验。
 
+## 修订信息
+
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-custom-attn-delivery-remediation-20260725`
+- 当前修订时间：`2026-07-25T23:30:00+08:00`
+- 替代版本：图文精读版（2026-07-21）
+
+| 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|
+| `rev-custom-attn-delivery-remediation-20260725` | `1.1.0` | `2026-07-25T23:30:00+08:00` | evidence-and-link remediation | 完成 canonical Paper/Evidence 所有权、精确章节链接、跨论文比较与证据边界复核 | 7 篇 canonical Paper、跨域 adoption Evidence、Figure inventory 与发布器校验 | material；不新增 Survey 范围外 Paper |
+
 ---
 
 ## 执行摘要：先回答五个问题
@@ -147,7 +158,7 @@ packed batch 组织为 $[R_0,G_0,R_1,G_1,\ldots]$，每个 $G_i$ 只读本样本
 
 **它解决什么**：teacher-forcing 能并行、稳定地训练 AR diffusion，但输入含 clean history 和 noisy target；推理时又是自生成 chunk。普通 causal mask 或一个 forward-only mask 都不足以表达其训练目标，更不能自动支持 Jacobian-vector product (JVP)。
 
-![Causal-rCM Fig.3](../../../../02_model_systems/multimodal_generation/assets/papers/causal-rcm/fig3_causal_training_paradigms_caption.png)
+![Causal-rCM Fig.3](../../../../02_model_systems/multimodal_generation/assets/papers/causal-rcm/fig3-causal-training-paradigms-caption.png)
 
 *原论文 Fig.3：TF 使用干净历史，DF 使用不同噪声级别的历史，SF 在自生成历史上 rollout 并使用 KV cache。图注完整保留。*
 
