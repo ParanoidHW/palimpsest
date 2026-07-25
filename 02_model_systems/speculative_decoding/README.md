@@ -13,6 +13,7 @@
 
 - Surveys：[Evolution](surveys/evolution.md)，[Foundations and trends](surveys/foundations-and-trends.md)
 - Papers：[P-EAGLE](papers/p-eagle.md)，[DFlash](papers/dflash.md)，[D2SD](papers/d2sd.md)，[JetSpec](papers/jetspec.md)，[HyperDFlash](papers/hyperdflash.md)，[DSpark](papers/dspark.md)
+- Evidence：[Figure inventory](evidence/figure-inventory.md)
 - Supplement：[DFlash draft-model acceptance risk](supplements/dflash-acceptance-risk.html)
 
 ## 资产说明
