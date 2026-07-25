@@ -1,202 +1,381 @@
-# Cosmos 3: Omnimodal World Models for Physical AI
+# Cosmos 3: Omnimodal World Models for Physical AI 精读分析
 
 > [!info] 文档关系
 > - 文档类型：Paper
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[Diffusion evolution](../surveys/diffusion-evolution.md)
 > - 证据资产：`../assets/papers/cosmos-3/`
-> - 相关文档：[Q&A supplement](../supplements/cosmos-3-q-and-a.md)，[Figure inventory](../evidence/figure-inventory.md)，[Model pipeline](../topics/model-pipeline.md)，[Training data](../topics/training-data.md)
+> - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
+
+> 资料状态：本交付以 arXiv:2606.02800v4（2026-06-23/24，139 页）为主证据，已重新获取 PDF、LaTeX source、官方 GitHub source snapshots、Hugging Face checkpoint metadata/config，并核对 NVIDIA 项目页。未发现公开 OpenReview forum；直接 API 查询在本环境返回 403。两张嵌入图均为 200 DPI PDF crop，包含单一编号对象和完整 caption。
+
+## 修订信息
+
+- 当前文档版本：`1.0.0`
+- 当前修订 ID：`rev-cosmos3-v4-initial`
+- 当前修订时间：`2026-07-25T20:51:30+08:00`
+- 替代版本：无；这是首次满足当前交付规范的正式版本。
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-cosmos3-v4-initial` | `1.0.0` | `2026-07-25T20:51:30+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 首次建立 v4 单篇精读、视觉证据、源码/代码/checkpoint/infra 核验及可验证 manifests | non-ICML Paper 交付完整性修复 | 本文各分析章节、公开评审边界与 [Figure inventory](../evidence/figure-inventory.md) | arXiv v4；固定 commit 官方 code/model metadata；schema/semantic validation | material |
 
 ## 0. 资料与配图索引
 
-- 论文：arXiv:2606.02800v1，139 页 technical report，2026-06-01；[官方摘要/PDF/source](https://arxiv.org/abs/2606.02800)。未发现公开 OpenReview forum/reviews/decision。
-- 代码：[NVIDIA/cosmos](https://github.com/NVIDIA/cosmos/tree/4e4f3001fae9238384f9551f1723fcb0f651c42c) 与 [NVIDIA/cosmos-framework](https://github.com/NVIDIA/cosmos-framework/tree/3a5314b7dd3c3abb84df71627ecb10ef8423dbdd)，本文按这两个快照核对模型、packing 与 attention；checkpoint 未下载，权重 metadata/配置只按论文与公开 collection 记录。
-- 图表：Figure 1 overview、Figure 5 MoT、Figure 6 mRoPE、Figure 14 infra、Figure 16 serving（编号以论文 v1 为准）；caption、source/PDF 页码、owner 与 QA 见 [figure inventory](../evidence/figure-inventory.md)。
-- 问答档案：原 Q1--Q12 已去重迁入 [Q&A supplement](../supplements/cosmos-3-q-and-a.md)，主 Paper 不再保存聊天式记录。
+- 论文：[arXiv:2606.02800v4](https://arxiv.org/abs/2606.02800v4) 官方 PDF/source。
+- 开源代码：
+  - [NVIDIA/cosmos](https://github.com/NVIDIA/cosmos) commit `bebca76311266941d06c5f5572fb601184ba24fa`；
+  - [NVIDIA/cosmos-framework](https://github.com/NVIDIA/cosmos-framework) commit `f734253f0f6af3e268372402f44435c38f55ef3e`。
+- Checkpoint metadata：`model_metadata/`；只核验公开 API、configs、文件清单与参数计数，未下载/运行权重。
+- OpenReview：公开评审核验记录；未发现公开 forum/reviews/decision/rebuttal。
+- 视觉：
+  - Figure 5 MoT mechanism：`../assets/papers/cosmos-3/fig5-mot-architecture-caption.png`；
+  - Table 29 FPS control ablation：`../assets/papers/cosmos-3/table29-fps-control-ablation-caption.png`；
+  - inventory 与逐图 QA：[Figure inventory](../evidence/figure-inventory.md)。
 
-![Cosmos 3 overview](../assets/papers/cosmos-3/overview.png)
+## 0.1 术语与符号解释
 
-## 0.1 符号表
+### 0.1.1 术语表
 
-| 符号 | 含义 | 作用域 | 单位/取值 | 来源 | 易混点 |
-|---|---|---|---|---|---|
-| $x_0,x_1$ | noise/data endpoint | diffusion token | latent/action vector | Sec. 4 | 论文使用 rectified flow，不是 DDPM $x_t$ 约定 |
-| $x_t=(1-t)x_0+t x_1$ | 线性插值状态 | per diffusion step | $t\in[0,1]$ | Sec. 4 | $t$ 也用于物理时间坐标，需按上下文区分 |
-| $v=x_1-x_0$ | flow velocity target | per token | latent units | Sec. 4 | 不等于视频 velocity |
-| $\mathcal L_{RF}$ | rectified-flow MSE | diffusion subsequence | scalar | Sec. 4 | AR token 不使用该 loss |
-| $(p_t,p_h,p_w)$ | unified 3D mRoPE 坐标 | per token | integer/scaled position | Fig. 6 | 语言令三轴相同；audio/action 仅时间轴变化 |
-| $k$ | modality temporal offset | packed sequence | 15,000 default | Sec. 2 / config | 不是 top-k |
-| $S_{AR},S_{DM}$ | AR 与 diffusion subsequence | per packed sample | token sequence | Fig. 5 | AR 在前、DM 在后 |
-| $N$ | diffusion sampling steps/BoN 数 | inference | config dependent | result tables | 必须区分 sampling steps 与 best-of-N |
-
-## 0.2 术语与模态表示
-
-| 术语 | 本文含义 | 不等于 | 证据 |
-|---|---|---|---|
-| Reasoner | text/vision understanding tower，输出 autoregressive text | 完整 Generator 的 causal path | Sec. 2, code wrappers |
-| Generator | image/video/audio/action rectified-flow generation path | 单一视频 DiT | Sec. 2--4 |
-| MoT | 每层为 AR/DM token 配置独立 norm、QKV、MLP 参数 | token-level sparse MoE/expert router | Fig. 5 |
-| two-way attention | AR causal attention + DM 对同样本 AR/DM 的 full attention | 单个 arbitrary mask kernel | Sec. 5 |
-| unified action | ego/effector relative pose + grasp state，经 domain-aware projection | 所有 embodiment 共用相同向量长度 | Fig. 3 |
-| physical-time alignment | video/audio/action 的位置增量按真实时长/FPS 映射 | tokenizer 的 token rate 完全相同 | Fig. 6 |
-
-## 1. 问题与模型家族
-
-Physical AI 同时需要理解观测、生成可控世界、预测动作后果与输出策略。传统栈把 VLM、video/audio generator、forward/inverse dynamics 和 policy 分成多个模型，语义、时间与部署接口割裂。Cosmos 3 用统一 packed token sequence 和 dual-tower MoT 覆盖 language、image、video、audio、action，但“统一”指架构/训练接口共享，不表示所有模态使用同一 tokenizer、loss 或输出头。
-
-三档 dense 模型共享 MoT：Edge 28 层/2048 hidden/16 heads；Nano 36/4096/32；Super 64/5120/64。三者均为 8 KV heads、128 head dim；FFN 分别 9216/12288/25600（Model Variants table）。Edge 是从头训练的 2B dense transformer；Nano/Super 从 Qwen3-VL 初始化。每层有两套 tower 参数，因此不能按单 tower 的常规 decoder 参数公式估算总量。
-
-## 2. 架构与 token/data flow
-
-### 2.1 Modality encoding
-
-- Language：离散 token 进入 AR subsequence，按 next-token prediction 训练。
-- Image/video understanding：vision encoder 产出理解 token，随文本进入 AR path。
-- Image/video generation：Wan2.2-TI2V-5B video VAE 把 media 转 latent，patch/projection 后进入 DM path。
-- Audio：audio VAE latent 进入 DM path；与 video 通过物理时间坐标对齐。
-- Action：不同 embodiment 先映射为 ego/effector relative pose、6D rotation 与 grasp state，再经 domain-aware input/output projection 适配可变维度。
-
-![Unified action representation](../assets/papers/cosmos-3/action-representation.png)
-
-### 2.2 MoT 与单向条件注入
-
-![Cosmos 3 MoT](../assets/papers/cosmos-3/mot-architecture.png)
-
-一条 sequence 先放 $S_{AR}$，再放 $S_{DM}$。每层 reasoner tower 只更新 AR token，generator tower 只更新 DM token；两者拥有独立 norm、attention projections、FFN。信息流通过 attention mask 连接：AR query 只能看历史 AR，DM query 可看同样本全部 AR 与 DM。这样 generator 读取 prompt/understanding context，而 noisy DM state 不反向污染 reasoner hidden states。
-
-代码快照中 `Cosmos3VLTextMoTDecoderLayer` 分开处理 understanding/generation token；`PackedAttentionMoT` 添加 generation Q/K/V/out projections；Reasoner wrappers 通过 drop patterns 不加载 generation/audio/action 权重。这里的“参数隔离”由代码支持，“完全无训练干扰”则没有独立梯度干扰实验。
-
-### 2.3 Unified 3D mRoPE 与物理时间
-
-![Cosmos 3 mRoPE](../assets/papers/cosmos-3/mrope-coordinate-assignment.png)
-
-语言 token 使用 $p_t=p_h=p_w$；video 同时改变时间和二维空间；audio/action 只改变 $p_t$，令 $p_h=p_w=0$。FPS modulation 把 frame index 映射到以 24 FPS 为基准的物理时间，例如
-
-$$
-p_t(i;f)=p_0+i\frac{24}{f},
-$$
-
-使相同真实时长在 16/24/30 FPS 下占据相近时间范围。不同模态 TPS 不需要相等，只需其 token timestamp 投影到同一物理轴。默认 temporal modality margin $k=15000$ 将 AR 与 DM 时间范围分开；这是 position-index 约束，不是 wall-clock delay。
-
-## 3. 训练目标与阶段
-
-AR subsequence 使用 causal cross entropy；DM subsequence 使用 rectified flow。以 $x_0\sim p_0$、$x_1\sim p_{data}$：
-
-$$
-x_t=(1-t)x_0+t x_1,\quad v=x_1-x_0,\quad
-\mathcal L_{RF}=\mathbb E\|v_\theta(x_t,t,c)-v\|_2^2.
-$$
-
-不同 modality 的 loss 在 packed sequence 内按 segment/index 选择，不应把 causal mask、full attention mask 与 loss mask 淵称为一个 mask。
-
-### 3.1 Reasoner
-
-Reasoner curriculum 总计约 24.2M samples：22.0M pre-training 与 2.2M SFT，覆盖 image-text、video-text、text-only 的 OCR、caption、VQA、grounding、reasoning 和 Physical AI instruction。sample 数不是 token 数，且多媒体长度差异很大。
-
-![Reasoner pretraining mixture](../assets/papers/cosmos-3/reasoner-pretraining-mix.png)
-
-### 3.2 Generator
-
-Generator 从 Reasoner 初始化。Pre-training 先覆盖 image/video/audio；reasoner tower 冻结，更新 generation-specific 参数。Mid-training 引入 action 与 transfer，并调整 modality ratio。Post-training 再派生 Super-T2I、Super-I2V 与 Nano-Policy-DROID 等专用模型。冻结 understanding tower 有助保持能力，但相关收益与初始化、数据、训练预算捆绑；Appendix 的 understanding-tower initialization ablation 只部分支持 Physical AI domain 优势。
-
-![Generator data curriculum](../assets/papers/cosmos-3/data-curriculum.png)
-
-## 4. Data construction
-
-- Generator media data经过 dedup、质量/美学/运动/文本匹配过滤、caption/prompt upsampling 与 resolution/FPS bucket；另包含 DriveSim、RobotSim、Warehouse、PhyxSim、SynHuman 等 synthetic data。
-- Multi-view action 把多个 camera view 拼成 canvas，并在结构化 JSON prompt 中保存 layout metadata；动作按 embodiment/domain 归一到共享几何语义，但 projection 仍是 domain-specific。
-- Audio 从 video audio 建模事件同步，论文提供 qualitative alignment 与 SoundBench/AVBench 指标；不能用单张 spectrogram 个案证明全局同步。
-- Joint loader 按 token budget packing，不按 sample count padding；ratio sampler 维持全局 modality mixture。
-
-## 5. Infrastructure
-
-![Cosmos 3 infra](../assets/papers/cosmos-3/infra-overview.png)
-
-### 5.1 JointDataLoader
-
-异构样本的 token 长度和 preprocessing 成本差异极大。loader 使用 token-budgeted packing、rank-synchronous stream selection、look-ahead packing、cold-start handling、异步 workers 与 pinned-memory prefetch。同步 stream 选择避免不同 rank 在同一 step 执行不同计算图导致 collective hang；其代价是全局调度与 slow stream 可能形成 straggler。
-
-![Joint data loader](../assets/papers/cosmos-3/joint-dataloader.png)
-
-### 5.2 Two-way flat attention
-
-任意 block mask 的 baseline 被 lower 为两次 varlen attention：对 AR indices 做 causal call，对 DM query 与本 sample 的 AR+DM K/V 做 full call，再 scatter 回 packed layout。其复杂度近似
-
-$$
-C_{attn}\propto |S_{AR}|^2/2+|S_{DM}|(|S_{AR}|+|S_{DM}|),
-$$
-
-语义等价于 two-way mask，但 runtime 收益来自可用 FlashAttention-3/varlen kernel、减少通用 mask materialization。知识库整理图只用于解释 lowering，不是论文原图：
-
-![Two-way attention lowering](../assets/papers/cosmos-3/two-way-attention-infra.png)
-
-### 5.3 Parallelism、checkpoint 与 tokenizer
-
-训练结合 HSDP 与 Ulysses context parallelism；selective activation checkpointing 避免对低成本算子过度重算；`torch.compile`、Wan tokenizer chunking、45 个静态 shape 的 sharded AOTInductor compilation、异步 checkpoint 共同降低非模型开销。异步 checkpoint 相对 30 分钟同步保存使 Nano/Super end-to-end training time 分别下降 4%/9%（Checkpointing table），这不是模型算法加速。
-
-Nano/Super steady-state 在 GB200 上分别用 2048/4096 GPUs；7.1/19.5 s per iter，520/673 TFLOPS per GPU，MFU 0.23/0.30。论文给出真实规模和 MFU，但没有完整 cluster network/energy telemetry；MFU 也不能替代 HBM/NVLink utilization。
-
-### 5.4 Serving
-
-![Cosmos 3 serving latency](../assets/papers/cosmos-3/serving-latency.png)
-
-serving 路径包含 AR reasoner loop 与 diffusion generator loop。论文/代码讨论 context parallelism、CFG parallelism、reasoner tower caching、batching、Cache-DiT、FP8 与 vLLM-Omni。Figure 16 比较 Nano 720p T2V/T2I 在 H100 NVL/B200 的单 GPU latency，以及 Nano/Super 在 B200 1--8 GPU scaling。每个优化影响不同：cache 减少重复 reasoner compute，CFG/CP 增加并行度，FP8 降低 compute/HBM bytes；不能把综合 latency 全归因于 attention kernel。
-
-## 6. Experiments 与主结果边界
-
-论文覆盖 48 个 Reasoner benchmark、T2I/T2V/I2V、audiovisual、transfer、forward/inverse dynamics、policy 与 physics benchmarks。结果不是一个统一 scalar：不同 post-trained variant、prompt、sampling steps、guidance、BoN/reward reranking 和 closed/open baseline 必须分别解读。
-
-| Claim | 证据 | 控制程度 | 判断 |
-|---|---|---|---|
-| MoT 统一多类任务 | architecture + 全任务覆盖 | 无 single-tower matched ablation | 支持可行性，不证明架构最优 |
-| Cosmos Reasoner 初始化更适合 Physical AI | Appendix understanding-tower ablation | 相同 generator tower 设置 | 较强，但限 PAIBench domain |
-| audio pre-training 改善 AV | Appendix audio ablation | shared video data | 直接支持所测指标 |
-| FPS modulation 改善运动控制 | FPS control ablation | text control / mRoPE variants | 直接支持 Nano 所测设置 |
-| synthetic data 提升生成 | SDG ablation | 多数据子集组合 | 部分支持，数据规模/域混杂 |
-| joint action modes 有 synergy | PushT/robot domain studies | steps 与 mode 组合不总等预算 | 部分支持 |
-| T2I/I2V open-weight ranking领先 | Artificial Analysis snapshot 2026-05-28 | 外部 arena，版本会变化 | 时间点事实，不是永久 SOTA |
-| Policy leaderboard领先 | RoboArena/MolmoSpaces snapshots | benchmark-specific | 支持所测榜单，不等于真实世界通用 policy |
-
-## 7. 收益归因
-
-| 组件 | 影响路径 | 证据 | 归因边界 |
-|---|---|---|---|
-| Reasoner initialization | semantic/Physical AI conditioning | initialization ablation | 与预训练数据不可完全分离 |
-| MoT/two-way flow | 防止 noisy DM 污染 AR，允许 DM 读条件 | architecture/code | 缺 single-tower matched quality ablation |
-| modality curriculum | 增加 action/audio/transfer 能力 | stage results | 同时改变数据与训练步数 |
-| two-way flat attention | kernel/runtime | infra section | 不改变候选质量或 mask semantics |
-| loader/parallel/checkpoint | utilization/wall-clock | throughput/checkpoint tables | 不应归为模型质量收益 |
-| post-training/BoN | task quality | task tables | 不能归给 base model 单项 |
-
-## 8. Related Work
-
-| 类别 | 核心 | 优点 | 局限 | Cosmos 3 差异 |
+| 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
 |---|---|---|---|---|
-| VLM | AR understanding | 语言推理强 | 不生成连续 world state | 共享 Reasoner 并接 Generator |
-| Video DiT/flow | latent video generation | 视觉质量高 | action/audio/understanding 分离 | packed omnimodal sequence + MoT |
-| Transfusion/unified AR-diffusion | 混合 loss | 理解生成共模 | 模态/infra 规模较小 | 物理时间、action、双 tower 与平台化 infra |
-| VLA/world-action model | observation -> action | 任务闭环 | 生成世界/音频能力有限 | 同时建模 video/action modes |
+| Cosmos 3 | 以同一 MoT block family 联接文本/视觉理解与 image/video/audio/action flow generation 的模型家族 | omnimodal world model | 不等于所有模态共用 tokenizer、loss 或 output head | Paper Abstract、§2、Fig.5 |
+| Reasoner | 处理 AR subsequence 并做 next-token prediction 的理解路径 | understanding tower、AR tower | 不等于完整 Generator 的 conditioning+denoising 路径 | Paper §2.3；Fig.5；`unified_mot.py` |
+| Generator | 处理 DM subsequence，以 flow-matching/iterative denoising 生成连续模态的路径 | diffusion tower、generation tower | 不等于只生成视频；可承载 image/audio/action | Paper §2–4；Fig.5 |
+| Mixture-of-Transformers | 每层为 Reasoner 与 Generator 保留独立 norm/QKV/MLP 参数，同时在受控 attention operator 中耦合信息 | MoT、dual-tower | 不等于 token-level sparse MoE 或 router-based expert selection | Paper §2.3、Fig.5；`unified_mot.py` |
+| AR subsequence | packed sample 前部的文本及可选 ViT understanding tokens，采用 causal attention | $S_{AR}$、understanding stream | “AR”不表示视频逐帧自回归 | Paper §2.2–2.3 |
+| DM subsequence | packed sample 后部的 continuous/noisy generation tokens，query 可看同样本 AR+DM | $S_{DM}$、generation stream | 不等于 attention mask；DM 的 loss 是 flow matching | Paper §2.2–2.3、§4 |
+| dual-stream joint attention | 论文 Figure 5 的模型语义：AR query 只看历史 AR，DM query 看同样本全部 AR+DM | two-way attention semantics | 不等于一个 arbitrary dense mask tensor | Paper §2.3.2、Fig.5 |
+| two-way flat attention | training runtime lowering：拆成 causal varlen SDPA 与 generator full varlen SDPA 两次调用 | custom two-way attention | 不改变候选集/模型目标；它实现 Figure 5 语义并提升 kernel efficiency | Paper §5.2.2、Fig.14；`attention.py:112` |
+| unified 3D mRoPE | 在时间、高度、宽度三个坐标轴上给多模态 token 分配 rotary positions | multimodal RoPE | 不代表各 modality token rate 相同 | Paper §2.4、Eq.9 |
+| physical-time alignment | 以真实采样率/TPS 缩放 temporal increment，使 video/audio/action 落在可比时间轴 | FPS modulation | 不等于 wall-clock serving latency | Paper §2.4.2、Table 29；`mrope.py` |
+| DomainAwareLinear | 依据 embodiment/domain ID 选择 per-domain action projection 权重与 bias | domain-conditioned projection | 不表示所有机器人共享相同 action dimensionality | `domain_aware_linear.py:17`、`cosmos3_vfm_network.py:157-158` |
+| Joint Data-Loader | 按 token budget、stream ratio 和 rank-synchronous schedule 组织异构样本的 loader | joint loader | 不等于普通 sample-count batch sampler | Paper §5.2.1 |
+| PAIBench domain score | 用于 T2V/I2V Physical AI domain consistency 的评价汇总 | Domain | 不等于 perceptual Quality，也不等于真实闭环成功率 | Paper Table 28 |
 
-## 9. OpenReview 与代码对照
+### 0.1.2 符号表
 
-截至 2026-07-11 未发现公开 OpenReview review/decision/rebuttal。代码快照确认 `DomainAwareLinear`、3D rotary embedding、MoT projections/layers、two-way attention processor、sequence packing 以及只加载 understanding tower 的 wrappers。未下载 checkpoint，因而未核验实际 weight tensors、量化 config、全部 post-trained variant 或 gated files。
+| 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
+|---|---|---|---|---|---|---|
+| $S_{AR},S_{DM}$ | AR 与 diffusion subsequences | analysis-derived shorthand | per packed sample | token sequences | Fig.5；本分析 §4 | 论文图用 AR/DM，不是 loss names |
+| $Q_{AR},K_{AR},V_{AR}$ | Reasoner attention query/key/value | author-defined | per layer/head/token | tensors | Fig.5 | 只参与 AR causal self-attention；$K_{AR},V_{AR}$ 也供 DM conditioning |
+| $Q_{DM},K_{DM},V_{DM}$ | Generator attention query/key/value | author-defined | per layer/head/token | tensors | Fig.5 | $Q_{DM}$ 的 KV 是 AR+DM concat |
+| $x_0,x_1,x_t$ | noise endpoint、data endpoint 与线性插值状态 | author-defined | per diffusion token/time | latent/action units | Paper §4 | 与普通 DDPM 的 $x_0$ 命名习惯可能相反 |
+| $t$ | rectified-flow interpolation time | author-defined | per noisy sample | $[0,1]$ | Paper §4 | 不等于 physical timestamp |
+| $v$ | flow velocity target $x_1-x_0$ | author-defined | per token | latent/action units | Paper §4 | 不等于 video object velocity |
+| $v_\theta$ | 参数为 $\theta$ 的 conditional velocity predictor | author-defined | per token/model | latent/action units | Paper §4 | $\theta$ 是训练参数，不是 attention angle |
+| $c$ | conditioning context | author-defined | per sample | multimodal context | Paper §4 | 可含 AR/clean DM context |
+| $\mathcal L_{RF}$ | rectified-flow mean-squared-error objective | author-defined | per diffusion training batch | scalar | Paper §4 | 不作用于 AR next-token tokens |
+| $\mathrm{TPS},\mathrm{TPS}_{base}$ | 某模态与基准 temporal steps per second | author-defined | per modality | steps/s；base=6 for 24 FPS video with factor 4 | Paper §2.4.2、Eq.9 | video FPS 还要除 VAE temporal factor |
+| $\delta_t$ | mRoPE temporal increment | author-defined | per adjacent temporal token | position units | Eq.9 | 不是 serving step latency |
+| $\mathrm{VQ}$ | DOVER perceptual video quality | author-defined metric | per clip/FPS band | reported scale | Table 29 | 不能单独衡量 motion control |
+| $\mathrm{DD},\mathrm{DD}_{ref}$ | generated dynamic degree 与 reference-band mean | author-defined metric | per prompt/band | $[0,1]$ | E.2、Eq.11 | motion presence 不是 physical correctness |
+| $\mathrm{MC}$ | prompt-level normalized variability penalty | author-defined metric | per control setting | dimensionless | Eq.10 | 论文称 motion control term；越大并非必然越好 |
+| $\mathrm{MF}$ | motion fidelity $(1-|\mathrm{DD}-\mathrm{DD}_{ref}|)(1-\mathrm{MC})$ | author-defined metric | per clip/band | $[0,1]$ | Eq.11、Table 29 | 与 MFU 无关 |
+| $\mathrm{MFU}$ | model FLOPs utilization | author-defined system metric | per training run/GPU | ratio | Table 8 | 不等于 HBM/NVLink utilization |
+| $\mathrm{BytesMoved},\tau,\mathrm{BW}_{peak}$ | 搬运字节、运行时间与峰值带宽 | analysis-derived | per operator/run/device | bytes、s、bytes/s | 本分析 §8.4 | 论文未给足 counter，不能求数值 utilization |
 
-## 10. Data types、带宽与异构执行
+## 1. 论文基本信息
 
-- 论文报告训练全程 BF16；serving 提供动态 FP8 路径。低精度收益依赖 Hopper/Blackwell tensor cores、量化范围与 kernel coverage。
-- HBM bytes 至少包含 weights、activations、packed QKV、VAE/audio latents、indices 与 optimizer state。有效带宽仍为 $BW_{eff}=BytesMoved/t$；论文未给 bytes/counter，无法从 latency 反推利用率。
-- CPU 负责 media decode、filter、packing metadata、JSON/action preprocessing、request scheduling；GPU 负责 encoders/VAE、MoT、diffusion loop。Pinned memory 与 async prefetch用于重叠 H2D；AOT compilation 与 static shapes 把部分 Python/compiler 开销前移。
-- 多 GPU 依赖 HSDP collectives 与 Ulysses all-to-all；serving CP/CFG 会增加通信。1--8 GPU latency scaling 不能自动等同于线性 throughput scaling。
+- 标题：*Cosmos 3: Omnimodal World Models for Physical AI*。
+- 作者/机构：NVIDIA。
+- 版本：arXiv:2606.02800v4；技术报告而非已公开 peer-reviewed venue paper。
+- 模型范围：Edge 4B、Nano 16B、Super 64B，以及任务特化 post-trained variants。
+- 研究领域：omnimodal foundation model、world model、Physical AI、distributed training/serving。
+- 核心约束：离散 AR 与连续 diffusion objectives 不同；模态时间率、action dimensions、sample length 和 preprocessing cost 高度异构；训练与生成成本极高。
+- 开放性：code、weights、synthetic datasets、benchmark 均声明开放；本核验确认 Edge/Nano/Super Hub entries 公开且 ungated，但未下载权重执行。
 
-## 11. 局限与待验证清单
+## 2. 研究动机与问题—方案闭环
 
-- 模型、数据、post-training 与 inference tricks 同时变化，许多 headline gain 无法组件级隔离。
-- 139 页报告覆盖广，但任务协议、prompt、steps 与 baseline 公平性需逐表核验，不能合成单一 SOTA 结论。
-- Physical AI 的长期闭环 stability、rare safety event、sim-to-real 与机器人故障恢复仍不足。
-- 训练规模巨大；即使开源权重，复训练成本、数据许可与 synthetic pipeline 仍限制复现。
-- checkpoint/gated collection、model config 与代码 release 需要固定 revision 后再做 weight-level 对照。
-- serving 需要补 TTFT/step latency、batch/concurrency、P50/P99、HBM/NVLink counters、power 与 quality regression。
+### 2.1 出发点与背景痛点
 
-## 12. 结论
+`author-stated`：Physical AI agents 需要同时理解观测、解释时空事件、生成未来 world states、处理声音，并预测/产生动作。传统工程把 VLM、video generator、audio model、forward/inverse dynamics 与 policy 拼成多个专用模型，造成语义表示、时间坐标、训练数据和 serving interfaces 分裂（Abstract、§1、Conclusion）。
 
-Cosmos 3 的主要贡献是把 AR understanding 与 rectified-flow generation 组织成可训练、可 serving 的 omnimodal MoT 系统，并把 action 与物理时间纳入统一接口。最强证据来自公开架构/代码、部分 matched ablation 和大规模 infra telemetry；最弱环节是把庞大完整系统的榜单优势归因到任一单模块，以及对长期 Physical AI 闭环的外推。
+这不是单纯“模型更多”的维护问题。离散文本理解偏向 causal next-token objective，视觉/音频/动作生成偏向 continuous denoising；若强行共用单一 tower 和普通 causal mask，既难保持 AR 自回归语义，也难让 noisy generation tokens 得到全局条件。另一方面，若完全拆成独立模型，semantic/world knowledge 难以迁移，跨模态时间和 action interface 仍需额外 glue。
+
+### 2.2 现有方案为何不够
+
+- `author-stated`：专用 VLM/video/world-action models 无法用一个 flexible input-output interface 覆盖理解、生成、模拟和行动（§1）。
+- `author-stated`：普通 general-purpose mask/FlexAttention 虽语义正确，但遮蔽结构对 kernel 不透明，产生 padding-equivalent work，降低 tensor-core utilization 并增加 bandwidth pressure（§5.2.2）。
+- `inferred`：single-tower parameter sharing 会让两个 objective 在同一 norm/QKV/MLP 上直接耦合；论文用 dual tower 避免这种硬共享，但没有 single-tower matched ablation，因此“避免负迁移”仍是合理机制而非直接证成。
+- `author-stated`：不同 video FPS、audio hop rate、action sampling rate 若只按 token index 编码，会把相同真实时间映成不同 position distance（§2.4.2）。
+- `author-stated`：异构 sample length/preprocessing 让 padding、cross-rank stream mismatch、cold-start 和 checkpoint stalls 成为大规模训练 bottleneck（§5.2）。
+
+### 2.3 目标问题与成功标准
+
+核心目标是：在可扩展的单一 model family/interface 中，用正确 stage semantics 联合处理 language、image、video、audio、action，同时保持 Reasoner、Generator 能力，并提供能在 GB200/Hopper/Blackwell 集群训练和 serving 的实现。
+
+成功标准包括：
+
+1. `author-stated`：跨 understanding/generation/action benchmark 达到强开放模型结果（§6、Table 1）。
+2. `author-stated`：Reasoner knowledge 可改善 Generator 的 Physical AI domain score（Table 28）。
+3. `author-stated`：物理时间 conditioning 改善 motion fidelity，且不显著损害 VQ（Table 29）。
+4. `author-stated`：custom two-way flat attention、loader、checkpoint/compile 能提升 end-to-end throughput/time（§5、Tables 7–8）。
+5. `not-stated`：长期 closed-loop safety、rare-event robustness、energy efficiency 和跨 embodiment 真实部署并非本报告已验证目标。
+
+### 2.4 核心方案如何解决并优化问题
+
+Cosmos 3 不是把所有模态压进同一种 token/loss，而是共享 sequence/control plane：modality-specific encoders 将输入投到统一 hidden space；一条 packed sample 被分为 AR 与 DM stages；MoT layer 用独立 tower parameters 隔离 objectives，再让 DM query 通过 asymmetric joint attention 读取 AR context；3D mRoPE 把模态位置映到共同物理时间；curriculum 先训 Reasoner，再用其初始化 Generator，逐步加入 audio/action/transfer；最后由 joint loader、varlen attention、distributed parallelism、compile 与 async checkpoint 支撑规模化。
+
+| 原始问题/失败模式 | 根因或约束 | 对应方案设计 | 改变的变量/系统行为 | 作用机制 | 预期优化及指标 | 证据来源 | 判断 |
+|---|---|---|---|---|---|---|---|
+| 理解与连续生成目标冲突 | causal AR 与 bidirectional denoising 语义不同 | dual-tower MoT | norm/QKV/MLP 参数按 AR/DM 分离 | 保持各自 computation path，只在 attention conditioning 处耦合 | 多任务可行性、避免直接 parameter interference | §2.3、Fig.5、code | partially-supported：架构/代码直接；无 single-tower matched ablation |
+| Generator 缺少语义/Physical AI knowledge | 从头 generator conditioning 弱 | Reasoner initialization | understanding embeddings/init source | 把 VLM/Physical AI knowledge 转入 generation conditioning | PAIBench domain score | Table 28 | supported within ablation scope |
+| 不同 modality 时间率错位 | token index 不是 physical time | TPS-scaled 3D mRoPE | temporal position increment $\delta_t$ | 相同真实时长获得可比 position span | MF/composite | Eq.9、Table 29、`mrope.py` | supported for Nano FPS setup |
+| arbitrary mask kernel 效率低 | mask opaque、padding-equivalent work | two-way flat attention lowering | 两次 varlen SDPA、sample offsets | 显式暴露 causal/full blocks | end-to-end training throughput | §5.2.2、Fig.14、`attention.py` | supported runtime result；不改变 model quality |
+| 异构数据浪费/collective mismatch | sample length/cost 与 stream 不同 | rank-sync + token-budget + look-ahead loader | batch packing、stream schedule | 减 padding/straggler/first-step timeout | throughput、effective sequence length | §5.2.1 | supported system evidence；未公开完整 raw traces |
+| checkpoint/compile stalls | object-store I/O 与 45 static shapes | async checkpoint + sharded AOT compile | I/O/compile 与 GPU work overlap | 把 save/compile 移出 critical path | end-to-end time、warm-up | §5.2.6–5.2.8、Tables 7–8 | supported at reported cluster |
+
+### 2.5 因果链与证据边界
+
+完整闭环是：Physical AI 需要理解—模拟—行动的统一 context → 多模型拼装与不同 objectives/temporal rates 形成语义和系统割裂 → 用 modality-specific encoders 保留输入差异、用 AR/DM subsequences 保留 objective semantics → 用 dual-tower MoT 隔离参数路径、asymmetric attention 让 Generator 读取 Reasoner → 用 physical-time mRoPE 和 staged curriculum 对齐时间与知识迁移 → 用 varlen attention/packing/distributed runtime 把语义落到可训练系统 → 以跨任务结果、Reasoner-init 与 FPS ablations、training throughput 验证部分环节。
+
+直接证据覆盖：implementation semantics、Reasoner-init 对 PAIBench domain score、FPS control 对 MF/composite、custom attention/loader/checkpoint 的系统收益。间接或混杂证据覆盖：完整 MoT 相对专用模型的 headline rankings、curriculum/action/synthetic data 的总收益。尚未验证：single-tower matched quality/gradient-interference ablation、长期闭环稳定性、rare safety events、跨硬件成本/能耗、各 runtime optimization 的独立 serving quality-latency Pareto。
+
+## 3. 核心贡献与创新点
+
+1. 以 dual-tower MoT 统一 Reasoner 与 continuous Generator，同时保持 stage-qualified attention semantics（§2.3、Fig.5）。
+2. 把 image/video/audio/action 的 continuous generation 与 language/vision reasoning 置于 flexible packed sequence，并把 action 当作一等 modality（§2.1–2.2）。
+3. 用 TPS-scaled 3D mRoPE 建立 physical-time coordinate，辅以受控 FPS ablation（§2.4、Table 29）。
+4. 给出从 data curation/packing、two-way flat attention、HSDP/Ulysses、compile/checkpoint 到 serving 的大规模 system co-design（§5）。
+5. 发布多尺度 checkpoints、code、synthetic datasets 与 broad evaluation；贡献是 capability breadth 和 open infrastructure，但“每项组件都是最优”不由这些结果自动成立。
+
+## 4. 研究方法
+
+### 4.1 方法总览
+
+输入先由 modality-specific encoders 变成 tokens：文本 tokenizer 与 vision encoder 进入 AR；VAE/audio/action encoders 进入 DM。每个 packed sample 中 AR 在前、DM 在后。Reasoner 预测 next text token；Generator 对 noisy continuous tokens 预测 flow velocity。训练顺序为 Reasoner pre-training/SFT → Generator pre-training → mid-training 加 action/transfer → task-specific post-training。
+
+![Figure 5: Cosmos 3 MoT mechanism with full caption](../assets/papers/cosmos-3/fig5-mot-architecture-caption.png)
+
+> 原论文 Figure 5，PDF p.11，完整 caption 与 bbox/QA 见 [Figure inventory](../evidence/figure-inventory.md)。
+
+### 4.2 组件级设计动机与具体问题映射
+
+| 设计项 | why 状态 | 原文/代码证据 | 针对的具体问题 | 因果机制 | 替代/权衡 | 验证证据 | 判断 |
+|---|---|---|---|---|---|---|---|
+| modality-specific encoders/heads | author-stated | §2.1–2.2 | 离散/连续模态形态不同 | 分别 encode/decode，再投统一 hidden space | 单 tokenizer 更简单但会牺牲 inductive bias | architecture + task coverage，缺 encoder matched ablation | plausible |
+| dual-tower LayerNorm/QKV/MLP | author-stated | §2.3、Fig.5、`unified_mot.py` | AR/DM objective 与 attention 不同 | 参数路径隔离，减少硬共享冲突 | single tower 参数少；dual tower 接近双倍 text backbone 参数 | no direct single-tower control | unverified as optimal design |
+| asymmetric AR/DM attention | author-stated | Fig.5、`attention.py:112-210` | DM 需条件，AR 不能看 noisy future | AR causal；DM full over own sample AR+DM | cross-attention bridge 更模块化但增加接口 | figure/code semantics direct；quality isolation missing | partially-supported |
+| flow matching | author-stated | §4 | continuous modality 不适合 token CE | 预测 noise→data velocity | DDPM/score matching alternatives | broad results；未做 objective replacement | plausible |
+| Reasoner→Generator initialization | author-stated | §4、Table 28 | generator conditioning 缺 world knowledge | 更强 understanding embeddings/init | Qwen3-VL init | matched init-source ablation | supported within PAIBench |
+| TPS-scaled mRoPE | author-stated | §2.4、Eq.9、Table 29、`mrope.py:75-219` | FPS/rate 不同导致 temporal geometry 错位 | position increment 与 TPS 反比 | text-only FPS control | four-way controlled ablation | supported |
+| domain-aware action projections | author-stated | §2.1.3、`domain_aware_linear.py` | embodiments action dimensions/semantics 不同 | per-domain projection weights | shared padded projection 更省参数 | code + action results，缺 shared-projection ablation | plausible |
+| staged curriculum | author-stated | §3–4 | 一次混训难平衡 scale/specialization | 先 broad knowledge，再加入 expensive/specific modalities | uniform mixture | stage results confounded with data/steps | partially-supported |
+| rank-sync/token-budget/look-ahead loader | author-stated | §5.2.1 | padding、straggler、collective mismatch | 同步 stream 与增大 effective packed length | dynamic per-rank sampling 更灵活但可 hang | +54% throughput、+8% effective length | supported at reported setup |
+| two-way flat attention runtime | author-stated | §5.2.2、Fig.14、`attention.py` | general mask kernel utilization 低 | 两次 varlen SDPA 实现相同 semantics | FlexAttention 易表达 | +22% end-to-end Nano throughput | supported runtime-only |
+| SAC/AOT/async checkpoint | author-stated | §5.2.4–5.2.8 | recompute、compile、save stalls | 保留 high FLOPs/byte activations；并行 compile；Gloo async save | 更多 host memory/complexity | time/throughput tables | supported system evidence |
+
+### 4.3 核心 attention 与代码语义
+
+模型级语义为：
+
+$$
+\mathrm{Attn}_{AR}=\mathrm{Attn}(Q_{AR},K_{AR},V_{AR};\mathrm{causal}),
+$$
+
+$$
+\mathrm{Attn}_{DM}=\mathrm{Attn}(Q_{DM},[K_{AR};K_{DM}],[V_{AR};V_{DM}];\mathrm{full\ within\ sample}).
+$$
+
+`NVIDIA/cosmos-framework repository: cosmos_framework/model/generator/mot/attention.py:112-210` 先通过 `get_causal_seq` 取 AR QKV，调用 causal attention；再取 `full_q`，以 `get_all_seq` 的 same-sample KV 调 full attention；最后 `from_mode_splits` scatter 回 packed layout。这确认了 stage semantics。它不能证明 MoT 的 quality gain，因为 runtime code 只是 faithful implementation。
+
+### 4.4 Rectified flow
+
+论文将 noise endpoint 与 data endpoint 线性插值：
+
+$$
+x_t=(1-t)x_0+t x_1,\qquad v=x_1-x_0,
+$$
+
+$$
+\mathcal L_{RF}=\mathbb E\left[\left\|v_\theta(x_t,t,c)-v\right\|_2^2\right].
+$$
+
+AR tokens 仍用 causal cross entropy。因而 “causal/full attention mask” 与 “CE/RF loss selection” 是不同控制层，不应统称一个 mask。
+
+### 4.5 Physical-time mRoPE
+
+视频 TPS 为 FPS 除以 VAE temporal compression factor 4；audio 为 $48000/1920\approx25$；action TPS 等于采样频率。以 24 FPS video 得到 $\mathrm{TPS}_{base}=24/4=6$：
+
+$$
+\delta_t=\frac{\mathrm{TPS}_{base}}{\mathrm{TPS}}.
+$$
+
+这改变 position geometry，不改变真实生成帧数或 sampling step count。代码 `sequence_packing/mrope.py` 在提供 FPS 时生成 float temporal positions；`packers.py` 用同一 enable flag 连接 packing 与 model config。
+
+### 4.6 数据与训练边界
+
+Reasoner v4 curriculum 报告约 24.2M samples：22.0M pre-training、2.2M SFT；SFT 中 video-text 约 50%。Generator 使用大规模 image/video/audio 数据并逐步引入 action、transfer、synthetic domains。sample count 不能换算为 token count；各模态长度差异巨大。
+
+训练报告称全程 BF16。Nano Reasoner pre-training 为 10.33T tokens/1024 GB200；Super 为 17.86T/2048 GB200；Generator pre-training Nano 0.98T/1024 GB200、Super 1.9T/2048 GB200（§4）。这些是 paper-reported facts，不是本分析复算。
+
+## 5. 关键结论与证据
+
+### 5.1 技术 claim 证据矩阵
+
+| 技术点 | 声称收益 | 实验/证据 | 对照 | 证据强度 | 结论 |
+|---|---|---|---|---|---|
+| unified MoT | 一模多任务 | broad §6 results | 无 matched single-tower | confounded | 支持可行性，不支持架构最优 |
+| Cosmos Reasoner init | 更强 Physical AI conditioning | Table 28 | init source only，Generator scratch/预算 matched | direct ablation | T2V Domain +2.0；I2V +0.8，所测范围支持 |
+| mRoPE FPS modulation | motion fidelity | Table 29 | 2×2 text/mRoPE controls | direct ablation | 受控支持 |
+| audio pre-training | 不损害并可能改善 video metrics | Table 30 | with/without audio，20k/128 GPUs | direct but short-run | T2V/I2V measured improvement；不证明同步质量 |
+| SDG datasets | synthetic data 有益 | Appendix C.7 | 多数据源逐步加 | confounded | 部分支持，domain/scale 同时变化 |
+| action modes synergy | action/world modeling transfer | Appendix action studies | steps/modes 不完全等预算 | indirect/confounded | 只能局部归因 |
+| two-way flat attention | +22% Nano E2E training throughput | §5.2.2 | FlexAttention baseline | replacement baseline | runtime supported；quality semantics unchanged |
+| rank-sync loader | +54% throughput | §5.2.1 | unsynchronized baseline | replacement baseline | system supported |
+| look-ahead packing | +8% effective sequence length | §5.2.1 | greedy baseline | replacement baseline | packing supported |
+| async checkpoint | Nano/Super total time -4%/-9% | Table 7 | sync 30-min cadence | replacement baseline | system supported；增加 host-memory/complexity |
+| open-model rankings | report-time best open T2I/I2V/policy | external snapshots | versions/arenas vary | temporal observational | 只作为时间点事实 |
+
+### 5.2 FPS control 受控消融
+
+![Table 29: FPS control ablation with full caption](../assets/papers/cosmos-3/table29-fps-control-ablation-caption.png)
+
+> 原论文 Table 29，PDF p.108。单一表格、完整 caption、原分辨率 QA 通过。
+
+Base composite 8.51；Text Control 9.28（绝对 +0.77，相对约 +9.0%）；MRoPE only 9.63（+1.12，约 +13.2%）；两者组合 9.81（+1.30，约 +15.3%）。组合 VQ 从 12.89 降至 12.84（约 -0.4%），MF 从 0.6626 升至 0.7649（+0.1023，约 +15.4%）。这是较干净的 2×2 evidence：mRoPE 的主要收益是 motion adherence，而非 perceptual quality。外推边界是 Nano、480p、5 秒、约每 band 100 videos、3 seeds；不能直接外推到 long-horizon dynamics。
+
+### 5.3 Reasoner initialization
+
+Table 28 在相同 Nano architecture、Generator from scratch、90K iterations/256 GPUs 下只替换 understanding init。T2V Domain 从 73.7 到 75.7（+2.0，约 +2.7%）；Robot 从 66.5 到 71.3（+4.8，约 +7.2%）。I2V Domain 从 80.0 到 80.8（+0.8，1.0%）。Quality 基本相当。因而“Reasoner init 改善 Physical AI domain conditioning”在 PAIBench 上受支持；“MoT 参数隔离本身带来收益”仍未被这张表隔离。
+
+### 5.4 收益来源归因
+
+| 组件/变化 | 对比 | 指标变化 | 影响路径 | 证据 |
+|---|---|---|---|---|
+| Cosmos Reasoner init | Qwen3-VL init | T2V Domain +2.0；I2V +0.8 | conditioning/knowledge | matched ablation |
+| FPS mRoPE | Base | Composite +1.12 | temporal position geometry | matched ablation |
+| Text + FPS mRoPE | Base | Composite +1.30 | text control + temporal geometry | matched factorial setting |
+| two-way flat attention | FlexAttention | Nano E2E throughput +22% | runtime/kernel | replacement baseline |
+| rank-sync loader | unsynchronized | throughput +54% | scheduling/straggler | replacement baseline |
+| look-ahead | greedy | effective length +8% | packing | replacement baseline |
+| async checkpoint | sync/30 min | Nano -4%、Super -9% E2E time | I/O overlap | replacement baseline |
+| full model rankings | specialized baselines | 多 benchmark 胜出 | data+model+post-training+sampling bundled | confounded |
+
+## 6. Related Work 对比
+
+| 类别 | 机制 | 优点 | 局限 | Cosmos 3 差异/公平性 |
+|---|---|---|---|---|
+| VLM/Qwen3-VL | causal multimodal AR | 理解/语言强 | 不原生生成 continuous world state | 用作 Nano/Super init；不是等规模 end-to-end generator baseline |
+| video DiT/flow models | continuous denoising | 视觉质量强 | reasoning/action/audio 分离 | Cosmos 3 扩展 modality/interface；headline 比较受 post-training/sampling 混杂 |
+| Transfusion/BAGEL 类 AR-diffusion | mixed discrete/continuous objectives | 理解生成共模 | 任务/infra 覆盖较窄 | Cosmos 3 强调 dual tower、physical time、action 与 scale |
+| VLA/world-action models | observation→action/policy | 闭环任务直接 | world generation/audio breadth 有限 | Cosmos 3 同时支持 forward/inverse/policy；真实闭环证据仍有限 |
+| general masked attention/FlexAttention | 灵活 arbitrary masks | 易表达 | specific pattern kernel 利用不足 | two-way flat 是语义等价 lowering；比较只说明 Cosmos pattern 下的 runtime |
+
+论文 related-work grouping合理，但不同 baseline 的开放性、参数、训练数据、post-training、reward reranking、resolution/FPS 与 inference budget 经常不同。跨表榜单适合说明覆盖面，不适合做单组件因果归因。
+
+## 7. OpenReview 公开评审交叉核验
+
+- OpenReview 链接：未发现。
+- 访问日期：2026-07-25。
+- decision/meta-review：未发现/不适用。
+- author response/rebuttal：未发现/不适用。
+
+| 来源 | 观点/约束 | 对应论文 claim | 证据状态 | 交叉核验判断 |
+|---|---|---|---|---|
+| public OpenReview | unavailable | 全文 | API 403 且无 indexed forum | 无法进行 reviewer-derived cross-check；不把“无搜索结果”当作正式未投稿证明 |
+
+没有 public review 时，本分析自行检查的高风险点是：单组件消融不足、baseline/inference budget fairness、data licensing/reproducibility、Physical AI safety、闭环长期性与 compute access。这些是 paper/code evidence audit，不冒充 reviewer 意见。
+
+## 8. Infrastructure 分析
+
+### 8.1 算力与规模
+
+Table 8 的标准 joint T2I/T2V run：Nano 在 1024 GB200 上 7.1 s/iter、520 TFLOPS/GPU、MFU 0.23、507 iter/h；Super 在 2048 GB200 上 19.5 s/iter、673 TFLOPS/GPU、MFU 0.30、185 iter/h。Super 更好 saturate compute，但 token throughput 低。MFU 是 model-FLOPs utilization，不给 HBM/NVLink 利用率。
+
+### 8.2 显存/存储
+
+双 tower 表示每层 norm/QKV/MLP 各两套，不能用单 tower 参数公式估模型总量。Hub `safetensors.total` 分别约 3.859B/15.750B/64.615B parameters，与 4B/16B/64B labels 一致。仅权重的理想 BF16 下界约为 $2P$ bytes：Edge 7.72 GB、Nano 31.5 GB、Super 129.2 GB；这是 analysis-derived，不含 optimizer、activations、KV、VAE/vision/audio modules、fragmentation 或 replication。
+
+SAC 通过 FLOPs-to-memory ratio 保留 attention outputs，权衡显存与 recompute；原因是 attention compute 近似随 sequence length 二次增长，而 output activation 线性增长。
+
+### 8.3 Data types
+
+| 对象 | 格式 | 阶段 | 硬件依赖 | 影响 | 证据 |
+|---|---|---|---|---|---|
+| training weights/activations | BF16 | train | GB200 tensor cores | 较 FP32 降显存/bytes | Appendix training details |
+| serving dominant ops | dynamic FP8 path | inference/NIM | Hopper/Blackwell kernel coverage | 降 compute/HBM bytes，可能有 quality risk | §5.3；`inference_benchmarks.md` |
+| position IDs under FPS modulation | float positions | packing/model input | PyTorch kernels | 支持非整数 temporal increments | `packers.py`、`mrope.py` |
+| action projection weights | default framework dtype；未见单独量化声明 | train/infer | GPU matmul | per-domain 参数增加 footprint | `domain_aware_linear.py` |
+
+README 中 NVFP4 标为 coming soon，不能当作 v4 paper measured result。
+
+### 8.4 带宽、互联与利用率
+
+若能获得 profiler counters：
+
+$$
+\mathrm{EffectiveBandwidth}=\frac{\mathrm{BytesMoved}}{\tau},\qquad
+\mathrm{Utilization}=\frac{\mathrm{EffectiveBandwidth}}{\mathrm{BW}_{peak}}.
+$$
+
+论文没有逐 operator bytes、HBM/NVLink counters 或 peak-normalized bandwidth，因此不能给数值 utilization。qualitative 判断：
+
+- two-way varlen attention 减少 padding-equivalent QK/softmax/V work 与 mask materialization，兼顾 compute 和 HBM；
+- Ulysses context parallel 需 all-to-all；HSDP 需 parameter/gradient collectives；收益取决于 NVLink/NVSwitch topology 与 overlap；
+- video/audio decode、VAE latents、packed indices 与 checkpoint object-store I/O 增加非-model traffic；
+- async checkpoint 通过独立 Gloo group 隔离 I/O 与 NCCL training collectives，但增加 host memory；
+- AOT compiled artifacts 写共享 filesystem，降低 startup critical path，代价是 artifact management。
+
+### 8.5 CPU/GPU/NPU 异构执行
+
+| 阶段 | CPU | GPU/加速器 | 数据移动/同步 | 潜在瓶颈 | 证据 |
+|---|---|---|---|---|---|
+| preprocessing | decode、JSON/action transform、packing、worker scheduling | tokenizer/encoders 可 GPU | pinned-memory H2D、async prefetch | CPU decode/slow stream | §5.2.1 |
+| train | orchestration、checkpoint plan | VAE/ViT/MoT、HSDP/Ulysses | H2D + NCCL collectives | straggler、all-to-all、HBM | §5.2 |
+| checkpoint | child process/Gloo/object-store | GPU 继续训练 | host copy/I/O overlap | host memory/object-store variance | §5.2.7 |
+| serving | request/encode/postprocess scheduling | AR loop + diffusion loop | repeated latent/model reads、多 GPU CP/CFG | diffusion steps、communication、batch fragmentation | §5.3 |
+
+未发现 NPU-specific kernel/evaluation。模型可否高效迁移到 NPU 是未验证 deployment question。
+
+## 9. 代码与 checkpoint 交叉核验
+
+### 9.1 已由代码确认
+
+- `attention.py:112-210`：two-way attention 分 causal AR 与 full DM 两次 calls，并用 sample offsets 保持 sample isolation。
+- `unified_mot.py`：统一 MoT implementation 支持 Qwen3-VL dense/MoE 与 Nemotron dense family，配置分离 text/diffusion QK norm。
+- `domain_aware_linear.py:17-72`：每个 domain 通过 embedding 取独立 weight/bias，支持 $[B,I]$ 与 $[B,T,I]$。
+- `cosmos3_vfm_network.py:157-158`：action input/output 都接 DomainAwareLinear。
+- `sequence_packing/mrope.py:75-219` 与 `packers.py`：FPS modulation、3D positions、temporal modality margin、AR/DM splits。
+- `cosmos/inference_benchmarks.md`：区分 PyTorch sampling、vLLM-Omni pipeline、Diffusers end-to-end 与 NIM FP8 request latency，说明不同表不能混成同一 latency。
+
+### 9.2 Capacity、algorithm、runtime 分离
+
+- Capacity：Hub configs 与 Table 2 对应 28/36/64 layers、2048/4096/5120 hidden、4B/16B/64B parameter class。
+- Algorithm：AR/DM routing、flow matching、mRoPE/FPS、domain-aware actions。
+- Runtime：varlen attention backend、Ulysses/HSDP、compile、caching、CFG parallel、FP8、batching。
+
+把 serving latency 提升归给 MoT quality mechanism，或把 Reasoner-init domain gain归给 two-way kernel，都是错误归因。
+
+### 9.3 未核验边界
+
+未下载权重，因此未做 tensor-level key/shape/dtype parity、数值输出复现、quantization error、task checkpoint 差异或 GPU benchmark。三份 base model metadata 是公开且 ungated；post-trained 4-step/policy variants未逐一核查。source snapshots 固定 acquisition commit，但 tar snapshot本身不含 `.git`；commit binding由同刻 GitHub API JSON记录提供。
+
+## 10. 局限、安全与复现性
+
+1. 许多 headline results 同时改变 model size、data、post-training、sampling steps、guidance、BoN/reward reranking；不支持逐组件归因。
+2. 关键 dual-tower MoT 缺 single-tower matched ablation，也缺 gradient interference 指标。
+3. 受控 FPS 证据只覆盖短 5 秒 clips；DD/MF 不等于物理正确性或长期 dynamics。
+4. Physical AI 的 collision/rare-event、closed-loop drift、sim-to-real、fault recovery 与 multi-agent safety 证据不足；官方 model card也要求 safety-critical use 额外验证。
+5. 训练规模巨大。虽然 code/weights 开放，完整数据、curation/AI-judge、synthetic pipeline 与 thousands-of-GB200 budget 限制严格复现。
+6. 未发现 public peer review；本报告是技术报告，其方法/实验错误缺少可见第三方审稿轨迹。
+7. serving 缺统一 TTFT/step/P50/P99/concurrency/quality regression、HBM/NVLink counters 与 power/energy telemetry。
+8. checkpoint configs 已核验，weights未执行；任何“实际 tensor 与 paper 完全一致”都仍未验证。
+
+## 11. 研究启发与待验证清单
+
+- 做 matched single-tower vs dual-tower MoT，在等参数或等 FLOPs 下测 AR retention、Generator quality 与 gradient cosine/interference。
+- 将 algorithm mask semantics 与 runtime kernel 做双轴 ablation：相同 semantics换 kernel、相同 kernel换 conditioning pattern。
+- 扩展 FPS control 到 variable-duration、long-horizon、audio/action synchronization，并报告 calibration/physical consistency而不只 DD。
+- 给 action projection 做 shared padded linear、low-rank domain adapters 与 DomainAwareLinear 对照，控制参数量与 embodiment mix。
+- 对 data curriculum 做固定 total tokens/GPU-hours 的 factorial study，避免 stage/data/steps 混杂。
+- 发布 serving profiler：operator bytes/FLOPs、HBM/NVLink utilization、communication overlap、batch/concurrency、P50/P99 与 quality。
+- 对 base、4-step、FP8、cache/parallel variants 建立同一 prompt/seed quality-latency Pareto。
+- 记录数据 license/provenance/filter false positives 与 AI-judge bias，特别关注 Physical AI hallucination 和 rare safety events。
+
+## 12. 一句话总结
+
+Cosmos 3 的最扎实贡献不是“一张榜单上所有任务永久 SOTA”，而是把 AR reasoning、continuous multimodal generation、action 与 physical-time positioning组织成一套公开、可训练、可 serving 的 omnimodal system。Figure 5 与代码直接确认 dual-stream semantics；Table 28、Table 29 直接支持 Reasoner initialization 与 FPS control 的局部因果链；§5 的 loader/attention/checkpoint results支持系统 co-design。证据最弱处是把完整系统优势分解到 dual-tower MoT、curriculum或任一单组件，以及对真实长期 Physical AI 闭环的外推。
+
+Cosmos 3 的 canonical Paper 与正式资产归本领域所有；custom-attention 只通过跨域 Evidence/adoption link 引用，不另建第二篇 Paper。[Figure inventory](../evidence/figure-inventory.md) 已将 `reasoner-sft-mix.png` 明确标为 v4 Figure 7 的 SFT subfigure，并保留完整 Figure 7 caption context。

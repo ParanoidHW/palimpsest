@@ -83,7 +83,7 @@ request
 | Pipeline parallel | 模型层或长视频 block 流水 | denoise step 与噪声同步可能破坏 naive pipeline 并行 |
 | Expert parallel | Dense→MoE、MoT/模态 tower | token 类型与 step 改变 expert 分布，all-to-all 需容量规划 |
 
-[SwiftFusion](../papers/swiftfusion.md) 给出 topology-aware sequence parallel 的直接系统证据；[Cosmos 3](../papers/cosmos-3.md#5-infrastructure) 则展示 Ulysses、CFG parallel、cache 和 compile 在统一模型中的组合。二者共同说明并行选择不能只看通信字节，还要看链路层级、同步语义和可重叠窗口。
+[SwiftFusion](../papers/swiftfusion.md) 给出 topology-aware sequence parallel 的直接系统证据；[Cosmos 3 Infrastructure 分析](../papers/cosmos-3.md#8-infrastructure-分析)则展示 Ulysses、CFG parallel、cache 和 compile 在统一模型中的组合。二者共同说明并行选择不能只看通信字节，还要看链路层级、同步语义和可重叠窗口。
 
 ### 2.5 负载特性
 
@@ -95,7 +95,7 @@ $$
 
 其中 `N` 是视觉/视频 token 数，`D` 是 hidden width，`L` 是层数。中等 `N`、大 `D` 时 QKV/MLP GEMM 更 compute-bound；长视频使 `N²D` attention、activation 和通信快速支配。与 LLM decode 相比，输入 latent 每 step 改变，标准 KV cache 不能消除对视觉 token 的重算。
 
-stream diffusion 又不同：chunk history、noisy context、frame deadline 与 custom mask 让 HBM 容量、通信和 kernel launch 同时敏感。[Causal-rCM](../papers/causal-rcm.md) 的 packed teacher-forcing、JVP 与 context-parallel cache 是代表；其“10x”是收敛迭代数改善，不是 wall-clock kernel 加速。
+stream diffusion 又不同：chunk history、noisy context、frame deadline 与 custom mask 让 HBM 容量、通信和 kernel launch 同时敏感。[Causal-rCM 的 Infra 分析](../papers/causal-rcm.md#8-infra-需求分析)以 packed teacher-forcing、JVP 与 context-parallel cache 为代表；其“10x”是收敛迭代数改善，不是 wall-clock kernel 加速。
 
 ### 2.6 特殊 Kernel
 
@@ -150,9 +150,9 @@ stream diffusion 又不同：chunk history、noisy context、frame deadline 与 
 
 ### 4.3 统一理解生成：Transfusion → BAGEL → Cosmos 3
 
-[Transfusion](../papers/transfusion.md) 证明一个 transformer 可以同时优化 AR 与 image diffusion，但 shared parameter 会接收不同 loss，且 noised image → text 会产生条件冲突。[BAGEL](../papers/bagel.md) 进一步用 full MoT hard routing 分离理解/生成参数，并通过 clean VAE/ViT context、noise-aware mask 支持多轮内容。[Cosmos 3](../papers/cosmos-3.md) 把这一路线扩到 language/image/video/audio/action：AR reasoner 不读取 noisy generator token，generator 可读取 reasoner 和自身 token；3D mRoPE 按物理时间对齐不同 FPS/TPS。
+[Transfusion](../papers/transfusion.md) 证明一个 transformer 可以同时优化 AR 与 image diffusion，但 shared parameter 会接收不同 loss，且 noised image → text 会产生条件冲突。[BAGEL 研究方法](../papers/bagel.md#4-研究方法)进一步用 full MoT hard routing 分离理解/生成参数，并通过 clean VAE/ViT context、noise-aware mask 支持多轮内容。[Cosmos 3](../papers/cosmos-3.md) 把这一路线扩到 language/image/video/audio/action：AR reasoner 不读取 noisy generator token，generator 可读取 reasoner 和自身 token；3D mRoPE 按物理时间对齐不同 FPS/TPS。
 
-![BAGEL Figure 2：理解与生成 MoT。原论文图，PDF p.4。](../assets/papers/bagel/fig2-mot-architecture.png)
+![BAGEL Figure 2：理解与生成 MoT。原论文图及完整 caption，PDF p.4。](../assets/papers/bagel/fig2-mot-architecture-caption.png)
 
 这代表的未来趋势不是“AR 被 diffusion 替代”，而是**AR 负责离散规划与验证，diffusion/flow 负责并行连续信号生成**。Infra 上将出现：
 
@@ -225,7 +225,7 @@ $$
 
 ### 6.1 去噪步数 `S`
 
-progressive/consistency/rectified-flow distillation、少步 sampler 和 causal consistency 直接减少迭代次数。这类方法的 Infra 新需求相对少，主要是新 scheduler、训练 rollout 和质量验证；但少步以后 `T_step` 占比上升，跨 step cache 的可用相邻状态减少。[Causal-rCM](../papers/causal-rcm.md) 还表明 continuous-time distillation 可能需要 custom-mask JVP kernel。
+progressive/consistency/rectified-flow distillation、少步 sampler 和 causal consistency 直接减少迭代次数。这类方法的 Infra 新需求相对少，主要是新 scheduler、训练 rollout 和质量验证；但少步以后 `T_step` 占比上升，跨 step cache 的可用相邻状态减少。[Causal-rCM 技术点证据矩阵](../papers/causal-rcm.md#53-技术点证据矩阵)还表明 continuous-time distillation 可能需要 custom-mask JVP kernel。
 
 ### 6.2 Token reduction/compression
 

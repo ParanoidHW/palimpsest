@@ -181,10 +181,10 @@ Transfusion 尝试在同一多模态模型里同时做 next-token prediction 和
 
 Cosmos 3 的关键思想可沿主 Paper 的证据章节阅读：
 
-- [AR 与 diffusion subsequence](../papers/cosmos-3.md#22-mot-与单向条件注入) 分别承载 reasoner/understanding 与 image/video/audio/action flow generation。
-- [Mixture-of-Transformers](../papers/cosmos-3.md#22-mot-与单向条件注入) 让 reasoner/generator 在每层使用独立参数，并由 two-way attention 让 generator 单向读取 AR 条件。
-- [3D mRoPE 与物理时间](../papers/cosmos-3.md#23-unified-3d-mrope-与物理时间) 对齐 video/audio/action 的 timestamp，而不是强制各模态使用相同 TPS。
-- [训练 curriculum](../papers/cosmos-3.md#3-训练目标与阶段) 与 [joint loader / serving infra](../papers/cosmos-3.md#5-infrastructure) 是完整系统结果的重要混杂因素，不能把榜单收益单独归给 MoT。
+- [AR 与 diffusion subsequence](../papers/cosmos-3.md#43-核心-attention-与代码语义) 分别承载 reasoner/understanding 与 image/video/audio/action flow generation。
+- [Mixture-of-Transformers](../papers/cosmos-3.md#43-核心-attention-与代码语义) 让 reasoner/generator 在每层使用独立参数，并由 two-way attention 让 generator 单向读取 AR 条件。
+- [3D mRoPE 与物理时间](../papers/cosmos-3.md#45-physical-time-mrope) 对齐 video/audio/action 的 timestamp，而不是强制各模态使用相同 TPS。
+- [训练 curriculum](../papers/cosmos-3.md#46-数据与训练边界) 与 [joint loader / serving infra](../papers/cosmos-3.md#8-infrastructure-分析) 是完整系统结果的重要混杂因素，不能把榜单收益单独归给 MoT。
 
 已有本地 Cosmos 3 分析和原论文关键图如下：
 
@@ -199,7 +199,7 @@ Cosmos 3 的关键思想可沿主 Paper 的证据章节阅读：
 - 多模态 diffusion 的终点不是“一个更大的视频模型”，而是“能按物理时间协调多种连续信号的生成/仿真模型”。
 - 语言 reasoner 和 diffusion generator 的关系，需要架构级隔离和受控交互。
 - 这也是为什么 dLLM 不应该被放在同一条主线：dLLM 的目标是文本生成范式，Cosmos 3 这类系统的目标是物理世界信号的生成和仿真。
-- Cosmos 3 的 benchmark 与 leaderboard 边界见 [主结果证据矩阵](../papers/cosmos-3.md#6-experiments-与主结果边界)，补充问答见 [Q&A](../supplements/cosmos-3-q-and-a.md)。
+- Cosmos 3 的 benchmark 与 leaderboard 边界见[技术 claim 证据矩阵](../papers/cosmos-3.md#51-技术-claim-证据矩阵)，补充问答见 [Q&A](../supplements/cosmos-3-q-and-a.md)。
 
 ## 9. 长序列 diffusion 的系统诉求：量化、稀疏 Attention 与特殊 Mask
 
