@@ -7,19 +7,20 @@
 > - 证据资产：`../assets/papers/dspark/`
 > - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
 
-> 资料状态：已取得官方 arXiv:2607.05147v1 PDF、LaTeX/source、官方 DeepSpec 代码与公开 checkpoint metadata/config。本文中的 Figure/Table 均为 300-DPI 论文页紧裁剪并包含完整 caption；没有把搜索摘要当作技术证据。审计日期为 2026-07-25。
+> 资料状态：已取得官方 arXiv:2607.05147v1 PDF、LaTeX/source、官方 DeepSpec 代码与公开 checkpoint metadata/config。本文中的 Figure/Table 均为 300-DPI 论文页紧裁剪并包含完整 caption；没有把搜索摘要当作技术证据。论文材料审计日期为 2026-07-25；vLLM / vLLM-Ascend 社区实现增量审计日期为 2026-07-27。
 
 ## 修订信息
 
-- 当前文档版本：`1.0.1`
-- 当前修订 ID：`rev-dspark-20260725-validation-results`
-- 当前修订时间：`2026-07-25T15:43:25+08:00`
-- 替代版本：`rev-dspark-20260725-initial` / `1.0.0` / manifest SHA-256 `bf5f71546073bdfbcd87a7d8a86bdc1353b45ecddabca3ef2717874b8c7142e4`
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-dspark-20260727-community-adoption`
+- 当前修订时间：`2026-07-27T17:07:11+08:00`
+- 替代版本：`rev-dspark-20260725-validation-results` / `1.0.1` / manifest SHA-256 `20729e2f2c00698e55757257df07a0f768cd0c9c87baf0bac9bfd81cdecd2c42`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-dspark-20260725-initial` | 1.0.0 | 2026-07-25T15:27:51+08:00 | delegated agent `dspark-b1` | initial | none | none | 从官方论文、源码、代码、checkpoint 与逐图 QA 建立首个可验证交付 | B1 单篇隔离精读任务 | 本文全部章节及本 workspace artifacts | `task_packet.yaml`、官方 arXiv/source/DeepSpec/HF metadata、最终验证 | material：纠正“无 arXiv/source”的过时结论并重建证据边界 |
 | `rev-dspark-20260725-validation-results` | 1.0.1 | 2026-07-25T15:43:25+08:00 | delegated agent `dspark-b1` | evidence-update | `rev-dspark-20260725-initial` / 1.0.0 / `bf5f71546073bdfbcd87a7d8a86bdc1353b45ecddabca3ef2717874b8c7142e4` | none | 补齐独立 `validation_results.json` 并更新冻结交付的验证、handoff、checklist 与 hashes | 父任务复核发现 process workspace 缺少 contract 要求的独立验证结果文件 | 修订信息；`validation_results.json`；`agent_handoff.md`；`review_checklist.md`；manifests | 父任务补件要求；Draft 2020-12 与 15 项语义验证重跑 | none：不改变论文事实、证据判断或综合结论 |
+| `rev-dspark-20260727-community-adoption` | 1.1.0 | 2026-07-27T17:07:11+08:00 | Codex | evidence-update | `rev-dspark-20260725-validation-results` / 1.0.1 / `20729e2f2c00698e55757257df07a0f768cd0c9c87baf0bac9bfd81cdecd2c42` | none | 增补 vLLM / vLLM-Ascend 接入状态，核对 Markov、Confidence、FullGraph 与吞吐归因 | 社区实现已快速演进，需要区分“DSpark 基础路径已接入”与“Confidence 调度仍未进入正式闭环” | §5.4–5.5、§8.5–8.6、§9.2、§10–12 | 官方 release、合入/开放 PR、RFC、固定 commit 源码审计 | material：确认社区已将 Markov 高接受率通过图执行转化为吞吐，但否定“Confidence 已使能并贡献吞吐”的表述 |
 
 ## 0. 资料与配图索引
 
@@ -323,8 +324,10 @@ V4-Flash：80 tok/s/user SLA 下 aggregate throughput +51%；120 的边界 regim
 | confidence head | threshold 0→高 | acceptance rate 大幅升、tokens/step 下降 | discrimination→pruning | diagnostic，不是 throughput gain |
 | STS | raw confidence | ECE 约 3–8%→约1% | calibration→$\tau$ estimate | Alpaca-only |
 | production whole stack | MTP-1 | matched throughput speed +60–85% Flash、+57–78% Pro | drafter+calibration+scheduler+kernels+engine | confounded |
+| vLLM-Ascend Qwen3 MRV2 FullGraph | eager drafter | 1936.30 vs 1270.07 tok/s，mean accepted length 同为 6.48 | fixed-block Markov drafter→图执行降 launch/host overhead | 社区合入 PR；未加载 Confidence |
+| vLLM-Ascend GLM-5.2 FullGraph | eager drafter | 578.6 vs 170.0 output TPS，acceptance 52.03% vs 52.78% | ACLGraph/context-KV bucketing→执行效率 | 社区开放 PR；默认关闭且明确排除 Confidence |
 
-禁止把最后一行拆成“scheduler 单独贡献”。论文没有 factorial ablation；任何组件百分比分解都会是虚构。
+最后两行是 2026-07-27 的社区工程证据，不是论文实验。它们共同说明：**固定块 Markov drafter 的高接受率已经可以通过 FullGraph/ACLGraph 转化为吞吐，但不能据此声称 Confidence 产生了收益。**同样禁止把 production whole stack 一行拆成“scheduler 单独贡献”；论文没有 factorial ablation，任何组件百分比分解都会是虚构。
 
 ### 5.5 Claim–evidence matrix
 
@@ -341,6 +344,8 @@ V4-Flash：80 tok/s/user SLA 下 aggregate throughput +51%；120 的边界 regim
 | DSpark production stack 外移 frontier | direct, configuration-specific | Fig. 7 | supported under measured traffic/engine |
 | scheduler 单独导致 frontier gain | confounded | Figs. 7–8 | not attributable |
 | V4 scheduler/code 可公开复现 | missing | DeepSpec search | false for full production path |
+| vLLM / vLLM-Ascend 已使能 Confidence 调度 | direct contradiction | 固定 commit 源码与开放 PR | false as of 2026-07-27；权重被跳过/丢弃，调度仍 WIP |
+| Ascend 社区吞吐数据证明 Confidence 有效 | contradicted attribution | FullGraph PR #12017/#12414 | false；测得的是图执行收益，Confidence 未参与 |
 | DSpark 无 arXiv/source | direct contradiction | official arXiv/source | false as of 2026-07-25 |
 
 ## 6. Related Work 对比
@@ -447,15 +452,17 @@ $$
 | training | launch/logging/dataloader | 8-GPU default BF16 training | distributed denominator all-reduce | cache I/O/GPU compute | code/README |
 | offline eval | dataset/metrics | target+draft verification | DynamicCache | model compute | code |
 | production | scheduler/control likely host/device mix，未说明 | V4 target、MoE drafter、custom kernels | async pipeline, graph, routing | unavailable | paper-reported |
-| NPU | not stated | not stated | none verified | unavailable | no evidence |
+| NPU 社区实现（非论文证据） | scheduler/control + vLLM-Ascend | Ascend NPU 上的 Markov drafter、SAS/DSA attention 与 FullGraph | fixed-block 图执行已验证；Confidence 调度未实现 | vLLM-Ascend main/PR |
 
-不应把“hardware-aware”误读为跨 GPU/NPU portable；论文只说明 profile-aware，不给 accelerator portability。
+不应把“hardware-aware”误读为天然跨 GPU/NPU portable；论文只说明 profile-aware，不给 accelerator portability。2026-07 的 vLLM-Ascend 接入证明了模型和部分 runtime 可以移植，但其专用 attention、QuaRot/W4A8、DP padding、FullGraph shape 与 RoPE 修复也反向说明：跨硬件兑现吞吐需要单独的后端工程。
 
 ### 8.6 Serving、自定义算子与正确性边界
 
 production DSpark-5 使用三层 MoE parallel backbone、mHC、sliding-window attention 128 和 Markov head。为了变长 query，论文描述 flatten tokens + marker tensor、修改 index-attention/compress kernels，并与 ZOS/CUDA graph/asynchronous stages 集成。dynamic top-K capacity 用两步旧 confidence 估计，当前 confidence 排名。以上都没有公开实现。
 
 Algorithm 1 的 non-anticipating early stop 与 production adaptation 不同：前者在 smooth/unimodal SPS 下易解释；后者为 jagged curve/async 实用改造。报告没有给 formal equivalence proof，故 production losslessness 主要是作者陈述加系统设计论证，而非公开可执行证明。
+
+社区实现进一步强化了这个边界。vLLM 与 vLLM-Ascend 已公开固定块 DSpark、Markov sequential sampling 和图执行路径，但当前正式主干并未把 Confidence 分数接到“每请求有效 proposal length → target verification token 数 → scheduler accounting”这条链上。也就是说，已有路径解决了“高接受率如何减少 round 并降低执行开销”的一部分问题，还没有公开复现论文的 load-aware verification budget。
 
 ## 9. 开源代码对照
 
@@ -492,6 +499,27 @@ Algorithm 1 的 non-anticipating early stop 与 production adaptation 不同：�
 
 API totals与 active parameter/显存不可直接等同。详情见 `checkpoint_audit.md`。
 
+### 9.2 vLLM / vLLM-Ascend 工程接入审计（2026-07-27）
+
+本节是论文发布后的社区实现审计，不把社区代码反推为论文原始证据。检查基线为 vLLM main commit [`7f599d7854`](https://github.com/vllm-project/vllm/commit/7f599d78546819948c32f2b23d913507bbb38875) 与 vLLM-Ascend main commit [`ddc85dda76`](https://github.com/vllm-project/vllm-ascend/commit/ddc85dda76d52fcb0ef4adb2f86fda64efb9a8b3)。
+
+| 社区/路径 | 状态 | 已实际进入推理的能力 | Confidence 实际状态 | 吞吐证据与边界 |
+|---|---|---|---|---|
+| vLLM 基础 DSpark | [PR #46995](https://github.com/vllm-project/vllm/pull/46995) 已于 2026-07-01 合入；[v0.25.0](https://github.com/vllm-project/vllm/releases/tag/v0.25.0) 起发布 | DeepSeek-V4/Qwen3 loader、non-causal block attention、Markov 顺序采样、Full CUDA Graph | 该 PR 明确把 dynamic drafting/confidence scheduling 排除在范围外 | PR 报告 8×B300、BS1、accepted length 约5时超过350 TPS；属于固定长度 DSpark 整体路径，不是 Confidence 对照 |
+| vLLM 当前 main | 已发布基础能力 | Markov head 在每位置给 logits 加 bias 后顺序采样 | Qwen3 loader 明确写 `confidence_head is not wired into inference yet; skip its weights`；DeepSeek-V4 loader同样丢弃该权重，见固定版本的 [Qwen3](https://github.com/vllm-project/vllm/blob/7f599d78546819948c32f2b23d913507bbb38875/vllm/model_executor/models/qwen3_dspark.py#L172-L176) 与 [V4](https://github.com/vllm-project/vllm/blob/7f599d78546819948c32f2b23d913507bbb38875/vllm/models/deepseek_v4/nvidia/dspark.py#L482-L484) | 因而发布版本中的 DSpark throughput 不能归因给 Confidence |
+| vLLM Confidence 调度 | [PR #47808](https://github.com/vllm-project/vllm/pull/47808) 为开放 WIP，未合入 | 分支已尝试加载 Confidence、生成 position probability、维护 per-request effective length，并加入 cost-profile/budget manager | 仅在 WIP 分支可见；尚未形成正式接口与稳定实现 | PR 未给完整 Confidence ON/OFF 端到端吞吐表；不能写成已兑现 |
+| vLLM per-request length RFC | [RFC #48202](https://github.com/vllm-project/vllm/issues/48202) 开放 | 提议以固定 shape + 每请求逻辑长度连接 proposer、runner、async scheduler 与 metrics | prototype 已读取 Confidence，但不是正式 policy | Qwen3-4B、单 L20X、batch≤64 的诚实结果是所有测试阈值均未改善 wall-clock：backbone 仍生成整块、verify cost 近乎平坦、缩短 prefix 反而增加 round |
+| vLLM-Ascend Qwen/GLM/DeepSeek-V4 | Qwen/GLM MRV1、Qwen MRV2 FullGraph 与 [DeepSeek-V4 PR #11431](https://github.com/vllm-project/vllm-ascend/pull/11431) 已合入 main | anchor-first block drafting、Markov sampling、Ascend attention/量化适配；部分路径支持 FullGraph | V4 loader 对 `confidence_head.*` 直接返回；proposer 注释写明预测 accepted length “Not yet achieved”，见固定版本的 [loader](https://github.com/vllm-project/vllm-ascend/blob/ddc85dda76d52fcb0ef4adb2f86fda64efb9a8b3/vllm_ascend/models/deepseek_v4_dspark.py#L448-L457) 与 [proposer](https://github.com/vllm-project/vllm-ascend/blob/ddc85dda76d52fcb0ef4adb2f86fda64efb9a8b3/vllm_ascend/spec_decode/llm_base_proposer.py#L1128-L1132) | Confidence 尚未参与验证长度或 scheduler accounting |
+| vLLM-Ascend Qwen3 MRV2 FullGraph | [PR #12017](https://github.com/vllm-project/vllm-ascend/pull/12017) 已合入 | FullGraph 包含 fixed-block drafter 与 Markov sampling | 未加载/使用 Confidence | GSM8K 400 prompts：1936.30 vs eager 1270.07 tok/s，mean accepted length 均为6.48；这是约52.5%的图执行收益 |
+| vLLM-Ascend GLM-5.2 | eager acceptance 修复 [PR #12262](https://github.com/vllm-project/vllm-ascend/pull/12262) 已合入；FullGraph [PR #12414](https://github.com/vllm-project/vllm-ascend/pull/12414) 仍开放 | W8A8/QuaRot、Markov、context-KV bucketing 与 ACLGraph 分支 | #12414 明确写 `MarkovHead path only`，Confidence follow-up；两个 graph 开关默认关闭 | 开放 PR 报告 578.6 vs eager 170.0 output TPS、acceptance 基本不变；证明 runtime conversion，不证明 Confidence |
+| vLLM-Ascend 发布边界 | 最新检查的 [v0.23.0rc1](https://github.com/vllm-project/vllm-ascend/releases/tag/v0.23.0rc1) 源码包无 DSpark 路径；上述关键合入发生在其后 | 当前能力主要位于 main | 不适用 | 复现应固定 main commit，不能仅按已发布包推断 |
+
+因此，社区状态应表述为三层：
+
+1. **已经完成**：DSpark 模型加载、Markov head、固定 block proposal、target verification，以及部分 CUDA/ACL FullGraph 路径。
+2. **已经观察到系统收益**：在相同接受长度附近，FullGraph/ACLGraph 可显著提高 output TPS；这证明 runtime 能把接受率转化为吞吐。
+3. **尚未完成**：Confidence head 权重进入正式 inference、STS、每请求 prefix survival、load-aware budget 与 async scheduler accounting 的完整闭环。当前没有可信的 Confidence ON/OFF 端到端吞吐增益。
+
 ## 10. 优点、局限与改进
 
 ### 优点
@@ -513,6 +541,7 @@ API totals与 active parameter/显存不可直接等同。详情见 `checkpoint_
 7. Algorithm 1 的 global optimum 有 unimodal 条件；production jagged-SPS adaptation 没有相同强度的 proof。
 8. fixed whole-block draft cost 对难 query 不可回收，作者也承认尚无 difficulty-aware early exit。
 9. 无公开 OpenReview 历史，缺少独立 reviewer/rebuttal cross-check。
+10. 社区 serving 框架虽已接入 Markov 与图执行，但截至 2026-07-27，vLLM/vLLM-Ascend 正式路径均未使能 Confidence；不能用社区 FullGraph TPS 代替 Confidence scheduler 的因果验证。
 
 ### 可改进实验
 
@@ -530,7 +559,10 @@ API totals与 active parameter/显存不可直接等同。详情见 `checkpoint_
 - non-anticipating 约束说明在线系统优化不能随意使用 hindsight oracle，尤其当后续 score 依赖当前 sampled action。
 - 未来可研究 difficulty-aware draft early exit：先判断整块草拟是否值得，再判断 target 应验证多长。
 - 还需验证：STS 对数学/代码/live traffic 是否稳定；jagged SPS 下 production policy 是否近似最优；V4 Flash/Pro 两个发布 checkpoint 与论文 live engine 是否完全同版本；不同 interconnect/dtype 下 hidden-state communication 的真实收益。
+- vLLM RFC 的负结果提示一个更具体的问题：当 target verify cost 对 token 数近乎平坦时，Confidence 截短不会自动省时。后续实验必须先测 ${\rm SPS}(B)$ 或 step-cost curve，再决定是做 threshold、全局 capacity allocation，还是只保留固定 block。
 
 ## 12. 最终判断
 
-DSpark 的模型贡献有较强可信度：官方 source、开源实现、固定-block主表和位置/深度/长度实验共同支持“少量顺序依赖能显著改善并行草拟后缀，且在所测 batch128 场景开销小”。系统贡献在工程上重要，但证据级别应写成“特定 live deployment 的 end-to-end frontier 改善”，而不是“公开复现的 scheduler-only 因果增益”。最重要的时效纠错是：截至 2026-07-25，DSpark 已有官方 arXiv v1、LaTeX/source、DeepSpec 代码和公开 checkpoints；任何“无 arXiv/source”的 canonical claim 都应由父任务在正式知识库中更新。
+DSpark 的模型贡献有较强可信度：官方 source、开源实现、固定-block主表和位置/深度/长度实验共同支持“少量顺序依赖能显著改善并行草拟后缀，且在所测 batch128 场景开销小”。系统贡献在工程上重要，但证据级别应写成“特定 live deployment 的 end-to-end frontier 改善”，而不是“公开复现的 scheduler-only 因果增益”。
+
+截至 2026-07-27，社区状态给出了新的交叉验证：vLLM/vLLM-Ascend 已把 Markov drafter 和部分图执行接入 serving，FullGraph/ACLGraph 数据也证明高接受率可以转化为吞吐；但两个社区的正式路径仍跳过 Confidence 权重或明确标记为未实现。因此当前最准确的工程判断是：**Markov→接受长度→runtime 吞吐的前半闭环已经公开落地，Confidence/STS→负载感知验证预算→额外吞吐的后半闭环仍待合入和受控验证。**
