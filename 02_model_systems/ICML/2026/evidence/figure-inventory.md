@@ -13,18 +13,18 @@
 
 | Object | Source | Crop | Caption（完整中文转述） | Usage | QA |
 |---|---|---|---|---|---|
-| Figure 2 | ICML 2026 / PMLR 306 final PDF，p3，1700×2200，200 DPI | `(145,215,1380,790)`；[asset](../assets/papers/dual-latent-memory-routing/fig2-dlmr-overview-caption.png) | DLMR 总览：冻结 MLLM 外接 visual/reasoning 两个 latent bank，injector 按当前上下文生成 memory tokens，router 决定类型与预算，并以三阶段训练完成分离、注入与路由。 | [DLMR](../papers/dual-latent-memory-routing.md#3-问题方案证据闭环) | 2026-07-27 contact sheet 初筛与原分辨率逐图 QA 通过；初裁邻接内容已移除，单一 Figure 2、caption 完整。 |
-| Table 1 | 同上，p5，1700×2200 | `(145,180,1390,830)`；[asset](../assets/papers/dual-latent-memory-routing/table1-main-results-caption.png) | 两个 backbone 上比较 general/reasoning benchmark 的 SFT、GRPO 与 DLMR 版本；报告逐数据集和平均值。 | [DLMR](../papers/dual-latent-memory-routing.md#5-关键结果与收益归因) | 初裁后重裁补全边界；contact sheet 与原分辨率 QA 通过。 |
-| Figure 3 | 同上，p6，1700×2200 | `(145,190,680,615)`；[asset](../assets/papers/dual-latent-memory-routing/fig3-disentanglement-ablation-caption.png) | Shared 与 dual latent memory 的分离消融，报告 general、reasoning、overall 及细分 benchmark 表现。 | [DLMR](../papers/dual-latent-memory-routing.md#5-关键结果与收益归因) | 通过；单一 Figure 3、caption 完整、边界紧。 |
+| Figure 2 | ICML 2026 / PMLR 306 final PDF，p3，1700×2200，200 DPI | `(145,215,1380,790)`；[asset](../assets/papers/dual-latent-memory-routing/fig2-dlmr-overview-caption.png) | DLMR 总览：冻结 MLLM 外接 visual/reasoning 两个 latent bank，injector 按当前上下文生成 memory tokens，router 决定类型与预算，并以三阶段训练完成分离、注入与路由。 | [DLMR](../papers/dual-latent-memory-routing.md#43-模型系统架构) | 2026-07-27 contact sheet 初筛与原分辨率逐图 QA 通过；初裁邻接内容已移除，单一 Figure 2、caption 完整。 |
+| Table 1 | 同上，p5，1700×2200 | `(145,180,1390,830)`；[asset](../assets/papers/dual-latent-memory-routing/table1-main-results-caption.png) | 两个 backbone 上比较 general/reasoning benchmark 的 SFT、GRPO 与 DLMR 版本；报告逐数据集和平均值。 | [DLMR](../papers/dual-latent-memory-routing.md#51-主结果) | 初裁后重裁补全边界；contact sheet 与原分辨率 QA 通过。 |
+| Figure 3 | 同上，p6，1700×2200 | `(145,190,680,615)`；[asset](../assets/papers/dual-latent-memory-routing/fig3-disentanglement-ablation-caption.png) | Shared 与 dual latent memory 的分离消融，报告 general、reasoning、overall 及细分 benchmark 表现。 | [DLMR](../papers/dual-latent-memory-routing.md#52-消融和机制证据) | 通过；单一 Figure 3、caption 完整、边界紧。 |
 
 ## omnifit
 
 | Object | Source | Crop | Caption（完整中文转述） | Usage | QA |
 |---|---|---|---|---|---|
-| Figure 6 | ICML 2026 final PDF，p5，1700×2200，200 DPI | `(145,190,1405,570)`；[asset](../assets/papers/omnifit-layer-compression/fig6-omnifit-overview-caption.png) | OmniFit 总览：离线 LAHP profiling 产生 layer/modality retention plan；在线 ARTS 以 cross-modal anchors 打分并逐层选择、合并 token。 | [OmniFit](../papers/omnifit-layer-compression.md#3-问题方案证据闭环) | 2026-07-27 contact sheet 初筛与原分辨率逐图 QA 通过；重裁后 caption 完整。 |
-| Table 1 | 同上，p6，1700×2200 | `(145,180,1405,675)`；[asset](../assets/papers/omnifit-layer-compression/table1-main-results-caption.png) | Qwen2.5-Omni-3B 在多 benchmark 和 40%/30%/20% retention 下与基线比较的主结果。 | [OmniFit](../papers/omnifit-layer-compression.md#5-质量消融与归因) | 通过；单一 Table 1、caption 完整。 |
-| Figure 8 | 同上，p7，1700×2200 | `(845,170,665,610)`；[asset](../assets/papers/omnifit-layer-compression/fig8-inference-speed-caption.png) | 单 H800 上 Qwen-Omni 7B/30B 的 TTFT 与 TPOT speedup，对比不同输入长度和 batch size。 | [OmniFit](../papers/omnifit-layer-compression.md#6-infra-与部署证据) | 两次重裁移除页眉并补全 caption；contact sheet 与原分辨率 QA 通过。 |
-| Table 5 | 同上，p8，1700×2200 | `(150,998,660,547)`；[asset](../assets/papers/omnifit-layer-compression/table5-component-ablation-caption.png) | RandomDrop、LAHP、ARTS 与 TRP 的组件组合消融。 | [OmniFit](../papers/omnifit-layer-compression.md#5-质量消融与归因) | 通过；单一 Table 5、caption 完整、边界紧。 |
+| Figure 6 | ICML 2026 final PDF，p5，1700×2200，200 DPI | `(145,190,1405,570)`；[asset](../assets/papers/omnifit-layer-compression/fig6-omnifit-overview-caption.png) | OmniFit 总览：离线 LAHP profiling 产生 layer/modality retention plan；在线 ARTS 按 cross-modal relevance 选择/合并 token。Final PDF 对 anchors 是 training-set global 还是 instance-specific 存在内部冲突。 | [OmniFit](../papers/omnifit-layer-compression.md#43-模型系统架构) | 2026-07-27 contact sheet 初筛与原分辨率逐图 QA 通过；重裁后 caption 完整。 |
+| Table 1 | 同上，p6，1700×2200 | `(145,180,1405,675)`；[asset](../assets/papers/omnifit-layer-compression/table1-main-results-caption.png) | Qwen2.5-Omni-3B 在多 benchmark 和 40%/30%/20% retention 下与基线比较的主结果。 | [OmniFit](../papers/omnifit-layer-compression.md#51-主结果) | 通过；单一 Table 1、caption 完整。 |
+| Figure 8 | 同上，p7，1700×2200 | `(845,170,665,610)`；[asset](../assets/papers/omnifit-layer-compression/fig8-inference-speed-caption.png) | 单 H800 上 Qwen-Omni 7B/30B 的 TTFT 与 TPOT speedup；OmniZip 30%、OmniFit 10% 以匹配精度，而非同 retention。 | [OmniFit](../papers/omnifit-layer-compression.md#86-调度serving自定义算子) | 两次重裁移除页眉并补全 caption；contact sheet 与原分辨率 QA 通过。 |
+| Table 5 | 同上，p8，1700×2200 | `(150,998,660,547)`；[asset](../assets/papers/omnifit-layer-compression/table5-component-ablation-caption.png) | RandomDrop、LAHP、ARTS 与 TRP 的组件组合消融；不是完整 factorial grid。 | [OmniFit](../papers/omnifit-layer-compression.md#52-消融和机制证据) | 通过；单一 Table 5、caption 完整、边界紧。 |
 
 ## splattn
 
@@ -115,4 +115,4 @@
 - SelfJudge 初始 Figure 1/2/4：含页眉或后续正文，已重裁后提升。
 - OnlineSpec Figure 2：caption 被截断，未提升；Figure 3 去掉下一节标题后提升。
 - MTP Figure 12 初裁：顶部混入前文且底部 caption 截断；本轮重裁后提升。
-- ECHO Figure 3：初始 crop caption 最后一行截断，已从 page render 扩展 bbox 后提升。
+- ECHO Figure 3：初始裁剪的 caption 最后一行截断，扩展 bbox 后已修复。

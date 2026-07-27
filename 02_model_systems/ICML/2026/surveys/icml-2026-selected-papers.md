@@ -21,7 +21,7 @@
 
 [LiME](../papers/lime.md#3-研究方法) 通过共享 PEFT 模块、轻量 expert modulator 与表示复用路由，避免每个 expert 复制 adapter；它的直接证据覆盖参数量、训练吞吐和主结果，但“更多专家保留更多任务信息”的理论命题不能替代真实路由负载与尾延迟测量。
 
-[Dual-Latent Memory Routing](../papers/dual-latent-memory-routing.md#5-关键结果与收益归因) 已按 final PDF 核验双 latent bank、injector、eligibility gate、router、三阶段训练和 appendix latency。替换证据支持 dual bank、trainable injector 与 adaptive budget；Qwen reasoning 的报告延迟从 14.0 s 降至 11.5 s，但 delimiter、loss/reward 项与 serving 尾延迟仍未充分隔离。[OmniFit](../papers/omnifit-layer-compression.md#5-质量消融与归因) 的 final PDF 则确认 LAHP、modality retention planning、ARTS 和 profiling–execution decoupling：20% retention 的平均相对性能为 98.68%，单 H800 报告最高 2.31× TTFT、1.39× TPOT 与约 2.5× 7B VRAM 降低。两篇的代码与公开评审仍受限，组件收益也不能超出对应消融边界。
+[Dual-Latent Memory Routing](../papers/dual-latent-memory-routing.md#52-消融和机制证据) 已按 final PDF 核验双 latent bank、injector、eligibility gate、router、三阶段训练和 appendix latency。替换证据支持 dual bank、trainable injector 与 adaptive budget；Qwen reasoning 的报告延迟从 14.0 s 降至 11.5 s，但 delimiter、loss/reward 项与 serving 尾延迟仍未充分隔离。[OmniFit](../papers/omnifit-layer-compression.md#52-消融和机制证据) 的 final PDF 则确认 LAHP、modality retention planning、ARTS 和 profiling–execution decoupling：20% retention 的平均相对性能为 98.68%，单 H800 报告最高 2.31× TTFT、1.39× TPOT 与约 2.5× 7B VRAM 降低；不过 final PDF 对 anchor provenance、动态 preference weighting 和 prune/merge 生命周期存在内部冲突。两篇的代码与公开评审仍受限，组件收益也不能超出对应消融边界。
 
 ## 3. 解码加速：从质量放宽到在线自适应
 
