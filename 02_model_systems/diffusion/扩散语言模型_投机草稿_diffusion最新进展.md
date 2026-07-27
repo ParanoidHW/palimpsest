@@ -1,6 +1,6 @@
 # 扩散语言模型、dLLM Serving 与 Diffusion Draft 模型进展
 
-> 检索/整理日期：2026-07-07。范围：离散/掩码扩散语言模型、speculative decoding、block diffusion drafter、diffusion draft trees、cache-friendly token ordering 和 LLM serving。 时间窗口按用户要求固定为 2025-09-01 之后。中间过程与逐篇 deep-review 风格分析位于 `../../../_artifacts/output/ai_algorithm_survey_diffusion/language/`。
+> 检索/整理日期：2026-07-07。范围：离散/掩码扩散语言模型、speculative decoding、block diffusion drafter、diffusion draft trees、cache-friendly token ordering 和 LLM serving。时间窗口按当时调研要求固定为 2025-09-01 之后。新的 canonical 精读入口见 [扩散语言模型与 Serving](surveys/language-diffusion-serving.md)。
 
 ![扩散语言模型、dLLM Serving 与 Diffusion Draft 模型进展 示意图](assets/language_dllm_draft_2026_map.svg)
 
@@ -36,15 +36,10 @@
 | HyperDFlash | Model-specific residual streams require target-architecture-aware feature extraction, multi-path residual memory handling, and lightweight reducer kernels. |
 | Set Diffusion | Reintroduces KV-cache semantics into diffusion-like decoding; scheduler must support arbitrary ordered sets, sliding-window sets, and cache invalidation rules. |
 
-## 5. 逐篇精读与中间产物
+## 5. Canonical 精读
 
-- `DFlash` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2602_dflash/analysis.md`
-- `FeF-DLLM` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2605_fef_dllm/analysis.md`
-- `DFlare` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2606_dflare/analysis.md`
-- `D2SD` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2606_d2sd/analysis.md`
-- `SimSD` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2606_simsd/analysis.md`
-- `HyperDFlash` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2606_hyperdflash/analysis.md`
-- `Set Diffusion` 深读：`../../../_artifacts/output/ai_algorithm_survey_diffusion/language/papers/2607_set_diffusion/analysis.md`
+- [Nemotron-Labs-Diffusion](papers/nemotron-labs-diffusion.md)：同一模型统一 AR、block diffusion 与 self-speculation。其主要建模机制是 diffusion，因此归入本领域，而不是以 speculative decoding 作为上位目录。
+- 早期七项工作目前只保留在过程研究记录中，尚未提升为正式 Paper，故本正式文档不链接过程文件。
 
 ## 6. 证据局限
 

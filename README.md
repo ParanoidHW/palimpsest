@@ -50,7 +50,7 @@ AI Infra 不是单纯的“部署”或“工程实现”。它关心的是模�
 
 **训练与推理执行系统**连接论文方法和线上服务。分布式训练里的 TP、EP、CP、PP，推理里的 prefill/decode 分离、KV cache 管理、batching、speculative decoding、draft/verify 合同，本质上都在处理同一个问题：如何把模型计算图映射到受限资源上，并让延迟、吞吐和成本可控。
 
-**模型架构与生成范式**在这里被当作 infra 需求的来源，而不是孤立的算法分类。MoE 关心 expert routing 与通信隐藏；长上下文关心 KV cache 和 attention 压缩；diffusion/flow 关心 denoising step、时空 attention、量化敏感性和并行采样；多模态与 world model 关心数据管线、状态展开和长序列生成。对应内容分布在 [LLM foundations](./02_model_systems/llm_foundations/)、[speculative decoding](./02_model_systems/speculative_decoding/)、[multimodal generation](./02_model_systems/multimodal_generation/) 和 [diffusion world models](./02_model_systems/diffusion_world_models/)。
+**模型架构与生成范式**在这里被当作 infra 需求的来源，而不是孤立的算法分类。MoE 关心 expert routing 与通信隐藏；长上下文关心 KV cache 和 attention 压缩；diffusion/flow 关心 denoising step、时空 attention、量化敏感性和并行采样；多模态与 world model 关心数据管线、状态展开和长序列生成。对应内容分布在 [LLM foundations](./02_model_systems/llm_foundations/)、[speculative decoding](./02_model_systems/speculative_decoding/)、[multimodal generation](./02_model_systems/multimodal_generation/) 和 [diffusion](./02_model_systems/diffusion/)。
 
 **服务指标与评测体系**给工程判断收口。能力评测回答“模型会不会”，系统评测回答“服务好不好”，部署评测回答“硬件撑不撑得住”。这个知识库强调把 benchmark、SLO、TTFT、TPOT、吞吐、污染风险、裁判偏差和复现条件分开讨论，避免用单一分数替代系统判断。入口是 [evaluation](./01_ai_infra/evaluation/) 与 [performance modeling](./01_ai_infra/performance_modeling/)。
 
