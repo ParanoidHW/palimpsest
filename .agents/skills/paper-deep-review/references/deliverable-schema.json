@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agent-wushu.local/schemas/paper-deep-review-deliverable-1.4.0.json",
+  "$id": "https://agent-wushu.local/schemas/paper-deep-review-deliverable-1.5.0.json",
   "title": "Paper Deep Review Deliverable Manifest",
   "description": "Machine-readable manifest for one paper-deep-review delivery.",
   "type": "object",
@@ -17,13 +17,14 @@
     "artifacts",
     "visual_evidence",
     "terminology_and_symbols",
+    "explanation_quality",
     "paper_problem_solution",
     "design_rationales",
     "evidence_checks",
     "limitations"
   ],
   "properties": {
-    "schema_version": { "const": "1.4.0" },
+    "schema_version": { "const": "1.5.0" },
     "deliverable_type": { "const": "paper-deep-review" },
     "invocation_mode": { "enum": ["standalone", "delegated"] },
     "paper": {
@@ -100,6 +101,7 @@
       }
     },
     "terminology_and_symbols": { "$ref": "#/$defs/terminologyAndSymbols" },
+    "explanation_quality": { "$ref": "#/$defs/explanationQuality" },
     "paper_problem_solution": { "$ref": "#/$defs/paperProblemSolution" },
     "design_rationales": {
       "type": "array",
@@ -113,6 +115,10 @@
         "paper_problem_solution",
         "design_rationale_analysis",
         "symbol_table",
+        "formula_explanations",
+        "readability_audit",
+        "prior_failure_explanation",
+        "algorithm_overview",
         "evidence_loop",
         "code_cross_check",
         "openreview_cross_check",
@@ -124,6 +130,10 @@
         "paper_problem_solution": { "$ref": "#/$defs/checkStatus" },
         "design_rationale_analysis": { "$ref": "#/$defs/checkStatus" },
         "symbol_table": { "$ref": "#/$defs/checkStatus" },
+        "formula_explanations": { "$ref": "#/$defs/checkStatus" },
+        "readability_audit": { "$ref": "#/$defs/checkStatus" },
+        "prior_failure_explanation": { "$ref": "#/$defs/checkStatus" },
+        "algorithm_overview": { "$ref": "#/$defs/checkStatus" },
         "evidence_loop": { "$ref": "#/$defs/checkStatus" },
         "code_cross_check": { "$ref": "#/$defs/checkStatus" },
         "openreview_cross_check": { "$ref": "#/$defs/checkStatus" },
@@ -201,6 +211,10 @@
                   "unresolved_migrations_resolved": { "const": true },
                   "terminology_symbol_section_consistency": { "const": true },
                   "key_term_symbol_coverage": { "const": true },
+                  "formula_explanation_consistency": { "const": true },
+                  "plain_language_and_jargon_audit": { "const": true },
+                  "prior_failure_example_or_visual": { "const": true },
+                  "algorithm_overview_coverage": { "const": true },
                   "paper_problem_solution_section_consistency": { "const": true },
                   "paper_problem_solution_evidence_chain": { "const": true },
                   "design_rationale_evidence_consistency": { "const": true },
@@ -227,6 +241,10 @@
               "paper_problem_solution": { "const": "passed" },
               "design_rationale_analysis": { "const": "passed" },
               "symbol_table": { "const": "passed" },
+              "formula_explanations": { "enum": ["passed", "not-applicable"] },
+              "readability_audit": { "const": "passed" },
+              "prior_failure_explanation": { "const": "passed" },
+              "algorithm_overview": { "const": "passed" },
               "evidence_loop": { "const": "passed" },
               "infrastructure_analysis": { "const": "passed" },
               "gain_attribution": { "const": "passed" }
@@ -239,6 +257,33 @@
                 "properties": {
                   "key_terms": { "const": "passed" },
                   "ambiguities": { "const": "passed" }
+                }
+              }
+            }
+          },
+          "explanation_quality": {
+            "properties": {
+              "formula_explanations": {
+                "properties": {
+                  "coverage": { "enum": ["passed", "not-applicable"] }
+                }
+              },
+              "jargon_audit": {
+                "properties": {
+                  "status": { "const": "passed" },
+                  "unexplained_terms": { "maxItems": 0 }
+                }
+              },
+              "prior_solution_explanation": {
+                "properties": {
+                  "status": { "const": "passed" },
+                  "failure_modes": { "minItems": 1 }
+                }
+              },
+              "algorithm_overview": {
+                "properties": {
+                  "status": { "const": "present" },
+                  "qa_status": { "const": "passed" }
                 }
               }
             }
@@ -467,6 +512,10 @@
             "unresolved_migrations_resolved",
             "terminology_symbol_section_consistency",
             "key_term_symbol_coverage",
+            "formula_explanation_consistency",
+            "plain_language_and_jargon_audit",
+            "prior_failure_example_or_visual",
+            "algorithm_overview_coverage",
             "paper_problem_solution_section_consistency",
             "paper_problem_solution_evidence_chain",
             "design_rationale_evidence_consistency",
@@ -484,6 +533,10 @@
             "unresolved_migrations_resolved": { "type": "boolean" },
             "terminology_symbol_section_consistency": { "type": "boolean" },
             "key_term_symbol_coverage": { "type": "boolean" },
+            "formula_explanation_consistency": { "type": "boolean" },
+            "plain_language_and_jargon_audit": { "type": "boolean" },
+            "prior_failure_example_or_visual": { "type": "boolean" },
+            "algorithm_overview_coverage": { "type": "boolean" },
             "paper_problem_solution_section_consistency": { "type": "boolean" },
             "paper_problem_solution_evidence_chain": { "type": "boolean" },
             "design_rationale_evidence_consistency": { "type": "boolean" },
@@ -500,6 +553,309 @@
         {
           "if": { "properties": { "status": { "const": "passed" } } },
           "then": { "properties": { "errors": { "maxItems": 0 } } }
+        }
+      ]
+    },
+    "explanationQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_path",
+        "target_reader",
+        "formula_explanations",
+        "jargon_audit",
+        "prior_solution_explanation",
+        "algorithm_overview"
+      ],
+      "properties": {
+        "document_path": { "const": "analysis.md" },
+        "target_reader": {
+          "const": "technically-literate-reader-unfamiliar-with-the-paper"
+        },
+        "formula_explanations": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["applicability", "entries", "coverage"],
+          "properties": {
+            "applicability": { "enum": ["applicable", "not-applicable"] },
+            "entries": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/formulaExplanation" }
+            },
+            "coverage": { "$ref": "#/$defs/checkStatus" }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": { "applicability": { "const": "applicable" } }
+              },
+              "then": { "properties": { "entries": { "minItems": 1 } } }
+            },
+            {
+              "if": {
+                "properties": { "applicability": { "const": "not-applicable" } }
+              },
+              "then": {
+                "properties": {
+                  "entries": { "maxItems": 0 },
+                  "coverage": { "const": "not-applicable" }
+                }
+              }
+            }
+          ]
+        },
+        "jargon_audit": { "$ref": "#/$defs/jargonAudit" },
+        "prior_solution_explanation": { "$ref": "#/$defs/priorSolutionExplanation" },
+        "algorithm_overview": { "$ref": "#/$defs/algorithmOverview" }
+      }
+    },
+    "formulaExplanation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "formula_id",
+        "analysis_location",
+        "purpose",
+        "plain_language_reading",
+        "inputs",
+        "output",
+        "variable_roles",
+        "intuition",
+        "boundary_conditions",
+        "example"
+      ],
+      "properties": {
+        "formula_id": {
+          "type": "string",
+          "pattern": "^F[1-9][0-9]*$"
+        },
+        "analysis_location": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^analysis\\.md#"
+        },
+        "purpose": { "type": "string", "minLength": 10 },
+        "plain_language_reading": { "type": "string", "minLength": 10 },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "output": { "type": "string", "minLength": 1 },
+        "variable_roles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["symbol", "role"],
+            "properties": {
+              "symbol": { "type": "string", "minLength": 1 },
+              "role": { "type": "string", "minLength": 4 }
+            }
+          }
+        },
+        "intuition": { "type": "string", "minLength": 10 },
+        "boundary_conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 4 }
+        },
+        "example": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "text", "sources"],
+          "properties": {
+            "status": {
+              "enum": ["paper-provided", "reviewer-created", "not-applicable"]
+            },
+            "text": { "type": "string", "minLength": 10 },
+            "sources": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": { "status": { "const": "paper-provided" } }
+              },
+              "then": { "properties": { "sources": { "minItems": 1 } } }
+            }
+          ]
+        }
+      }
+    },
+    "jargonAudit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "retained_terms",
+        "rewritten_or_explained_terms",
+        "unexplained_terms"
+      ],
+      "properties": {
+        "status": { "$ref": "#/$defs/checkStatus" },
+        "retained_terms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["term", "retention_basis", "plain_language_first_use"],
+            "properties": {
+              "term": { "type": "string", "minLength": 1 },
+              "retention_basis": {
+                "enum": ["paper-defined", "mathematically-necessary", "industry-standard"]
+              },
+              "plain_language_first_use": { "type": "string", "minLength": 8 }
+            }
+          }
+        },
+        "rewritten_or_explained_terms": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "unexplained_terms": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "priorSolutionExplanation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["section_heading", "status", "failure_modes", "visual_support"],
+      "properties": {
+        "section_heading": { "type": "string", "minLength": 1 },
+        "status": { "$ref": "#/$defs/checkStatus" },
+        "failure_modes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/priorFailureMode" }
+        },
+        "visual_support": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "path", "reason"],
+          "properties": {
+            "status": { "enum": ["present", "not-needed", "blocked"] },
+            "path": { "type": ["string", "null"], "minLength": 1 },
+            "reason": { "type": "string", "minLength": 1 }
+          },
+          "allOf": [
+            {
+              "if": { "properties": { "status": { "const": "present" } } },
+              "then": {
+                "properties": {
+                  "path": { "type": "string", "minLength": 1, "pattern": "^(?!/)" }
+                }
+              },
+              "else": { "properties": { "path": { "type": "null" } } }
+            }
+          ]
+        }
+      }
+    },
+    "priorFailureMode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approach",
+        "observable_failure",
+        "concrete_scenario",
+        "scenario_provenance",
+        "root_cause",
+        "why_simple_fix_fails",
+        "sources"
+      ],
+      "properties": {
+        "approach": { "type": "string", "minLength": 2 },
+        "observable_failure": { "type": "string", "minLength": 10 },
+        "concrete_scenario": { "type": "string", "minLength": 20 },
+        "scenario_provenance": {
+          "enum": ["paper-provided", "reviewer-created"]
+        },
+        "root_cause": { "type": "string", "minLength": 10 },
+        "why_simple_fix_fails": { "type": "string", "minLength": 10 },
+        "sources": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "scenario_provenance": { "const": "paper-provided" } }
+          },
+          "then": { "properties": { "sources": { "minItems": 1 } } }
+        }
+      ]
+    },
+    "algorithmOverview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "diagram_kind",
+        "provider",
+        "artifact_path",
+        "evidence_basis",
+        "attempts",
+        "qa_status",
+        "qa_notes"
+      ],
+      "properties": {
+        "status": { "enum": ["present", "blocked"] },
+        "diagram_kind": {
+          "enum": ["original-paper", "generated-explanatory", "both", "unavailable"]
+        },
+        "provider": {
+          "enum": [
+            "paper-original",
+            "openrouter-icu-gpt-image-2",
+            "imagegen",
+            "other",
+            "not-applicable"
+          ]
+        },
+        "artifact_path": { "type": ["string", "null"], "minLength": 1 },
+        "evidence_basis": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "attempts": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "qa_status": { "enum": ["passed", "failed", "blocked"] },
+        "qa_notes": { "type": "string", "minLength": 10 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "present" } } },
+          "then": {
+            "properties": {
+              "artifact_path": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?!/)"
+              },
+              "diagram_kind": {
+                "enum": ["original-paper", "generated-explanatory", "both"]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "artifact_path": { "type": "null" },
+              "diagram_kind": { "const": "unavailable" },
+              "qa_status": { "enum": ["failed", "blocked"] }
+            }
+          }
         }
       ]
     },

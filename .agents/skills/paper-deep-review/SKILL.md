@@ -1,6 +1,6 @@
 ---
 name: paper-deep-review
-description: Rigorous academic paper and technical-report review workflow for one paper, arXiv article, OpenReview submission, PDF, LaTeX source, whitepaper, or model/system report. Produce auditable Markdown that explicitly reconstructs why the work was proposed, what problem it targets, how the solution addresses and optimizes that problem, and whether the evidence validates the causal chain, together with classified checks, original figures, formulas, related-work and public-review analysis, infrastructure and source-code cross-checks, isolated-agent provenance, and optional promotion into a governed project knowledge base through $research-knowledge-publisher.
+description: Rigorous and reader-comprehensible academic paper or technical-report review workflow for one paper, arXiv article, OpenReview submission, PDF, LaTeX source, whitepaper, or model/system report. Produce auditable Markdown that reconstructs why the work was proposed, explains formulas in plain language, limits unexplained jargon, makes prior-method failures concrete with examples or visuals, shows the overall algorithm, checks whether evidence validates the causal chain, and optionally promotes governed Paper/Asset knowledge through $research-knowledge-publisher.
 ---
 
 # Paper Deep Review
@@ -33,6 +33,7 @@ Treat this skill as a required workflow rather than optional guidance.
 - After all analysis and diagram work, finalize delivery with the two-pass freeze protocol below. Validate both JSON Schema structure and the manifest's required semantic checks; set the delivery to `blocked` instead of claiming completion when either validation fails or cannot run.
 - Classify unavailable PDFs, source, code, reviews, model metadata, tools, API keys, and network access precisely. Do not silently weaken the workflow or substitute unsupported claims.
 - Treat the paper-level **motivation -> target problem -> solution mechanism -> expected optimization -> measured evidence** narrative as a mandatory deliverable, not as an optional summary or a substitute for the component-level design-rationale matrix.
+- Treat reader comprehension as a completion gate. Before drafting, read and apply [references/readability-contract.md](references/readability-contract.md). A structurally complete review is still blocked when key formulas are not translated into plain language, nonessential jargon remains unexplained, the prior-method failure is abstract, or no reader-usable algorithm overview exists.
 - Before reporting completion, reread `review_checklist.md` and verify that no mandatory item is pending or unclassified. Completion is determined by artifacts and checks, not by a prose summary.
 
 ## Workflow
@@ -94,10 +95,13 @@ Treat this skill as a required workflow rather than optional guidance.
    - Build a **technical-claim evidence matrix** for the paper's claimed technical points: each new component, architecture choice, loss/objective, data construction, training recipe, inference procedure, kernel/runtime optimization, benchmark design, or analysis claim must be mapped to supporting evidence.
    - For every claimed technical point, check whether the paper provides direct ablation, replacement baseline, sensitivity analysis, controlled experiment, mechanism visualization, theoretical proof, or code/config evidence. Mark unsupported points explicitly as unverified, correlation-only, or plausible but not isolated.
    - Use LaTeX math for formulas. Do not leave formulas as plain-text approximations when exact notation matters.
+   - For every key formula, add a formula explanation card immediately after it: first state what question the formula answers, then give a plain-language reading, identify inputs and output, explain each variable's role in this formula, give the intuition, list assumptions/boundaries, and include a small paper-derived or clearly labeled reviewer-created example when useful. A symbol table alone does not satisfy formula explanation.
    - Mark assumptions and inferred calculations explicitly.
    - Build one centralized **terminology and symbol explanation** chapter before the method/formula discussion; do not scatter glossary definitions across unrelated sections. Define paper-specific terms and every symbol used in key equations, metrics, tables, or reviewer-derived formulas, including meaning, provenance (`author-defined`, `code-defined`, or `analysis-derived`), scope/indexing, units or values, source equation/section/derivation, and ambiguity. Do not assume a symbol has the same meaning across papers.
    - Cover non-obvious terms such as regenerated data, teacher/student logits, oracle/target/draft model, temperature setting, budget, tree width/depth, or benchmark variants. Mark symbols `not-applicable` only when neither the source nor the review uses meaningful symbols; do not invent entries.
    - Separate **paper-level conceptual claims** from **implementation-level behavior**. If a term such as causal mask, tree mask, block mask, branch conditioning, verification, or drafting appears in multiple stages, state exactly which stage it belongs to and whether the code implements the same object.
+   - Audit jargon after drafting. Retain a specialized term only when it is paper-defined, mathematically necessary, or widely used in the relevant industry/research community. Explain it in ordinary language at first use. Rewrite review-internal labels such as `confounded`, `plausible`, `frontier`, `proxy`, `telemetry`, and `lifecycle` when an ordinary Chinese phrase is clearer. Never use an English status label as a substitute for a conclusion.
+   - Make “why prior methods are insufficient” concrete. Include at least one observable failure scenario for every central failure mode. Prefer the paper's own example, case study, Figure, or experiment; otherwise add a clearly labeled reviewer-created toy scenario. Explain why an obvious patch does not fix the root cause. When prose remains hard to picture, add a problem illustration.
    - When the paper's prose is imprecise, reconcile it against equations, figures, appendix text, and code before writing the review. Prefer a qualified statement over copying an ambiguous phrase.
 
 5. **Compare related work.**
@@ -151,6 +155,7 @@ Treat this skill as a required workflow rather than optional guidance.
    - If a technical point is central to the contribution but lacks ablation or controlled evidence, surface it again in limitations and unresolved reading questions.
 
 10. **Write `analysis.md`.**
+   - Read and apply `references/readability-contract.md` before writing or revising the report.
    - Use the reusable template in `references/markdown-template.md`.
    - Include the centralized revision-information section near the top. Keep its current version/revision ID and complete history identical to `deliverable_manifest.json`; do not rewrite or drop earlier entries.
    - Include a source/figure inventory near the top.
@@ -163,17 +168,18 @@ Treat this skill as a required workflow rather than optional guidance.
    - Include images inline near the discussion they support.
    - End with practical limitations, research inspirations, and unresolved reading questions.
 
-11. **Generate and insert an analysis diagram from the Markdown document when `$openrouter-icu-image` is available.**
-   - After `analysis.md` is complete, use `$openrouter-icu-image` if it is installed and `OPENROUTER_ICU_API_KEY` is available. If the skill or API key is unavailable, do not block the review; add a short note in the final response.
-   - The completed `analysis.md` must be the reference document for image generation. Use the `responses-doc` document-input path with `analysis.md` as `--input-file`.
-   - Do not generate the diagram from prompt text alone. Do not paste the Markdown into the prompt, summarize the Markdown into the prompt, or use `/v1/images/edits` for Markdown input. If document upload through `responses-doc` cannot be used, skip image generation and state the limitation.
+11. **Provide and insert a reader-usable algorithm overview diagram.**
+   - Prefer a clear original-paper overview Figure when it already shows inputs, stages, outputs, and train/inference boundaries. Otherwise generate an explanatory diagram after the analysis draft is evidence-complete.
+   - Use `$openrouter-icu-image` with model `gpt-image-2` when installed and `OPENROUTER_ICU_API_KEY` is available. If unavailable or unsuccessful, try the installed `imagegen`/image-generation skill. Record every attempted provider and failure reason.
+   - If a provider supports document input, pass `analysis.md` as the reference document. Otherwise create a compact evidence-bound visual brief from `analysis.md`; include only claims, stages, and numbers already cited in the review. Prompt-only generation is allowed for this fallback, but invented components, unsupported numbers, and decorative pseudo-evidence are forbidden.
    - Generate a high-quality, high-resolution PNG under `figures/generated/`, for example `figures/generated/algorithm-analysis.png`.
    - Use `--quality high`, `--output-format png`, and a 16:9 high-resolution size such as `1792x1008` or `2048x1152` when supported. If high-resolution stalls or fails, retry at `1024x1024`.
-   - Prompt for a shallow-gold background and flat technical infographic style. The visual should summarize the paper's design rationale, concrete target problem, causal mechanism, evidence chain, key technical claims, ablation support, limitations, and infra implications without inventing numeric results.
+   - Prompt for a flat technical infographic with a simple left-to-right reading order. Keep labels short and legible. The visual must prioritize the problem, inputs, main stages, changed state, and output; evidence and limitations may appear as a small secondary band. Do not turn it into a decorative poster or a dense text wall.
    - Include infra visual cues for data types, bandwidth utilization, and CPU/GPU/NPU heterogeneous execution when they are relevant to the paper.
    - Verify the image file exists, then insert it near the top of `analysis.md` after the source/figure inventory with a relative Markdown link and caption that labels it as an AI-generated analysis diagram.
    - Confirm the inserted image path is relative to `analysis.md` and does not break Markdown rendering.
-   - Do not replace paper figures or factual plots with generated art. Keep generated diagrams clearly separate from paper-derived evidence.
+   - Open the final PNG at full resolution. Reject or regenerate diagrams with unreadable text, invented modules, broken arrows, misleading stage order, or unsupported numbers.
+   - Do not replace paper figures or factual plots with generated art. Keep generated diagrams clearly labeled as explanatory, not paper-derived evidence.
 
 After Workflow step 11, use this freeze protocol:
 
@@ -198,10 +204,13 @@ Before finishing:
 - Confirm all Markdown image links resolve.
 - Use the contact sheet for crop triage, then open every selected crop individually at 100% scale. Confirm exactly one numbered figure/table with its full caption, recorded source-page dimensions/bounding box, tight margins, and no next paragraph, page chrome, section heading, neighboring content, unrelated equation, excessive whitespace, or truncated caption.
 - Confirm every key number in the review maps to a paper section/table/figure or a clearly stated calculation.
+- Confirm every key formula has an adjacent explanation card covering purpose, plain-language reading, input/output, variable roles, intuition, boundaries, and an example or justified not-applicable status. A detached symbol table is insufficient.
+- Confirm the jargon audit has no unexplained nonessential terms. Every retained specialized term is paper-defined, mathematically necessary, or industry-standard and is explained at first use.
+- Confirm “现有方案为何不够” contains at least one concrete failure scenario per central failure mode, uses paper examples/figures when available, and explains why the obvious patch misses the root cause.
 - Confirm every claimed technical point has been checked for ablation/control/mechanism evidence and unsupported claims are explicitly marked.
 - Confirm `analysis.md` contains a substantive paper-level motivation/problem-solution chapter that explicitly covers the starting pain point, prior-method failure and root cause, target problem and success criteria, solution steps, changed variables, expected optimization, measured evidence, and remaining boundary. Reject a contribution list, abstract paraphrase, component table, or one-line arrow chain as insufficient.
 - Confirm every core design has a design-rationale entry separating author-stated rationale from inference, naming the concrete problem it targets, explaining the causal mechanism, and checking whether evidence supports that explanation.
-- If `$openrouter-icu-image` was available, confirm `analysis.md` was passed as the `responses-doc --input-file` reference document, the generated analysis diagram exists, and it is linked from `analysis.md`; if unavailable or failed, state the limitation.
+- Confirm a reader-usable algorithm overview exists and is linked. Prefer an original overview when sufficient; otherwise try `$openrouter-icu-image` with `gpt-image-2`, then the installed image-generation fallback. Record provider provenance and full-resolution QA.
 - Confirm code claims include file paths and commit hashes.
 - Confirm the centralized terminology-and-symbol chapter defines every key paper-specific term and every variable used in key formulas, metrics, and tables; require source and ambiguity notes for every entry.
 - Confirm the revision section includes the current version/revision ID and complete ordered history. A migration may use a known legacy manifest hash with unknown legacy version/ID; an unresolved predecessor must record a stable issue ID and recovery attempts. Completion remains blocked until a later `migration-resolution` entry both supersedes the prior blocked manifest and binds that issue ID to the recovered legacy manifest. Every later tracked revision must identify the exact superseded revision and manifest hash, changed locations, reason/evidence, and conclusion impact; no post-freeze change may reuse the prior revision ID.
@@ -216,10 +225,12 @@ Before finishing:
 ## Resources
 
 - `references/markdown-template.md`: reusable Chinese Markdown structure, including the mandatory paper-level motivation/problem-solution chapter, component-level rationale audit, and "解读问题/待验证清单".
-- `references/deliverable-schema.json`: Draft 2020-12 schema for the required paper-level `deliverable_manifest.json`, including machine-checkable problem-solution evidence-chain fields.
+- `references/readability-contract.md`: mandatory formula, jargon, concrete-example, and algorithm-overview readability contract.
+- `references/deliverable-schema.json`: Draft 2020-12 schema for the required paper-level `deliverable_manifest.json`, including machine-checkable problem-solution and reader-comprehension fields.
 - `references/review-checklist-template.md`: mandatory per-paper execution and quality checklist; copy it into the paper folder before substantive analysis and preserve every item.
+- `scripts/validate_deliverable.py`: structural and deterministic semantic validator for schema, hashes, counts, headings, readability fields, checklist state, and diagram paths.
 - `scripts/extract_pdf_assets.py`: optional helper to extract PDF text and render page PNGs for offline papers.
 - `scripts/crop_pdf_figures.py`: optional helper to batch crop figures/tables from page PNGs and create a contact sheet for QA.
-- `$openrouter-icu-image`: optional post-processing skill for generating a high-quality flat technical analysis diagram from the completed `analysis.md`.
+- `$openrouter-icu-image` / installed image-generation skill: ordered fallback for producing the required explanatory algorithm overview when the original paper lacks a reader-usable overview.
 - `references/knowledge-base-integration.md`: conditional review-to-canonical-Paper publication contract.
 - `$research-knowledge-publisher`: project skill for organization resolution, canonical ownership, promotion planning, link/asset validation, and process/formal separation.

@@ -1,4 +1,4 @@
 interface:
   display_name: "Paper Deep Review"
-  short_description: "Review one paper through its problem-solution evidence chain"
-  default_prompt: "Use $paper-deep-review to explain why the paper was proposed, what problem it targets, how its solution addresses and optimizes that problem, and whether evidence validates the causal chain; produce a revision-tracked, schema-valid review and promote governed Paper/Asset knowledge when applicable."
+  short_description: "Explain one paper clearly through formulas, examples, and evidence"
+  default_prompt: "Use $paper-deep-review to produce a reader-comprehensible, revision-tracked review that explains formulas in plain language, makes prior-method failures concrete, limits jargon, visualizes the algorithm, and tests the full problem-solution evidence chain."

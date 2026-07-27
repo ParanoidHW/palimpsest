@@ -88,6 +88,12 @@ Use this template for Chinese paper-review deliverables. Adapt headings when the
 - 为什么已有改进或简单替代不能充分解决？
 - 证据来自 Introduction、Related Work、公式、实验、代码还是本文推断？
 
+对每个核心失败模式补一个能直接想象的场景。优先使用论文自己的 motivating example、case study、Figure 或实验；论文未提供时，写“本文构造的说明例，不是论文实验”。每个场景都要包含“旧方法怎么做 → 看得见的问题是什么 → 根因是什么 → 为什么最直觉的补丁仍不够”。当三个以上阶段或变量相互作用、仅靠文字仍难理解时，插入问题示意图。
+
+| 现有方案/做法 | 可观察的失败 | 具体场景或例子 | 例子来源 | 根因/被忽略变量 | 为什么简单修补仍不够 | 证据 |
+|---|---|---|---|---|---|---|
+| `<approach>` | `<observable symptom>` | `<paper example or clearly labeled reviewer-created scenario>` | `<paper-provided/reviewer-created>` | `<root cause>` | `<why obvious patch misses the cause>` | `<Section/Fig/Table/Code>` |
+
 ### 2.3 论文计划解决的问题与成功标准
 
 - 核心研究问题：
@@ -129,6 +135,8 @@ Use this template for Chinese paper-review deliverables. Adapt headings when the
 
 概括方法的输入、主要阶段、输出和训练/推理/部署边界。这里说明“方法是什么”；论文整体为什么提出以及如何解决问题，应以前一章为准。
 
+先用一段口语化流程说明“一个样本进来后依次发生什么”，再给图或表。保留论文模块名时，在第一次出现处补一句普通语言解释。
+
 ### 4.2 组件级设计动机与具体问题映射
 
 不要只写“采用了什么模块/损失/数据/推理策略”。逐项回答论文是否解释了为什么这样设计、要解决哪个具体失败模式或瓶颈、设计通过什么因果机制起作用，以及实验是否真的验证了这条解释。
@@ -141,7 +149,7 @@ Use this template for Chinese paper-review deliverables. Adapt headings when the
 
 ### 4.3 模型/系统架构
 
-嵌入关键示意图。
+嵌入能让读者看清输入、阶段顺序、状态变化、输出和训练/推理边界的总体示意图。论文原图足够清楚时使用原图；否则生成并明确标注“AI 生成的解释图，不是论文原始证据”。
 
 ### 4.4 关键公式
 
@@ -151,8 +159,23 @@ $$
 <formula>
 $$
 
-解释公式中的变量、单位、系统含义。
-公式中的每个变量都必须能在“0.1.2 符号表”中找到；如果论文复用了符号或符号含义不一致，在这里显式说明。
+每条关键公式后立即添加解释卡；不要连续堆叠公式后只用一段总述。
+
+**这条公式在算什么？** `<formula purpose>`
+
+**怎么读？** `<one ordinary-language sentence>`
+
+**输入与输出。** 输入是 `<inputs>`；输出是 `<output>`。
+
+**变量在这里各做什么？** `<local role of every variable>`
+
+**直觉。** `<what rises/falls and why>`
+
+**边界。** `<assumption, approximation, range, unit, or stage>`
+
+**小例子。** `<paper-derived example / clearly labeled reviewer-created example / why an example would mislead>`
+
+公式中的每个变量都必须能在“0.1.2 符号表”中找到；符号表负责查定义，解释卡负责让读者理解这条公式如何工作，两者不能互相替代。如果论文复用了符号或含义不一致，在这里显式说明。
 
 ### 4.5 训练/实验/部署设计
 

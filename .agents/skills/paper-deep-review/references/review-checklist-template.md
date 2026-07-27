@@ -18,6 +18,9 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [pending] W4 Design rationale: for every core design, separate author-stated/inferred/not-stated rationale, identify the concrete problem, explain the causal mechanism, and record alternatives/trade-offs plus validation evidence.
 - [pending] W4 Claim matrix: classify every claimed technical point as direct, indirect, confounded, missing, or otherwise precisely qualified evidence.
 - [pending] W4 Terminology and symbols: complete one centralized `analysis.md` chapter containing sourced term and symbol tables; cover paper-specific meanings, aliases, ambiguities, and author/code/analysis-derived symbol provenance, or mark symbols not applicable only when neither sources nor review derivations use them.
+- [pending] W4 Formula explanations: add an adjacent plain-language explanation card for every key formula, covering purpose, reading, input/output, local variable roles, intuition, boundaries, and a useful example or justified not-applicable status.
+- [pending] W4 Jargon audit: retain only paper-defined, mathematically necessary, or industry-standard terms; explain retained terms at first use, rewrite review-internal shorthand in ordinary language, and leave no unexplained nonessential jargon.
+- [pending] W4 Prior-solution examples: make every central prior-method failure observable through a paper-provided example/Figure or a clearly labeled reviewer-created scenario; explain the root cause and why the obvious patch remains insufficient.
 - [pending] W5 Related work: compare the paper's relevant method groups by mechanism, benefit, limitation, and fairness.
 - [pending] W6 OpenReview cross-check: test public review claims against paper/rebuttal/code evidence, or classify unavailability.
 - [pending] W7 Infrastructure: analyze relevant compute, memory, bandwidth/utilization, interconnect, runtime, data types, and CPU/GPU/NPU heterogeneity.
@@ -25,7 +28,7 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [pending] W9 Gain attribution: separate direct, indirect, confounded, and unsupported component-level attribution.
 - [pending] W10 Report: write complete `analysis.md` from `references/markdown-template.md` with inline evidence visuals and limitations.
 - [pending] W10 Revision information: add/update the centralized revision section; preserve prior history, increment version/revision ID for changed deliveries, and bind non-initial revisions to the previous manifest SHA-256.
-- [pending] W11 Generated diagram: use the required document-input path and verify/link the PNG, or record the exact unavailable/failed reason.
+- [pending] W11 Algorithm overview: use a reader-usable original Figure or generate and verify/link an explanatory PNG; try `$openrouter-icu-image` with `gpt-image-2`, then the installed image-generation fallback, record provenance, and inspect the final image at full resolution.
 - [pending] D1 Delegated handoff: after W11, write the preliminary contract-compliant `agent_handoff.md`, or mark standalone invocation with reason; freeze it before final deliverable hashing.
 - [pending] D2 Deliverable manifest: validate a preliminary `deliverable_manifest.json`, including revision history/current revision identity; finalize/freeze checklist and handoff, recompute hashes, then pass final structural and semantic validation with no errors.
 - [pending] D3 Artifact manifest: in delegated runs, preflight-generate/verify `artifact_manifest.sha256` before the freeze, then regenerate/verify it last after the final deliverable manifest; do not edit covered files afterward. Mark standalone invocation with reason.
@@ -40,7 +43,7 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [pending] Q2 Every accepted crop contains exactly one numbered object and its full caption, records source-page dimensions/bounding box, has readable resolution and tight boundaries, and passes both contact-sheet triage and individual 100% QA; a no-crop run has precise visual-block evidence and no blank placeholder.
 - [pending] Q3 Every key number maps to paper evidence or a clearly labeled calculation.
 - [pending] Q4 Every claimed technical point has an evidence classification; unsupported claims are explicit.
-- [pending] Q5 Generated-diagram handling used `responses-doc --input-file analysis.md` and produced a linked PNG, or has a precise limitation.
+- [pending] Q5 A reader-usable algorithm overview shows input/output, ordered stages, state changes, and train/calibration/inference boundaries; generated-image provider provenance and full-resolution QA are recorded.
 - [pending] Q6 Every code claim cites a local path and commit hash when code is available.
 - [pending] Q7 The centralized terminology-and-symbol chapter covers every key paper-specific term and every applicable variable used in key formulas, metrics, and tables; each entry has a source and ambiguity note.
 - [pending] Q8 Ambiguous mechanism terms are qualified by stage and paper/code meaning.
@@ -54,6 +57,10 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [pending] Q16 Every core design has a rationale entry with source status, concrete target problem, causal mechanism, trade-off, and evidence judgment; inference is never presented as author-stated intent.
 - [pending] Q17 Revision metadata matches `analysis.md` and the manifest; history has one valid initial/migration bootstrap, is ordered and append-only, keeps unresolved issue IDs blocked until exactly one later migration-resolution, makes every later tracked entry point to the exact superseded revision/manifest hash, and identifies the latest frozen state.
 - [pending] Q18 Knowledge integration, when applicable, preserves canonical Paper/Asset ownership, required inbound/backlinks, process-root isolation, and separate review/publication validation states.
+- [pending] Q19 Every key formula has an adjacent explanation card; the symbol table is not used as a substitute for explaining what the formula computes and why.
+- [pending] Q20 The jargon audit has zero unexplained nonessential terms; retained specialized terms have an allowed reason and a plain-language first-use explanation.
+- [pending] Q21 “现有方案为何不够” contains concrete scenarios for central failure modes, prefers paper examples when available, and explains why a simple patch misses the root cause.
+- [pending] Q22 The first paragraph, prior-solution section, algorithm overview, and formula cards pass the one-glance comprehension test in `references/readability-contract.md`.
 
 ## Final Classification
 
