@@ -1,0 +1,4 @@
+interface:
+  display_name: "Technical Progress PPTX"
+  short_description: "以编辑式网格生成克制、可编辑的技术项目进展演示文稿"
+  default_prompt: "Use $technical-progress-pptx to turn this technical project update into a concise, editable PowerPoint deck."
