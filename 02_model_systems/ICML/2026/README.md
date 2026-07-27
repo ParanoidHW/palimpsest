@@ -11,20 +11,20 @@
 
 ## 状态总览
 
-| Paper | Venue 核验 | Review 状态 |
-|---|---|---|
-| [SplAttN](papers/splattn.md) | ICML 2026 Spotlight；官方 poster `60900` | complete：完整 PDF/source、代码与 2 张论文图已复核 |
-| [XDLM](papers/xdlm.md) | ICML 2026 未独立核验 | complete |
-| [Dual-Latent Memory Routing](papers/dual-latent-memory-routing.md) | ICML 2026 Spotlight；poster `63955`、OpenReview `SFWWUr9V7c` | limited：原投稿索引方法、公式与 Tables 1–4 已恢复；accepted final/视觉/代码/评审仍受限 |
-| [LatentLM](papers/latentlm.md) | ICML 2026 未独立核验 | complete |
-| [Flex-Forcing](papers/flex-forcing.md) | ICML 2026 Spotlight | complete with limitations：完整 PDF/source 与 2 张论文图已复核；代码/公开评审未取得 |
-| [OmniFit layer compression](papers/omnifit-layer-compression.md) | ICML 2026 Spotlight；OpenReview `8RY20mLzup`、poster `65962` | limited：官方摘要已恢复；final PDF/source/视觉/代码/评审仍受限 |
-| [LiME](papers/lime.md) | ICML 2026 未独立核验 | complete |
-| [SelfJudge](papers/selfjudge.md) | arXiv `journal_ref: ICML 2026` | complete |
-| [OnlineSpec](papers/onlinespec.md) | ICLR 2026 Lifelong Agent Workshop | complete，venue mismatch |
-| [Multi-Token Self-Distillation](papers/multi-token-self-distillation.md) | `Preprint. Under review` | complete with limitations：完整 source、官方代码 commit 与 5 张论文图已复核；venue 未核验 |
-| [DODO](papers/dodo.md) | ICML 2026 SPIGM Workshop | complete，非主会 |
-| [ECHO](papers/echo.md) | ICML 2026 spotlight，OpenReview forum `L31hKCWRsN` | complete |
+| Paper                                                                    | Venue 核验                                                   | Review 状态                                                             |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------- | --------------------------------------------------------------------- |
+| [SplAttN](papers/splattn.md)                                             | ICML 2026 Spotlight；官方 poster `60900`                      | complete：完整 PDF/source、代码与 2 张论文图已复核                                  |
+| [XDLM](papers/xdlm.md)                                                   | ICML 2026 未独立核验                                            | complete                                                              |
+| [Dual-Latent Memory Routing](papers/dual-latent-memory-routing.md)       | ICML 2026 Spotlight；poster `63955`、OpenReview `SFWWUr9V7c` | complete with limitations：final PDF、方法/主表/appendix 与 3 张论文图已复核；代码/公开评审未取得 |
+| [LatentLM](papers/latentlm.md)                                           | ICML 2026 未独立核验                                            | complete                                                              |
+| [Flex-Forcing](papers/flex-forcing.md)                                   | ICML 2026 Spotlight                                        | complete with limitations：完整 PDF/source 与 2 张论文图已复核；代码/公开评审未取得        |
+| [OmniFit layer compression](papers/omnifit-layer-compression.md)         | ICML 2026 Spotlight；OpenReview `8RY20mLzup`、poster `65962` | complete with limitations：final PDF、公式/算法/系统结果与 4 张论文图已复核；代码/公开评审未取得 |
+| [LiME](papers/lime.md)                                                   | ICML 2026 未独立核验                                            | complete                                                              |
+| [SelfJudge](papers/selfjudge.md)                                         | arXiv `journal_ref: ICML 2026`                             | complete                                                              |
+| [OnlineSpec](papers/onlinespec.md)                                       | ICLR 2026 Lifelong Agent Workshop                          | complete，venue mismatch                                               |
+| [Multi-Token Self-Distillation](papers/multi-token-self-distillation.md) | `Preprint. Under review`                                   | complete with limitations：完整 source、官方代码 commit 与 5 张论文图已复核；venue 未核验 |
+| [DODO](papers/dodo.md)                                                   | ICML 2026 SPIGM Workshop                                   | complete，非主会                                                          |
+| [ECHO](papers/echo.md)                                                   | ICML 2026 spotlight，OpenReview forum `L31hKCWRsN`          | complete                                                              |
 
 ## 文档索引
 

@@ -21,7 +21,7 @@
 
 [LiME](../papers/lime.md#3-研究方法) 通过共享 PEFT 模块、轻量 expert modulator 与表示复用路由，避免每个 expert 复制 adapter；它的直接证据覆盖参数量、训练吞吐和主结果，但“更多专家保留更多任务信息”的理论命题不能替代真实路由负载与尾延迟测量。
 
-[Dual-Latent Memory Routing](../papers/dual-latent-memory-routing.md#4-技术声明证据矩阵与收益归因) 已从 original-submission 搜索索引恢复双 latent bank、injector、eligibility gate、router、三阶段训练、核心公式和 Tables 1–4。替换证据支持 dual bank、trainable injector 与 adaptive budget，但 accepted final PDF、视觉、代码和公开评审仍受限。[OmniFit](../papers/omnifit-layer-compression.md#4-技术声明证据矩阵与收益归因) 已从 ICML official poster 恢复 training-free 定位、LAHP、ARTS 和 profiling–execution decoupling；20% tokens、98% performance、2.31× speedup 和 2.5× VRAM saving 仍只是摘要聚合 claim，不能用同名 3D body-fitting 工作替代。
+[Dual-Latent Memory Routing](../papers/dual-latent-memory-routing.md#5-关键结果与收益归因) 已按 final PDF 核验双 latent bank、injector、eligibility gate、router、三阶段训练和 appendix latency。替换证据支持 dual bank、trainable injector 与 adaptive budget；Qwen reasoning 的报告延迟从 14.0 s 降至 11.5 s，但 delimiter、loss/reward 项与 serving 尾延迟仍未充分隔离。[OmniFit](../papers/omnifit-layer-compression.md#5-质量消融与归因) 的 final PDF 则确认 LAHP、modality retention planning、ARTS 和 profiling–execution decoupling：20% retention 的平均相对性能为 98.68%，单 H800 报告最高 2.31× TTFT、1.39× TPOT 与约 2.5× 7B VRAM 降低。两篇的代码与公开评审仍受限，组件收益也不能超出对应消融边界。
 
 ## 3. 解码加速：从质量放宽到在线自适应
 
@@ -51,6 +51,6 @@
 ## 6. 建议阅读顺序
 
 1. 生成统一：XDLM → LatentLM → DODO。
-2. 多模态参数效率：LiME → Dual-Latent（original-submission 索引证据）→ OmniFit（官方摘要级）。
+2. 多模态参数效率：LiME → Dual-Latent（final PDF 级 memory routing）→ OmniFit（final PDF 级 token compression）。
 3. 解码加速：SelfJudge → MTP → OnlineSpec → ECHO。
-4. 最后对照阅读 source/code 闭环的 SplAttN、source-complete 但 code-absent 的 Flex-Forcing，以及证据受限的 Dual-Latent 与 OmniFit，区分 original-submission/摘要证据、accepted-final 缺口、实现差异和负面实验结论。
+4. 最后对照阅读 source/code 闭环的 SplAttN、source-complete 但 code-absent 的 Flex-Forcing，以及 final-PDF-complete 但 code/review-absent 的 Dual-Latent 与 OmniFit，区分论文内证据、实现可复现性和系统外推边界。

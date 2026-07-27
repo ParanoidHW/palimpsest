@@ -7,7 +7,24 @@
 > - 证据资产：[`../assets/papers/`](../assets/papers/)
 > - 相关文档：[Paper index](paper-index.md)
 
-本清单只记录正式目录中的 31 个资产。caption 列保留原 caption 或其完整中文转述；bbox 坐标系均以渲染页左上角为原点，格式 `(x,y,width,height)`。所有资产在子任务 contact sheet 初筛后，由父级再次以原始分辨率逐图打开；父级发现并修正/排除了 SplAttN、Flex-Forcing、SelfJudge、OnlineSpec、MTP 和 ECHO 的边界问题。
+本清单记录正式目录中的 38 个资产。caption 列保留原 caption 或其完整中文转述；bbox 坐标系均以渲染页左上角为原点，格式 `(x,y,width,height)`。所有资产先经 contact sheet 初筛，再以原始分辨率逐图打开；不完整 caption、页眉和邻接对象均须重裁或排除。
+
+## dual-latent-memory-routing
+
+| Object | Source | Crop | Caption（完整中文转述） | Usage | QA |
+|---|---|---|---|---|---|
+| Figure 2 | ICML 2026 / PMLR 306 final PDF，p3，1700×2200，200 DPI | `(145,215,1380,790)`；[asset](../assets/papers/dual-latent-memory-routing/fig2-dlmr-overview-caption.png) | DLMR 总览：冻结 MLLM 外接 visual/reasoning 两个 latent bank，injector 按当前上下文生成 memory tokens，router 决定类型与预算，并以三阶段训练完成分离、注入与路由。 | [DLMR](../papers/dual-latent-memory-routing.md#3-问题方案证据闭环) | 2026-07-27 contact sheet 初筛与原分辨率逐图 QA 通过；初裁邻接内容已移除，单一 Figure 2、caption 完整。 |
+| Table 1 | 同上，p5，1700×2200 | `(145,180,1390,830)`；[asset](../assets/papers/dual-latent-memory-routing/table1-main-results-caption.png) | 两个 backbone 上比较 general/reasoning benchmark 的 SFT、GRPO 与 DLMR 版本；报告逐数据集和平均值。 | [DLMR](../papers/dual-latent-memory-routing.md#5-关键结果与收益归因) | 初裁后重裁补全边界；contact sheet 与原分辨率 QA 通过。 |
+| Figure 3 | 同上，p6，1700×2200 | `(145,190,680,615)`；[asset](../assets/papers/dual-latent-memory-routing/fig3-disentanglement-ablation-caption.png) | Shared 与 dual latent memory 的分离消融，报告 general、reasoning、overall 及细分 benchmark 表现。 | [DLMR](../papers/dual-latent-memory-routing.md#5-关键结果与收益归因) | 通过；单一 Figure 3、caption 完整、边界紧。 |
+
+## omnifit
+
+| Object | Source | Crop | Caption（完整中文转述） | Usage | QA |
+|---|---|---|---|---|---|
+| Figure 6 | ICML 2026 final PDF，p5，1700×2200，200 DPI | `(145,190,1405,570)`；[asset](../assets/papers/omnifit-layer-compression/fig6-omnifit-overview-caption.png) | OmniFit 总览：离线 LAHP profiling 产生 layer/modality retention plan；在线 ARTS 以 cross-modal anchors 打分并逐层选择、合并 token。 | [OmniFit](../papers/omnifit-layer-compression.md#3-问题方案证据闭环) | 2026-07-27 contact sheet 初筛与原分辨率逐图 QA 通过；重裁后 caption 完整。 |
+| Table 1 | 同上，p6，1700×2200 | `(145,180,1405,675)`；[asset](../assets/papers/omnifit-layer-compression/table1-main-results-caption.png) | Qwen2.5-Omni-3B 在多 benchmark 和 40%/30%/20% retention 下与基线比较的主结果。 | [OmniFit](../papers/omnifit-layer-compression.md#5-质量消融与归因) | 通过；单一 Table 1、caption 完整。 |
+| Figure 8 | 同上，p7，1700×2200 | `(845,170,665,610)`；[asset](../assets/papers/omnifit-layer-compression/fig8-inference-speed-caption.png) | 单 H800 上 Qwen-Omni 7B/30B 的 TTFT 与 TPOT speedup，对比不同输入长度和 batch size。 | [OmniFit](../papers/omnifit-layer-compression.md#6-infra-与部署证据) | 两次重裁移除页眉并补全 caption；contact sheet 与原分辨率 QA 通过。 |
+| Table 5 | 同上，p8，1700×2200 | `(150,998,660,547)`；[asset](../assets/papers/omnifit-layer-compression/table5-component-ablation-caption.png) | RandomDrop、LAHP、ARTS 与 TRP 的组件组合消融。 | [OmniFit](../papers/omnifit-layer-compression.md#5-质量消融与归因) | 通过；单一 Table 5、caption 完整、边界紧。 |
 
 ## splattn
 
@@ -92,7 +109,7 @@
 
 ## 排除记录
 
-- Dual-Latent、OmniFit：`visual-evidence-skip`。前者仅恢复 original-submission 的索引文本，后者仅恢复官方摘要；两者均无可验证的本地 final PDF/page render，故没有可满足单一编号对象 + 完整 caption + 原分辨率 QA 的正式图表，也未使用生成图替代论文证据。
+- Dual-Latent、OmniFit 的旧 `visual-evidence-skip` 已于 2026-07-27 解除：用户提供 final PDF 后，分别提升 3/4 个通过单一编号对象、完整 caption、contact sheet 和原分辨率 QA 的正式资产。
 - SplAttN Figure 8 初裁：混入页眉，已重裁后提升。
 - Flex-Forcing Table 2 初裁：caption 最后一行截断，已重裁后提升。
 - SelfJudge 初始 Figure 1/2/4：含页眉或后续正文，已重裁后提升。
