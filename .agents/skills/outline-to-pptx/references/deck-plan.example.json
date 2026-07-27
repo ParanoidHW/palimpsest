@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0.0",
+  "style_profile": "academic-light",
+  "source": {
+    "type": "markdown-outline",
+    "path": "outline.md"
+  },
+  "deck": {
+    "title": "示例演示",
+    "subtitle": "由 Markdown 大纲生成",
+    "audience": "大纲指定的受众",
+    "status": "working"
+  },
+  "sections": [
+    {
+      "id": "opening",
+      "label": "开场"
+    },
+    {
+      "id": "main",
+      "label": "正文"
+    },
+    {
+      "id": "closing",
+      "label": "收束"
+    }
+  ],
+  "slides": [
+    {
+      "id": "opening-viewpoint",
+      "kind": "cover",
+      "section": "opening",
+      "header": "开场",
+      "title": "用一句话写出整份演示的核心观点",
+      "title_is_viewpoint": true,
+      "messages": [
+        {
+          "message": "副标题、对象与时间等信息来自大纲",
+          "detail": "没有的信息保持为空或标成占位符。"
+        }
+      ],
+      "critical_emphasis": [
+        "核心观点"
+      ],
+      "font_size_tokens_used": [
+        "title",
+        "body",
+        "note"
+      ]
+    },
+    {
+      "id": "main-message",
+      "kind": "two-column",
+      "section": "main",
+      "header": "正文 · 示例主题",
+      "title": "每页只围绕一个观点组织信息",
+      "title_is_viewpoint": true,
+      "messages": [
+        {
+          "message": "第一组信息",
+          "detail": "承载大纲中的事实、解释或例子。",
+          "annotation": "必要时保留原始限定语。"
+        },
+        {
+          "message": "第二组信息",
+          "detail": "可以配图、表格、流程或对比。"
+        },
+        {
+          "message": "第三组信息",
+          "detail": "超过三组时拆页，不压缩字号。"
+        }
+      ],
+      "visual": {
+        "type": "placeholder",
+        "caption": "替换为大纲中对应的视觉对象",
+        "editable": true
+      },
+      "critical_emphasis": [
+        "一个观点",
+        "超过三组时拆页"
+      ],
+      "placeholders": [
+        {
+          "status": "tbd",
+          "label": "【待补充】视觉对象",
+          "fields": [
+            "图片 / 图表 / 表格",
+            "标题 / caption",
+            "来源 / 备注"
+          ]
+        }
+      ],
+      "font_size_tokens_used": [
+        "title",
+        "body",
+        "note"
+      ]
+    },
+    {
+      "id": "closing-action",
+      "kind": "closing",
+      "section": "closing",
+      "header": "收束",
+      "title": "结尾回到观点并给出下一步",
+      "title_is_viewpoint": true,
+      "messages": [
+        {
+          "message": "结论",
+          "detail": "复述演示最终希望受众记住的内容。"
+        },
+        {
+          "message": "下一步",
+          "detail": "保留大纲中已有的行动项。"
+        }
+      ],
+      "critical_emphasis": [
+        "回到观点"
+      ],
+      "font_size_tokens_used": [
+        "title",
+        "body",
+        "note"
+      ]
+    }
+  ]
+}

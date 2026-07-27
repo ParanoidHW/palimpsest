@@ -1,0 +1,4 @@
+interface:
+  display_name: "Outline to PPTX"
+  short_description: "将 Markdown 大纲转换为浅色学术风可编辑 PPT"
+  default_prompt: "Use $outline-to-pptx to turn this Markdown outline into a validated, editable PowerPoint deck."

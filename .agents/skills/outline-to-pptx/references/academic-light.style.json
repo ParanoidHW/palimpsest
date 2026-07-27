@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "id": "academic-light",
+  "theme_family": "academic-editorial-light",
+  "canvas": {
+    "width_in": 17.7778,
+    "height_in": 10,
+    "light_background_required": true,
+    "dark_slides_allowed": false
+  },
+  "fonts": {
+    "zh_primary": "Microsoft YaHei",
+    "en_primary": "Arial",
+    "fallback": [
+      "MiSans"
+    ]
+  },
+  "typography": {
+    "sizes_pt": {
+      "title": 34,
+      "body": 17,
+      "note": 11
+    },
+    "max_distinct_sizes_per_slide": 3,
+    "body_min_pt": 14,
+    "large_metric_reuses": "title"
+  },
+  "palette": {
+    "canvas": "FAFAF8",
+    "ink": "1D2939",
+    "body": "344054",
+    "muted": "667085",
+    "line": "D0D5DD",
+    "soft": "F2F4F7",
+    "critical_red": "B42318",
+    "white": "FFFFFF"
+  },
+  "emphasis": {
+    "critical_requires_bold": true,
+    "critical_color_token": "critical_red",
+    "max_fragments_per_slide": 3,
+    "whole_paragraph_red_allowed": false
+  },
+  "content": {
+    "title_mode": "viewpoint",
+    "max_title_chars": 34,
+    "max_message_groups_per_slide": 3,
+    "information_density": "high"
+  },
+  "navigation": {
+    "mode": "running-header",
+    "standalone_agenda_slides": false,
+    "repeated_section_dividers": false
+  },
+  "layout": {
+    "outer_margin_in": 1.08,
+    "columns": 12,
+    "max_major_columns": 2,
+    "cards_default": false
+  },
+  "qa": {
+    "primary_renderer": "microsoft-powerpoint",
+    "libreoffice_role": "secondary-compatibility-only",
+    "require_second_render_after_fix": true
+  }
+}

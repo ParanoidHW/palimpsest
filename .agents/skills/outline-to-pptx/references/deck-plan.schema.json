@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/outline-to-pptx/deck-plan.schema.json",
+  "title": "Markdown-to-PowerPoint deck plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "style_profile", "source", "deck", "sections", "slides"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "style_profile": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {"enum": ["markdown-outline", "notes", "documents", "existing-deck", "mixed"]},
+        "path": {"type": "string"},
+        "reference_deck": {"type": "string"}
+      }
+    },
+    "deck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "status"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "subtitle": {"type": "string"},
+        "audience": {"type": "string"},
+        "status": {"enum": ["working", "formal"]}
+      }
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+          "label": {"type": "string", "minLength": 1, "maxLength": 24}
+        }
+      }
+    },
+    "slides": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "section",
+          "header",
+          "title",
+          "title_is_viewpoint",
+          "messages",
+          "critical_emphasis",
+          "font_size_tokens_used"
+        ],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+          "kind": {
+            "enum": [
+              "cover",
+              "statement",
+              "figure",
+              "table",
+              "process",
+              "comparison",
+              "timeline",
+              "two-column",
+              "quote",
+              "next-step",
+              "closing"
+            ]
+          },
+          "section": {"type": "string", "minLength": 1},
+          "header": {"type": "string", "minLength": 1, "maxLength": 32},
+          "title": {"type": "string", "minLength": 2, "maxLength": 34},
+          "title_is_viewpoint": {"const": true},
+          "messages": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["message"],
+              "properties": {
+                "message": {"type": "string", "minLength": 1},
+                "detail": {"type": "string"},
+                "annotation": {"type": "string"}
+              }
+            }
+          },
+          "visual": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type"],
+            "properties": {
+              "type": {"enum": ["image", "diagram", "chart", "table", "shape-composition", "placeholder"]},
+              "source": {"type": "string"},
+              "caption": {"type": "string"},
+              "alt": {"type": "string"},
+              "editable": {"type": "boolean"}
+            }
+          },
+          "critical_emphasis": {
+            "type": "array",
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "placeholders": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "label", "fields"],
+              "properties": {
+                "status": {"enum": ["to-add", "to-refresh", "to-attribute", "tbd"]},
+                "label": {"type": "string", "minLength": 1},
+                "fields": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {"type": "string", "minLength": 1}
+                }
+              }
+            }
+          },
+          "source_notes": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          },
+          "speaker_notes": {"type": "string"},
+          "font_size_tokens_used": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {"enum": ["title", "body", "note"]}
+          }
+        }
+      }
+    }
+  }
+}

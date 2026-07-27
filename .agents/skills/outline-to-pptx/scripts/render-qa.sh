@@ -57,8 +57,8 @@ if [[ "$compat_mode" == "--compat-libreoffice" ]]; then
       exit 1
     }
   done
-  profile_dir="$(mktemp -d /tmp/technical-progress-pptx-lo-XXXXXX)"
-  work_dir="$(mktemp -d /tmp/technical-progress-pptx-render-XXXXXX)"
+  profile_dir="$(mktemp -d /tmp/outline-to-pptx-lo-XXXXXX)"
+  work_dir="$(mktemp -d /tmp/outline-to-pptx-render-XXXXXX)"
   trap 'rm -rf "$profile_dir" "$work_dir"' EXIT
   cp "$input_path" "$work_dir/input.pptx"
   soffice \
@@ -104,4 +104,3 @@ if [[ "$rendered_by" != "powerpoint" ]]; then
 fi
 
 echo "$output_dir"
-
