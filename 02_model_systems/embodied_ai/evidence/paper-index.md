@@ -7,7 +7,7 @@
 > - 证据资产：见各 Paper 的 `../assets/papers/<paper-slug>/`
 > - 相关文档：[图表清单](figure-inventory.md)
 
-本索引记录 12 篇锚点的稳定元数据与验收边界。代码“可用”只表示本次能够定位到指定 commit 或公开入口，不表示训练、评测和部署能在当前环境复现。
+本索引记录 13 篇锚点的稳定元数据与验收边界。代码“可用”只表示本次能够定位到指定 commit 或公开入口，不表示训练、评测和部署能在当前环境复现。
 
 | Paper | 年份与状态 | 在谱系中的角色 | 论文与代码 | 代码可用性 | 验收结论与主要限制 |
 | --- | --- | --- | --- | --- | --- |
@@ -23,3 +23,4 @@
 | [VGGT](../papers/vggt.md) | CVPR 2025 | 多视图几何 foundation backbone | [arXiv](https://arxiv.org/abs/2503.11651)；[code](https://github.com/facebookresearch/vggt/tree/a288dd0f14786c93483e45524328726ab7b1b4ce) | 固定 commit 已核验 | H100 帧数/显存测量直接；并非动作策略或闭环定位器。 |
 | [MotuBrain](../papers/motubrain.md) | 2026 arXiv v3 | 统一视频-动作模型和 action-only 优化 | [arXiv](https://arxiv.org/abs/2604.27792)；[repository](https://github.com/shengshu-ai/Motubrain/tree/b2b08f7504337c0d1faf840de8233c76b45ede39) | 仓库固定 commit 为 documentation-only | 累积优化表有直接证据；硬件 SKU、模型规模、cache 与端到端 protocol 缺失。 |
 | [WAM4D](../papers/wam4d.md) | 2026 arXiv v3 | spatial register 与训练期 4D 几何监督 | [arXiv](https://arxiv.org/abs/2606.14048)；[repository entry](https://github.com/myendless1/wam4d) | 未获得可固定实现 commit | 质量/绝对延迟表存在；没有 geometry branch on/off 的匹配延迟消融。 |
+| [Xiaomi-Robotics-U0](../papers/xiaomi-robotics-u0.md) | 2026 arXiv v1 | 统一具身数据合成、FlashAR+ 与下游策略增强 | [arXiv](https://arxiv.org/abs/2607.11643)；[code](https://github.com/XiaomiRobotics/Xiaomi-Robotics-U0/tree/777c62007a92a0a848060b4c3889fb8f1b00d74b) | 推理代码和多类 checkpoint 可用；完整训练代码/数据未公开，视频 checkpoint 核验日仍待发布 | FlashAR+ latency 与合成数据增广对干扰组进度有直接证据；缺统一训练消融，策略指标主要是 progress。 |

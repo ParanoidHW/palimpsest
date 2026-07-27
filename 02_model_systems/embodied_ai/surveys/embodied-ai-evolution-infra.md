@@ -7,13 +7,13 @@
 > - 证据资产：各论文的 `../assets/papers/<paper-slug>/`
 > - 相关文档：[论文索引](../evidence/paper-index.md)、[图表清单](../evidence/figure-inventory.md)
 
-这份调研把具身智能视为从传感器到执行器的实时系统，而不是把机器人上的视觉语言模型等同于中心侧多模态服务。覆盖 2023--2026 年的 12 篇锚点工作：3D 感知、操作、导航、VLA、world model 与 WAM 各两篇。所有具体数字、公式、图表与代码核验均回到对应 Paper；这里仅保留跨工作比较和工程判断。
+这份调研把具身智能视为从传感器到执行器的实时系统，而不是把机器人上的视觉语言模型等同于中心侧多模态服务。覆盖 2023--2026 年的 13 篇锚点工作，横跨 3D 感知、操作、导航、VLA、world model 与 WAM。所有具体数字、公式、图表与代码核验均回到对应 Paper；这里仅保留跨工作比较和工程判断。
 
 ## 修订信息
 
 - 当前版本：`1.1.0`
 - 修订日期：`2026-07-25`
-- 资料范围：只综合本领域 README 已索引的 12 篇 canonical Paper，不新增 Survey 尚未覆盖的精读。
+- 资料范围：只综合本领域 README 已索引的 13 篇 canonical Paper，不新增 Survey 尚未覆盖的精读。
 - 本轮修复：逐批把概括性旧锚点替换为 Paper 的动机闭环、方法、技术 claim 证据矩阵、Infra 与局限精确章节；同步代码、checkpoint 与 OpenReview 的当前可用边界。
 - 结论边界：Survey 保留跨论文比较，不复制 Paper 全文；系统吞吐、离线生成、仿真成功率和闭环控制安全不得跨协议直接比较。
 
@@ -24,6 +24,7 @@
 3. **action chunk、receding horizon、KV/feature cache 与 action-only 是把大模型接入控制环的共同接口。** ACT 和 Diffusion Policy 分别用 chunk/ensemble 与多步去噪处理操作；OpenVLA、RT-2 使用 action token；MotuBrain 把重复视频输出裁成 action suffix。它们并不消除视觉前缀和安全闭环成本，见 [ACT 研究方法](../papers/act.md#4-研究方法)、[Diffusion Policy 方法](../papers/diffusion-policy.md#4-研究方法)、[OpenVLA Infra](../papers/openvla.md#8-infra-需求分析)、[MotuBrain 研究方法](../papers/motubrain.md#4-研究方法)。
 4. **量化主要节省权重/激活流量与显存，并不自动降低所有计算。** OpenVLA 的 int4 和 NaVILA 的 W4A16 都有直接的容量、延迟或成功率测量，但真实收益取决于 fusion、算子覆盖和 fallback，[OpenVLA 技术点证据矩阵](../papers/openvla.md#52-技术点证据矩阵)、[NaVILA 技术点证据矩阵](../papers/navila.md#52-技术点证据矩阵与消融机制证据)。
 5. **“能生成未来”与“能安全控制”是两条证据链。** Genie 和 Cosmos 对 latent action、视频预测和数据生成有证据，但秒级视频生成不是在线伺服；WAM4D 的训练几何分支可移除，但缺少匹配的 on/off 延迟消融，[Genie 实验](../papers/genie.md#关键实验与证据)、[Cosmos 技术 claim 矩阵](../papers/cosmos-world-foundation-model.md#5-关键结论与技术-claim-证据矩阵)、[WAM4D 局限](../papers/wam4d.md#10-优点与局限)。
+6. **合成数据是否有用，应由固定下游策略的受控增广实验判断。** Xiaomi-Robotics-U0 在真实 clean data 和策略配方不变时加入 transfer 数据，使干扰组平均任务进度从 36.9% 提到 63.2%，而 base 组从 81.0% 到 82.1%；这是“改善视觉域鲁棒性”的证据，不是完整成功率或统一训练收益的证明，见 [U0 下游策略鲁棒性](../papers/xiaomi-robotics-u0.md#53-下游策略鲁棒性)。
 
 ## 范围与比较规则
 
@@ -59,9 +60,9 @@ EmbodiedScan 将 RGB-D、文本、3D detection/grounding/occupancy 放入统一�
 
 ### World model：从 latent interactive environment 到 Physical AI 平台
 
-[Genie](../papers/genie.md#核心机制与贡献)在无动作标签视频中学习离散 latent action，并以 tokenizer 与 dynamics 组成可控生成环境；[其系统分析](../papers/genie.md#infra-与部署)表明长视频 token、迭代采样和训练规模更接近数据生成/交互平台。[Cosmos](../papers/cosmos-world-foundation-model.md#4-研究方法)进一步提供 curator、连续/离散 tokenizer、diffusion/AR WFM、后训练与 guardrail；[主结果与证据矩阵](../papers/cosmos-world-foundation-model.md#5-关键结论与技术-claim-证据矩阵)说明高质量生成不能直接进入在线伺服。
+[Genie](../papers/genie.md#核心机制与贡献)在无动作标签视频中学习离散 latent action，并以 tokenizer 与 dynamics 组成可控生成环境；[其系统分析](../papers/genie.md#infra-与部署)表明长视频 token、迭代采样和训练规模更接近数据生成/交互平台。[Cosmos](../papers/cosmos-world-foundation-model.md#4-研究方法)进一步提供 curator、连续/离散 tokenizer、diffusion/AR WFM、后训练与 guardrail；[主结果与证据矩阵](../papers/cosmos-world-foundation-model.md#5-关键结论与技术-claim-证据矩阵)说明高质量生成不能直接进入在线伺服。[Xiaomi-Robotics-U0](../papers/xiaomi-robotics-u0.md#2-问题方案证据闭环)把 T2I、编辑、场景生成、transfer 和视频映射到统一视觉 token 模型，并以固定策略的数据增广对照证明 transfer 数据主要改善 held-out 干扰；[FlashAR+](../papers/xiaomi-robotics-u0.md#4-flashar)则通过二维对角 step 与 vLLM 把 1024² 生成时间从 450.77 秒降到论文条件下的 5.44 秒。
 
-world model 的价值在于预测、数据闭环、候选分支与不确定性，而非自动构成安全 policy。内容 guardrail 也不能代替碰撞、力矩限制和急停。
+world model 的价值在于预测、数据闭环、候选分支与不确定性，而非自动构成安全 policy。U0 也说明“像素合成数据提升策略”与“模型在线闭环控制”是两种不同证据；内容 guardrail 同样不能代替碰撞、力矩限制和急停。
 
 ### WAM：统一视频动作和 4D 几何的早期形态
 

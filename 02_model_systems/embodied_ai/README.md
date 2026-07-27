@@ -12,9 +12,9 @@
 
 | 类型 | 文档 | 说明 |
 | --- | --- | --- |
-| Survey | [具身智能模型演进、Infra 与端云协同](surveys/embodied-ai-evolution-infra.md) | 12 篇锚点论文的跨工作综合与部署判断。 |
+| Survey | [具身智能模型演进、Infra 与端云协同](surveys/embodied-ai-evolution-infra.md) | 13 篇锚点论文的跨工作综合与部署判断。 |
 | Evidence | [论文索引](evidence/paper-index.md) | 选篇角色、版本、代码与主要限制。 |
-| Evidence | [图表清单](evidence/figure-inventory.md) | 30 个正式图/表资产的来源和 QA 记录。 |
+| Evidence | [图表清单](evidence/figure-inventory.md) | 正式图/表资产的来源和 QA 记录。 |
 
 ### 3D 感知
 
@@ -40,6 +40,7 @@
 
 - [Genie](papers/genie.md)：无动作标签视频中的 latent action 与生成环境。
 - [Cosmos World Foundation Model Platform](papers/cosmos-world-foundation-model.md)：Physical AI 数据、tokenizer 和视频生成平台。
+- [Xiaomi-Robotics-U0](papers/xiaomi-robotics-u0.md)：统一具身数据合成、FlashAR+ 与策略鲁棒性闭环。
 
 ### WAM
 
