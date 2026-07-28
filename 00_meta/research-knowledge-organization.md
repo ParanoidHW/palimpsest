@@ -129,6 +129,7 @@ README 不需要关系区块，但必须在开头说明领域范围，并提供�
 ## 9. Markdown、PPT 与 HTML
 
 - canonical 技术内容必须有 Markdown 版本；PPT/HTML 是补充交付件，不是唯一知识载体。
+- 面向 Obsidian 的正式 Markdown，行内公式统一使用 `$...$`，块级公式统一使用独占行的 `$$...$$`；不得交付 `\(...\)` 或 `\[...\]` 分隔形式。完成前检查公式分隔符成对且块级公式闭合，并避免把货币符号误解析为公式起点。
 - Survey/Topic/Paper Markdown 分别进入其职责目录；PPT 和专题 HTML 进入 `supplements/`。
 - PPT 构建脚本、渲染 PNG、缩略图、QA 报告与日志留在 `_artifacts`；最终 `.pptx` 进入 `supplements/`。
 - HTML 若是最终可读补充件可进入 `supplements/`；其构建缓存和截图仍留在 `_artifacts`。
