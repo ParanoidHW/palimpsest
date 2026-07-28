@@ -5,7 +5,7 @@
 1. 哪些研究领域/子领域已经有正式 Survey 或 Paper；
 2. 某篇论文是否已经完成 canonical 分析，应当复用、链接或增量更新，而不是重新生成一份。
 
-> 快照日期：2026-07-28。当前共登记 8 个正式 paper domain、62 篇 canonical Paper。
+> 快照日期：2026-07-28。当前共登记 8 个正式 paper domain、63 篇 canonical Paper。
 
 ## 使用规则
 
@@ -37,7 +37,7 @@
 | `02_model_systems/embodied_ai` | 13 | VLA、导航、操作策略、world model、3D/4D perception、数据合成 | [Embodied AI evolution](../02_model_systems/embodied_ai/surveys/embodied-ai-evolution-infra.md) | 核心谱系已覆盖 |
 | `02_model_systems/llm_foundations` | 2 | frontier LLM 架构、规模与 Infra | [2026 H1 model scale](../02_model_systems/llm_foundations/surveys/2026h1-model-scale.md) | Kimi K3 父级链路需复核 |
 | `02_model_systems/multimodal_generation` | 17 | image/video diffusion、AR/flow、MoT、VAE、cache、稀疏 attention、serving | [Visual generation landscape](../02_model_systems/multimodal_generation/surveys/visual-generation-model-landscape.md) | BAGEL/Cosmos3 等优先复用 |
-| `02_model_systems/speculative_decoding` | 6 | diffusion draft、tree/parallel drafting、online/self judge、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖 |
+| `02_model_systems/speculative_decoding` | 7 | diffusion draft、tree/parallel drafting、解耦 local correction、online/self judge、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖 |
 | `03_agentic_workflows/kernel_agents` | 4 | LLM 自动 kernel 生成、Ascend/NPU、test-time scaling | [Paper index](../03_agentic_workflows/kernel_agents/evidence/paper-index.md) | 当前为 Paper note，适合按需补全 |
 
 ## Paper 明细
@@ -124,12 +124,13 @@
 | Transfusion | 深度精读 | [transfusion](../02_model_systems/multimodal_generation/papers/transfusion.md) |
 | Vega | 深度精读 | [vega](../02_model_systems/multimodal_generation/papers/vega.md) |
 
-### Speculative decoding（6）
+### Speculative decoding（7）
 
 | Paper | 状态 | Canonical |
 |---|---|---|
 | D²SD | 深度精读 | [d2sd](../02_model_systems/speculative_decoding/papers/d2sd.md) |
 | DFlash | 深度精读 | [dflash](../02_model_systems/speculative_decoding/papers/dflash.md) |
+| DeLS-Spec / arXiv:2607.07409 | 深度精读 | [dels-spec](../02_model_systems/speculative_decoding/papers/dels-spec.md) |
 | DSpark | 深度精读 | [dspark](../02_model_systems/speculative_decoding/papers/dspark.md) |
 | HyperDFlash | 深度精读 | [hyperdflash](../02_model_systems/speculative_decoding/papers/hyperdflash.md) |
 | JetSpec | 深度精读 | [jetspec](../02_model_systems/speculative_decoding/papers/jetspec.md) |
