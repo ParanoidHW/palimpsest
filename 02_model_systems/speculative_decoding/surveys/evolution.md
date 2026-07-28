@@ -11,20 +11,21 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-spec-evolution-delivery-remediation-20260725`
-- 当前修订时间：`2026-07-25T23:30:00+08:00`
-- 替代版本：调研日期 `2026-07-02`
+- 当前文档版本：`1.2.0`
+- 当前修订 ID：`rev-spec-evolution-dels-spec-20260728`
+- 当前修订时间：`2026-07-28T18:30:00+08:00`
+- 替代版本：`rev-spec-evolution-delivery-remediation-20260725` / `1.1.0` / canonical Markdown SHA-256 `8d1f48545cb7840bccca216ee510ee871fbbaec50f2a844b453f82fe00f6b1ec`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|
 | `rev-spec-evolution-delivery-remediation-20260725` | `1.1.0` | `2026-07-25T23:30:00+08:00` | evidence-and-link remediation | 更新六篇 canonical Paper 的精确证据入口、时间线边界与跨论文结论限制 | canonical Paper reviews、Figure inventory 与发布器校验 | minor；不新增 backlog Paper |
+| `rev-spec-evolution-dels-spec-20260728` | `1.2.0` | `2026-07-28T18:30:00+08:00` | evidence update | 增补 DeLS-Spec：冻结 DFlash、独立训练短上下文专家，并严格限定其与 DSpark 的直接证据关系 | DeLS-Spec arXiv/source/code、Table 2、canonical Paper | material：新增一个 DSpark 发布后的算法演进节点 |
 
 本文是 canonical timeline；lossless acceptance/correction 公式、accepted-length 上限、draft/verify 成本和 KV/serving 合同只在 [Foundations and trends](foundations-and-trends.md#1-lossless-correctness-contract) 维护，避免两篇 Survey 重复。
 
 ## 精读证据入口
 
-[P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵) · [D²SD](../papers/d2sd.md#5-关键结论) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵)
+[P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵) · [D²SD](../papers/d2sd.md#5-关键结论) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵) · [DeLS-Spec](../papers/dels-spec.md)
 
 ## 资料获取与可追溯性
 
@@ -286,6 +287,18 @@ DSpark 则在 parallel block 与 autoregressive draft 之间插入 lightweight s
 
 BlockPilot、CaDDTree、EntMTP、WhiFlash 则显示另一个趋势：固定 speculation budget 正在被淘汰。系统需要根据当前样本、entropy、batch size、verification cost 和 drafter 类型选择策略。
 
+### 6.6 DeLS-Spec：从“联训因果修正”转向“可插拔短上下文专家”
+
+DeLS-Spec 是 DSpark 发布后的直接算法增量。它不改 verifier 或 scheduler，也不重训 DFlash：把冻结的 DFlash 视为 long-context expert，独立训练 RNN/Markov local head 作为 short-context expert，推理时用
+
+$$
+\ell=\ell_L+\alpha\ell_S-\beta\ell_P
+$$
+
+融合长、短上下文 logits，并减去重复计算的 unigram prior。默认 $\alpha=\beta=0.3$。这条路线的核心价值不是把 $\tau$ 提高一个数量级，而是把已有 DFlash-style checkpoint 的升级成本显著降低。
+
+它与 DSpark 的关系需要严格限定：论文 Table 2 直接使用 **DSpark 发布的 DFlash block-7 baseline checkpoints**，4B 平均 speedup/$\tau$ 从 `3.18×/3.92` 提高到 `3.38×/4.18`，8B 从 `3.23×/3.90` 提高到 `3.35×/4.14`；但没有与 DSpark sequential head、Confidence、STS 或 hardware-aware scheduler 比较。因此它证明的是“DSpark release 资产可被低成本增强”，不是“DeLS-Spec 优于完整 DSpark”。详见 [DeLS-Spec 隔离精读](../papers/dels-spec.md) 与 [DSpark 的算法增量候选](../papers/dspark.md#103-算法级增量候选已验证结果与待验证方案)。
+
 ## 7. 路线差异总表
 
 | 时间 | 路线 | 代表方法 | 解决的瓶颈 | 留下的问题 |
@@ -301,6 +314,7 @@ BlockPilot、CaDDTree、EntMTP、WhiFlash 则显示另一个趋势：固定 spec
 | 2026 | Block diffusion | DFlash | drafter 自回归串行 | block dependency 和固定 block size |
 | 2026 | Diffusion tree / repair | DDTree, D2SD | 单 block 早错损失 | confidence 校准、cascade 成本 |
 | 2026 | Causal parallel tree | JetSpec | 高 budget 下路径不一致 | 训练代码与 kernel 复杂度 |
+| 2026 | Decoupled local correction | DeLS-Spec | 已有 parallel checkpoint 的块内因果增强成本 | residual 上限、动态融合与非 DFlash 泛化 |
 | 2026 | Adaptive scheduling | BlockPilot, CaDDTree, EntMTP, WhiFlash | 静态 budget 不适配负载 | policy 泛化和在线稳定性 |
 
 ## 8. 未来趋势判断
@@ -375,4 +389,4 @@ JetSpec、D2SD、BlockPilot、Teaching Diffusion to Speculate Left-to-Right 都�
 
 ## 正式证据入口
 
-本调研使用的六篇完整精读见上方“精读证据入口”；检索缓存、PDF、源码、渲染页和执行日志仅作为过程材料保存，不作为正式知识链接。
+本调研使用的七篇完整精读见上方“精读证据入口”；检索缓存、PDF、源码、渲染页和执行日志仅作为过程材料保存，不作为正式知识链接。

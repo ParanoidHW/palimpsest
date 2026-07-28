@@ -7,14 +7,14 @@
 > - 证据资产：`../assets/papers/dspark/`
 > - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
 
-> 资料状态：已取得官方 arXiv:2607.05147v1 PDF、LaTeX/source、官方 DeepSpec 代码与公开 checkpoint metadata/config。本文中的 Figure/Table 均为 300-DPI 论文页紧裁剪并包含完整 caption；没有把搜索摘要当作技术证据。论文材料审计日期为 2026-07-25；vLLM、vLLM-Ascend 与 SGLang 社区实现增量审计日期为 2026-07-27。
+> 资料状态：已取得官方 arXiv:2607.05147v1 PDF、LaTeX/source、官方 DeepSpec 代码与公开 checkpoint metadata/config。本文中的 Figure/Table 均为 300-DPI 论文页紧裁剪并包含完整 caption；没有把搜索摘要当作技术证据。论文材料审计日期为 2026-07-25；vLLM、vLLM-Ascend 与 SGLang 社区实现增量审计日期为 2026-07-27；DSpark 发布后算法工作与待验证组合增量审计日期为 2026-07-28。
 
 ## 修订信息
 
-- 当前文档版本：`1.3.0`
-- 当前修订 ID：`rev-dspark-20260727-two-step-relay-clarification`
-- 当前修订时间：`2026-07-27T19:00:03+08:00`
-- 替代版本：`rev-dspark-20260727-sglang-adoption` / `1.2.0` / canonical Markdown SHA-256 `0635f1971edd31f6dc63edacf46c62aed422f70ec25489afa9c00a3f78d33f9a`
+- 当前文档版本：`1.4.0`
+- 当前修订 ID：`rev-dspark-20260728-algorithm-evolution`
+- 当前修订时间：`2026-07-28T18:30:00+08:00`
+- 替代版本：`rev-dspark-20260727-two-step-relay-clarification` / `1.3.0` / canonical Markdown SHA-256 `303b7d9653fe8943b91ac5d84de474a8969a4799d9df3e161b14d1c0d7d3155a`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -23,6 +23,7 @@
 | `rev-dspark-20260727-community-adoption` | 1.1.0 | 2026-07-27T17:07:11+08:00 | Codex | evidence-update | `rev-dspark-20260725-validation-results` / 1.0.1 / `20729e2f2c00698e55757257df07a0f768cd0c9c87baf0bac9bfd81cdecd2c42` | none | 增补 vLLM / vLLM-Ascend 接入状态，核对 Markov、Confidence、FullGraph 与吞吐归因 | 社区实现已快速演进，需要区分“DSpark 基础路径已接入”与“Confidence 调度仍未进入正式闭环” | §5.4–5.5、§8.5–8.6、§9.2、§10–12 | 官方 release、合入/开放 PR、RFC、固定 commit 源码审计 | material：确认社区已将 Markov 高接受率通过图执行转化为吞吐，但否定“Confidence 已使能并贡献吞吐”的表述 |
 | `rev-dspark-20260727-sglang-adoption` | 1.2.0 | 2026-07-27T17:16:27+08:00 | Codex | evidence-update | `rev-dspark-20260727-community-adoption` / 1.1.0 / canonical Markdown `d52b88359775c54a8a55d68d2619d57b4977709361529cbaeaa97b1e62de234b` | none | 增补 SGLang 已发布的 Confidence/STS/SPS/ragged verify/ZOS 完整路径及受控吞吐证据 | SGLang v0.5.16 的能力边界不同于 vLLM/vLLM-Ascend，需修正“社区 Confidence 后半闭环均未落地”的过度概括 | §5.4–5.5、§8.6、§9.2、§10–12 | SGLang v0.5.16、合入 PR、固定 main 源码与官方工程博文 | material：确认 SGLang 已公开实现并验证 Confidence 调度到吞吐的闭环，同时保留默认关闭和 SPS 表前置条件 |
 | `rev-dspark-20260727-two-step-relay-clarification` | 1.3.0 | 2026-07-27T19:00:03+08:00 | Codex | clarification | `rev-dspark-20260727-sglang-adoption` / 1.2.0 / canonical Markdown `0635f1971edd31f6dc63edacf46c62aed422f70ec25489afa9c00a3f78d33f9a` | none | 澄清论文 production adaptation 与 SGLang 两步延迟 Confidence relay 的关系、时序和正确性边界，并修正“高并发前移”的含糊表述 | 原文容易被误读为额外执行两步模型，或把 ZOS 整体 1.5×收益归因给 relay 单项 | §0.1.1、§2.4、§5.2、§5.4、§8.6、§10 | 论文 `infra.tex`；SGLang 官方工程博文与合入 PR #30261 | none：不改变社区接入与吞吐结论，只提高机制和归因表述精度 |
+| `rev-dspark-20260728-algorithm-evolution` | 1.4.0 | 2026-07-28T18:30:00+08:00 | Codex | content-update | `rev-dspark-20260727-two-step-relay-clarification` / 1.3.0 / canonical Markdown `303b7d9653fe8943b91ac5d84de474a8969a4799d9df3e161b14d1c0d7d3155a` | none | 增补 DeLS-Spec 对 DSpark 发布资产的直接算法增量，并把 loss、tree、feature fusion、动态融合等组合拆成可证伪实验假设 | 用户要求独立算法工作单独交付，其他方案先落入 DSpark 交付件阐释 | §6、§10.3、§11–12 | DeLS-Spec arXiv:2607.07409v1、官方源码/代码、Table 2；相关工作机制边界 | material：确认一个发布后直接算法增量，同时阻止把前置工作或未实验组合误写成已验证演进 |
 
 ## 0. 资料与配图索引
 
@@ -374,8 +375,11 @@ V4-Flash：80 tok/s/user SLA 下 aggregate throughput +51%；120 的边界 regim
 | CRF-NAT | parallel states + global sequential score | 建模依赖 | partition function 妨碍逐 token exact probability | DSpark 用 local softmax |
 | CTC drafter | latent alignment | parallel flexible | latent marginalization限制 exact sampling/verification | DSpark 保持显式 causal factorization |
 | concurrent CausalEncoder/RNN/DFlare 类 | 并行 backbone + light recurrence | 与 DSpark 机制接近 | novelty 时间线需逐文核对 | 论文承认相近；本交付不声称绝对首创 |
+| [DeLS-Spec](dels-spec.md) | 冻结 DFlash 长上下文专家，独立训练 RNN/Markov 短上下文专家，并减去 unigram prior | 可直接增强已有 compatible checkpoint，训练成本低 | 省略长短上下文 residual；不含 confidence/scheduler | DSpark 发布后的直接算法增量；Table 2 使用 DSpark 发布的 DFlash b7 baseline，而非完整 DSpark |
 
 Related Work 的 empirical fairness 边界很窄：真正统一重训的是 Eagle3/DFlash/DSpark。论文引用的树方法、动态调度与生产系统工作没有进入 matched baseline 表，不能由 Table 1 推断 DSpark 对整个领域 SOTA。
+
+DeLS-Spec 是时间线上需要单独处理的例外：其 arXiv v1 晚于 DSpark，并直接复用了 DSpark release 中的 DFlash block-7 checkpoints。4B baseline 的平均 speedup/$\tau$ 从 `3.18×/3.92` 提高到 `3.38×/4.18`，8B 从 `3.23×/3.90` 提高到 `3.35×/4.14`。这个结果支持“DSpark 发布资产可被解耦 local head 低成本增强”，但没有测试 DSpark sequential head、Confidence、STS 或 hardware-aware scheduler，因而不能表述成“DeLS-Spec 超过完整 DSpark”。完整方法、公式、代码和成本证据见 [DeLS-Spec 隔离精读](dels-spec.md)。
 
 ## 7. OpenReview 公开评审 × 论文内容交叉核验
 
@@ -569,6 +573,24 @@ API totals与 active parameter/显存不可直接等同。详情见 `checkpoint_
 - 对 production adaptation 给出 non-anticipating formalization与分布一致性 property test。
 - 发布 kernel microbench：bytes、effective bandwidth、occupancy、graph capture/variable-length overhead。
 
+### 10.3 算法级增量候选：已验证结果与待验证方案
+
+这一节只讨论算法变量，不把 FullGraph、ZOS、通信和 kernel 优化混入算法贡献。证据分两层：
+
+1. **已验证的发布后工作**：DeLS-Spec 已在 DSpark 发布的 DFlash b7 baselines 上做直接实验，作为独立 Paper 维护。
+2. **待验证组合**：Domino/TreeFlash/D-PACE/DFlare 等工作并不都晚于 DSpark，不能称为“基于 DSpark 演进”；这里只把它们的机制转写成 DSpark 可执行、可证伪的实验方案。
+
+| 候选方案 | 状态 | 要改 DSpark 的什么 | 预期因果机制 | 最小受控实验 | 主要失败风险 |
+|---|---|---|---|---|---|
+| DeLS-style decoupled local expert | **直接证据，独立正式交付** | 冻结 parallel backbone，改用独立 NTP 训练的 RNN/Markov short expert，并做 $\ell_L+\alpha\ell_S-\beta\ell_P$ | 补块内实际 prefix 条件，同时避免为已有 checkpoint 重训 backbone | 固定同一 DFlash b7、verifier、block size，比较 DFlash、DeLS、DSpark sequential head、DeLS+DSpark scheduler | DeLS Table 2 尚未包含完整 DSpark；省略 residual 可能损失上限 |
+| D-PACE-style accepted-length loss | **研究假设** | 把统一/指数位置 loss 改成由 prefix survival 与 accepted-length 瓶颈决定的动态位置权重 | 训练预算更集中到“修复后能延长连续 accepted prefix”的位置，而非平均 token accuracy | 固定架构/数据/steps，只切换 loss；报告逐位置 conditional acceptance、prefix survival、$\tau$ 和 speedup | 权重估计可能高方差；过度压后位会损害首位并降低整体 survival |
+| Domino/TreeFlash-style path-conditioned tree | **研究假设** | 让 Markov/RNN head 对 parallel marginals 的候选分支逐路径打分，再做 tree verify | 单链早错时保留替代 continuation，同时修复 branch-agnostic marginal 组合不一致 | 固定总 draft/verify token budget，比 chain DSpark、marginal tree、path-conditioned tree；报告 tree coverage、accepted nodes、verify latency | sequential branch rollout 和树 KV/attention 成本可能抵消接受增益 |
+| DFlare-style layerwise target feature fusion | **研究假设** | parallel backbone 不只接单一 fused target feature，改为多层或更高容量融合，再保留 DSpark sequential/confidence heads | 提高 long-context/base logits 质量，给 local head 更好的全局底座 | 固定 sequential head/scheduler，做 feature source、融合层数、drafter depth 的正交消融 | 参数、KV 注入和 draft latency 上升；收益可能来自容量而非融合方式 |
+| 自适应 $\alpha/\beta$ local-prior fusion | **研究假设，来自 DeLS 局限** | 用 long-logit entropy、long/local disagreement 或 calibrated confidence 动态控制 local correction/prior subtraction | 简单上下文弱修正、局部不确定或 suffix 位置强修正，降低固定 0.3 的域/位置失配 | 固定 local head，比较常数、position schedule、entropy gate、confidence gate；同时测 calibration 与 $\tau$ | teacher forcing/exposure mismatch 会让 learned gate 在后位过度相信 local head |
+| low-rank/量化 local vocab head | **工程化算法假设** | 压缩 Markov/RNN 的 $r\to V$ projection，或共享/蒸馏 target LM head | 降低顺序 head 的 HBM traffic，使低并发和更长 block 也能保持净收益 | 在相同 proposal distribution 误差预算下扫描 rank/dtype；分别测 head latency、$\tau$、speedup | 量化/低秩误差改变 proposal 分布，不能只报 kernel latency |
+
+优先级上，第一步应先做 DeLS/DSpark sequential correction 的同 checkpoint 四阶梯比较，因为它能回答“解耦训练究竟只是更便宜，还是在相同 backbone 上也有不同质量上限”。第二步再做 D-PACE-style loss：它只改训练目标，变量最干净。树与 layerwise feature fusion 都会同时改变 draft budget、参数量或 verify path，归因成本更高，适合放在后续。
+
 ## 11. 研究启发与待验证问题
 
 - “大并行模型 + 极小串行校正”可迁移到其他 block generation，只要串行模块保留局部可归一化概率。
@@ -578,6 +600,8 @@ API totals与 active parameter/显存不可直接等同。详情见 `checkpoint_
 - 还需验证：STS 对数学/代码/live traffic 是否稳定；jagged SPS 下 production policy 是否近似最优；V4 Flash/Pro 两个发布 checkpoint 与论文 live engine 是否完全同版本；不同 interconnect/dtype 下 hidden-state communication 的真实收益。
 - vLLM RFC 的负结果提示一个更具体的问题：当 target verify cost 对 token 数近乎平坦时，Confidence 截短不会自动省时。后续实验必须先测 ${\rm SPS}(B)$ 或 step-cost curve，再决定是做 threshold、全局 capacity allocation，还是只保留固定 block。
 - SGLang 的正结果给出对应的系统条件：只有把可变窗口压成真正更小的 ragged graph tier，并用 SPS 表识别 $\theta(M)$ 已显著增长的负载区，再通过 overlap/ZOS 隐藏决策开销，Confidence 才从“预测接受率”变成“减少 wall-clock”。这与 vLLM 低并发负结果并不矛盾。
+- DeLS-Spec 给出了一个新的架构选择轴：DSpark 的 local causality 不一定要与 parallel backbone 联训。应把“联合 residual correction 的质量上限”和“独立 short expert 的迁移/训练成本”作为 Pareto，而不是只按 $\tau$ 排序。
+- 前置论文中可借鉴的 loss、tree、feature fusion 机制只能作为研究假设。只有在相同 checkpoint、数据、draft/verify budget 和 runtime 下完成受控实验，才应升级为“DSpark 算法演进结论”。
 
 ## 12. 最终判断
 
@@ -586,3 +610,5 @@ DSpark 的模型贡献有较强可信度：官方 source、开源实现、固定
 截至 2026-07-27，社区状态给出了更完整的交叉验证：vLLM/vLLM-Ascend 已把 Markov drafter 和部分图执行接入 serving，FullGraph/ACLGraph 数据证明高接受率可以转化为吞吐，但它们的正式路径仍跳过 Confidence 权重或明确标记为未实现；SGLang v0.5.16 则已经把 Confidence/STS、SPS 负载成本、按请求 ragged verify、Full CUDA Graph 与 ZOS 接成公开闭环，并以 `compact` 对 `no-trim` 的受控曲线观察到高并发吞吐收益。
 
 因此当前最准确的工程判断是：**Markov→接受长度→runtime 吞吐的前半闭环已在多个社区落地；Confidence/STS→负载感知验证预算→额外吞吐的后半闭环已在 SGLang 首先公开落地，但不是默认启用，也不是无条件有效。**它成立的关键系统条件是：较短窗口必须进入真正更小的执行 shape/graph tier，SPS 表必须反映当前硬件与负载的边际 verify 成本，调度开销还要被 overlap/ZOS 隐藏。
+
+算法演进方面，当前唯一可以作为 DSpark 发布后独立正式工作的直接增量是 [DeLS-Spec](dels-spec.md)：它增强了 DSpark release 中的 DFlash baseline checkpoints，但未比较完整 DSpark。其余 loss、tree、target-feature fusion、自适应 local/prior 权重和低秩 head 方案均已被收敛为上面的最小实验与失败条件；在这些实验完成前，它们是路线建议，不是已证实结果。
