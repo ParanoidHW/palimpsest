@@ -4,6 +4,9 @@
 
 执行上述任务前，必须完整读取并遵守 [调研知识组织规范](00_meta/research-knowledge-organization.md)。详细解释只维护在该规范中。
 
+- 在检索、选篇或派发 paper deep review 前，必须先查询 [Research Paper 与领域覆盖矩阵](00_meta/research-paper-coverage-matrix.md)，按标题、简称、arXiv ID、模型名和别名确认是否已有 canonical 分析。
+- 已覆盖且证据版本一致时，优先 `link-only`、直接复用或增量修订；不得重复创建 Paper、复制资产或仅因新任务另建 slug。只有矩阵未命中或现有内容明确不足时才新建精读。
+- 新增、迁移、合并、删除或实质更新正式 Paper 后，必须同步维护覆盖矩阵；domain 内容与 meta 规则/矩阵按边界分开提交。
 - 创建文件前先确定 domain、doc type、slug 和 canonical owner。
 - PDF、源码、页面渲染、裁剪过程、QA 和日志只能进入 `_artifacts/`。
 - 正式内容必须进入 `surveys/`、`papers/`、`topics/`、`evidence/` 或 `supplements/`；正式资产进入 owner 对应的 `assets/`。

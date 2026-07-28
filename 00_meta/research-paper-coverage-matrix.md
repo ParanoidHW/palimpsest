@@ -1,0 +1,156 @@
+# Research Paper 与领域覆盖矩阵
+
+本矩阵是 literature survey、paper deep review 和 research synthesis 的**前置查重入口**。它回答两件事：
+
+1. 哪些研究领域/子领域已经有正式 Survey 或 Paper；
+2. 某篇论文是否已经完成 canonical 分析，应当复用、链接或增量更新，而不是重新生成一份。
+
+> 快照日期：2026-07-28。当前共登记 8 个正式 paper domain、62 篇 canonical Paper。
+
+## 使用规则
+
+开始检索或派发单篇精读前：
+
+1. 先在本矩阵按论文标题、简称、arXiv ID、模型名和常见别名查找。
+2. 命中 canonical Paper 时，优先读取现有正文、修订信息、上位 Survey 和 evidence/figure inventory。
+3. 证据版本一致且结论仍适用：采用 `link-only` 或直接复用，不重复精读、复制资产或创建第二个 slug。
+4. 论文/source/code/checkpoint 有新版本，或现有文档缺关键字段：采用 `evidence-update` / `content-update`，在原 canonical Paper 追加修订。
+5. 只有确认未覆盖，或现有内容明确只是短 note 且任务要求完整精读时，才创建新的 Paper。
+6. 正式发布、迁移、合并或删除 Paper 后，同步更新本矩阵；domain 内容与 meta 变更分开提交。
+
+### 状态标签
+
+| 标签 | 含义 | 默认动作 |
+|---|---|---|
+| `深度精读` | versioned canonical Paper，通常含证据、局限与父级 Survey | 复用或增量更新 |
+| `Paper note` | canonical Paper 已存在，但未见统一修订元数据或内容较短 | 先读取；必要时原位补全 |
+| `待修链路` | Paper 已分析，但父级 Survey/Index 反链不完整 | 不重复分析；优先修链 |
+| `未覆盖` | 本矩阵没有命中 | 才进入新建评审流程 |
+
+## 领域覆盖总览
+
+| Domain / 子领域 | 已分析 Paper | 主要覆盖 | 当前汇总入口 | 维护判断 |
+|---|---:|---|---|---|
+| `01_ai_infra/kernel/custom_attn` | 7 | LLM prefill 稀疏注意力、高分辨率 VLM、视频 diffusion 稀疏/缓存 | [Multimodal custom attention](../01_ai_infra/kernel/custom_attn/surveys/multimodal-custom-attention.md) | 已形成专题精读簇 |
+| `02_model_systems/ICML/2026` | 12 | diffusion/latent LM、speculative decoding、MoE/压缩、3D/多模态 | [ICML 2026 selected papers](../02_model_systems/ICML/2026/surveys/icml-2026-selected-papers.md) | 会议批次已覆盖 |
+| `02_model_systems/diffusion` | 1 | language diffusion 与 AR/diffusion/self-speculative 统一 | [Language diffusion serving](../02_model_systems/diffusion/surveys/language-diffusion-serving.md) | 单篇锚点，可继续扩展 |
+| `02_model_systems/embodied_ai` | 13 | VLA、导航、操作策略、world model、3D/4D perception、数据合成 | [Embodied AI evolution](../02_model_systems/embodied_ai/surveys/embodied-ai-evolution-infra.md) | 核心谱系已覆盖 |
+| `02_model_systems/llm_foundations` | 2 | frontier LLM 架构、规模与 Infra | [2026 H1 model scale](../02_model_systems/llm_foundations/surveys/2026h1-model-scale.md) | Kimi K3 父级链路需复核 |
+| `02_model_systems/multimodal_generation` | 17 | image/video diffusion、AR/flow、MoT、VAE、cache、稀疏 attention、serving | [Visual generation landscape](../02_model_systems/multimodal_generation/surveys/visual-generation-model-landscape.md) | BAGEL/Cosmos3 等优先复用 |
+| `02_model_systems/speculative_decoding` | 6 | diffusion draft、tree/parallel drafting、online/self judge、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖 |
+| `03_agentic_workflows/kernel_agents` | 4 | LLM 自动 kernel 生成、Ascend/NPU、test-time scaling | [Paper index](../03_agentic_workflows/kernel_agents/evidence/paper-index.md) | 当前为 Paper note，适合按需补全 |
+
+## Paper 明细
+
+### Custom attention（7）
+
+| Paper | 状态 | Canonical |
+|---|---|---|
+| FlexAttention for Efficient High-Resolution Vision-Language Models | 深度精读 | [flexattention-vlm](../01_ai_infra/kernel/custom_attn/papers/flexattention-vlm.md) |
+| FrameDiT / FrameDiT editing | 深度精读 | [framedit](../01_ai_infra/kernel/custom_attn/papers/framedit.md) |
+| HASTE | 深度精读 | [haste](../01_ai_infra/kernel/custom_attn/papers/haste.md) |
+| LVSA | 深度精读 | [lvsa](../01_ai_infra/kernel/custom_attn/papers/lvsa.md) |
+| MInference 1.0 | 深度精读 | [minference](../01_ai_infra/kernel/custom_attn/papers/minference.md) |
+| Token Sparse Attention | 深度精读 | [token-sparse-attention](../01_ai_infra/kernel/custom_attn/papers/token-sparse-attention.md) |
+| VMoBA | 深度精读 | [vmoba](../01_ai_infra/kernel/custom_attn/papers/vmoba.md) |
+
+### ICML 2026 selected papers（12）
+
+| Paper | 状态 | Canonical |
+|---|---|---|
+| DODO | 深度精读 | [dodo](../02_model_systems/ICML/2026/papers/dodo.md) |
+| Dual-Latent Memory Routing | 深度精读 | [dual-latent-memory-routing](../02_model_systems/ICML/2026/papers/dual-latent-memory-routing.md) |
+| ECHO | 深度精读 | [echo](../02_model_systems/ICML/2026/papers/echo.md) |
+| Flex-Forcing | 深度精读 | [flex-forcing](../02_model_systems/ICML/2026/papers/flex-forcing.md) |
+| Multimodal Latent Language Modeling | 深度精读 | [latentlm](../02_model_systems/ICML/2026/papers/latentlm.md) |
+| LiME | 深度精读 | [lime](../02_model_systems/ICML/2026/papers/lime.md) |
+| Multi-Token Prediction via Self-Distillation | 深度精读 | [multi-token-self-distillation](../02_model_systems/ICML/2026/papers/multi-token-self-distillation.md) |
+| OmniFit | 深度精读 | [omnifit-layer-compression](../02_model_systems/ICML/2026/papers/omnifit-layer-compression.md) |
+| OnlineSPEC | 深度精读 | [onlinespec](../02_model_systems/ICML/2026/papers/onlinespec.md) |
+| SelfJudge | 深度精读 | [selfjudge](../02_model_systems/ICML/2026/papers/selfjudge.md) |
+| SplAttN | 深度精读 | [splattn](../02_model_systems/ICML/2026/papers/splattn.md) |
+| XDLM | 深度精读 | [xdlm](../02_model_systems/ICML/2026/papers/xdlm.md) |
+
+### Language diffusion（1）
+
+| Paper | 状态 | Canonical |
+|---|---|---|
+| Nemotron-Labs-Diffusion | 深度精读 | [nemotron-labs-diffusion](../02_model_systems/diffusion/papers/nemotron-labs-diffusion.md) |
+
+### Embodied AI（13）
+
+| Paper | 状态 | Canonical |
+|---|---|---|
+| ACT | 深度精读 | [act](../02_model_systems/embodied_ai/papers/act.md) |
+| Cosmos World Foundation Model | 深度精读 | [cosmos-world-foundation-model](../02_model_systems/embodied_ai/papers/cosmos-world-foundation-model.md) |
+| Diffusion Policy | 深度精读 | [diffusion-policy](../02_model_systems/embodied_ai/papers/diffusion-policy.md) |
+| EmbodiedScan | 深度精读 | [embodiedscan](../02_model_systems/embodied_ai/papers/embodiedscan.md) |
+| Genie | 深度精读 | [genie](../02_model_systems/embodied_ai/papers/genie.md) |
+| MotuBrain | 深度精读 | [motubrain](../02_model_systems/embodied_ai/papers/motubrain.md) |
+| NaVILA | 深度精读 | [navila](../02_model_systems/embodied_ai/papers/navila.md) |
+| OpenVLA | 深度精读 | [openvla](../02_model_systems/embodied_ai/papers/openvla.md) |
+| RT-2 | 深度精读 | [rt-2](../02_model_systems/embodied_ai/papers/rt-2.md) |
+| VGGT | 深度精读 | [vggt](../02_model_systems/embodied_ai/papers/vggt.md) |
+| VLFM | 深度精读 | [vlfm](../02_model_systems/embodied_ai/papers/vlfm.md) |
+| WAM4D | 深度精读 | [wam4d](../02_model_systems/embodied_ai/papers/wam4d.md) |
+| Xiaomi-Robotics-U0 | 深度精读 | [xiaomi-robotics-u0](../02_model_systems/embodied_ai/papers/xiaomi-robotics-u0.md) |
+
+### LLM foundations（2）
+
+| Paper | 状态 | Canonical |
+|---|---|---|
+| DeepSeek-V4 | 深度精读 | [deepseek-v4](../02_model_systems/llm_foundations/papers/deepseek-v4.md) |
+| Kimi K3 | 深度精读；待修链路 | [kimi-k3](../02_model_systems/llm_foundations/papers/kimi-k3.md) |
+
+### Multimodal generation（17）
+
+| Paper | 状态 | Canonical |
+|---|---|---|
+| BAGEL | 深度精读；近半年 Survey 已复用 | [bagel](../02_model_systems/multimodal_generation/papers/bagel.md) |
+| Causal-rCM | 深度精读 | [causal-rcm](../02_model_systems/multimodal_generation/papers/causal-rcm.md) |
+| Cosmos 3 | 深度精读；近半年 Survey 已复用 | [cosmos-3](../02_model_systems/multimodal_generation/papers/cosmos-3.md) |
+| DC-AE | 深度精读 | [dcae](../02_model_systems/multimodal_generation/papers/dcae.md) |
+| DiT | 深度精读 | [dit](../02_model_systems/multimodal_generation/papers/dit.md) |
+| FEB-Cache | 深度精读 | [feb-cache](../02_model_systems/multimodal_generation/papers/feb-cache.md) |
+| Helios | 深度精读 | [helios](../02_model_systems/multimodal_generation/papers/helios.md) |
+| HunyuanVideo 1.5 | 深度精读 | [hunyuanvideo-1-5](../02_model_systems/multimodal_generation/papers/hunyuanvideo-1-5.md) |
+| LDM | 深度精读 | [ldm](../02_model_systems/multimodal_generation/papers/ldm.md) |
+| MAGI-1 | 深度精读 | [magi-1](../02_model_systems/multimodal_generation/papers/magi-1.md) |
+| PixelDiT | 深度精读 | [pixeldit](../02_model_systems/multimodal_generation/papers/pixeldit.md) |
+| Qwen-Image-2.0 | 深度精读 | [qwen-image-2-0](../02_model_systems/multimodal_generation/papers/qwen-image-2-0.md) |
+| SANA-Video 2.0 | 深度精读 | [sana-video-2](../02_model_systems/multimodal_generation/papers/sana-video-2.md) |
+| Sparse VideoGen | 深度精读 | [sparse-videogen](../02_model_systems/multimodal_generation/papers/sparse-videogen.md) |
+| SwiftFusion | 深度精读 | [swiftfusion](../02_model_systems/multimodal_generation/papers/swiftfusion.md) |
+| Transfusion | 深度精读 | [transfusion](../02_model_systems/multimodal_generation/papers/transfusion.md) |
+| Vega | 深度精读 | [vega](../02_model_systems/multimodal_generation/papers/vega.md) |
+
+### Speculative decoding（6）
+
+| Paper | 状态 | Canonical |
+|---|---|---|
+| D²SD | 深度精读 | [d2sd](../02_model_systems/speculative_decoding/papers/d2sd.md) |
+| DFlash | 深度精读 | [dflash](../02_model_systems/speculative_decoding/papers/dflash.md) |
+| DSpark | 深度精读 | [dspark](../02_model_systems/speculative_decoding/papers/dspark.md) |
+| HyperDFlash | 深度精读 | [hyperdflash](../02_model_systems/speculative_decoding/papers/hyperdflash.md) |
+| JetSpec | 深度精读 | [jetspec](../02_model_systems/speculative_decoding/papers/jetspec.md) |
+| P-EAGLE | 深度精读 | [p-eagle](../02_model_systems/speculative_decoding/papers/p-eagle.md) |
+
+### Kernel agents（4）
+
+| Paper | 状态 | Canonical |
+|---|---|---|
+| AscendCraft | Paper note | [ascend-craft](../03_agentic_workflows/kernel_agents/papers/ascend-craft.md) |
+| AscendKernelGen | Paper note | [ascend-kernel-gen](../03_agentic_workflows/kernel_agents/papers/ascend-kernel-gen.md) |
+| s1: Simple test-time scaling | Paper note | [s1-test-time-scaling](../03_agentic_workflows/kernel_agents/papers/s1-test-time-scaling.md) |
+| Towards Automated Kernel Generation | Paper note | [towards-automated-kernel-generation](../03_agentic_workflows/kernel_agents/papers/towards-automated-kernel-generation.md) |
+
+## 维护审计
+
+更新本文件时至少检查：
+
+- `rg --files | rg '(^|/)papers/[^/]+\.md$' | rg -v '^(_artifacts|99_references)/'` 的结果与明细表一一对应；
+- domain 汇总计数等于明细行数；
+- 每条 canonical 链接可解析；
+- 新 Paper 的状态、父级 Survey/Index 和资产 owner 已确认；
+- rename/合并后旧 slug 不再残留；
+- 本文件只登记正式知识，不登记 `_artifacts` 内的临时 review package。
