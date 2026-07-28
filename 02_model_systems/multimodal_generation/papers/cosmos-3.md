@@ -4,6 +4,7 @@
 > - 文档类型：Paper
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[Diffusion evolution](../surveys/diffusion-evolution.md)
+> - 关联综述：[近半年多模态视觉生成模型全景](../surveys/visual-generation-model-landscape.md)
 > - 证据资产：`../assets/papers/cosmos-3/`
 > - 相关文档：[Figure inventory](../evidence/figure-inventory.md)
 
@@ -11,14 +12,15 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-cosmos3-v4-initial`
-- 当前修订时间：`2026-07-25T20:51:30+08:00`
-- 替代版本：无；这是首次满足当前交付规范的正式版本。
+- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-cosmos3-v4-survey-link`
+- 当前修订时间：`2026-07-28T20:30:00+08:00`
+- 替代版本：`rev-cosmos3-v4-initial`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-cosmos3-v4-initial` | `1.0.0` | `2026-07-25T20:51:30+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 首次建立 v4 单篇精读、视觉证据、源码/代码/checkpoint/infra 核验及可验证 manifests | non-ICML Paper 交付完整性修复 | 本文各分析章节、公开评审边界与 [Figure inventory](../evidence/figure-inventory.md) | arXiv v4；固定 commit 官方 code/model metadata；schema/semantic validation | material |
+| `rev-cosmos3-v4-survey-link` | `1.0.1` | `2026-07-28T20:30:00+08:00` | `survey-parent-agent` | `format-only` | `rev-cosmos3-v4-initial` | 无 | 增加近半年视觉生成 Survey 反向链路；分析与证据未变 | 复用既有 canonical Paper | 文档关系 | 本仓库 Survey | none |
 
 ## 0. 资料与配图索引
 
