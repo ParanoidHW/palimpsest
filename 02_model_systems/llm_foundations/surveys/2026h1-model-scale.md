@@ -4,22 +4,25 @@
 > - 文档类型：Survey
 > - 领域入口：[README](../README.md)
 > - 证据资产：无
-> - 相关文档：[DeepSeek-V4 精读](../papers/deepseek-v4.md) · [Figure inventory](../evidence/figure-inventory.md)
+> - 相关文档：[DeepSeek-V4 精读](../papers/deepseek-v4.md) · [Kimi K3 精读](../papers/kimi-k3.md) · [Figure inventory](../evidence/figure-inventory.md)
 
 ## 修订信息
 
-- 当前版本：`1.1.0`
-- 修订日期：`2026-07-25`
-- 变更：补齐 DeepSeek-V4 精读的精确章节链接、公开实现边界和证据清单；模型规模主表不扩展到 Survey 未覆盖的新 Paper。
-- 结论影响：DeepSeek-V4 的公开 checkpoint/config 已核验，旧稿中“访问失败、无法独立核验”的边界不再成立；组件级因果归因仍受消融不足限制。
+- 当前版本：`1.2.0`
+- 修订日期：`2026-07-28`
+- 变更：按用户指定加入窗口外追踪的 Kimi K3，链接独立精读；核验官方 checkpoint/config 与昇腾 CANN 4 节点/32 NPU 0day 样例。
+- 结论影响：Moonshot 的公开模型规模从 K2.x 的 1T/32B-active 工作点扩展到 K3 的 2.8T/104.2B-active，并由纯 MLA 转为 69 KDA + 24 Gated MLA；组件级收益和 CANN 完整生产功能仍需验证。
 
 ## 资料边界
 
 - 时间窗口：2026-01-06 到 2026-07-06。
+- 窗口外追踪：Kimi K3 技术报告于 2026-07-28 发布，不计入“最近半年”统计口径；因用户指定且它直接改写 Kimi 系列规模上界，作为显式标注的补充行纳入。
 - 用途：横向梳理云侧和开权重大模型的公开参数量、精度、结构和 Attention 类型。
 - 证据边界：只填官方文档、模型卡、技术报告公开信息；未披露字段不做第三方猜测。
 
-其中 DeepSeek-V4 的论文级动机闭环见[问题—方案闭环](../papers/deepseek-v4.md#2-研究动机与问题方案闭环)，CSA/HCA、mHC、MoE overlap 与 KV cache 系统含义见[研究方法](../papers/deepseek-v4.md#4-研究方法)和 [Infra 需求分析](../papers/deepseek-v4.md#8-infra-需求分析)，组件证据边界见[技术 claim 证据矩阵](../papers/deepseek-v4.md#52-技术-claim-证据矩阵消融和机制证据)与[收益来源归因](../papers/deepseek-v4.md#54-收益来源归因)。
+其中 DeepSeek-V4 的论文级动机闭环见[问题—方案闭环](../papers/deepseek-v4.md#2-研究动机与问题方案闭环)，CSA/HCA、mHC、MoE overlap 与 KV cache 系统含义见[研究方法](../papers/deepseek-v4.md#4-研究方法)和 [Infra 需求分析](../papers/deepseek-v4.md#8-infra-需求分析)，组件证据边界见[技术 claim 证据矩阵](../papers/deepseek-v4.md#52-技术-claim-证据矩阵、消融和机制证据)与[收益来源归因](../papers/deepseek-v4.md#54-收益来源归因)。
+
+Kimi K3 的架构/规模核验见[关键规格](../papers/kimi-k3.md#01-关键规格)与[核心架构](../papers/kimi-k3.md#3-核心架构)，训练和 serving 因果链见[研究动机与问题—方案闭环](../papers/kimi-k3.md#2-研究动机与问题方案闭环)及[训练与推理基础设施](../papers/kimi-k3.md#6-训练与推理基础设施)，昇腾样例的已实现项与未支持项见[昇腾 CANN 0day 实现核验](../papers/kimi-k3.md#7-昇腾-cann-0day-实现核验)，组件级证据边界见[技术 claim 证据矩阵](../papers/kimi-k3.md#10-技术-claim-证据矩阵)。
 
 口径：最近半年按 `2026-01-06 ~ 2026-07-06`；只填官方文档、模型卡、技术报告公开的信息，未披露的不做第三方猜测。`Attn 类型` 指注意力机制本身，例如 `GQA`、`MLA`、具体稀疏 Attention 名称；`FlashAttention` 这类 kernel 不作为 Attn 类型。
 
@@ -36,6 +39,7 @@
 | DeepSeek         | DeepSeek-V4-Pro / Pro-Base       |                             2026-06 技术报告 |                                                                  1.6T total / 49B activated | Base: FP8 Mixed；Instruct: FP4 + FP8 Mixed，MoE experts 用 FP4，其余多为 FP8                                     | MoE；1M context；mHC；Muon optimizer                                                                                   | Hybrid Attention：CSA + HCA                                                                           | [DeepSeek-V4-Pro](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro)                                                    |
 | DeepSeek         | DeepSeek-V4-Flash / Flash-Base   |                             2026-06 技术报告 |                                                                  284B total / 13B activated | Base: FP8 Mixed；Instruct: FP4 + FP8 Mixed                                                                | MoE；1M context                                                                                                      | Hybrid Attention：CSA + HCA                                                                           | [DeepSeek-V4-Pro README](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro)                                             |
 | Moonshot Kimi    | Kimi K2.6                        |                                  2026-05 |                                                                    1T total / 32B activated | Native INT4 quantization；配置中 text dtype 为 BF16；HF collection 同列 K2.5/K2.6/K2.7-Code 原生 INT4 版本           | 原生多模态 Agentic MoE；61 层；384 routed experts，8 selected/token，1 shared expert；Vision Encoder 约 400M                    | MLA；text config 为 64 attention heads / 64 KV heads；vision tower 为 spatial-temporal attention         | [Kimi-K2.6](https://huggingface.co/moonshotai/Kimi-K2.6)                                                                 |
+| Moonshot Kimi    | Kimi K3                          | 2026-07-28 技术报告（窗口外追踪） | 2.8T total / 104.2B activated | 主路径 BF16；routed expert weights 为 group-32 MXFP4，expert activations 为 dynamic MXFP8；非专家模块保持高精度 | 原生多模态 Stable LatentMoE；93 层；896 routed experts，16 selected/token，2 shared experts；1M context；Block AttnRes；MoonViT-V2 约 401M | Hybrid Attention：69 KDA + 24 Gated MLA（3:1，final MLA）；96 heads | [Kimi K3](https://huggingface.co/moonshotai/Kimi-K3) · [技术报告](https://github.com/MoonshotAI/Kimi-K3/blob/main/k3_tech_report.pdf) · [精读](../papers/kimi-k3.md) |
 | 智谱 / Z.ai GLM    | GLM-5.2                          |                                  2026-07 |                         约 753.3B HF safetensors；沿用 GLM-5 系列 744B total / 40B activated 公开口径 | BF16 权重；HF collection 提供 GLM-5.2-FP8（约 753.38B safetensors）                                              | MoE；HF config 为 78 层；256 routed experts，8 selected/token，1 shared expert；改进 MTP；1M context                          | DSA（DeepSeek Sparse Attention）+ IndexShare；64 attention heads / 64 KV heads；index top-k 2048         | [GLM-5.2](https://huggingface.co/zai-org/GLM-5.2), [GLM-5 report](https://arxiv.org/abs/2602.15763)                      |
 | 智谱 / Z.ai GLM    | GLM-5.1                          |                               2026-04/05 |                                                                  744B total / 40B activated | BF16 权重；HF collection 提供 GLM-5.1-FP8；技术报告另提 FP8 rollout 与 W4A8 部署量化                                      | MoE；HF config 为 78 层；256 routed experts，8 selected/token，1 shared expert；MTP；最大上下文 202,752 tokens                   | DSA（DeepSeek Sparse Attention）；64 attention heads / 64 KV heads                                      | [GLM-5.1](https://huggingface.co/zai-org/GLM-5.1), [technical report](https://arxiv.org/abs/2602.15763)                  |
 | MiniMax          | MiniMax-M3                       |                               2026-06/07 |                                                                ~428B total / ~23B activated | BF16 权重；HF collection 提供 MiniMax-M3-MXFP8 与 NVIDIA NVFP4 版本                                              | 原生多模态 MoE；1M context；文本 60 层；128 local experts，4 selected/token，1 shared expert；视觉塔 32 层                            | MSA（MiniMax Sparse Attention；top-16 sparse blocks，block size 128，4 index heads）；config 为 64 Q / 4 KV | [MiniMax-M3](https://huggingface.co/MiniMaxAI/MiniMax-M3), [paper](https://arxiv.org/abs/2606.13392)                     |
@@ -56,8 +60,13 @@
 | Kimi K2   |    2025-07 开权重模型卡 |               1T total / 32B activated | block-FP8 checkpoint；HF safetensors 约 1.026T total | MoE；61 层；384 experts，8 selected/token，1 shared expert；128K context；MLA                                   | [Kimi-K2-Instruct](https://huggingface.co/moonshotai/Kimi-K2-Instruct) |
 | Kimi K2.5 | 2026-01/04 开权重模型卡 |               1T total / 32B activated | Native INT4 quantization；配置中 text dtype 为 BF16     | 原生多模态 Agentic MoE；61 层；384 experts，8 selected/token，1 shared expert；256K context；MLA；Vision Encoder 400M | [Kimi-K2.5](https://huggingface.co/moonshotai/Kimi-K2.5)               |
 | Kimi K2.6 |    2026-05 开权重模型卡 |               1T total / 32B activated | Native INT4 quantization；配置中 text dtype 为 BF16     | 原生多模态 Agentic MoE；61 层；384 experts，8 selected/token，1 shared expert；256K context；MLA；Vision Encoder 400M | [Kimi-K2.6](https://huggingface.co/moonshotai/Kimi-K2.6)               |
+| Kimi K3 | 2026-07-28 技术报告（窗口外追踪） | 2.8T total / 104.2B activated | BF16 主路径；routed experts 为 MXFP4 weights / MXFP8 activations | 原生多模态 Stable LatentMoE；93 层；896 routed experts，top-16 + 2 shared；1M context；69 KDA + 24 Gated MLA；Block AttnRes；MoonViT-V2 约 401M | [Kimi K3](https://huggingface.co/moonshotai/Kimi-K3) · [精读](../papers/kimi-k3.md) |
 
-说明：Kimi k1.5 不等同于开权重的 K2/K2.5 系列；公开论文强调 long-context RL scaling，并未披露总参数或激活参数，因此这里不填第三方猜测。
+说明：Kimi k1.5 不等同于开权重的 K2/K2.5 系列；公开论文强调 long-context RL scaling，并未披露总参数或激活参数，因此这里不填第三方猜测。K3 将规模、上下文和结构同时改写：total/active 分别约为 K2.x 的 2.8×/3.26×，纯 MLA 改为 KDA/MLA 混合，并用 Block AttnRes 和 896-expert Stable LatentMoE 扩展深度/宽度信息流。报告 Figure 7 的 2.5× scaling efficiency 是整套 recipe 的混杂结果，不可拆成单组件收益；详见[证据矩阵](../papers/kimi-k3.md#10-技术-claim-证据矩阵)。
+
+### Kimi K3 昇腾部署补充
+
+CANN recipes 已给出 Atlas A5 4 节点/32 NPU 的 0day 参考：attention TP32、routed expert EP32，prefill 使用 eager + sequence parallel，decode 使用 `npugraph_ex` + request DP，并实现 KDA、MLA、LatentMoE、AttnRes 与 MXFP4/MXFP8 路径。它同时明确不支持 chunked/multiple prefill、speculative decode 和 PD disaggregation/context parallelism，因此属于“架构可运行”的实现证据，而不是论文生产栈全量落地。配置、限制与 HBM 口径见[精读的 CANN 核验](../papers/kimi-k3.md#7-昇腾-cann-0day-实现核验)。
 
 ## DeepSeek V3.2 规格补充
 
@@ -78,6 +87,7 @@ DeepSeek V3.2 发布时间为 2025-12，严格说不在本表 `2026-01-06 ~ 2026
 | Step-3.7-Flash | 官方 collection `Step-3.7-Flash` | BF16、FP8、NVFP4、GGUF |
 | Step-3.5-Flash | 官方 collection `Step-3.5-Flash` | BF16、FP8、GGUF-Q4_K_S |
 | Kimi K2 / K2.x | 官方 collections `Kimi-K2`、`Kimi K2.5` | K2 Base/Instruct/Thinking 为 block-FP8 口径；K2.5/K2.6/K2.7-Code 为 Native INT4 口径，config dtype 仍为 BF16 |
+| Kimi K3 | 官方模型 `moonshotai/Kimi-K3` | 96 个公开 safetensor shards；config 主 dtype 为 BF16，routed expert linear targets 使用 group-32 MXFP4，动态 expert activations 使用 MXFP8；非专家路径排除在 MXFP4 之外 |
 | DeepSeek V4 | 官方 collection `DeepSeek-V4` | V4 Base 权重为 FP8 Mixed；Instruct 权重为 FP4 + FP8 Mixed；collection 含 Flash/Pro 的 Base 与 Instruct |
 | DeepSeek V3.2 | 官方 collection `DeepSeek-V3.2` | V3.2、V3.2-Speciale、V3.2-Exp、V3.2-Exp-Base，HF safetensors 主权重为 FP8 |
 | LongCat-Next | HF search | 官方 repo 为 BF16 + 少量 F32；社区量化含 MLX 4/6/8-bit、INT4 AutoRound、W8A8 INT8 |
