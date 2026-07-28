@@ -9,8 +9,9 @@
 
 ## 修订信息
 
-- 当前版本：`1.0.0`
+- 当前版本：`1.0.1`
 - 修订日期：`2026-07-28`
+- 变更：公式分隔符统一为 Obsidian 可直接渲染的行内 `$...$` 与块级 `$$...$$`。
 - 依据：[官方技术报告](https://github.com/MoonshotAI/Kimi-K3/blob/main/k3_tech_report.pdf)、[官方 Hugging Face 权重/配置](https://huggingface.co/moonshotai/Kimi-K3)、[昇腾 CANN 0day 样例](https://gitcode.com/cann/cann-recipes-infer/tree/master/models/kimi_k3)
 - 证据边界：报告没有公开 LaTeX、训练数据清单、核心训练/生产 serving 代码或公开 OpenReview 评审；本次核验了官方 HF revision `9f62e4e9fffbd0a83ddd60e1c209d828994b3569` 和 CANN commit `f6bbf9f1477de09b9c313c74023ff3a4733ad6eb`，但未下载 96 个权重分片或独立运行 32 卡 benchmark。
 
@@ -57,7 +58,7 @@ Kimi K3 不是“把 K2 再做大一点”，而是一份把模型状态语义�
 | KCP | 交换局部累计转移与从零状态，精确组合 KDA 跨 rank 状态 | 不能只相加局部状态 |
 | MXFP4/MXFP8 | routed expert 权重/激活使用的 microscaling 格式 | 不是全模型 4 bit |
 
-核心符号按公式局部解释。需注意论文复用了 \(\alpha\)、\(\beta\)、\(S\) 和 \(q\)：KDA 的 retention、write strength、矩阵状态和 query，与 QB cutoff/负载、AttnRes 权重、block size、draft 分布均不是同一对象。
+核心符号按公式局部解释。需注意论文复用了 $\alpha$、$\beta$、$S$ 和 $q$：KDA 的 retention、write strength、矩阵状态和 query，与 QB cutoff/负载、AttnRes 权重、block size、draft 分布均不是同一对象。
 
 ## 1. 研究动机：为什么需要整套系统
 
@@ -66,7 +67,7 @@ Kimi K3 不是“把 K2 再做大一点”，而是一份把模型状态语义�
 但 2.8T 规模、1M context 和长轨迹 agent RL 不能分别解决。它们形成三组耦合约束：
 
 1. 序列维：纯 softmax 的 KV 随长度增长；线性 attention 虽然状态固定，却有递归、数值范围与内容寻址问题。
-2. 深度维：标准残差把所有历史层压进一个状态；Full AttnRes 可选择历史层，但要保持 \(O(Ld)\) 存活状态并跨 pipeline stage 传输。
+2. 深度维：标准残差把所有历史层压进一个状态；Full AttnRes 可选择历史层，但要保持 $O(Ld)$ 存活状态并跨 pipeline stage 传输。
 3. 宽度维：896 experts/top-16 扩大专门化空间，同时放大 expert traffic、激活异常值和负载不均。
 
 即使模型结构能训练，长轨迹 rollout 的 straggler、数千万 sandbox 生命周期、异构 activation/offload，以及 KDA 固定状态与 MLA 线性增长 KV 的混合缓存，仍会决定最终成本。因此 K3 的真实研究对象是“从预训练状态到生产状态的整条路径”。
@@ -77,18 +78,18 @@ Kimi K3 不是“把 K2 再做大一点”，而是一份把模型状态语义�
 
 | 旧做法 | 可观察失败 | 具体场景 | 根因 | 为什么直觉补丁不够 |
 |---|---|---|---|---|
-| Kimi Linear 的无下界 negative-Softplus decay | reciprocal cumulative decay 可溢出，diagonal tile 不能走纯 dense Tensor Core | 16-token tile 内极负 log-decay 使 \(1/\Gamma\) 急剧放大，旧 kernel 要显式处理位置对 | decay 数值范围无界 | 缩短 chunk 增加边界/调度，仍保留特殊 diagonal path |
+| Kimi Linear 的无下界 negative-Softplus decay | reciprocal cumulative decay 可溢出，diagonal tile 不能走纯 dense Tensor Core | 16-token tile 内极负 log-decay 使 $1/\Gamma$ 急剧放大，旧 kernel 要显式处理位置对 | decay 数值范围无界 | 缩短 chunk 增加边界/调度，仍保留特殊 diagonal path |
 | 标准残差 | 后层不能选择性取回早层表征 | 说明例：浅层保存视觉布局，深层代码推理想重新读取，只能从混合状态猜回 | 深度没有内容选择 | 增宽 hidden 只扩大“混合桶”；Full AttnRes 又增加存活状态与通信 |
 | 固定步长 loss-free routing bias | 专家过热或死亡，EP rank 被长尾拖慢 | Figure 5 中 8 token/4 expert 的 Top-1 负载为 (4,3,1,0)，目标是 (2,2,2,2) | 步长在适应慢与振荡间折中 | 小步长更慢，大步长振荡；辅助 loss 还改主目标 |
-| 同步 RL barrier | 少数超长工具轨迹让大多数 GPU 等待 | \(N\times K\) 轨迹中几个任务长时间浏览或编译，整轮不能优化 | rollout 完成与优化启动绑定 | 直接 timeout 会丢难样本、偏置训练分布 |
+| 同步 RL barrier | 少数超长工具轨迹让大多数 GPU 等待 | $N\times K$ 轨迹中几个任务长时间浏览或编译，整轮不能优化 | rollout 完成与优化启动绑定 | 直接 timeout 会丢难样本、偏置训练分布 |
 | 单一 cache 粒度 | 细前缀命中与粗物理分配冲突 | 6144-token 物理块内命中 5 个 512-token MLA hash block，在 B=2560 恢复 KDA checkpoint | MLA cache 与 KDA state 的成本/粒度不同 | 每 512 token 存 KDA 浪费内存；只按 6144 hash 又损失命中 |
 
 ### 2.2 问题—设计—证据映射
 
 | 问题 | 设计 | 改变的状态/行为 | 预期指标 | 证据 | 判断 |
 |---|---|---|---|---|---|
-| 长上下文 KV 与 KDA 数值 | 69 KDA + 24 Gated MLA；lower-bounded decay | 多数层用固定状态，\(g_t\in(-5,0)\) | 1M 可扩展、数值/kernel 效率 | Eq.5、Fig.3、代码 | 机制支持，端到端归因部分支持 |
-| 深度信息压缩 | Block AttnRes | 从等权残差变为 block 来源选择，状态 \(O(Ld)\to O(Nd)\) | 质量、推理状态、PP 通信 | Eq.8–10、案例 | 部分支持 |
+| 长上下文 KV 与 KDA 数值 | 69 KDA + 24 Gated MLA；lower-bounded decay | 多数层用固定状态，$g_t\in(-5,0)$ | 1M 可扩展、数值/kernel 效率 | Eq.5、Fig.3、代码 | 机制支持，端到端归因部分支持 |
+| 深度信息压缩 | Block AttnRes | 从等权残差变为 block 来源选择，状态 $O(Ld)\to O(Nd)$ | 质量、推理状态、PP 通信 | Eq.8–10、案例 | 部分支持 |
 | 896 experts 不稳/不均 | RMSNorm + SiTU + QB | 聚合归一、幅值受限、分位数 bias | loss 稳定、EP step time | Fig.5、App.B–D | 机制支持，质量收益未隔离 |
 | 多领域/effort experts 难合一 | 九 teacher MOPD | student 自身 token 上获得条件 teacher reward | 单模型能力整合 | Eq.15、主结果 | plausible，缺 matched ablation |
 | 量化与 draft 不对齐 serving | 全 post-training QAT + LK loss | 格式与 accepted-rate 目标直接进入训练 | HBM、accepted length、成本 | 配置、Eq.16、成本图 | 部分支持 |
@@ -107,7 +108,7 @@ S_t=\left(I-\beta_tk_tk_t^\top\right)\operatorname{Diag}(\alpha_t)S_{t-1}
 +\beta_tk_tv_t^\top.
 $$
 
-它先按 channel 衰减旧状态，再删除与当前 key 冲突的旧关联，最后写入当前 key-value。与纯 softmax 不同，\(S_t\in\mathbb R^{d_k\times d_v}\) 大小不随序列长度增长。
+它先按 channel 衰减旧状态，再删除与当前 key 冲突的旧关联，最后写入当前 key-value。与纯 softmax 不同，$S_t\in\mathbb R^{d_k\times d_v}$ 大小不随序列长度增长。
 
 K3 对 log-decay 使用有界映射：
 
@@ -116,7 +117,7 @@ g_t=g_{\min}\operatorname{Sigmoid}(e^Az_t),\qquad
 \alpha_t=e^{g_t},\qquad g_{\min}=-5.
 $$
 
-普通话解释：每步遗忘可以很强，但不能无限强。在 16-token 二级 tile 内，累计 log-decay 不低于 -80，reciprocal 不超过约 \(e^{80}\)。这使 causal tiles 可以使用 dense Tensor Core 矩阵乘，而不用为 diagonal tile 保留显式 position-pair 路径。
+普通话解释：每步遗忘可以很强，但不能无限强。在 16-token 二级 tile 内，累计 log-decay 不低于 -80，reciprocal 不超过约 $e^{80}$。这使 causal tiles 可以使用 dense Tensor Core 矩阵乘，而不用为 diagonal tile 保留显式 position-pair 路径。
 
 边界：这证明数值/计算路径合理，不直接证明长期记忆质量或端到端吞吐。
 
@@ -126,7 +127,7 @@ K3 每三层 KDA 插一层 Gated MLA，并让最后一层也是 MLA。KDA 提供
 
 ### 3.2 Block AttnRes：把深度当成可检索记忆
 
-Full AttnRes 让第 \(l\) 层用 pseudo-query \(w_l\) 对 embedding 和全部早期层输出打分：
+Full AttnRes 让第 $l$ 层用 pseudo-query $w_l$ 对 embedding 和全部早期层输出打分：
 
 $$
 \alpha_{i\to l}=
@@ -136,7 +137,7 @@ $$
 h_l=\sum_{i=0}^{l-1}\alpha_{i\to l}v_i.
 $$
 
-它解决“历史层被等权压进一个残差状态”的问题，但需要保持 \(O(Ld)\) 表征。Block AttnRes 把 93 层分成约 8 个、每个 12 层的 block，只在 block 间做完整选择，block 内维护部分和；连同 embedding 共 9 个来源。状态/通信量级降到 \(O(Nd)\)，代价是失去逐层粒度。
+它解决“历史层被等权压进一个残差状态”的问题，但需要保持 $O(Ld)$ 表征。Block AttnRes 把 93 层分成约 8 个、每个 12 层的 block，只在 block 间做完整选择，block 内维护部分和；连同 embedding 共 9 个来源。状态/通信量级降到 $O(Nd)$，代价是失去逐层粒度。
 
 ### 3.3 Stable LatentMoE：低维专家、全宽共享路径
 
@@ -157,11 +158,11 @@ $$
 \left[\beta_2\tanh\left(\frac{W_ux}{\beta_2}\right)\right],
 $$
 
-其中 \(\beta_1=4,\beta_2=25\)，故标量输出绝对值上界为 100。它不是硬截断：近原点仍近似 SwiGLU，一旦两个乘法因子都很大才平滑饱和。
+其中 $\beta_1=4,\beta_2=25$，故标量输出绝对值上界为 100。它不是硬截断：近原点仍近似 SwiGLU，一旦两个乘法因子都很大才平滑饱和。
 
 ### 3.4 Quantile Balancing
 
-设每个训练 step 有 \(m\) 个 token、\(n\) 个 experts、每 token 选择 \(k\) 个，则每个专家目标负载是 \(q_{\rm load}=mk/n\)。QB 使用每个 token 的第 \(k+1\) 名 biased score 作为 cutoff \(a_i\)，再按全局 margin 分位数计算下一步 bias：
+设每个训练 step 有 $m$ 个 token、$n$ 个 experts、每 token 选择 $k$ 个，则每个专家目标负载是 $q_{\rm load}=mk/n$。QB 使用每个 token 的第 $k+1$ 名 biased score 作为 cutoff $a_i$，再按全局 margin 分位数计算下一步 bias：
 
 $$
 \widehat b_j^{(t+1)}
@@ -194,7 +195,7 @@ Figure 7 报告 K3 相对 K2 约 2.5× scaling efficiency。它支持“整套 K
 
 ### 4.2 Partial rollout 与九个 RL experts
 
-后训练先做 SFT，再按三个领域和 low/high/max 三个 effort 训练九个 RL expert。同步 RL 的问题是最慢轨迹决定 iteration 时间。K3 保持 \(N\times K\) 条 active trajectories，只等到 \(\lambda NK\) 条完成就暂停 generation 并进入优化；未完成轨迹入队，下一轮优先恢复。它保留长尾训练信号，但引入一定 policy staleness，需要 per-token regularization 和可恢复 sandbox。
+后训练先做 SFT，再按三个领域和 low/high/max 三个 effort 训练九个 RL expert。同步 RL 的问题是最慢轨迹决定 iteration 时间。K3 保持 $N\times K$ 条 active trajectories，只等到 $\lambda NK$ 条完成就暂停 generation 并进入优化；未完成轨迹入队，下一轮优先恢复。它保留长尾训练信号，但引入一定 policy staleness，需要 per-token regularization 和可恢复 sandbox。
 
 Figure 8 显示随着 RL FLOPs 增长，多项能力和平均 assistant steps 同时上升。由于纵轴/横轴详细数值未披露、任务也同时变化，这更像相关性证据，不能证明“增加工具步骤”是能力提升的唯一原因。
 
@@ -213,7 +214,7 @@ r_{\rm opd}^{d}(y_t\mid e,x,y_{<t})
 -R_{\max},R_{\max}\right).
 $$
 
-student 在自己的轨迹上生成 token；对应 domain/effort teacher 给出密集 log-ratio reward；极端值被截断。报告没有披露 \(R_{\max}\)、完整 teacher recipe 或 MOPD 对 mixed RL/KL distillation 的 matched ablation，因此“合并机制存在”得到支持，“无损合并九专家”仍属 plausible。
+student 在自己的轨迹上生成 token；对应 domain/effort teacher 给出密集 log-ratio reward；极端值被截断。报告没有披露 $R_{\max}$、完整 teacher recipe 或 MOPD 对 mixed RL/KL distillation 的 matched ablation，因此“合并机制存在”得到支持，“无损合并九专家”仍属 plausible。
 
 ### 4.4 Deployment-aware post-training
 
@@ -239,14 +240,14 @@ AgentENV 的系统数字很突出：报告称累计创建 51,219,741 个 sandbox
 
 FlashKDA 覆盖训练和 inference prefill，并针对短 prefill、long prefill 与 decode 采用不同并行/调度。纯 tensor parallel 只分 heads，不能缩短 recurrence；当每 rank 只持少量 heads，超长 prefill 会使 SM 利用不足。
 
-KDA Context Parallelism 不能照搬普通线性 attention 的“把局部状态直接相加”。KDA 局部 token 会用与 token 相关的矩阵 \(M\) 变换 incoming state。每个 rank 因而计算两个 fragment：
+KDA Context Parallelism 不能照搬普通线性 attention 的“把局部状态直接相加”。KDA 局部 token 会用与 token 相关的矩阵 $M$ 变换 incoming state。每个 rank 因而计算两个 fragment：
 
 $$
 S_{[i+1]}^t=\widetilde S_{[i+1]}^t+
 M_{[i+1]}^{t\leftarrow1}S_{[i]}^{T_i}.
 $$
 
-\(\widetilde S\) 是从零状态产生的本地状态，\(M\) 是本段对 incoming state 的累计转移。all-gather 后可按顺序做 affine prefix composition；通信量不随序列长度增长，但固定矩阵并非“零通信”。报告没有提供 bytes、runtime 与 peak bandwidth，无法计算有效带宽利用率。
+$\widetilde S$ 是从零状态产生的本地状态，$M$ 是本段对 incoming state 的累计转移。all-gather 后可按顺序做 affine prefix composition；通信量不随序列长度增长，但固定矩阵并非“零通信”。报告没有提供 bytes、runtime 与 peak bandwidth，无法计算有效带宽利用率。
 
 ### 6.2 3T 训练栈
 
@@ -258,7 +259,7 @@ Figure 11 证明调度设计，不是吞吐/MFU 表。报告没有公开 MoonEP�
 
 ### 6.3 Serving：混合 cache 与 speculative replay
 
-MLA KV 随 token 增长，KDA 只需固定 recurrent state；二者不能使用同一缓存粒度。报告示例把 6144-token physical block 划成 12 个 512-token hash blocks；MLA 可以细粒度命中，KDA checkpoint 只在部分 hash boundary（通常 conversation turn）稀疏保存。命中 B=2560 时复用 5 个 MLA blocks 和 B 处 KDA state，从 B 继续 prefill，不重算 \([0,B)\)。
+MLA KV 随 token 增长，KDA 只需固定 recurrent state；二者不能使用同一缓存粒度。报告示例把 6144-token physical block 划成 12 个 512-token hash blocks；MLA 可以细粒度命中，KDA checkpoint 只在部分 hash boundary（通常 conversation turn）稀疏保存。命中 B=2560 时复用 5 个 MLA blocks 和 B 处 KDA state，从 B 继续 prefill，不重算 $[0,B)$。
 
 ![Fine-grained prefix cache](../assets/papers/kimi-k3/fig12-prefix-cache-caption.png)
 
@@ -295,7 +296,7 @@ speculative decode 不为每个 draft token 保存完整 KDA state snapshot，�
 
 ### 8.1 KDA state
 
-按 69 个 KDA layers、96 heads、\(d_k=d_v=128\)、BF16 粗算：
+按 69 个 KDA layers、96 heads、$d_k=d_v=128$、BF16 粗算：
 
 $$
 B_{\rm KDA}=69\times96\times128\times128\times2
@@ -345,7 +346,7 @@ K3 在 GPQA 93.5、ProgramBench 77.8、TerminalBench 88.3、FrontierSWE 81.2、S
 - 部分单元格使用工具增强，部分使用 context compression；
 - harness、硬件分支和内部 benchmark 不完全同构。
 
-报告给出 BrowseComp 在原生 1M、无 compaction 时为 90.4，对比主表 91.2，说明更长上下文并不自动提高所有任务。成本图称 KCB 约比 Fable 低 4 分但只有 38% 成本；BrowseComp 91.2 成本 $2.03。它们受定价、harness 和缓存策略影响，适合当时工作点，不是永久硬件效率常数。
+报告给出 BrowseComp 在原生 1M、无 compaction 时为 90.4，对比主表 91.2，说明更长上下文并不自动提高所有任务。成本图称 KCB 约比 Fable 低 4 分但只有 38% 成本；BrowseComp 91.2 成本为 2.03 美元。它们受定价、harness 和缓存策略影响，适合当时工作点，不是永久硬件效率常数。
 
 ## 10. 技术 claim 证据矩阵
 
