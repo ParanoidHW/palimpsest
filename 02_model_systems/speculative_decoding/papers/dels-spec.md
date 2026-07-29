@@ -7,18 +7,19 @@
 > - 证据资产：`../assets/papers/dels-spec/`
 > - 相关文档：[DSpark](dspark.md)、[Figure inventory](../evidence/figure-inventory.md)
 
-> 资料状态：已取得官方 [arXiv:2607.07409v1](https://arxiv.org/abs/2607.07409v1) PDF、LaTeX source 和官方 [DeLS-Spec 代码](https://github.com/dt-3t/DeLS-Spec)，代码固定在 commit `ab9be1b4d4d470064cd98dd25f7cd1c124b86ad0`。论文使用 ICLR 2026 模板但启用的是 `iclrpreprintcopy`，本文据此只称其为 arXiv preprint，不推断录用状态。图表均由官方 PDF 以 300 DPI 紧裁剪，保留完整 caption，并逐图完成原分辨率 QA。审计日期：2026-07-28。
+> 资料状态：已取得官方 [arXiv:2607.07409v1](https://arxiv.org/abs/2607.07409v1) PDF、LaTeX source 和官方 [DeLS-Spec 代码](https://github.com/dt-3t/DeLS-Spec)，代码固定在 commit `ab9be1b4d4d470064cd98dd25f7cd1c124b86ad0`。论文使用 ICLR 2026 模板但启用的是 `iclrpreprintcopy`，本文据此只称其为 arXiv preprint，不推断录用状态。图表均由官方 PDF 以 300 DPI 紧裁剪，保留完整 caption，并逐图完成原分辨率 QA。首次审计日期：2026-07-28；首轮协同增量审计：2026-07-29。
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-dels-spec-20260728-initial`
-- 当前修订时间：`2026-07-28T18:30:00+08:00`
-- 替代版本：none
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-dels-spec-20260729-first-draft-coordination`
+- 当前修订时间：`2026-07-29T12:00:54+08:00`
+- 替代版本：`rev-dels-spec-20260728-initial` / `1.0.0` / canonical Markdown SHA-256 `41e8901b61c23a0c3a5ce5a8ad19beca15b2a9f81fefa1d00e1a63d5f168db4a`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-dels-spec-20260728-initial` | 1.0.0 | 2026-07-28T18:30:00+08:00 | Codex | initial | none | none | 从官方论文、源码、代码和逐图 QA 建立 DeLS-Spec canonical Paper | 用户要求把独立算法方案作为正式交付件分析 | 本文全部章节及正式证据资产 | arXiv v1、官方 source、官方代码 commit、结构与语义验证 | material：建立 DSpark 发布后算法演进的独立证据入口 |
+| `rev-dels-spec-20260729-first-draft-coordination` | 1.1.0 | 2026-07-29T12:00:54+08:00 | Codex | correction | `rev-dels-spec-20260728-initial` / 1.0.0 / SHA-256 `41e8901b61c23a0c3a5ce5a8ad19beca15b2a9f81fefa1d00e1a63d5f168db4a` | none | 澄清 anchor、首枚 draft token、DFlash/local head 执行次序、状态初始化与轮间重置，并对齐论文/代码下标 | 回答“local head 与 DFlash 如何协同、首轮如何处理”并消除原方法总览的歧义 | §0.1、§4.1–4.1.1、§8–10 | Algorithm 1、官方代码 commit 的 `code/dflash.py` 与 `code/dels.py` | minor：不改变结果判断，收紧实现边界与延迟解释 |
 
 ## 0. 资料与配图索引
 
@@ -41,7 +42,9 @@
 | 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
 |---|---|---|---|---|
 | long-context expert | 冻结的 DFlash drafter；一次并行 forward 给整块位置提供基于全局 prefix 的 logits | DFlash expert | 不是 target verifier，也没有看到块内已经采样的实际 prefix | §3、Figure 1 |
-| short-context expert | 只依据当前块内已出现 token 的轻量 local head | local head | 不读取 DFlash hidden state；训练时不要求加载 target 或 DFlash | §3.3–3.4、代码 `code/dels.py` |
+| short-context expert | 只依据当前块内已经草拟出的 token 的轻量 local head；从第二枚 draft token 开始参与融合 | local head | 不读取 anchor、长上下文或 DFlash hidden state；训练时不要求加载 target 或 DFlash | §3.3–3.4、Algorithm 1、代码 `code/dels.py` |
+| anchor | target 已确认、位于本轮 draft block 之前的轮起点 token | verified anchor | 不是论文 Algorithm 1 的 $x_0$；代码中它位于 `verify_ids[:, 0]` | Algorithm 1、代码 `code/dflash.py` |
+| first draft token | 本轮第一枚候选 token，仅从 DFlash 的第 0 位置 long logits 解码 | paper $x_0$ | 代码中位于 `verify_ids[:, 1]`；此时 local prefix 为空，local head 尚未参与 | Algorithm 1、代码 `code/dflash.py` |
 | product of experts | 把长上下文和短上下文条件分布相乘，再除去重复计入的 unigram prior | PoE | 论文实际推理是带权 logit 近似，不是严格概率恒等式 | Eq. 3–9 |
 | unigram prior | 由训练语料 token count 形成的全词表先验 | frequency baseline | 不是 target 的下一 token 分布 | §3.3、`load_unigram_log_prior` |
 | residual interaction | 长上下文与局部 prefix 在给定候选 token 后仍存在的依赖项 | residual term | DeLS-Spec 为解耦训练而主动省略；Domino-FT 近似学习它 | Eq. 7、Table 3 |
@@ -54,7 +57,8 @@
 
 | 符号 | 含义 | 性质 | 作用域 | 取值/单位 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
-| $x_i$ | 当前候选 draft token | author-defined | token | vocabulary item | §3 | $i$ 是块内位置 |
+| $a$ | target 已确认的本轮 anchor token | analysis-defined/code-mapped | decoding round | vocabulary item | Algorithm 1、`code/dflash.py` | 代码 `verify_ids[:,0]`；不是论文的 $x_0$ |
+| $x_i$ | 当前候选 draft token；$x_0$ 是第一枚 draft token | author-defined | token | vocabulary item | §3、Algorithm 1 | 代码把 anchor 放在索引 0，因此论文 $x_i$ 对应 `verify_ids[:, i+1]` |
 | $y$ | 当前块之前的长上下文 | author-defined | sequence | token prefix | Eq. 3–8 | 不包含当前块内 prefix |
 | $z_i$ | $x_i$ 之前的块内短上下文 | author-defined | token/block | local prefix | Eq. 3–8 | 推理时由已草拟 token 构成 |
 | $p_L(x_i\mid y)$ | DFlash 长上下文专家分布 | author-defined | token/vocab | probability | Eq. 8 | 位置间仍为 parallel prediction |
@@ -63,7 +67,7 @@
 | $R(x_i;y,z_i)$ | 被省略的长短上下文残差交互 | author-defined | token/vocab | likelihood ratio | Eq. 7 | 不等于 RNN state |
 | $\ell_L,\ell_S,\ell_P$ | 三个分布对应的 logits/log probability | author-defined/code-defined | token/vocab | logit | Eq. 9、kernel | 代码直接做加减 |
 | $\alpha,\beta$ | local head 与 unigram correction 的校准系数 | author/code-defined | global 或 position-wise | 默认 0.3 | §4.1、Figure 2、README | 理论分解对应 1，实验默认不是 1 |
-| $s_i$ | RNN local head hidden state | author-defined | token | vector | Appendix A | 不等于 speedup |
+| $s_i$ | RNN local head hidden state；每个 speculative block 从零状态开始 | author/code-defined | token/block | vector | Appendix A、`code/dflash.py` | 不跨 block 携带，也不等于 speedup |
 | $r$ | local head 低秩维度 | author/code-defined | model | 256 | Appendix A | 不等于 residual term $R$ |
 | $\tau$ | 平均 accepted length | author-defined | benchmark | tokens/round | Tables 1–4 | 与 wall-clock speedup 不同 |
 
@@ -132,9 +136,42 @@ DeLS-Spec 把已有 DFlash 当作“看全局、但不看块内实际路径”�
 
 ### 4.1 方法总览
 
-一个 decoding round 中，DFlash 先根据长上下文 $y$ 一次产生所有位置的 $\ell_L$。随后 local head 从当前 anchor/已采样 draft token 开始，按位置更新局部状态并产生 $\ell_S$；每一步把 $\ell_L+\alpha\ell_S-\beta\ell_P$ 做 softmax/采样，得到下一个 token。整块完成后，target model 按标准 speculative decoding 验证，accepted prefix 和 correction 逻辑不变。
+一个 decoding round 中，target 已确认的 token $a$ 是轮起点。DFlash 根据截至 $a$ 的长上下文 $y$ 一次产生整块所有位置的 $\ell_L$。第一枚 draft token $x_0$ **只**从 $\ell_L^{(0)}$ 解码；从 $x_1$ 起，local head 才依据已经草拟的块内 prefix $x_{<i}$ 顺序产生 $\ell_S^{(i)}$，并用 $\ell_L^{(i)}+\alpha\ell_S^{(i)}-\beta\ell_P$ 解码。整块完成后，target model 按标准 speculative decoding 验证，accepted prefix 和 correction 逻辑不变。
 
 ![DeLS-Spec overview](../assets/papers/dels-spec/fig1-overview-caption.png)
+
+### 4.1.1 DFlash、local head 与首轮处理
+
+一轮实际执行次序如下：
+
+```text
+target prefill / 上一轮验证
+        │
+        └─ 已确认 anchor a + target feature
+                     │
+                     ▼
+      DFlash 单次并行 forward → ℓL(0), ℓL(1), …, ℓL(γ)
+                     │
+                     ├─ x0 ← Decode(ℓL(0))
+                     │       首枚 draft：无 local head、无 unigram subtraction
+                     │
+                     └─ 对 i ≥ 1：
+                         local head(x0:i-1) → ℓS(i)
+                         Decode(ℓL(i) + αℓS(i) − βℓP) → xi
+                                      │
+                                      ▼
+                         target 一次验证整段 (a, x0, …, xγ)
+```
+
+这里有三个实现边界。
+
+1. **DFlash 每轮只跑一次。** 它在 local rollout 之前已经给出所有位置的 long logits；后续采出的 $x_i$ 不回灌 DFlash，也不触发 DFlash 重算。local head 只改变对应位置的 proposal logits。
+2. **首枚 draft token 是 DFlash-only。** Algorithm 1 先以 $\ell_L^{(0)}$ 采样 $x_0$，融合循环从 $j=1$ 才开始。此时块内 local prefix 为空，所以 short-context expert 没有条件输入；实现也不执行 prior subtraction。前一句是作者算法与代码事实；“没有两个专家，因而无需做重复 prior 修正”是依据 PoE 公式给出的本文解释。
+3. **local 状态只在块内存在。** RNN 路径为每个 block 建立零 hidden state，再用 $x_0$ 推进一步以预测 $x_1$，之后每采出一个 $x_i$ 就更新状态并预测下一位置；下一 speculative round 重新归零。Markov 路径没有 recurrent hidden state，每个位置只用前一枚 draft token。两者都不以 anchor 作为 local token 输入。
+
+“首轮”若指 prompt 之后第一次 speculative round，则 target 先完成 prefill，产出第一枚已确认 token $a$ 及供 DFlash 使用的 target feature；随后按上图执行 DFlash 并行预测、DFlash-only 的 $x_0$、local rollout 和 target verification。以后各轮结构完全相同，只是 $a$ 换成上一轮验证后最终确认的 accepted/correction/bonus token。换言之，没有“首轮专用 local warm-up”：每一轮的 local head 都从空块内 prefix 开始。
+
+论文与代码的下标不同，阅读时需要显式平移：Algorithm 1 的 $x_0$ 是“第一枚 draft token”；官方实现的 `verify_ids[:, 0]` 却保留给 anchor，因此论文 $x_i$ 对应代码 `verify_ids[:, i+1]`。这一映射可由固定 commit 中的 [DFlash-only 首枚 draft 与 RNN rollout](https://github.com/dt-3t/DeLS-Spec/blob/ab9be1b4d4d470064cd98dd25f7cd1c124b86ad0/code/dflash.py#L445-L534) 以及 [Markov rollout](https://github.com/dt-3t/DeLS-Spec/blob/ab9be1b4d4d470064cd98dd25f7cd1c124b86ad0/code/dflash.py#L535-L590) 对照复核。
 
 ### 4.2 组件级设计动机与问题映射
 
@@ -293,6 +330,8 @@ $$
 
 DeLS-Spec 没有降低 DFlash 的首个 parallel forward，也没有改变 target verification；它新增 $\gamma$ 次低秩/GRU 顺序计算，以更高 $\tau$ 摊薄每 token 成本。是否净加速取决于：
 
+更精确地说，第一枚 draft token 只读取 DFlash 第 0 位置 logits；local head 与 prior correction 覆盖后续 $\gamma$ 个位置。因此上式的顺序项从 $i=1$ 开始，而不是把 anchor 或 $x_0$ 再送入一套融合解码。
+
 $$
 T_{\mathrm{token}}\approx\frac{T_{\mathrm{round}}}{\tau}.
 $$
@@ -348,6 +387,7 @@ $$
 
 | 论文机制 | 代码路径 | 一致性判断 |
 |---|---|---|
+| anchor 与首枚 draft token | `code/dflash.py:445–534` | `verify_ids[:,0]` 是 anchor，`verify_ids[:,1]` 是 DFlash-only 的首枚 draft；local 融合从下一位置开始，与 Algorithm 1 一致但下标偏移 1 |
 | RNN local head | `code/dels.py::DeLSLocalHead` | 一致：共享 embedding、单层 bias-free GRU、rank projection、low-rank LM head |
 | Markov local head | `code/dels.py::MarkovDeLSLocalHead`、`code/kernel/markov_dels.py` | 一致 |
 | $\ell_L+\alpha\ell_S-\beta\ell_P$ | `code/kernel/dels.py`、`markov_dels.py` | 一致；Triton 中 fp32 累加 |
@@ -371,6 +411,7 @@ $$
 
 - 只在 Qwen3 4B/8B 与 DFlash family 上验证，不能外推到所有 parallel drafter。
 - 没有与 DSpark 完整方法 head-to-head，也不包含 confidence scheduling；“DSpark 后续优化”只成立于其发布的 DFlash baseline 资产。
+- local head 不修正每轮第一枚 draft token，且 RNN 状态每轮归零；因此它只增强块内第二枚及以后 token 的局部一致性，不能把跨轮历史压入 local state。
 - residual interaction 被主动省略，Table 3 仍落后 Domino-FT 0.10 平均 $\tau$。
 - $\alpha,\beta$ 固定，跨 token/domain/context 的最优强度未知；可学习版本受 teacher forcing/exposure mismatch。
 - 训练代码尚未公开，无法完整复核 local head 数据处理与训练复现链。
