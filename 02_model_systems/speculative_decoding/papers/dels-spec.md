@@ -244,15 +244,15 @@ Table 3 中 DFlash 平均 $\tau=6.04$，DeLS-Spec Markov 为 6.28，RNN 为 6.35
 
 在单张 L20 上，Qwen3-4B Domino-FT 需 13.4h/42.6GB，DeLS RNN 需 1.1h/9.0GB，Markov 需 0.4h/6.5GB；Qwen3-8B 的 Domino-FT 在 48GB 上 OOM，而 DeLS RNN 为 1.1h/10.1GB，Markov为 0.5h/5.9GB。成本差异与“训练 graph 不加载 target/DFlash 大组件”的机制一致，但只是一种硬件、batch size 1、accumulation 4、单 epoch 的单点结果。
 
-| 技术点 | 对应实验 | 对照 | 指标变化 | 证据强度 | 结论 |
-|---|---|---|---|---|---|
-| local head 总体有效 | Table 1 | 同 DFlash b16 | 4B T0 $\tau$ +0.31；8B +0.23 | matched replacement | supported |
-| checkpoint 可迁移 | Table 2 | DSpark 发布的 DFlash b7 | 4B $\tau$ +0.26；8B +0.24 | direct transfer, narrow scope | partially supported |
-| RNN 优于 Markov | Table 3 | 同框架 | 平均 $\tau$ +0.07 | matched variant | supported |
-| prior subtraction 有效 | Figure 2 | $\beta>0$ vs 0 | 多数 $\alpha$ 下正增益 | sensitivity | supported on 4B |
-| 固定 0.3 优于 learnable | Table 4/Appendix | 同初始化和冻结组件 | 平均 6.65 vs 6.55 | matched training variant | supported；可能受 teacher forcing |
-| 解耦训练更便宜 | Table 5 | Domino-FT | 4B RNN 约 12.2× 更快、4.7× 更少 VRAM | matched reported setup | supported，硬件单点 |
-| fused Triton/CUDA Graph 的独立收益 | none | 无 kernel on/off | 未报告 | code-only | unverified attribution |
+| 技术点                           | 对应实验             | 对照                   | 指标变化                           | 证据强度                          | 结论                            |
+| ----------------------------- | ---------------- | -------------------- | ------------------------------ | ----------------------------- | ----------------------------- |
+| local head 总体有效               | Table 1          | 同 DFlash b16         | 4B T0 $\tau$ +0.31；8B +0.23    | matched replacement           | supported                     |
+| checkpoint 可迁移                | Table 2          | DSpark 发布的 DFlash b7 | 4B $\tau$ +0.26；8B +0.24       | direct transfer, narrow scope | partially supported           |
+| RNN 优于 Markov                 | Table 3          | 同框架                  | 平均 $\tau$ +0.07                | matched variant               | supported                     |
+| prior subtraction 有效          | Figure 2         | $\beta>0$ vs 0       | 多数 $\alpha$ 下正增益               | sensitivity                   | supported on 4B               |
+| 固定 0.3 优于 learnable           | Table 4/Appendix | 同初始化和冻结组件            | 平均 6.65 vs 6.55                | matched training variant      | supported；可能受 teacher forcing |
+| 解耦训练更便宜                       | Table 5          | Domino-FT            | 4B RNN 约 12.2× 更快、4.7× 更少 VRAM | matched reported setup        | supported，硬件单点                |
+| fused Triton/CUDA Graph 的独立收益 | none             | 无 kernel on/off      | 未报告                            | code-only                     | unverified attribution        |
 
 ### 5.4 收益来源归因
 
