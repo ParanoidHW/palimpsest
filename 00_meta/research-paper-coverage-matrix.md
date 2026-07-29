@@ -5,7 +5,7 @@
 1. 哪些研究领域/子领域已经有正式 Survey 或 Paper；
 2. 某篇论文是否已经完成 canonical 分析，应当复用、链接或增量更新，而不是重新生成一份。
 
-> 快照日期：2026-07-28。当前共登记 8 个正式 paper domain、63 篇 canonical Paper。
+> 快照日期：2026-07-29。当前共登记 8 个正式 paper domain、63 篇 canonical Paper。
 
 ## 使用规则
 
@@ -130,7 +130,7 @@
 |---|---|---|
 | D²SD | 深度精读 | [d2sd](../02_model_systems/speculative_decoding/papers/d2sd.md) |
 | DFlash | 深度精读 | [dflash](../02_model_systems/speculative_decoding/papers/dflash.md) |
-| DeLS-Spec / arXiv:2607.07409 | 深度精读 | [dels-spec](../02_model_systems/speculative_decoding/papers/dels-spec.md) |
+| DeLS-Spec / arXiv:2607.07409 | 深度精读；首轮协同与下标映射已澄清 | [dels-spec](../02_model_systems/speculative_decoding/papers/dels-spec.md) |
 | DSpark | 深度精读 | [dspark](../02_model_systems/speculative_decoding/papers/dspark.md) |
 | HyperDFlash | 深度精读 | [hyperdflash](../02_model_systems/speculative_decoding/papers/hyperdflash.md) |
 | JetSpec | 深度精读 | [jetspec](../02_model_systems/speculative_decoding/papers/jetspec.md) |
