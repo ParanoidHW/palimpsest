@@ -5,7 +5,7 @@
 1. 哪些研究领域/子领域已经有正式 Survey 或 Paper；
 2. 某篇论文是否已经完成 canonical 分析，应当复用、链接或增量更新，而不是重新生成一份。
 
-> 快照日期：2026-07-29。当前共登记 8 个正式 paper domain、63 篇 canonical Paper。
+> 快照日期：2026-07-30。当前共登记 8 个正式 paper domain、78 篇 canonical Paper。
 
 ## 使用规则
 
@@ -31,18 +31,18 @@
 
 | Domain / 子领域 | 已分析 Paper | 主要覆盖 | 当前汇总入口 | 维护判断 |
 |---|---:|---|---|---|
-| `01_ai_infra/kernel/custom_attn` | 7 | LLM prefill 稀疏注意力、高分辨率 VLM、视频 diffusion 稀疏/缓存 | [Multimodal custom attention](../01_ai_infra/kernel/custom_attn/surveys/multimodal-custom-attention.md) | 已形成专题精读簇 |
+| `01_ai_infra/kernel/custom_attn` | 20 | LLM/VLM 与视频 diffusion 的 mask、selector、layout、kernel、量化、并行 | [Video generation sparse attention](../01_ai_infra/kernel/custom_attn/surveys/video-generation-sparse-attention.md) | 已形成跨算法—系统专题精读簇 |
 | `02_model_systems/ICML/2026` | 12 | diffusion/latent LM、speculative decoding、MoE/压缩、3D/多模态 | [ICML 2026 selected papers](../02_model_systems/ICML/2026/surveys/icml-2026-selected-papers.md) | 会议批次已覆盖 |
 | `02_model_systems/diffusion` | 1 | language diffusion 与 AR/diffusion/self-speculative 统一 | [Language diffusion serving](../02_model_systems/diffusion/surveys/language-diffusion-serving.md) | 单篇锚点，可继续扩展 |
 | `02_model_systems/embodied_ai` | 13 | VLA、导航、操作策略、world model、3D/4D perception、数据合成 | [Embodied AI evolution](../02_model_systems/embodied_ai/surveys/embodied-ai-evolution-infra.md) | 核心谱系已覆盖 |
 | `02_model_systems/llm_foundations` | 2 | frontier LLM 架构、规模与 Infra | [2026 H1 model scale](../02_model_systems/llm_foundations/surveys/2026h1-model-scale.md) | Kimi K3 父级链路需复核 |
-| `02_model_systems/multimodal_generation` | 17 | image/video diffusion、AR/flow、MoT、VAE、cache、稀疏 attention、serving | [Visual generation landscape](../02_model_systems/multimodal_generation/surveys/visual-generation-model-landscape.md) | BAGEL/Cosmos3 等优先复用 |
+| `02_model_systems/multimodal_generation` | 19 | image/video diffusion、AR/flow、MoT、VAE、cache、稀疏 attention、serving | [Visual generation landscape](../02_model_systems/multimodal_generation/surveys/visual-generation-model-landscape.md) | Sparse VideoGen 方法族与 Jenga pipeline 已覆盖 |
 | `02_model_systems/speculative_decoding` | 7 | diffusion draft、tree/parallel drafting、解耦 local correction、online/self judge、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖 |
 | `03_agentic_workflows/kernel_agents` | 4 | LLM 自动 kernel 生成、Ascend/NPU、test-time scaling | [Paper index](../03_agentic_workflows/kernel_agents/evidence/paper-index.md) | 当前为 Paper note，适合按需补全 |
 
 ## Paper 明细
 
-### Custom attention（7）
+### Custom attention（20）
 
 | Paper | 状态 | Canonical |
 |---|---|---|
@@ -53,6 +53,19 @@
 | MInference 1.0 | 深度精读 | [minference](../01_ai_infra/kernel/custom_attn/papers/minference.md) |
 | Token Sparse Attention | 深度精读 | [token-sparse-attention](../01_ai_infra/kernel/custom_attn/papers/token-sparse-attention.md) |
 | VMoBA | 深度精读 | [vmoba](../01_ai_infra/kernel/custom_attn/papers/vmoba.md) |
+| Accelerating Text-to-Video Generation with Calibrated Sparse Attention（CalibAtt；arXiv:2603.05503） | 深度精读 | [calibatt](../01_ai_infra/kernel/custom_attn/papers/calibatt.md) |
+| Fast Video Generation with Sliding Tile Attention（STA；arXiv:2502.04507） | 深度精读 | [sliding-tile-attention](../01_ai_infra/kernel/custom_attn/papers/sliding-tile-attention.md) |
+| XAttention: Block Sparse Attention with Antidiagonal Scoring（arXiv:2503.16428） | 深度精读 | [xattention](../01_ai_infra/kernel/custom_attn/papers/xattention.md) |
+| VSA: Faster Video Diffusion with Trainable Sparse Attention（arXiv:2505.13389） | 深度精读 | [vsa](../01_ai_infra/kernel/custom_attn/papers/vsa.md) |
+| DSV: Exploiting Dynamic Sparsity to Accelerate Large-Scale Video DiT Training（arXiv:2502.07590） | 深度精读 | [dsv](../01_ai_infra/kernel/custom_attn/papers/dsv.md) |
+| FPSAttention（arXiv:2506.04648） | 深度精读 | [fpsattention](../01_ai_infra/kernel/custom_attn/papers/fpsattention.md) |
+| SpargeAttn / SpargeAttention（arXiv:2502.18137） | 深度精读 | [spargeattn](../01_ai_infra/kernel/custom_attn/papers/spargeattn.md) |
+| Training-free and Adaptive Sparse Attention for Efficient Long Video Generation（AdaSpa；arXiv:2502.21079） | 深度精读 | [adaspa](../01_ai_infra/kernel/custom_attn/papers/adaspa.md) |
+| PAROAttention: Pattern-Aware ReOrdering for Efficient Sparse and Quantized Attention（arXiv:2506.16054；OpenReview UPELg2oUo3） | 深度精读 | [paroattention](../01_ai_infra/kernel/custom_attn/papers/paroattention.md) |
+| VMonarch / Video Monarch Attention（arXiv:2601.22275） | 深度精读 | [vmonarch](../01_ai_infra/kernel/custom_attn/papers/vmonarch.md) |
+| VORTA: Efficient Video Diffusion via Routing Sparse Attention（arXiv:2505.18809） | 深度精读 | [vorta](../01_ai_infra/kernel/custom_attn/papers/vorta.md) |
+| RainFusion: Adaptive Video Generation Acceleration via Multi-Dimensional Visual Redundancy（arXiv:2505.21036） | 深度精读 | [rainfusion](../01_ai_infra/kernel/custom_attn/papers/rainfusion.md) |
+| RainFusion2.0: Temporal-Spatial Awareness and Hardware-Efficient Block-wise Sparse Attention（arXiv:2512.24086；extends RainFusion） | 深度精读 | [rainfusion-2](../01_ai_infra/kernel/custom_attn/papers/rainfusion-2.md) |
 
 ### ICML 2026 selected papers（12）
 
@@ -102,7 +115,7 @@
 | DeepSeek-V4 | 深度精读 | [deepseek-v4](../02_model_systems/llm_foundations/papers/deepseek-v4.md) |
 | Kimi K3 | 深度精读；待修链路 | [kimi-k3](../02_model_systems/llm_foundations/papers/kimi-k3.md) |
 
-### Multimodal generation（17）
+### Multimodal generation（19）
 
 | Paper | 状态 | Canonical |
 |---|---|---|
@@ -120,6 +133,8 @@
 | Qwen-Image-2.0 | 深度精读 | [qwen-image-2-0](../02_model_systems/multimodal_generation/papers/qwen-image-2-0.md) |
 | SANA-Video 2.0 | 深度精读 | [sana-video-2](../02_model_systems/multimodal_generation/papers/sana-video-2.md) |
 | Sparse VideoGen | 深度精读 | [sparse-videogen](../02_model_systems/multimodal_generation/papers/sparse-videogen.md) |
+| Sparse VideoGen2: Accelerate Video Generation with Sparse Attention via Semantic-Aware Permutation（SVG2；arXiv:2505.18875） | 深度精读 | [sparse-videogen2](../02_model_systems/multimodal_generation/papers/sparse-videogen2.md) |
+| Training-Free Efficient Video Generation via Dynamic Token Carving（Jenga；TokenCarve；arXiv:2505.16864） | 深度精读；单一 canonical 条目 | [jenga](../02_model_systems/multimodal_generation/papers/jenga.md) |
 | SwiftFusion | 深度精读 | [swiftfusion](../02_model_systems/multimodal_generation/papers/swiftfusion.md) |
 | Transfusion | 深度精读 | [transfusion](../02_model_systems/multimodal_generation/papers/transfusion.md) |
 | Vega | 深度精读 | [vega](../02_model_systems/multimodal_generation/papers/vega.md) |
