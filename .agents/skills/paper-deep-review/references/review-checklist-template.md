@@ -7,6 +7,7 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [pending] W1 Folder: create/reuse one paper folder and required artifact layout.
 - [pending] W1 Delegated input: verify `task_packet.yaml`, skill-tree hash, and agent-contract hash without modifying the packet, or mark standalone invocation with reason.
 - [pending] W2 Primary sources: acquire or classify the PDF, source archive, official paper page, and metadata.
+- [pending] W2 Authorship/affiliations: for person-authored work, record the ordered author list, map every first/co-first and corresponding author to all stated affiliations with marker/legend evidence, and list remaining-author institutions once without per-author mapping; for institution-authored work with no personal names, record only the institutional authors and mark personal roles not applicable; classify anonymous, not-stated, ambiguous, or unavailable metadata without inference.
 - [pending] W2 Public reviews: acquire and preserve OpenReview evidence, or record why it is unavailable/not applicable.
 - [pending] W2 Code: acquire the official/selected repository and record remote URL plus commit hash, or classify its absence.
 - [pending] W3 Text: extract searchable paper text and retain the extraction path/tool evidence.
@@ -61,6 +62,7 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [pending] Q20 The jargon audit has zero unexplained nonessential terms; retained specialized terms have an allowed reason and a plain-language first-use explanation.
 - [pending] Q21 “现有方案为何不够” contains concrete scenarios for central failure modes, prefers paper examples when available, and explains why a simple patch misses the root cause.
 - [pending] Q22 The first paragraph, prior-solution section, algorithm overview, and formula cards pass the one-glance comprehension test in `references/readability-contract.md`.
+- [pending] Q23 Authorship and affiliation metadata in `analysis.md` and `deliverable_manifest.json` agree: person-authored work has explicit first/co-first and corresponding-author affiliation mappings plus a deduplicated remaining-author institution list; institution-authored work records only institutional authors and marks personal roles not applicable; source evidence is explicit and no identity or affiliation is inferred.
 
 ## Final Classification
 

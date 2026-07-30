@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agent-wushu.local/schemas/paper-deep-review-deliverable-1.5.0.json",
+  "$id": "https://agent-wushu.local/schemas/paper-deep-review-deliverable-1.6.0.json",
   "title": "Paper Deep Review Deliverable Manifest",
   "description": "Machine-readable manifest for one paper-deep-review delivery.",
   "type": "object",
@@ -24,18 +24,19 @@
     "limitations"
   ],
   "properties": {
-    "schema_version": { "const": "1.5.0" },
+    "schema_version": { "const": "1.6.0" },
     "deliverable_type": { "const": "paper-deep-review" },
     "invocation_mode": { "enum": ["standalone", "delegated"] },
     "paper": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["paper_key", "title", "venue_and_year", "paper_url"],
+      "required": ["paper_key", "title", "venue_and_year", "paper_url", "authorship_and_affiliations"],
       "properties": {
         "paper_key": { "type": "string", "minLength": 1 },
         "title": { "type": "string", "minLength": 1 },
         "venue_and_year": { "type": "string", "minLength": 1 },
-        "paper_url": { "type": ["string", "null"], "format": "uri" }
+        "paper_url": { "type": ["string", "null"], "format": "uri" },
+        "authorship_and_affiliations": { "$ref": "#/$defs/authorshipAndAffiliations" }
       }
     },
     "completion_status": { "enum": ["complete", "blocked"] },
@@ -205,6 +206,7 @@
               "checks": {
                 "properties": {
                   "artifact_paths_and_hashes": { "const": true },
+                  "authorship_affiliation_consistency": { "const": true },
                   "revision_section_matches_manifest": { "const": true },
                   "revision_history_consistency": { "const": true },
                   "current_revision_is_latest": { "const": true },
@@ -433,6 +435,150 @@
     }
   ],
   "$defs": {
+    "authorAffiliationMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "role_basis", "affiliations", "affiliation_status", "evidence"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "role_basis": { "type": "string", "minLength": 1 },
+        "affiliations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "affiliation_status": {
+          "enum": ["verified", "not-stated", "ambiguous", "unavailable"]
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "affiliation_status": { "const": "verified" } },
+            "required": ["affiliation_status"]
+          },
+          "then": { "properties": { "affiliations": { "minItems": 1 } } },
+          "else": { "properties": { "affiliations": { "maxItems": 0 } } }
+        }
+      ]
+    },
+    "authorshipAndAffiliations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "author_identity_status",
+        "institutional_authors",
+        "ordered_authors",
+        "first_authors",
+        "corresponding_author_designation_status",
+        "corresponding_authors",
+        "other_author_affiliations",
+        "evidence",
+        "notes"
+      ],
+      "properties": {
+        "author_identity_status": {
+          "enum": ["verified", "institutional", "anonymous", "unavailable"]
+        },
+        "institutional_authors": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "ordered_authors": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "first_authors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/authorAffiliationMapping" }
+        },
+        "corresponding_author_designation_status": {
+          "enum": ["verified", "not-stated", "not-applicable", "anonymous", "unavailable"]
+        },
+        "corresponding_authors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/authorAffiliationMapping" }
+        },
+        "other_author_affiliations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "author_identity_status": { "const": "verified" } },
+            "required": ["author_identity_status"]
+          },
+          "then": {
+            "properties": {
+              "institutional_authors": { "maxItems": 0 },
+              "ordered_authors": { "minItems": 1 },
+              "first_authors": { "minItems": 1 }
+            }
+          },
+          "else": {
+            "if": {
+              "properties": { "author_identity_status": { "const": "institutional" } },
+              "required": ["author_identity_status"]
+            },
+            "then": {
+              "properties": {
+                "institutional_authors": { "minItems": 1 },
+                "ordered_authors": { "maxItems": 0 },
+                "first_authors": { "maxItems": 0 },
+                "corresponding_author_designation_status": { "const": "not-applicable" },
+                "corresponding_authors": { "maxItems": 0 },
+                "other_author_affiliations": { "maxItems": 0 },
+                "notes": { "minItems": 1 }
+              }
+            },
+            "else": {
+              "properties": {
+                "institutional_authors": { "maxItems": 0 },
+                "ordered_authors": { "maxItems": 0 },
+                "first_authors": { "maxItems": 0 },
+                "notes": { "minItems": 1 }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "corresponding_author_designation_status": { "const": "verified" }
+            },
+            "required": ["corresponding_author_designation_status"]
+          },
+          "then": {
+            "properties": { "corresponding_authors": { "minItems": 1 } }
+          },
+          "else": {
+            "properties": {
+              "corresponding_authors": { "maxItems": 0 },
+              "notes": { "minItems": 1 }
+            }
+          }
+        }
+      ]
+    },
     "sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
@@ -506,6 +652,7 @@
           "additionalProperties": false,
           "required": [
             "artifact_paths_and_hashes",
+            "authorship_affiliation_consistency",
             "revision_section_matches_manifest",
             "revision_history_consistency",
             "current_revision_is_latest",
@@ -527,6 +674,7 @@
           ],
           "properties": {
             "artifact_paths_and_hashes": { "type": "boolean" },
+            "authorship_affiliation_consistency": { "type": "boolean" },
             "revision_section_matches_manifest": { "type": "boolean" },
             "revision_history_consistency": { "type": "boolean" },
             "current_revision_is_latest": { "type": "boolean" },

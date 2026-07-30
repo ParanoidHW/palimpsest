@@ -77,6 +77,56 @@ def main() -> int:
     analysis = analysis_path.read_text(encoding="utf-8") if analysis_path.exists() else ""
     add(errors, bool(analysis), "analysis.md is missing or empty")
 
+    authorship = manifest.get("paper", {}).get("authorship_and_affiliations", {})
+    institutional_authors = authorship.get("institutional_authors", [])
+    ordered_authors = authorship.get("ordered_authors", [])
+    first_authors = authorship.get("first_authors", [])
+    corresponding_authors = authorship.get("corresponding_authors", [])
+    mapped_people = first_authors + corresponding_authors
+    if authorship.get("author_identity_status") == "verified":
+        first_names = [entry.get("name") for entry in first_authors]
+        add(errors, bool(ordered_authors), "authorship: verified identity requires ordered authors")
+        add(errors, bool(first_names), "authorship: verified identity requires first-author mapping")
+        if ordered_authors:
+            add(errors, ordered_authors[0] in first_names,
+                "authorship: first listed author is absent from first-author mappings")
+        for entry in mapped_people:
+            add(errors, entry.get("name") in ordered_authors,
+                f"authorship: mapped author {entry.get('name')!r} absent from ordered author list")
+    if authorship.get("author_identity_status") == "institutional":
+        add(errors, bool(institutional_authors),
+            "authorship: institution-authored work requires institutional authors")
+        add(errors, not ordered_authors and not mapped_people,
+            "authorship: institution-authored work must not contain personal-author mappings")
+        add(errors, authorship.get("corresponding_author_designation_status") == "not-applicable",
+            "authorship: institution-authored work must mark correspondence not applicable")
+        add(errors, not authorship.get("other_author_affiliations", []),
+            "authorship: institution-authored work must not use remaining-person affiliations")
+    if authorship.get("corresponding_author_designation_status") == "verified":
+        add(errors, bool(corresponding_authors),
+            "authorship: verified corresponding-author designation requires a mapping")
+    for entry in mapped_people:
+        name = entry.get("name", "")
+        add(errors, name in analysis,
+            f"authorship: mapped author {name!r} not found in analysis.md")
+        add(errors, entry.get("role_basis", "") in analysis,
+            f"authorship: role basis for {name!r} not found in analysis.md")
+        for affiliation in entry.get("affiliations", []):
+            add(errors, affiliation in analysis,
+                f"authorship: affiliation {affiliation!r} for {name!r} not found in analysis.md")
+        for evidence in entry.get("evidence", []):
+            add(errors, evidence in analysis,
+                f"authorship: evidence {evidence!r} for {name!r} not found in analysis.md")
+    for affiliation in authorship.get("other_author_affiliations", []):
+        add(errors, affiliation in analysis,
+            f"authorship: remaining-author affiliation {affiliation!r} not found in analysis.md")
+    for institution in institutional_authors:
+        add(errors, institution in analysis,
+            f"authorship: institutional author {institution!r} not found in analysis.md")
+    for evidence in authorship.get("evidence", []):
+        add(errors, evidence in analysis,
+            f"authorship: global evidence {evidence!r} not found in analysis.md")
+
     for group_name in ("revision_info", "terminology_and_symbols"):
         group = manifest.get(group_name, {})
         heading = group.get("section_heading", "")

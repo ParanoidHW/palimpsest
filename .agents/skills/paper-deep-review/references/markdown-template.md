@@ -62,10 +62,36 @@ Use this template for Chinese paper-review deliverables. Adapt headings when the
 
 ## 1. 论文基本信息
 
+若标题下只有机构名称且没有个人姓名，使用以下机构署名分支：
+
+- 署名类型：机构署名
+- 署名机构：
+- 机构署名依据：`<paper title block / official report page>`
+- 第一作者、共同一作、通讯作者及其机构对应：不适用（论文未署名个人作者）
+
+否则使用以下个人署名分支：
+
+- 完整作者列表（按论文顺序）：
+- 第一作者/共同一作及机构：
+
+| 作者 | 身份依据 | 所属机构 | 对应依据 |
+|---|---|---|---|
+| `<name>` | `<first listed / equal-contribution marker and legend>` | `<all stated affiliations>` | `<PDF first page / official page location>` |
+
+- 通讯作者及机构：
+
+| 作者 | 身份依据 | 所属机构 | 对应依据 |
+|---|---|---|---|
+| `<name or not-stated>` | `<corresponding-author marker and legend / not-stated>` | `<all stated affiliations or not-stated>` | `<PDF first page / official page location>` |
+
+- 其余作者涉及机构（去重罗列，不建立逐人对应）：
+- 作者与机构核验说明：`<paper author block/footnote legend/official page; ambiguity or none>`
 - 研究领域：
 - 核心问题：
 - 研究目标：
 - 关键约束/假设：
+
+第一作者默认指作者列表首位；只有来源明确标注 equal contribution 时才扩展为共同一作。通讯作者必须有论文或官方页面的明确 marker/legend；不得依据作者顺序、邮箱域名、姓名或常识推断。第一作者/共同一作和通讯作者必须逐人对应到其全部机构；其余作者只需给出去重机构列表。机构署名分支不得反向猜测个人作者，也不得把机构名填入个人作者字段。
 
 ## 2. 研究动机与问题—方案闭环
 

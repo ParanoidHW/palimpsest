@@ -107,6 +107,7 @@ The paper agent must always create:
 - parent-created `task_packet.yaml` must still exist byte-for-byte unchanged,
 - `review_checklist.md`: Workflow 1-11 and all `$paper-deep-review` Quality Checks, each marked `pending`, `done`, `blocked`, or `skipped-with-reason`; no item may remain unclassified.
 - `analysis.md`: the complete `$paper-deep-review` report, including centralized revision information, source inventory, one centralized terminology-and-symbol chapter, design-rationale matrix, technical-claim evidence matrix, evidence loops, code/infra analysis when relevant, limitations, and unresolved questions.
+- `analysis.md` must also contain either the ordered personal-author list, explicit first/co-first-author and corresponding-author affiliation mappings with marker/legend evidence, and a deduplicated institution list for remaining authors; or, when the title block names only organizations and no people, only the institutional-author list with all personal roles marked not applicable.
 - `figure_inventory.md`: one row per counted visual with figure/table number, PDF page, source-page dimensions, exact crop bounding box `(x, y, width, height)`, complete caption, local path, linked claim, report section, source URL, and QA status.
 - `agent_handoff.md`: a compact completion record following Section 5.
 - `deliverable_manifest.json`: valid against `$paper-deep-review`'s `references/deliverable-schema.json` and consistent with the handoff/checklist/artifacts.
@@ -126,6 +127,11 @@ Keep `agent_handoff.md` compact and use these headings:
 - Dispatch ID: ...
 - Agent task name: ...
 - Paper key: ...
+- Authorship mode: person-authored | institution-authored | anonymous | unavailable
+- First/co-first author affiliations: <author -> affiliations with evidence | not applicable>
+- Corresponding author affiliations: <author -> affiliations with evidence | not-stated | not applicable>
+- Institutional authors: <organization list with evidence | not applicable>
+- Remaining-author affiliations: <deduplicated institution list | not applicable>
 - Task packet: task_packet.yaml
 - Task packet SHA-256: ...
 - Skill used: paper-deep-review
@@ -194,7 +200,7 @@ The parent survey agent must inspect files rather than accepting the agent's mes
 
 1. Match `dispatch_id`, agent task name/id, paper key, output folder, context-free spawn record, and filesystem-isolation mode against `agent_dispatch_log.md`.
 2. Confirm `task_packet.yaml` is unchanged from the parent-recorded SHA-256. Recompute the repository skill-tree and contract hashes and match them against the packet and `agent_handoff.md`.
-3. Confirm `review_checklist.md`, `analysis.md`, `figure_inventory.md`, `agent_handoff.md`, `deliverable_manifest.json`, and `artifact_manifest.sha256` exist. Validate the deliverable manifest against the repository paper schema; independently recompute every required semantic check, including revision-section/history/current-ID consistency, visual totals/missing types, and provenance hash equality; cross-check it against the frozen handoff/checklist/artifacts; verify every final artifact-manifest hash including the task/deliverable manifests; and ensure every checklist item is classified.
+3. Confirm `review_checklist.md`, `analysis.md`, `figure_inventory.md`, `agent_handoff.md`, `deliverable_manifest.json`, and `artifact_manifest.sha256` exist. Validate the deliverable manifest against the repository paper schema; independently recompute every required semantic check, including revision-section/history/current-ID consistency, authorship/affiliation mapping consistency, visual totals/missing types, and provenance hash equality; cross-check it against the frozen handoff/checklist/artifacts; verify every final artifact-manifest hash including the task/deliverable manifests; and ensure every checklist item is classified.
 4. Resolve every local Markdown image link and every inventory path.
 5. If crops exist, use the contact sheet for triage and inspect each crop individually at 100% scale. Confirm exactly one numbered object plus its full caption, complete inventory dimensions/bounding box, tight margins, and no blank, duplicate, clipped, unreadable, captionless, neighboring, or unrelated content. If no crop exists, verify the precise visual blocker, attempts, alternative evidence, and effect on conclusions.
 6. Confirm every accepted mechanism/evidence visual is embedded and analytically discussed. Apply the decision table separately to each missing required visual type, including the exactly-one and zero-visual branches.
@@ -206,6 +212,7 @@ The parent survey agent must inspect files rather than accepting the agent's mes
 12. Confirm key claims, revision entries, terminology/symbol entries, and design rationales in `agent_handoff.md` point to exact `analysis.md`, paper, figure/table, or code evidence.
 13. When a research knowledge organization applies, confirm the agent changed no formal/global path, its handoff records canonical Paper/Asset promotion recommendations, and the parent owns promotion planning and publisher validation.
 14. Verify the enforced write boundary. Without one, compare complete pre/post workspace path/hash manifests outside `allowed_write_root`, excluding `.git/` and including created, deleted, and modified paths plus every other paper folder. Any unexplained difference rejects the dispatch pending reconciliation.
+15. Confirm the authorship branch is source-grounded. For person-authored work, every first/co-first and corresponding author is mapped to all stated affiliations with marker/legend evidence, and remaining-author institutions are deduplicated without requiring per-author mapping. For institution-authored work whose title block has no personal names, only institutional authors are recorded and all personal roles are not applicable. Anonymous, `not-stated`, ambiguous, or unavailable cases must be explicit rather than inferred.
 
 ## 7. Deterministic Parent Verdict
 
@@ -220,7 +227,7 @@ Apply this table in order:
 | Condition | Required evidence | Verdict |
 |---|---|---|
 | Task packet, skill/contract hashes, deliverable structural/semantic validation, artifact manifest, or write-boundary audit fails | Exact mismatch or missing check | `rejected` |
-| Any checklist item is pending/unclassified; `analysis.md`, revision section/history, centralized terminology/symbol chapter, complete per-design rationale entries, claim matrix, evidence loop, inventory, or handoff is missing/unusable | Exact missing or empty item | `rejected` |
+| Any checklist item is pending/unclassified; `analysis.md`, revision section/history, authorship/affiliation mapping, centralized terminology/symbol chapter, complete per-design rationale entries, claim matrix, evidence loop, inventory, or handoff is missing/unusable | Exact missing or empty item | `rejected` |
 | Primary PDF is unavailable, unreadable, or too incomplete to verify the paper's method and results | Acquisition/extraction attempts and failure evidence | `rejected` |
 | Mechanism visual and result/ablation/system-evidence visual both pass inventory, caption, embedding, discussion, and contact-sheet QA | Two accepted visual types | Continue evaluating other branches |
 | Exactly one required visual type passes | For the missing type: caption/keyword search across PDF/source, source-asset or rendered-page crop attempt, exact page/tool/error evidence, alternative equation/table/text evidence, and stated effect on conclusions | `accepted-with-limitations`; otherwise `rejected` |
