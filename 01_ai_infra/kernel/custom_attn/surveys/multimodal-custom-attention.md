@@ -698,3 +698,12 @@ $$
 - **不可直接横比**：不同视频模型、GPU、horizon、质量指标、训练/推理模式不同；速度数字用于理解各自实验，不构成统一排行榜。
 
 正式选篇依据见 [Selection](../evidence/selection.md)，原论文图、裁剪与 QA 记录见 [Figure inventory](../evidence/figure-inventory.md)。
+# 视频生成稀疏 Attention 专题入口（2026-07）
+
+视频 DiT 已形成独立的 selector/layout/kernel/control-plane/quantization/distributed-training 方法族。完整的 15 篇新增精读、Sparse VideoGen 谱系和跨论文证据矩阵见 [Video generation sparse attention](video-generation-sparse-attention.md)。
+
+Umbrella 层只保留三条结论：
+
+1. sparsity 必须落实为可执行 descriptor/layout，不能只比较 mask density；
+2. selector 与 mask reuse 是独立控制面，应与 QK/softmax/PV 数据面分开计时；
+3. operator、DiT block 与完整生成 pipeline 的 speedup 不可混用，量化/cache/step skip/progressive resolution 必须拆账。

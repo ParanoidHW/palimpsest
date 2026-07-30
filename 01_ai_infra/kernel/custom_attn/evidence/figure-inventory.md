@@ -64,3 +64,22 @@
 - 每个 crop 只保留一个编号对象及其 caption；LVSA Table 1 与 Fig.4 已从原合并截图拆开。
 - 原论文图用于机制和证据，报告中不将 AI 生成图替换为论文事实图。
 - 个别工作没有可审计官方 kernel 代码时，图只支持论文级机制，不被用于证明某个具体 runtime 或 host-device placement。
+# Video-generation sparse-attention promotion (2026-07-30)
+
+以下资产均来自 canonical Paper 的 QA-passed crop；过程页渲染、contact sheet、PDF 和裁剪日志未发布。
+
+| Paper | Mechanism | Result / system | QA |
+|---|---|---|---|
+| CalibAtt | [Figure 5](../assets/papers/calibatt/fig5_calibatt_overview_caption.png) | [Table 1](../assets/papers/calibatt/table1_main_results_caption.png) | passed |
+| Sliding Tile Attention | [Figure 4](../assets/papers/sliding-tile-attention/fig4-attention-map-caption.png) | [Table 2](../assets/papers/sliding-tile-attention/table2-kernel-speed-caption.png), [Table 4](../assets/papers/sliding-tile-attention/table4-vbench-e2e-caption.png) | passed |
+| XAttention | [Figure 1](../assets/papers/xattention/fig1_method_overview_caption.png) | [Figure 4](../assets/papers/xattention/fig4_attention_speedup_caption.png), [Figure 5](../assets/papers/xattention/fig5_time_breakdown_caption.png) | passed |
+| VSA | [Figure 1](../assets/papers/vsa/fig1-vsa-overview-caption.png) | [Figure 2](../assets/papers/vsa/fig2-scaling-results-caption.png), [Figure 4](../assets/papers/vsa/fig4-kernel-benchmarks-caption.png) | passed |
+| DSV | [Figure 11](../assets/papers/dsv/fig11_two_stage_training_caption.png), [Figure 12](../assets/papers/dsv/fig12_kernel_overview_caption.png) | [Figure 16](../assets/papers/dsv/fig16_training_throughput_caption.png), [Figure 19](../assets/papers/dsv/fig19_kernel_breakdown_caption.png), [Figure 20](../assets/papers/dsv/fig20_hybrid_cp_caption.png) | passed |
+| FPSAttention | [Figure 3](../assets/papers/fpsattention/fig3-overview-caption.png) | [Table 2](../assets/papers/fpsattention/table2-quality-efficiency-caption.png) | passed |
+| SpargeAttn | [Figure 3](../assets/papers/spargeattn/fig3-workflow-caption.png) | [Figure 10](../assets/papers/spargeattn/fig10-kernel-speed-caption.png) | passed |
+| AdaSpa | [Figure 7](../assets/papers/adaspa/fig7-adaspa-overview-caption.png) | [Table 1](../assets/papers/adaspa/table1-quality-latency-caption.png) | passed |
+| PAROAttention | [Figure 3](../assets/papers/paroattention/fig3-overall-framework-caption.png) | [Table 1](../assets/papers/paroattention/table1-cogvideox-results-caption.png), [Figure 6](../assets/papers/paroattention/fig6-latency-psnr-caption.png) | passed |
+| VMonarch | [Figure 2](../assets/papers/vmonarch/fig2-vmonarch-overview-caption.png) | [Figure 5](../assets/papers/vmonarch/fig5-kernel-speedup-caption.png) | passed |
+| VORTA | [Figure 6](../assets/papers/vorta/fig6-vorta-overview-caption.png) | [Table 1](../assets/papers/vorta/table1-main-results-caption.png) | passed |
+| RainFusion | [Figure 2](../assets/papers/rainfusion/fig2_pipeline-arm-patterns-caption.png) | [Table 1](../assets/papers/rainfusion/table1-main-results-caption.png) | passed |
+| RainFusion2.0 | [Figure 1](../assets/papers/rainfusion-2/fig1_workflow_caption.png) | [Figure 3](../assets/papers/rainfusion-2/fig3_permutation_ablation_caption.png), [Table 1](../assets/papers/rainfusion-2/table1_quality_efficiency_caption.png) | passed |

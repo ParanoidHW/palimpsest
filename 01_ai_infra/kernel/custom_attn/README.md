@@ -4,7 +4,8 @@
 
 ## 阅读路径
 
-1. [Multimodal custom attention](surveys/multimodal-custom-attention.md)：先看跨论文路线、kernel 设计判断和验证计划。
+1. [Video generation sparse attention](surveys/video-generation-sparse-attention.md)：视频 DiT 的 mask、layout、kernel、复用、量化和分布式训练专题。
+2. [Multimodal custom attention](surveys/multimodal-custom-attention.md)：跨模态 umbrella 路线、kernel 设计判断和验证计划。
 2. [Selection](evidence/selection.md)：核对七篇本领域 Paper、三条跨域采用证据和排除边界。
 3. [Venue and organization trends](evidence/venue-organization-trends-2020-2026.md)：核对 2020–2026 顶会论文计数、组织归属口径和趋势图。
 4. 按 Survey 章节下钻到对应 Paper；图表来源与 QA 见 [Figure inventory](evidence/figure-inventory.md)。
@@ -12,10 +13,11 @@
 
 ## 文档索引
 
-- Survey：[Multimodal custom attention](surveys/multimodal-custom-attention.md)
+- Survey：[Video generation sparse attention](surveys/video-generation-sparse-attention.md)，[Multimodal custom attention](surveys/multimodal-custom-attention.md)
 - Papers：[FlexAttention VLM](papers/flexattention-vlm.md)，[MInference](papers/minference.md)，[VMoBA](papers/vmoba.md)，[Token Sparse Attention](papers/token-sparse-attention.md)，[FrameDiT](papers/framedit.md)，[HASTE](papers/haste.md)，[LVSA](papers/lvsa.md)
+- Video-generation Papers：[CalibAtt](papers/calibatt.md)，[Sliding Tile Attention](papers/sliding-tile-attention.md)，[XAttention](papers/xattention.md)，[VSA](papers/vsa.md)，[DSV](papers/dsv.md)，[FPSAttention](papers/fpsattention.md)，[SpargeAttn](papers/spargeattn.md)，[AdaSpa](papers/adaspa.md)，[PAROAttention](papers/paroattention.md)，[VMonarch](papers/vmonarch.md)，[VORTA](papers/vorta.md)，[RainFusion](papers/rainfusion.md)，[RainFusion2.0](papers/rainfusion-2.md)
 - Topic：[LazyLLM background](topics/lazyllm-background.md)
-- Evidence：[Selection](evidence/selection.md)，[Causal-rCM kernel adoption](evidence/causal-rcm-kernel-adoption.md)，[Cosmos 3 attention lowering](evidence/cosmos-3-attention-lowering.md)，[Sparse VideoGen kernel adoption](evidence/sparse-videogen-kernel-adoption.md)，[Venue and organization trends](evidence/venue-organization-trends-2020-2026.md)，[Figure inventory](evidence/figure-inventory.md)
+- Evidence：[Selection](evidence/selection.md)，[Video-generation selection](evidence/video-generation-sparse-attention-selection.md)，[Claim matrix](evidence/video-generation-sparse-attention-claims.md)，[Sparse VideoGen2 adoption](evidence/sparse-videogen2-kernel-adoption.md)，[Jenga adoption](evidence/jenga-kernel-adoption.md)，[Causal-rCM kernel adoption](evidence/causal-rcm-kernel-adoption.md)，[Cosmos 3 attention lowering](evidence/cosmos-3-attention-lowering.md)，[Sparse VideoGen kernel adoption](evidence/sparse-videogen-kernel-adoption.md)，[Venue and organization trends](evidence/venue-organization-trends-2020-2026.md)，[Figure inventory](evidence/figure-inventory.md)
 - Supplement：[Editable PPT](supplements/multimodal-custom-attention.pptx)
 
 ## 资产说明
