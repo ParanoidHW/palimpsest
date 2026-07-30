@@ -17,6 +17,9 @@
 
 ## 文档索引
 
+- Sparse-attention pipeline Papers：[Sparse VideoGen](papers/sparse-videogen.md)，[Sparse VideoGen2](papers/sparse-videogen2.md)，[Jenga / TokenCarve](papers/jenga.md)
+- Attention 专题入口：[Video generation sparse attention](../../01_ai_infra/kernel/custom_attn/surveys/video-generation-sparse-attention.md)
+
 - Survey：[Diffusion evolution](surveys/diffusion-evolution.md)，[近半年多模态视觉生成模型全景](surveys/visual-generation-model-landscape.md)，[Diffusion 多模态生成与 AI Infra](surveys/multimodal-diffusion-infra.md)
 - Topics：[Model pipeline](topics/model-pipeline.md)，[Training data](topics/training-data.md)
 - Paper：[LDM](papers/ldm.md)，[DiT](papers/dit.md)，[Transfusion](papers/transfusion.md)，[Qwen-Image-2.0](papers/qwen-image-2-0.md)，[BAGEL](papers/bagel.md)，[PixelDiT](papers/pixeldit.md)，[DC-AE](papers/dcae.md)，[HunyuanVideo 1.5](papers/hunyuanvideo-1-5.md)，[SANA-Video 2.0](papers/sana-video-2.md)，[Helios](papers/helios.md)，[Vega](papers/vega.md)，[Sparse VideoGen](papers/sparse-videogen.md)，[FEB-Cache](papers/feb-cache.md)，[SwiftFusion](papers/swiftfusion.md)，[Causal-rCM](papers/causal-rcm.md)，[MAGI-1](papers/magi-1.md)，[Cosmos 3](papers/cosmos-3.md)

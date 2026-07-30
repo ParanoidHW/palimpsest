@@ -634,3 +634,8 @@ dLLM 和多模态 diffusion 共享“denoise / mask recovery / iterative refinem
 ## 正式证据入口
 
 Cosmos 3 的单篇证据、源码核查与系统分析见 [Cosmos 3 Paper](../papers/cosmos-3.md)；检索缓存、PDF、源码、渲染页和执行日志仅作为过程材料保存，不作为正式知识链接。
+# 稀疏 Attention pipeline 更新（2026-07）
+
+- [Sparse VideoGen2](../papers/sparse-videogen2.md) extends [Sparse VideoGen](../papers/sparse-videogen.md)，增加 semantic-aware permutation、centroid cache 与动态执行路径。
+- [Jenga / TokenCarve](../papers/jenga.md) 把 AttenCarve 与 progressive resolution、timestep skip 组合；其 8.83× 结果属于完整 Jenga-Flash，而非 attention primitive 单项。
+- mask、layout、kernel、复用、量化和分布式训练的专题比较见 [Video generation sparse attention](../../../01_ai_infra/kernel/custom_attn/surveys/video-generation-sparse-attention.md)。

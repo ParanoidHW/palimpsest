@@ -313,3 +313,6 @@ DiT cache 重用相邻 step 的 attention/MLP/transformer feature，不是 LLM K
 - Seedance 2.0、Veo 3 等闭源模型仅用于产品趋势，不对未公开 backbone、VAE 或并行策略作确定性陈述。
 - Gartner 页面访问受验证阻挡，本文未引用付费图表或具体成熟年限。
 - 所有整理图表达跨论文综合判断，不替代原论文证据。
+# 稀疏 Attention 基础设施更新（2026-07）
+
+[Video generation sparse attention](../../../01_ai_infra/kernel/custom_attn/surveys/video-generation-sparse-attention.md) 将视频生成稀疏执行拆为 mask source、descriptor/layout、kernel、control-plane reuse、quantization 与 distributed runtime。完整 pipeline 侧新增 [Sparse VideoGen2](../papers/sparse-videogen2.md) 和 [Jenga](../papers/jenga.md)，本 Survey 只保留跨域入口，避免复制 Attention Paper 与资产。
