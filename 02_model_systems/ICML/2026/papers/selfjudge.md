@@ -11,15 +11,17 @@
 
 ## 修订信息
 
-- 当前文档版本：1.1.0
-- 当前修订 ID：rev-selfjudge-problem-solution-20260725
-- 当前修订时间：2026-07-25T10:05:32+08:00
-- 替代版本：rev-selfjudge-initial / 1.0.0 / manifest `71b30e32bbd27bd0db9f3bf6c657bc5e6feccb6ea08527ff33e2da3653415fd2`
+- 当前修订 ID：`rev-selfjudge-affiliation-backfill-20260730`
+
+- 当前文档版本：1.1.1
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-selfjudge-problem-solution-20260725` / `1.1.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | rev-selfjudge-initial | 1.0.0 | 2026-07-17T12:00:00+08:00 | review_selfjudge | initial | 无 | 无 | 首次精读、图表 QA、证据与 infra 分析 | 用户委派 | 全文 | task packet、PDF、source、validation | none |
 | rev-selfjudge-problem-solution-20260725 | 1.1.0 | 2026-07-25T10:05:32+08:00 | `/root` | content-update | rev-selfjudge-initial / 1.0.0 / `71b30e32bbd27bd0db9f3bf6c657bc5e6feccb6ea08527ff33e2da3653415fd2` | 无 | 新增自监督 judge verification 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1–4、Eq. 6–8 与既有证据矩阵 | minor：明确这是可调有损加速 |
+| `rev-selfjudge-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-selfjudge-problem-solution-20260725` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -69,6 +71,16 @@
 跳过：responses-doc 文档输入能力不可用，未生成 prompt-only 图片。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Kanghoon Yoon → KAIST。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：KAIST；NAVER Cloud。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：论文将 NAVER 实习与部分作者当前任职另列为脚注；未把未编号的经历说明改写为正式作者机构映射。
+
 
 - 领域：LLM inference、speculative decoding、judge verification。
 - 问题：standard SD 拒绝语义等价但 lexical 不同的 draft token；已有 judge 依赖人工或可验证答案。

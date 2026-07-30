@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-token-sparse-attention-a2-initial`
-- 当前修订时间：`2026-07-25T14:17:47+08:00`
-- 替代版本：无；legacy workspace 只有 PDF/source/render/crop 等过程材料，没有可识别的 review delivery manifest，因此本交付是 `initial`，不是 `migration`。
+- 当前修订 ID：`rev-token-sparse-attention-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-token-sparse-attention-a2-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-token-sparse-attention-a2-initial` | `1.0.0` | `2026-07-25T14:17:47+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无；legacy 仅作输入材料并重新核验 | 首次建立完整单篇分析、视觉证据、公式、代码/checkpoint/OpenReview/Infra 核验与 manifests | 父任务要求修复非 ICML paper delivery | `analysis.md`; [Figure inventory](../evidence/figure-inventory.md); `code/Token-Sparse-Attention`; 过程侧公开评审记录 | task packet、arXiv v3、官方 source、官方代码、结构与语义验证 | `material` |
+| `rev-token-sparse-attention-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-token-sparse-attention-a2-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -88,6 +90,17 @@
 | $\mathrm{BW}_{\mathrm{eff}},U_{\mathrm{BW}}$ | 有效带宽与峰值带宽利用率 | analysis-derived | per kernel/path | bytes/s；ratio | 本分析 §8.4 | 论文未给 bytes-moved/peak counters，不能报告数值利用率 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Dongwon Jo → Department of Electrical and Computer Engineering, Seoul National University。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Beomseok Kang → Department of Electrical and Computer Engineering, Seoul National University
+  - Jae-Joon Kim → Department of Electrical and Computer Engineering, Seoul National University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Department of Electrical and Computer Engineering, Seoul National University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 完整标题：*Token Sparse Attention: Efficient Long-Context Inference with Interleaved Token Selection*。
 - 作者：Dongwon Jo、Beomseok Kang、Jiwon Song、Jae-Joon Kim；Seoul National University。

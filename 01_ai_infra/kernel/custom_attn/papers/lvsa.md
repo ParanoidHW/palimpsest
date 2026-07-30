@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-lvsa-a2-initial`
-- 当前修订时间：`2026-07-25T14:49:13+08:00`
-- 替代版本：无；这是 remediation workspace 的首次可验证交付。legacy workspace 仅含 PDF/source/text/render/crops/code，没有可恢复的旧 `deliverable_manifest.json` 或冻结 review revision，因此本交付按 `initial` 而非 migration 记录。
+- 当前修订 ID：`rev-lvsa-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-lvsa-a2-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-lvsa-a2-initial` | `1.0.0` | `2026-07-25T14:49:13+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 建立完整单篇分析、拆分视觉证据、代码/OpenReview/infra 复核与 manifests | 父任务要求修复非 ICML 单篇交付 | `analysis.md`；[Figure inventory](../evidence/figure-inventory.md)；过程侧公开评审记录；`code/LongVideoSparseAttention` | task packet、arXiv PDF/source、官方代码、结构/语义验证 | material |
+| `rev-lvsa-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-lvsa-a2-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -80,6 +82,16 @@
 | $b$ | 每个 tensor element 字节数 | analysis-derived | dtype-dependent | bytes | §8.2 推导 | bf16/fp16 为 2，fp32 为 4 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Gael Glorian → Distributed Parallel Technology Laboratory, Paris Research Center, Huawei Technologies France。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Gael Glorian → Distributed Parallel Technology Laboratory, Paris Research Center, Huawei Technologies France
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Distributed Parallel Technology Laboratory, Paris Research Center, Huawei Technologies France；AI Framework and Data Technology Lab, Huawei Technologies Co., Ltd.。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：LVSA: Training-Free Sparse Attention for Long Video Diffusion
 - 作者：Gael Glorian, Ioannis Lamprou, Zhen Zhang, Yujie Yuan, Hongsheng Liu

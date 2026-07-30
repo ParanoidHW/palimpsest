@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-vsa-20260729-initial`
-- 当前修订时间：`2026-07-29T15:04:47+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-vsa-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-vsa-20260729-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-vsa-20260729-initial` | 1.0.0 | 2026-07-29T15:04:47+08:00 | review_vsa | initial | 无 | 无 | 首次完整精读、源码/代码核验、三图 QA | dispatch `vgsa-005-vsa` | 全文及本地 artifacts | PDF/source、官方代码 commit、任务包 | initial |
+| `rev-vsa-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-vsa-20260729-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -68,6 +70,17 @@
 | $\rho$ | 本文推导的 attention sparsity | analysis-derived | 每层 | $[0,1]$ | $\rho\approx1-\mathcal KB/L$ | 论文有时称保留比例“overall sparsity” |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Peiyuan Zhang → University of California, San Diego。
+- 共同第一作者（仅含论文明确标注者）：
+  - Yongqi Chen → University of California, San Diego
+  - Haofeng Huang → University of California, San Diego
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of California, San Diego；Mohamed bin Zayed University of Artificial Intelligence；University of California, Berkeley。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：VSA: Faster Video Diffusion with Trainable Sparse Attention
 - 作者：Peiyuan Zhang 等

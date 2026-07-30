@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-cosmos-initial-20260725`
-- 当前修订时间：`2026-07-25T16:52:44+08:00`
-- 替代版本：`none`
+- 当前修订 ID：`rev-cosmos-world-foundation-model-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-cosmos-initial-20260725` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-cosmos-initial-20260725` | `1.0.0` | `2026-07-25T16:52:44+08:00` | `delegated-paper-review-agent` | `initial` | `none` | `none` | 重新获取 PDF/source/code/metadata，并逐项迁移核验 canonical Paper 的有用 claim | Cosmos 单篇交付完整性修复 | 本文；[Figure inventory](../evidence/figure-inventory.md)；来源与公开评审边界 | arXiv PDF/source、固定代码 revision、HF API metadata、两张 QA-passed crops | `material` |
+| `rev-cosmos-world-foundation-model-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-cosmos-initial-20260725` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 说明：这是新的 review lifecycle，故 revision bootstrap 为 `initial`；既有 canonical Paper 作为内容迁移输入逐项核验，不伪装成 predecessor manifest。
 
@@ -67,6 +69,14 @@
 Manifest ASCII symbol identifiers are mapped exactly as follows: `E,D` means $\mathcal{E},\mathcal{D}$; `s_T,s_HW` means $s_T,s_{HW}$; `V,v_i` means $\mathcal{V},v_i$; `M_state/GPU` means $M_{\mathrm{state/GPU}}$; and `B_eff,U` means $B_{\mathrm{eff}},U$. These aliases exist only for machine validation and do not introduce new symbols.
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 署名类型：机构署名（标题下未列个人作者）。
+- 署名机构：NVIDIA。
+- 第一作者、共同第一作者、通讯作者：不适用。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：*Cosmos World Foundation Model Platform for Physical AI*。
 - 版本：arXiv:2501.03575（技术报告，2025；重新获取的 source archive 时间戳为 2025-07-11）。

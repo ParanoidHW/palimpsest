@@ -11,10 +11,11 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.6.0`
-- 当前修订 ID：`rev-omnifit-readable-projection-20260727`
-- 当前修订时间：`2026-07-27T23:55:00+08:00`
-- 替代版本：`rev-omnifit-schema-projection-20260727` / `1.5.0`
+- 当前修订 ID：`rev-omnifit-layer-compression-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.6.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-omnifit-readable-projection-20260727` / `1.6.0`
 
 | 修订 ID | 版本 | 时间 | 类型 | 替代修订 | 摘要 | 结论影响 |
 |---|---|---|---|---|---|---|
@@ -25,6 +26,7 @@
 | `rev-omnifit-final-pdf-promotion-20260727` | `1.4.0` | 2026-07-27 | evidence-promotion | `rev-omnifit-abstract-promotion-20260725` | 提升 最终版 PDF、公式、系统结果与 4 个 QA 资产 | material |
 | `rev-omnifit-schema-projection-20260727` | `1.5.0` | 2026-07-27 | mixed | `rev-omnifit-final-pdf-promotion-20260727` | 补齐标准 claim/evidence/rationale/Infra 结构并纠正 anchor/score/merge 边界 | material |
 | `rev-omnifit-readable-projection-20260727` | `1.6.0` | 2026-07-27 | mixed | `rev-omnifit-schema-projection-20260727` | 补公式解释卡、三类失败场景、口语化表述和离线/在线算法解释图 | material：不改变论文数字，提高可读性并强化冲突边界 |
+| `rev-omnifit-layer-compression-affiliation-backfill-20260730` | `1.6.1` | `2026-07-30T23:30:00+08:00` | `metadata-update` | `rev-omnifit-readable-projection-20260727` / `1.6.0` | 无 | 无 |
 
 ## 0. 资料与配图索引
 
@@ -81,6 +83,16 @@
 > 这是基于已核验论文内容生成的解释图，不是论文原图，也不提供新的实验依据。阅读顺序是：统一剪 token 的问题 → 离线决定每层/每模态保留多少 → 在线判断具体保留哪些 → 逐层缩短序列 → 减少 attention、KV cache 和延迟。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Zining Wang → State Key Laboratory of Complex & Critical Software Environment；School of Computer Science and Engineering, Beihang University。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Xianglong Liu → State Key Laboratory of Complex & Critical Software Environment；School of Computer Science and Engineering, Beihang University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：State Key Laboratory of Complex & Critical Software Environment；Beihang University；Peking University；Huawei。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 领域：omnimodal LLM inference、training-free token compression、GPU 延迟/memory。
 - 核心问题：长音频—视频—文本序列带来高 attention/KV 成本，而统一比例、固定模态优先级或只看单模态内部的压缩方法，忽略了层、模态和跨模态关系的差异。

@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-20260730-initial`
-- 当前修订时间：`2026-07-30T14:51:33+08:00`
-- 替代版本：无（initial delivery）
+- 当前修订 ID：`rev-rainfusion-2-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-20260730-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-20260730-initial` | `1.0.0` | `2026-07-30T14:51:33+08:00` | `review_rainfusion2` | `initial` | 无 | 无 | 首次独立精读、图表 QA、RainFusion v1 关系核验与系统证据审计 | `过程任务包` 初始交付要求 | 全文与全部本地证据 | arXiv:2512.24086v2、LaTeX、arXiv:2505.21036 摘要页 | 无前版可比较 |
+| `rev-rainfusion-2-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-20260730-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -83,6 +85,25 @@
 一眼读法：输入是某层某个 attention head 的 $Q,K,V$；静态时空置换改变 token 的连续布局，动态 block mean 改变 mask 预测成本，Top-N 和 First Frame Sink 决定要执行的整块矩阵乘；被保留块进入 online-softmax sparse FlashAttention，得到 $O$，最后恢复原 token 顺序。该方法是 training-free 推理改造；论文未描述训练或校准阶段。Figure 1 足以解释顺序与状态变化，但“多久重算一次 mask、块描述符怎样送入 NPU kernel”没有画出，也没有文字实现细节。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Aiyue Chen → Huawei Technologies Co., Ltd.。
+- 共同第一作者（仅含论文明确标注者）：
+  - Yaofu Liu → Huawei Technologies Co., Ltd.；Hong Kong University of Science and Technology
+  - Junjian Huang → Huawei Technologies Co., Ltd.
+  - Guang Lian → Huawei Technologies Co., Ltd.
+  - Yiwu Yao → Huawei Technologies Co., Ltd.
+  - Wangli Lan → Huawei Technologies Co., Ltd.
+  - Jing Lin → Huawei Technologies Co., Ltd.
+  - Zhixin Ma → Huawei Technologies Co., Ltd.
+  - Tingting Zhou → Huawei Technologies Co., Ltd.
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Harry Yang → Hong Kong University of Science and Technology
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Huawei Technologies Co., Ltd.；Hong Kong University of Science and Technology。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：论文声明标题行九位作者同等贡献；Harry Yang 仅出现在通讯脚注、未列入标题作者行，故记录为“通讯联系人”而不补入作者名单。
+
 
 - 完整标题：**RainFusion2.0: Temporal-Spatial Awareness and Hardware-Efficient Block-wise Sparse Attention**
 - 版本：arXiv:2512.24086v2，PDF 标注 2026-04-20；任务包的“arXiv 2025”对应首次发布年份

@@ -12,14 +12,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-magi-1-m3-initial`
-- 当前修订时间：`2026-07-25T21:45:00+08:00`
-- 替代版本：无，首次交付
+- 当前修订 ID：`rev-magi-1-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-magi-1-m3-initial` / `1.0.0`
 
 | 修订 ID | 版本 | 时间 | 修订者 | 类型 | 替代修订 | 摘要 | 对结论影响 |
 |---|---|---|---|---|---|---|---|
 | `rev-magi-1-m3-initial` | `1.0.0` | 2026-07-25T21:45:00+08:00 | `paper-deep-review agent` | initial | 无 | 从官方 PDF、代码和视觉材料重建完整审阅，补齐论文级问题—方案闭环、证据矩阵与发布验证 | material |
+| `rev-magi-1-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-magi-1-m3-initial` / `1.0.0` | 无 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与证据索引
 
@@ -65,6 +67,14 @@
 | $S$ | sampling/shortcut steps | author/code-defined | per request | 8/16/32/64 | Section 2.5；config | 不等于 chunk 数 |
 
 ## 1. 论文定位与结论先行
+
+### 作者与机构
+
+- 署名类型：机构署名（标题下未列个人作者）。
+- 署名机构：Sand AI。
+- 第一作者、共同第一作者、通讯作者：不适用。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 MAGI-1 的核心不是“用 AR 取代 diffusion”，而是把视频 flow denoising 改造成可流水的 chunk 级自回归过程：每个 chunk 内仍是连续 latent 去噪，chunk 间用 block-causal attention 和 KV cache 维持单向时间因果。作者给出 4.5B/24B 模型、最高 4M-token 训练上下文、MagiAttention 分布式路径，以及 24 张 H100/H800 上 480p、24fps、每秒视频块低于 1 秒的 serving 结果。
 

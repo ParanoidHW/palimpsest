@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-wam4d-1.0.0`
-- 当前修订时间：`2026-07-25T20:24:01+08:00`
-- 替代版本：无；本工作区是全新的独立交付，类型为 `initial`
+- 当前修订 ID：`rev-wam4d-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-wam4d-1.0.0` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-wam4d-1.0.0` | `1.0.0` | `2026-07-25T20:24:01+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从官方 PDF/source 独立重建证据链、图表 QA、系统分析与代码/评审边界 | non-ICML Paper 交付完整性修复 | 本文各分析章节与 [Figure inventory](../evidence/figure-inventory.md) | arXiv v3 PDF/source、作者代码链接访问结果与公开评审检索 | material |
+| `rev-wam4d-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-wam4d-1.0.0` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -67,6 +69,18 @@
 | $B_{eff},U_B$ | 有效带宽与峰值利用率 | analysis-derived | measured data path | bytes/s、ratio | 本文 §8.4 | 论文缺 bytes moved 与 runtime breakdown，无法求值 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Ying Li → Peking University；Hong Kong University of Science and Technology。
+- 共同第一作者（仅含论文明确标注者）：
+  - Xiaobao Wei → Peking University；Beijing Innovation Center of Humanoid Robotics
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Sirui Han → Hong Kong University of Science and Technology
+  - Shanghang Zhang → Peking University；Beijing Innovation Center of Humanoid Robotics
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Peking University；Hong Kong University of Science and Technology；Beijing Innovation Center of Humanoid Robotics。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 题目：*WAM4D: Fast 4D World Action Model via Spatial Register Tokens*。
 - 作者：Ying Li 等 13 人；arXiv:2606.14048v3，初发 2026-06-12，更新 2026-07-07；arXiv-only，主分类 cs.CV。

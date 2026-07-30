@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-initial-20260730-paroattention`
-- 当前修订时间：`2026-07-30T12:41:46+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-paroattention-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-initial-20260730-paroattention` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-initial-20260730-paroattention` | `1.0.0` | `2026-07-30T12:41:46+08:00` | `review_paroattention` | `initial` | 无 | 无 | 首次完整单篇精读、原图 QA、公式/机制/系统/实验审计 | delegated task packet `vgsa-013-paroattention` | 全文；`Figure inventory`；配图；OpenReview access record | arXiv PDF/source、Figure 3、Table 1、Figure 6、Appendix Tables 4–8 | 初始结论 |
+| `rev-paroattention-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-initial-20260730-paroattention` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -79,6 +81,18 @@
 | $T$ | 实测 runtime | analysis-derived | operator/request | seconds | 本文推导 | 论文未给完整 bytes moved，无法求有效带宽 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Tianchen Zhao → Tsinghua University；ByteDance Seed。
+- 共同第一作者（仅含论文明确标注者）：
+  - Ke Hong → Tsinghua University
+  - Xinhao Yang → Tsinghua University
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Yu Wang → Tsinghua University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Tsinghua University；ByteDance Seed。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：PAROAttention: Pattern-Aware ReOrdering for Efficient Sparse and Quantized Attention in Visual Generation Models
 - 作者：Tianchen Zhao、Ke Hong、Xinhao Yang 等

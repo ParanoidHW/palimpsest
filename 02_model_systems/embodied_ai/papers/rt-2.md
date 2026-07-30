@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-rt2-1.0.0`
-- 当前修订时间：`2026-07-25T18:30:00+08:00`
-- 替代版本：`none (initial review delivery)`
+- 当前修订 ID：`rev-rt-2-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-rt2-1.0.0` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-rt2-1.0.0` | `1.0.0` | `2026-07-25T18:30:00+08:00` | `delegated-paper-review-agent` | `initial` | none | none | 重新取得官方 PDF/source，逐项核验 canonical 线索，补全视觉 QA、OpenReview/代码/Infra 边界与机器清单 | non-ICML Paper 交付完整性修复 | 本文各分析章节与 [Figure inventory](../evidence/figure-inventory.md) | 最终 PMLR PDF、官方 source、项目页与公开评审访问记录 | material |
+| `rev-rt-2-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-rt2-1.0.0` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -66,6 +68,19 @@
 | $B_{\mathrm{eff}},U_B$ | 有效带宽及相对峰值带宽利用率 | analysis-derived | 某一内存/互联/网络路径 | bytes/s 与 ratio | 本文 §8.4 | 缺 telemetry，本文只给公式不报数值 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Anthony Brohan → Google DeepMind。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Yevgen Chebotar → Google DeepMind
+  - Tianhe Yu → Google DeepMind
+  - Karol Hausman → Google DeepMind
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Google DeepMind。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：论文明确说明作者按字母序排列；Anthony Brohan 仅是首位列名作者，不代表贡献意义上的第一作者。
+
 
 - 完整标题：*RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control*。
 - 作者：Anthony Brohan、Noah Brown、Justice Carbajal 等；PMLR 页面列 Brianna Zitkovich 等为 proceedings 顺序。

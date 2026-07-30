@@ -11,15 +11,17 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.1`
-- 当前修订 ID：`rev-dit-freeze-correction-20260725`
-- 当前修订时间：`2026-07-25T21:13:31+08:00`
-- 替代版本：`rev-dit-initial-20260725` / `1.0.0`
+- 当前修订 ID：`rev-dit-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.2`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-dit-freeze-correction-20260725` / `1.0.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-dit-initial-20260725` | `1.0.0` | `2026-07-25T21:01:33+08:00` | `paper-deep-review agent` | `initial` | 无 | 无 | 建立 DiT 单篇审阅、原图 QA、代码/权重/OpenReview 核验 | 补齐 canonical Paper 交付标准 | 本文、[Figure inventory](../evidence/figure-inventory.md) | 官方 PDF/source/code 与本地验证 | material |
 | `rev-dit-freeze-correction-20260725` | `1.0.1` | `2026-07-25T21:13:31+08:00` | `paper-deep-review agent` | `correction` | `rev-dit-initial-20260725` / `1.0.0` | 无 | 完成发布边界复核并重新冻结证据哈希 | formal boundary audit | 修订信息与证据索引 | 正式路径与 Git 状态复核 | none |
+| `rev-dit-affiliation-backfill-20260730` | `1.0.2` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-dit-freeze-correction-20260725` / `1.0.1` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -62,6 +64,16 @@
 | $F_{\text{fwd}},B,S$ | forward FLOPs、global batch、training steps | analysis-derived | per training run | FLOPs, samples/iter, iterations | paper §5 training-compute definition | 论文图中写 Gflops，推导时必须乘 $10^9$ |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：William Peebles → University of California, Berkeley。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of California, Berkeley；New York University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：Meta AI/FAIR 仅作为实习期间完成工作的脚注出现，未改写为正式标题页机构。
+
 
 - 标题：*Scalable Diffusion Models with Transformers*
 - 作者：William Peebles、Saining Xie

@@ -7,6 +7,17 @@
 > - 证据资产：`../assets/papers/ascend-kernel-gen/`
 > - 相关文档：[AscendCraft](ascend-craft.md)，[Kernel generation survey](towards-automated-kernel-generation.md)，[Figure inventory](../evidence/figure-inventory.md)
 
+## 修订信息
+
+- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-ascend-kernel-gen-affiliation-backfill-20260730`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`pre-affiliation-metadata` / `1.0.0`
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-ascend-kernel-gen-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `pre-affiliation-metadata` / `1.0.0` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+
 ## 0. 资料与配图索引
 
 - 论文：arXiv:2601.07160v2，2026-04-17；Pengcheng Laboratory、Huawei 等；[官方摘要与 PDF](https://arxiv.org/abs/2601.07160)。当前是 arXiv preprint，未在论文或公开检索中确认正式 venue。
@@ -36,6 +47,21 @@
 | Level 1/2/3 | 线性数据流、结构化局部复用、全局依赖/复杂控制流 | 不是通用难度标准 | Sec. 7.2, Table 2 |
 
 ## 1. 问题到方案
+
+### 作者与机构
+
+- 第一作者（首位列名）：Xinzi Cao → Pengcheng Laboratory；Sun Yat-sen University。
+- 共同第一作者（仅含论文明确标注者）：
+  - Jianyang Zhai → Pengcheng Laboratory；Sun Yat-sen University
+  - Pengfei Li → Huawei
+  - Zhiheng Hu → Huawei
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Weicheng Xue → Pengcheng Laboratory
+  - Bin Zhou → Pengcheng Laboratory
+  - Yonghong Tian → Pengcheng Laboratory；Peking University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Pengcheng Laboratory；Huawei；Sun Yat-sen University；Peking University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 通用代码模型缺少 AscendC API、host/device 协同、tiling、片上存储和异步流水线知识，复杂任务在零样本设置下接近零执行成功率（Table 1）。论文把问题拆成三个闭环：用 Ascend-CoT 注入领域推理，用 SFT + error-derived supervision 建立可编译基线，再用执行结果构造 DPO 偏好；NPUKernelBench 负责把自由文本生成落到编译、精度和性能三重验证。
 

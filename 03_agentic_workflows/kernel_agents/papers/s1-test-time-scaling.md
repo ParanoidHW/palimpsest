@@ -7,6 +7,17 @@
 > - 证据资产：`../assets/papers/s1-test-time-scaling/`
 > - 相关文档：[Kernel generation survey](towards-automated-kernel-generation.md)，[Figure inventory](../evidence/figure-inventory.md)
 
+## 修订信息
+
+- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-s1-test-time-scaling-affiliation-backfill-20260730`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`pre-affiliation-metadata` / `1.0.0`
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-s1-test-time-scaling-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `pre-affiliation-metadata` / `1.0.0` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+
 ## 0. 资料与配图索引
 
 - 论文：arXiv:2501.19393v3，2025-03-01；Stanford/University of Washington/AI2；[官方摘要与 PDF](https://arxiv.org/abs/2501.19393)。论文以 ICML 样式排版，但本文未从公开 venue 页面确认正式录用状态，故不把模板等同于 venue。
@@ -38,6 +49,18 @@
 | s1-32B | Qwen2.5-32B-Instruct 在 s1K 上 SFT 的模型 | 不是 kernel-specialized model | Sec. 4.1 |
 
 ## 1. 问题到方案
+
+### 作者与机构
+
+- 第一作者（首位列名）：Niklas Muennighoff → Stanford University；Allen Institute for AI；Contextual AI。
+- 共同第一作者（仅含论文明确标注者）：
+  - Zitong Yang → Stanford University
+  - Weijia Shi → University of Washington；Allen Institute for AI
+  - Xiang Lisa Li → Stanford University
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Stanford University；University of Washington；Allen Institute for AI；Contextual AI。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 论文追问：能否不用大规模 RL，仅靠少量精炼轨迹和一个 decoding intervention 得到可控 test-time scaling。方案先按 difficulty、diversity、quality 从 59K pool 选出 s1K，再对 Qwen2.5-32B-Instruct 做 SFT；推理时达到最大 budget 就插入 end-of-thinking，低于最小 budget 而模型想结束时就抑制 delimiter 并追加 `Wait`。
 

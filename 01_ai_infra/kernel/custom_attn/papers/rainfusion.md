@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-rainfusion-initial`
-- 当前修订时间：`2026-07-30T14:23:25+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-rainfusion-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-rainfusion-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-rainfusion-initial` | `1.0.0` | `2026-07-30T14:23:25+08:00` | `review_rainfusion` | `initial` | 无 | 无 | 建立 PDF 证据驱动的初始精读、两类视觉证据与来源限制 | delegated initial delivery | `本文`；`Figure inventory`；`../assets/papers/rainfusion/` | `arXiv PDF`、task packet 与验证契约 | 无 |
+| `rev-rainfusion-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-rainfusion-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -65,6 +67,16 @@
 | $s_a$ | attention kernel/算子的加速比 | analysis-derived | 系统估算 | 倍数 | 本文 §8.1 | Table 1 的 speedup 被论文描述为 attention speedup |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Aiyue Chen → Huawei Technologies Co., Ltd.。
+- 共同第一作者（仅含论文明确标注者）：
+  - Bin Dong → Huawei Technologies Co., Ltd.
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Huawei Technologies Co., Ltd.。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 完整标题：RainFusion: Adaptive Video Generation Acceleration via Multi-Dimensional Visual Redundancy
 - 作者：Aiyue Chen、Bin Dong、Jingru Li、Jing Lin、Kun Tian、Yiwu Yao、Gongyi Wang（Huawei Technologies）

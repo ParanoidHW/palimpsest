@@ -11,15 +11,17 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-pixeldit-20260725-pdf-recovery`
-- 当前修订时间：`2026-07-25T21:52:59+08:00`
-- 替代版本：`rev-pixeldit-20260725-initial` / `1.0.0`
+- 当前修订 ID：`rev-pixeldit-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.1.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-pixeldit-20260725-pdf-recovery` / `1.1.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | rev-pixeldit-20260725-initial | 1.0.0 | 2026-07-25T21:38:19+08:00 | `paper-deep-review agent` | initial | 无 | 无 | 首次交付：来源边界、视觉 QA、动机闭环、组件证据与 infra | 补齐 canonical Paper 交付标准 | 本文、[Figure inventory](../evidence/figure-inventory.md) | 既有精读与资产 | material |
 | rev-pixeldit-20260725-pdf-recovery | 1.1.0 | 2026-07-25T21:52:59+08:00 | `paper-deep-review agent` | evidence-update | `rev-pixeldit-20260725-initial` / `1.0.0` | 无 | 恢复官方 PDF；纠正 Figure 2 physical page；按原页重裁 Figure 2 与 Table 5 | 补齐原始页面证据 | 资料索引、[Figure inventory](../evidence/figure-inventory.md)与来源边界 | 官方 PDF SHA-256 `72de48b4...59b8293`；180 DPI QA | minor |
+| `rev-pixeldit-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-pixeldit-20260725-pdf-recovery` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -59,6 +61,18 @@
 | $b$ | 每元素字节数 | analysis-derived | memory estimate | bytes | §8 推导 | bf16/fp16 常取 $2$，不代表所有状态均为 2 bytes |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Yongsheng Yu → NVIDIA；University of Rochester。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Yongsheng Yu → NVIDIA；University of Rochester
+  - Wei Xiong → NVIDIA
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：NVIDIA；University of Rochester。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：通讯角色依据 Contact 行；* 是 NVIDIA 实习工作说明，† 是 project lead/main advising。
+
 
 - 领域：端到端像素空间 diffusion Transformer。
 - 核心问题：去掉外置 VAE 后，如何避免 $HW$ 像素序列全局注意力的二次复杂度，同时保留块内像素差异。

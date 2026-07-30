@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-fpsattention-20260729-initial`
-- 当前修订时间：`2026-07-29T16:28:15+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-fpsattention-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-fpsattention-20260729-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-fpsattention-20260729-initial` | `1.0.0` | `2026-07-29T16:28:15+08:00` | `review_fpsattention` | initial | 无 | 无 | 首次建立 PDF、文本、两张证据图、方法/实验/Infra 审查与交付清单 | `过程任务包` 初始交付 | `本文`；`Figure inventory`；`figures/` | arXiv:2506.04648v2 PDF、官方项目页、任务包 | material |
+| `rev-fpsattention-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-fpsattention-20260729-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -60,6 +62,18 @@
 | $R_{\mathrm{E2E}}$ | 基线延迟/方法延迟 | analysis-derived | 每模型/分辨率 | 倍数 | 本文依据 Table 2 | 与论文表格的 speedup 列同义，用于复核 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Akide Liu → Monash University；DAMO Academy, Alibaba Group；Zhejiang University。
+- 共同第一作者（仅含论文明确标注者）：
+  - Zeyu Zhang → DAMO Academy, Alibaba Group
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Fan Wang → DAMO Academy, Alibaba Group
+  - Bohan Zhuang → DAMO Academy, Alibaba Group；Zhejiang University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Monash University；DAMO Academy, Alibaba Group；Zhejiang University；Hupan Lab。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 作者：Akide Liu 等；arXiv:2506.04648v2；官方项目页标注 NeurIPS 2025 Spotlight。
 - 研究对象：Wan2.1 1.3B 与论文表述为 14B/附录为 13B 的模型（命名不一致）。

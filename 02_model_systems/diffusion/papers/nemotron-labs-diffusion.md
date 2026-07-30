@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-initial-nemotron-labs-diffusion-20260727`
-- 当前修订时间：`2026-07-27T23:30:00+08:00`
+- 当前修订 ID：`rev-nemotron-labs-diffusion-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
 - 替代版本：无（initial）
 
 | 修订 ID | 版本 | 时间 | 修订者 | 类型 | 变更摘要 | 对结论影响 |
 |---|---|---|---|---|---|---|
 | `rev-initial-nemotron-labs-diffusion-20260727` | `1.0.0` | `2026-07-27T23:30:00+08:00` | Codex | initial | 基于 arXiv v1、官方源码、官方仓库固定 commit 与原图 QA 建立首版审计式解读 | material |
+| `rev-nemotron-labs-diffusion-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | 补充作者—机构元数据与角色证据边界 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料、术语与符号
 
@@ -54,6 +56,15 @@
 | TPF | confirmed tokens / model forward | analysis-used | 只能在 forward 计算大致可比时代表加速潜力 |
 
 ## 1. 研究问题与核心判断
+
+### 作者与机构
+
+- 第一作者（首位列名）：Yonggan Fu → NVIDIA。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：NVIDIA；Georgia Institute of Technology；The University of Hong Kong；University of Chicago；Massachusetts Institute of Technology。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 语言模型部署面临一个结构性取舍：AR 因严格因果分解而质量稳定、KV cache 友好，却每步通常只确认一个 token；masked diffusion 能并行更新多个位置，却可能牺牲质量、增大每步计算，并需要新的 serving 路径。传统 speculative decoding 又引入额外 drafter、额外权重和双模型调度。
 

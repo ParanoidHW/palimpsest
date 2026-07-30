@@ -11,15 +11,17 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-dodo-problem-solution-20260725`
-- 当前修订时间：`2026-07-25T10:05:32+08:00`
-- 替代版本：`rev-dodo-initial` / `1.0.0` / manifest `106f19de6067499080d8ff689d4eccc4db99810dfb6cd61d73584afd6d7cca6e`
+- 当前修订 ID：`rev-dodo-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.1.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-dodo-problem-solution-20260725` / `1.1.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-dodo-initial` | `1.0.0` | `2026-07-17T09:58:45+08:00` | `review_dodo` | initial | 无 | 无 | 建立单篇深度审阅、视觉证据、venue/代码边界和 infra 分析 | 用户题单 | 本文各节与正式 Figure inventory | arXiv v2、Tables 1–3/Figures 4–5、ICML workshop 页面 | material |
 | `rev-dodo-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root` | `content-update` | `rev-dodo-initial` / `1.0.0` / `106f19de6067499080d8ff689d4eccc4db99810dfb6cd61d73584afd6d7cca6e` | 无 | 新增论文级研究动机与问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | 既有 PDF/HTML、Table 2/3、Figure 5/6 与设计理由矩阵 | minor：不改变主结论，补足因果解释 |
+| `rev-dodo-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-dodo-problem-solution-20260725` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -61,6 +63,17 @@
 | $M_{\rm KV}$ | prefix KV cache 字节数 | analysis-derived | 每层/请求 | byte | §7.2 推导 | 依赖未披露的层数、KV heads、dtype |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Sean Man → Technion – Israel Institute of Technology。
+- 共同第一作者（仅含论文明确标注者）：
+  - Gilad Deutch → Amazon Web Services
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Niv Nayman → Amazon Web Services
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Technion – Israel Institute of Technology；Amazon Web Services。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 作者：Sean Man, Gilad Deutch, Roy Ganz, Roi Ronen, Shahar Tsiper, Shai Mazor, Niv Nayman。
 - 版本：arXiv:2602.16872v2，2026-05-27 修订。

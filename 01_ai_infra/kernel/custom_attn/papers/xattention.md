@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-20260729-xattention-initial`
-- 当前修订时间：`2026-07-29T14:30:04+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-xattention-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-20260729-xattention-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-20260729-xattention-initial` | `1.0.0` | `2026-07-29T14:30:04+08:00` | `review_xattention` | initial | 无 | 无 | 首次完整精读、源码/代码核验、五项视觉证据与系统/视频边界审计 | task packet `vgsa-004-xattention` | 全文及本地证据资产 | PDF/source/code/visual QA | 建立初始结论 |
+| `rev-xattention-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-20260729-xattention-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -73,6 +75,18 @@
 | $b_{\rm elem}$ | 每个张量元素字节数 | analysis-derived | dtype | bytes | 本分析 §8 | bf16 为 2；mask 是 bool/实现相关 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Ruyi Xu → Tsinghua University。
+- 共同第一作者（仅含论文明确标注者）：
+  - Guangxuan Xiao → Massachusetts Institute of Technology
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Guangxuan Xiao → Massachusetts Institute of Technology
+  - Song Han → Massachusetts Institute of Technology；NVIDIA
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Tsinghua University；Massachusetts Institute of Technology；Shanghai Jiao Tong University；NVIDIA。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 作者：Ruyi Xu、Guangxuan Xiao、Haofeng Huang、Junxian Guo、Song Han。
 - 发表：ICML 2025（PDF metadata 与 ICML 样式/source 均支持）；arXiv:2503.16428。
@@ -140,16 +154,16 @@
 
 ### 4.2 组件级设计动机与具体问题映射
 
-| 设计项 | why 状态 | 原文证据 | 针对问题 | 因果机制 | 替代方案/权衡 | 验证证据 | 判断 |
-|---|---|---|---|---|---|---|---|
-| antidiagonal pairing | author-stated | §2.1、Figure 2、Appendix A | pooling/尾段搜索漏 vertical/slash | 每行列至少一次、轨迹相交 | random/diagonal；一般 learned gate 更贵 | Table 6、7 | 部分支持 |
-| stride $S$ | author-stated | §2.1、§3.4 | estimator 成本 | 更大 S 减少 sampled QK | S 太大产生 aliasing，slash 入块位置不可分 | Table 7 | 直接支持 failure case |
-| threshold selection | author-stated | §2.2 | 固定 budget 欠选/浪费 | 以预测 mass 控制可变 block 数 | Top-K/ratio 更可预测但不自适应 | Table 8 | 直接支持 |
-| per-head minimum $\tau$ | author-stated | §2.3 | head 稀疏度不同 | 对敏感 head 保守、冗余 head 激进 | 固定全局 $\tau$；需校准成本 | Table 9 | 语言域支持，泛化未证 |
-| forced sink/self/causal mask | inferred/code-defined | `utils.py:86-166` | 保证 causal 合法与关键局部块 | 首块/对角块优先进入 mask | 会提高实际 density | 无独立消融 | 实现合理、收益未隔离 |
-| Triton fused reshape/GEMM/block-sum | inferred/code-defined | `kernels.py`、`Xattention.py:140-173` | estimator launch/中间张量开销 | fuse residue pairing 与 QK，softmax/block sum 走 Triton | 设备名不含“100”自动回退 PyTorch | Figure 5 是整体 estimator 证据 | 部分支持 |
-| 128×128 external sparse kernel | not-stated in paper; code-defined | `Xattention.py:343-369` | 把 mask 变成实际 skip | contiguous bool layout 驱动 block kernel | 固定 block/batch=1 限制适用面 | Figure 4/5 + code | operator 路径存在 |
-| 5-step video warmup | author-stated | §3.2、Figure 3 | early-step layout shift | 早期 full attention 固定全局布局 | 分步 $\tau$/mask reuse 可能更省，但未测 | Figure 3、Table 4 | HunyuanVideo 直接支持 |
+| 设计项                                 | why 状态                            | 原文证据                                 | 针对问题                         | 因果机制                                                 | 替代方案/权衡                            | 验证证据                      | 判断                |
+| ----------------------------------- | --------------------------------- | ------------------------------------ | ---------------------------- | ---------------------------------------------------- | ---------------------------------- | ------------------------- | ----------------- |
+| antidiagonal pairing                | author-stated                     | §2.1、Figure 2、Appendix A             | pooling/尾段搜索漏 vertical/slash | 每行列至少一次、轨迹相交                                         | random/diagonal；一般 learned gate 更贵 | Table 6、7                 | 部分支持              |
+| stride $S$                          | author-stated                     | §2.1、§3.4                            | estimator 成本                 | 更大 S 减少 sampled QK                                   | S 太大产生 aliasing，slash 入块位置不可分      | Table 7                   | 直接支持 failure case |
+| threshold selection                 | author-stated                     | §2.2                                 | 固定 budget 欠选/浪费              | 以预测 mass 控制可变 block 数                                | Top-K/ratio 更可预测但不自适应              | Table 8                   | 直接支持              |
+| per-head minimum $\tau$             | author-stated                     | §2.3                                 | head 稀疏度不同                   | 对敏感 head 保守、冗余 head 激进                               | 固定全局 $\tau$；需校准成本                  | Table 9                   | 语言域支持，泛化未证        |
+| forced sink/self/causal mask        | inferred/code-defined             | `utils.py:86-166`                    | 保证 causal 合法与关键局部块           | 首块/对角块优先进入 mask                                      | 会提高实际 density                      | 无独立消融                     | 实现合理、收益未隔离        |
+| Triton fused reshape/GEMM/block-sum | inferred/code-defined             | `kernels.py`、`Xattention.py:140-173` | estimator launch/中间张量开销      | fuse residue pairing 与 QK，softmax/block sum 走 Triton | 设备名不含“100”自动回退 PyTorch             | Figure 5 是整体 estimator 证据 | 部分支持              |
+| 128×128 external sparse kernel      | not-stated in paper; code-defined | `Xattention.py:343-369`              | 把 mask 变成实际 skip             | contiguous bool layout 驱动 block kernel               | 固定 block/batch=1 限制适用面             | Figure 4/5 + code         | operator 路径存在     |
+| 5-step video warmup                 | author-stated                     | §3.2、Figure 3                        | early-step layout shift      | 早期 full attention 固定全局布局                             | 分步 $\tau$/mask reuse 可能更省，但未测      | Figure 3、Table 4          | HunyuanVideo 直接支持 |
 
 ### 4.3 antidiagonal score 的有效性与失败面
 

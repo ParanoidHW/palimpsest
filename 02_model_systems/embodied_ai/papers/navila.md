@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-navila-b1-initial`
-- 当前修订时间：`2026-07-25T18:01:57+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-navila-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-navila-b1-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-navila-b1-initial` | `1.0.0` | `2026-07-25T18:01:57+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从官方论文、源码、代码、配置和公开页面建立首个隔离评审交付 | non-ICML Paper 交付完整性修复 | 本文各分析章节与 [Figure inventory](../evidence/figure-inventory.md) | 官方论文、源码、固定 commit 代码与公开模型配置 | material |
+| `rev-navila-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-navila-b1-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -76,6 +78,18 @@
 | $U_B$ | 有效带宽占峰值带宽的比例 | analysis-derived | selected runtime path | ratio | 本评审 §8.4 推导 | 不能由 GPU 型号单独推出 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：An-Chieh Cheng → University of California, San Diego。
+- 共同第一作者（仅含论文明确标注者）：
+  - Yandong Ji → University of California, San Diego
+  - Zhaojing Yang → University of Southern California
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of California, San Diego；University of Southern California；NVIDIA。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：论文另有 equal advising 标记，不把该标记解释为通讯作者。
+
 
 - 领域：具身 AI、Vision-and-Language Navigation、腿式机器人控制、VLM/VLA。
 - 核心问题：如何把长时语言导航意图转成可在未知、狭窄、复杂物理环境中安全执行的腿式机器人动作。

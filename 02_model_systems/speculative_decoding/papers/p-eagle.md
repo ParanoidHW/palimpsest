@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-p-eagle-b2-initial`
-- 当前修订时间：`2026-07-25T17:40:00+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-p-eagle-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-p-eagle-b2-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-p-eagle-b2-initial` | `1.0.0` | `2026-07-25T17:40:00+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从 arXiv v1、官方 source、后续 vLLM 实现、公开 checkpoints 与重新裁剪视觉建立完整可审计审阅 | P-EAGLE B2 交付修复 | 本文与 [Figure inventory](../evidence/figure-inventory.md) | arXiv v1、固定 vLLM commit、checkpoint revisions、原图 QA | material：纠正旧资料中“无代码/无 checkpoint”及表号过时结论 |
+| `rev-p-eagle-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-p-eagle-b2-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -73,6 +75,18 @@
 Manifest trace aliases：`L_eff`、`d_model`、`h_shared`、`t_i`、`B_eff`、`U_BW`；它们分别对应上表的 LaTeX 记法。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Mude Hui → University of California, Santa Cruz。
+- 共同第一作者（仅含论文明确标注者）：
+  - Xin Huang → Amazon Web Services
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Xin Huang → Amazon Web Services
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of California, Santa Cruz；Amazon Web Services。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：Mude Hui 的 AWS 经历是 internship note，不作为其正式标题页机构编号。
+
 
 - 标题：P-EAGLE: Parallel-Drafting EAGLE with Scalable Training。
 - 作者：Mude Hui 等；机构为 UC Santa Cruz 与 AWS Amazon。

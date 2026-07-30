@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-d2sd-b1-initial`
-- 当前修订时间：`2026-07-25T15:15:25+08:00`
-- 替代版本：无；这是无 legacy workspace 的全新隔离交付。
+- 当前修订 ID：`rev-d2sd-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-d2sd-b1-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-d2sd-b1-initial` | `1.0.0` | `2026-07-25T15:15:25+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从官方 PDF/source、当前代码、checkpoint metadata 与重新裁剪视觉建立完整单篇审阅 | `d2sd-b1` 非 ICML paper-delivery remediation | `analysis.md`、`source_verification.md`、[Figure inventory](../evidence/figure-inventory.md)、过程侧公开评审记录 | `task_packet.yaml`；arXiv v1；D²SD commit `4c4b491…`；4 个 QA 视觉 | material |
+| `rev-d2sd-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-d2sd-b1-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -87,6 +89,15 @@
 | $S$ | 并发 request batch size | code-defined | benchmark runtime | 当前只实现 $S=1$ | `benchmark.py:11-13,87-89` | 与 prefix 集合 $\mathcal S$ 不同 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Liyuan Zhang → Peking University。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Peking University；Tsinghua University；Hong Kong University of Science and Technology；University of Illinois Urbana-Champaign；Ant Group。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：D²SD: Accelerating Speculative Decoding with Dual Diffusion Draft Models。
 - 作者：Liyuan Zhang 等 9 人；机构包括北京大学、清华大学、HKUST、UIUC、蚂蚁集团。

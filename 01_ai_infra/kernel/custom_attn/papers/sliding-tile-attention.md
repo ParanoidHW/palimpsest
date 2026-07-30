@@ -13,14 +13,16 @@ STA 的关键不是“又一种稀疏 mask”，而是把滑窗单位从单 toke
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-vgsa-003-initial`
-- 当前修订时间：`2026-07-29T14:20:00+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-sliding-tile-attention-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-vgsa-003-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-vgsa-003-initial` | `1.0.0` | `2026-07-29T14:20:00+08:00` | `review_sliding_tile_attention` | `initial` | 无 | 无 | 首次形成 PDF/source/视觉/公式/实验/infra 的证据闭环 | delegated initial delivery | `本文`、`Figure inventory`、清单与 manifests | task packet；arXiv:2502.04507 PDF/source；Figure 4；Tables 2/4 | material |
+| `rev-sliding-tile-attention-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-vgsa-003-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -68,6 +70,18 @@ STA 的关键不是“又一种稀疏 mask”，而是把滑窗单位从单 toke
 | $\alpha,\beta,\gamma$ | data/final/attention loss 权重 | author-defined | finetuning | 1, 0.5, 0.5 | Appendix B | 只影响 finetuned 分支 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Peiyuan Zhang → University of California, San Diego。
+- 共同第一作者（仅含论文明确标注者）：
+  - Yongqi Chen → University of Michigan
+  - Runlong Su → University of California, San Diego
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Hao Zhang → University of California, San Diego
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of California, San Diego；University of Michigan；Tsinghua University；University of California, Berkeley；Mohamed bin Zayed University of Artificial Intelligence。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：*Fast Video Generation with Sliding Tile Attention*
 - 作者：Peiyuan Zhang 等；ICML 2025。

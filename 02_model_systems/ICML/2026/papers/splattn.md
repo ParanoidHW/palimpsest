@@ -11,16 +11,18 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.2.0`
-- 当前修订 ID：`rev-splattn-problem-solution-20260725`
-- 当前修订时间：`2026-07-25T10:05:32+08:00`
-- 替代版本：`rev-splattn-refresh-20260724` / `1.1.0` / manifest `07d9f00acf3f680de281cec7c7caabaecfae10e7492a66d9bd1497750f8ddcfe`
+- 当前修订 ID：`rev-splattn-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.2.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-splattn-problem-solution-20260725` / `1.2.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-splattn-initial` | `1.0.0` | `2026-07-16T12:00:00+08:00` | `review_splattn` | initial | 无 | 无 | 首次审阅 | 用户指定的单篇 paper-deep-review 任务 | `analysis.md`；`figure_inventory.md`；`review_checklist.md` | `extracted_text/ar5iv.html`；`code/SplAttN/` | minor |
 | `rev-splattn-refresh-20260724` | `1.1.0` | `2026-07-24T18:21:12+08:00` | `splattn_refresh` | mixed | tracked：`rev-splattn-initial` / `1.0.0` / `1006a623b3473b4129ba2f3fd8ecb08fd7c299846678d0636e1b1438fef2650c` | 无 | 恢复完整 PDF/source；加入 Figure 1 与 Figure 8 严格视觉证据；以官方 ICML 页面提升 venue；刷新代码/checkpoint；重核 SCS/CMIT、kernel 与 runtime，并指出连续论文表述和离散实现的差异 | 任务包的 revise-existing 请求 | `analysis.md`；`figure_inventory.md`；`figures/`；`source/`；`code/`；`checkpoint_metadata/`；`venue/` | `paper.pdf` arXiv v2；`source/example_paper.tex`；ICML poster 60900；commit `0c279d…`；HF model API | material |
 | `rev-splattn-problem-solution-20260725` | `1.2.0` | `2026-07-25T10:05:32+08:00` | `/root` | content-update | `rev-splattn-refresh-20260724` / `1.1.0` / `07d9f00acf3f680de281cec7c7caabaecfae10e7492a66d9bd1497750f8ddcfe` | 无 | 新增 3D–2D bridging 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1/8、Table 4、源码与固定代码 commit | minor：不改变主结论，突出连续—离散实现边界 |
+| `rev-splattn-affiliation-backfill-20260730` | `1.2.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-splattn-problem-solution-20260725` / `1.2.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -71,6 +73,16 @@
 | $\Delta_{rel}$ | 本文用于报告相对变化的推导量 | analysis-derived | 两数比较 | percent | 本分析 §4.4 | 不是论文符号；$(new-old)/old$ |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Zhaoyang Li → School of Computing and Artificial Intelligence, Southwest Jiaotong University。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Zhichao You → School of Computing and Artificial Intelligence, Southwest Jiaotong University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：School of Computing and Artificial Intelligence, Southwest Jiaotong University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：SplAttN: Bridging 2D and 3D with Gaussian Soft Splatting and Attention for Point Cloud Completion
 - 作者：Zhaoyang Li、Zhichao You、Tianrui Li。

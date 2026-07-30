@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-framedit-a2-initial`
-- 当前修订时间：`2026-07-25T14:15:58+08:00`
-- 替代版本：无；这是本 delegated delivery 的首个可追踪版本。
+- 当前修订 ID：`rev-framedit-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-framedit-a2-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-framedit-a2-initial` | `1.0.0` | `2026-07-25T14:15:58+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从 v2 PDF/source、官方代码与重新 QA 的视觉证据建立完整单篇精读交付 | `framedit-a2` task packet 与 delegated contract | 全文及同目录审计工件 | `task_packet.yaml`；`source_verification.md`；`code_checkpoint_verification.md` | material |
+| `rev-framedit-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-framedit-a2-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -89,6 +91,15 @@
 W11 为 `skipped-with-reason`：`OPENROUTER_ICU_API_KEY` 可用，但已完整检查的本地 `openrouter-icu-image` 技能与 CLI 只公开 `/v1/images/generations` 的 prompt-only `generate` 和 `/v1/images/edits` 的图片输入 `edit`，没有所需的 `responses-doc --input-file analysis.md` 子命令或等价 document-upload 接口。技能明确禁止把 Markdown 粘进 prompt、用摘要替代全文或把 Markdown 传给 image edit，因此本交付没有生成占位图。此缺口只影响解释性可视化，不影响来自 PDF/source/code 的证据链。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Minh Khoa Le → Applied Artificial Intelligence Initiative, Deakin University, Australia。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Applied Artificial Intelligence Initiative, Deakin University, Australia；FPT Smart Cloud, Vietnam；Deakin University, Australia。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 当前标题：*FrameDiT: Diffusion Transformer with Matrix Attention for Efficient Video Generation*。
 - 标题别名：仓库 README 与早期材料使用 *Frame-Level Matrix Attention*。

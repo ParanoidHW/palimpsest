@@ -13,14 +13,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-vgsa-007-dsv-r2-initial`
-- 当前修订时间：`2026-07-29T15:58:27+08:00`
-- 替代版本：无；本目录是独立补救审查，前一代理没有冻结的 deliverable manifest，因而不伪造 supersedes 关系。
+- 当前修订 ID：`rev-dsv-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-vgsa-007-dsv-r2-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-vgsa-007-dsv-r2-initial` | `1.0.0` | `2026-07-29T15:58:27+08:00` | `review_dsv_remediation` | `initial` | 无 | 无 | 建立独立、完整、可验证的单篇精读交付 | 首次代理未冻结交付；父任务要求独立补救 | `本文`、图表、代码核验与 manifests | `过程任务包`、论文 PDF/LaTeX、Zenodo 代码包、官方 validator | material |
+| `rev-dsv-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-vgsa-007-dsv-r2-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -72,6 +74,15 @@
 | \(\mathrm{PeakBandwidth}\) | 硬件标称峰值带宽 | analysis-derived | 链路/设备 | byte/s | 本文 §8.4 | 论文只给跨节点 200 Gbps RoCE |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Xin Tan → The Chinese University of Hong Kong。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：The Chinese University of Hong Kong；StepFun；Unaffiliated。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 研究领域：视频生成训练系统、动态稀疏注意力、GPU kernel、分布式并行。
 - 发表状态：ASPLOS 2026；论文链接为 arXiv 2502.07590。

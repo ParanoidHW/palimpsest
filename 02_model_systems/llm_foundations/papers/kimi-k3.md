@@ -9,11 +9,16 @@
 
 ## 修订信息
 
-- 当前版本：`1.0.1`
-- 修订日期：`2026-07-28`
-- 变更：公式分隔符统一为 Obsidian 可直接渲染的行内 `$...$` 与块级 `$$...$$`。
+- 当前版本：`1.0.2`
+- 当前修订 ID：`rev-kimi-k3-affiliation-backfill-20260730`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 变更：补充作者机构元数据；此前 `1.0.1` 的公式分隔符修订保持不变。
 - 依据：[官方技术报告](https://github.com/MoonshotAI/Kimi-K3/blob/main/k3_tech_report.pdf)、[官方 Hugging Face 权重/配置](https://huggingface.co/moonshotai/Kimi-K3)、[昇腾 CANN 0day 样例](https://gitcode.com/cann/cann-recipes-infer/tree/master/models/kimi_k3)
 - 证据边界：报告没有公开 LaTeX、训练数据清单、核心训练/生产 serving 代码或公开 OpenReview 评审；本次核验了官方 HF revision `9f62e4e9fffbd0a83ddd60e1c209d828994b3569` 和 CANN commit `f6bbf9f1477de09b9c313c74023ff3a4733ad6eb`，但未下载 96 个权重分片或独立运行 32 卡 benchmark。
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-kimi-k3-affiliation-backfill-20260730` | `1.0.2` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | 既有 `1.0.1` 公式格式修订 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 一页结论
 
@@ -61,6 +66,14 @@ Kimi K3 不是“把 K2 再做大一点”，而是一份把模型状态语义�
 核心符号按公式局部解释。需注意论文复用了 $\alpha$、$\beta$、$S$ 和 $q$：KDA 的 retention、write strength、矩阵状态和 query，与 QB cutoff/负载、AttnRes 权重、block size、draft 分布均不是同一对象。
 
 ## 1. 研究动机：为什么需要整套系统
+
+### 作者与机构
+
+- 署名类型：机构署名（标题下未列个人作者）。
+- 署名机构：Kimi Team。
+- 第一作者、共同第一作者、通讯作者：不适用。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 作者的出发点很明确：开放模型近年的显著进展偏重 test-time scaling，即让模型在推理时使用更多 token、工具步骤和搜索；基础模型本身仍集中在约 1T 参数级。如果底座的知识、表示、多模态和长程执行能力不继续扩展，“想更久”最终会撞到底座上限。
 

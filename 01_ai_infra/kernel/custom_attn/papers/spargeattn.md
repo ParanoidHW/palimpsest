@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-spargeattn-remediation-20260729`
-- 当前修订时间：`2026-07-29T17:52:13+08:00`
-- 替代版本：无；第一次 dispatch 未形成可冻结的 `本文`/manifest，本独立补救目录因此以 `initial` 建立首个可追踪交付。
+- 当前修订 ID：`rev-spargeattn-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-spargeattn-remediation-20260729` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-spargeattn-remediation-20260729` | `1.0.0` | `2026-07-29T17:52:13+08:00` | `review_spargeattn_remediation` | `initial` | 无 | 无；先前尝试没有 frozen manifest，不能作为 tracked predecessor | 独立重建完整精读、两类视觉、证据矩阵、局限和交付清单 | `vgsa-011-spargeattn-remediation` 要求补救第一次未冻结的交付 | `本文`、`Figure inventory`、`../assets/papers/spargeattn/*`、清单与 manifests | 本地 PDF/LaTeX、提取文本、两页渲染与逐图 QA | `material` |
+| `rev-spargeattn-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-spargeattn-remediation-20260729` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -51,33 +53,45 @@
 
 ### 0.1.2 符号表
 
-| 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
-|---|---|---|---|---|---|---|
-| $Q,K,V$ | query、key、value 矩阵 | author-defined | 单个 attention head | $\mathbb{R}^{N\times d}$；Algorithm 1 输入 FP16 | §3.1 | 量化后写作 $\hat Q,\hat K$ |
-| $N,d$ | 序列长度、head 维度 | author-defined | 每次 attention | 正整数 | §3.1 | Figure 10 使用 $N=22$K、$d=128$ |
-| $Q_i,K_j,V_j$ | 第 $i$ 个 query block 与第 $j$ 个 key/value block | author-defined | block-level | $b_q\times d$、$b_k\times d$ | §3.1 | $i,j$ 是 block 索引，不是 token 索引 |
-| $S_{ij}$ | QK logit tile | author-defined | block pair $(i,j)$ | $b_q\times b_k$ | Eq. 1 | Algorithm 1 的量化路径省略了书面上的 $1/\sqrt d$，实现细节需代码核验 |
-| $P,\widetilde P_{ij}$ | 完整 softmax attention；在线 softmax 未归一化 tile 权重 | author-defined | token-level/tile-level | 非负 | Introduction；Eq. 1 | $\widetilde P$ 尚未除以累计 $l$ |
-| $O_{ij},O_i$ | 处理到 key block $j$ 的累计输出；最终归一化输出 block | author-defined | query block $i$ | $b_q\times d$ | Eq. 1 | $O_{ij}$ 是在线中间态 |
-| $m_{ij},l_{ij}$ | 到 key block $j$ 为止的逐行最大 logit与指数和 | author-defined | 每个 query row | $b_q\times 1$ | Eq. 1 | 与局部最大 $m_{\mathrm{local}}$ 不同 |
-| $m_{\mathrm{local}}$ | 当前 $S_{ij}$ tile 的逐行最大 logit | author-defined | per query row/tile | $b_q\times 1$ | §3.4；Algorithm 1 | 不是跨此前 tiles 的 $m_{ij}$ |
-| $O_{ij},O_i$ | 在线累计输出与最终归一化 output block | author-defined | per query block | $b_q\times d$ | Eq. 1；Algorithm 1 | $O_{ij}$ 尚未最终除以 $l$ |
-| $O,O'$ | dense reference attention 输出与候选稀疏/量化输出 | author/analysis-derived | calibration tensor | 同形浮点张量 | §3.6 Relative L1 | $O'$ 是分析中为区分候选输出采用的记号 |
-| $q_i,k_j$ | 对 $Q_i,K_j$ 沿 token 维求均值得到的代表 token | author-defined | per block | $1\times d$ | §3.2 | 仅在 self-similar block 上可信 |
-| $s_{qi},s_{kj}$ | Q/K block 的平均 self-similarity | author-defined | per block | 论文定义域未严格给出；阈值 $\theta\in(-1,1)$ | §3.2 | 论文写作 CosSim，但给出的归一化式不是标准逐向量 cosine 的常见写法 |
-| $\hat S,\hat P$ | 代表 token 上的压缩 logits 与 softmax map | author-defined | block-by-block | $T_m\times T_n$ | §3.2 | 只用于预测 mask，不是最终 attention |
-| $M_g$ | 第一阶段二值 mask | author-defined | query block × key block | $\{0,1\}$ | Definition 1；Eq. 4–6 | 0 同时省 QK/PV，1 才进入内核 |
-| $M_{pv}$ | 第二阶段按 warp/tile 判定的 PV mask | author-defined | block/warp | $\{0,1\}$ | Definition 1；§3.4 | 只影响 PV，论文表 6 将其单列 |
-| $\tau$ | TopCdf 累计概率质量阈值 | author-defined | per layer calibration | $(0,1)$ | §3.2，§3.6 | 越大通常保留更多 blocks、降低稀疏率 |
-| $\theta$ | self-similarity gate 阈值 | author-defined | per layer calibration | $(-1,1)$ | §3.2，§3.6 | 低于阈值的 Q/K block 被强制完整计算 |
-| $\lambda$ | online-softmax 的负阈值 | author-defined | per layer/warp | $\lambda<0$ | §3.4，§3.6 | Algorithm 1 用 `> λ` 决定执行 PV；文字用 `< λ` 决定跳过，二者互补 |
-| $c_w,I_w$ | 一个 QK/PV tile 使用的 GPU warp 数与第 $w$ 个 warp 的 query-row 区间 | author-defined | per kernel tile | 正整数/索引区间 | Algorithm 1 | 不是 CUDA block 数 |
-| $\delta_Q,\delta_K$ | 按块量化的缩放因子 | author-defined | per Q/K block | 未报告精度/布局 | Algorithm 1 | code 未核验，不能确认具体量化公式 |
-| $l_1,l_2$ | 两轮网格搜索允许的 Relative L1 误差门限 | author-defined | per model | 例如 Mochi/CogVideoX 为 0.05/0.06 | §3.6；§4.1 | 不是 online softmax 的归一化向量 $l_{ij}$ |
-| $\rho$ | 本文分析推导的 sparsity 比例 | analysis-derived | matched operator run | $[0,1]$ | §4.1 定义 | 用于 infra 估算，论文未以 $\rho$ 命名 |
-| $t,T_{\mathrm{dense}},T_{\mathrm{method}}$ | kernel 延迟、dense 与方法端到端延迟 | author/analysis-derived | matched input/model | 秒或毫秒 | §4.1；Table 2 | kernel metric 和端到端 wall-clock 必须分开 |
+| 符号                                         | 含义                                                       | 性质                      | 作用域/索引                  | 单位/取值                                        | 来源                   | 易混点                                             |
+| ------------------------------------------ | -------------------------------------------------------- | ----------------------- | ----------------------- | -------------------------------------------- | -------------------- | ----------------------------------------------- |
+| $Q,K,V$                                    | query、key、value 矩阵                                       | author-defined          | 单个 attention head       | $\mathbb{R}^{N\times d}$；Algorithm 1 输入 FP16 | §3.1                 | 量化后写作 $\hat Q,\hat K$                           |
+| $N,d$                                      | 序列长度、head 维度                                             | author-defined          | 每次 attention            | 正整数                                          | §3.1                 | Figure 10 使用 $N=22$K、$d=128$                    |
+| $Q_i,K_j,V_j$                              | 第 $i$ 个 query block 与第 $j$ 个 key/value block             | author-defined          | block-level             | $b_q\times d$、$b_k\times d$                  | §3.1                 | $i,j$ 是 block 索引，不是 token 索引                    |
+| $S_{ij}$                                   | QK logit tile                                            | author-defined          | block pair $(i,j)$      | $b_q\times b_k$                              | Eq. 1                | Algorithm 1 的量化路径省略了书面上的 $1/\sqrt d$，实现细节需代码核验  |
+| $P,\widetilde P_{ij}$                      | 完整 softmax attention；在线 softmax 未归一化 tile 权重             | author-defined          | token-level/tile-level  | 非负                                           | Introduction；Eq. 1   | $\widetilde P$ 尚未除以累计 $l$                       |
+| $O_{ij},O_i$                               | 处理到 key block $j$ 的累计输出；最终归一化输出 block                    | author-defined          | query block $i$         | $b_q\times d$                                | Eq. 1                | $O_{ij}$ 是在线中间态                                 |
+| $m_{ij},l_{ij}$                            | 到 key block $j$ 为止的逐行最大 logit与指数和                        | author-defined          | 每个 query row            | $b_q\times 1$                                | Eq. 1                | 与局部最大 $m_{\mathrm{local}}$ 不同                   |
+| $m_{\mathrm{local}}$                       | 当前 $S_{ij}$ tile 的逐行最大 logit                             | author-defined          | per query row/tile      | $b_q\times 1$                                | §3.4；Algorithm 1     | 不是跨此前 tiles 的 $m_{ij}$                          |
+| $O_{ij},O_i$                               | 在线累计输出与最终归一化 output block                                | author-defined          | per query block         | $b_q\times d$                                | Eq. 1；Algorithm 1    | $O_{ij}$ 尚未最终除以 $l$                             |
+| $O,O'$                                     | dense reference attention 输出与候选稀疏/量化输出                   | author/analysis-derived | calibration tensor      | 同形浮点张量                                       | §3.6 Relative L1     | $O'$ 是分析中为区分候选输出采用的记号                           |
+| $q_i,k_j$                                  | 对 $Q_i,K_j$ 沿 token 维求均值得到的代表 token                      | author-defined          | per block               | $1\times d$                                  | §3.2                 | 仅在 self-similar block 上可信                       |
+| $s_{qi},s_{kj}$                            | Q/K block 的平均 self-similarity                            | author-defined          | per block               | 论文定义域未严格给出；阈值 $\theta\in(-1,1)$              | §3.2                 | 论文写作 CosSim，但给出的归一化式不是标准逐向量 cosine 的常见写法        |
+| $\hat S,\hat P$                            | 代表 token 上的压缩 logits 与 softmax map                       | author-defined          | block-by-block          | $T_m\times T_n$                              | §3.2                 | 只用于预测 mask，不是最终 attention                       |
+| $M_g$                                      | 第一阶段二值 mask                                              | author-defined          | query block × key block | $\{0,1\}$                                    | Definition 1；Eq. 4–6 | 0 同时省 QK/PV，1 才进入内核                             |
+| $M_{pv}$                                   | 第二阶段按 warp/tile 判定的 PV mask                              | author-defined          | block/warp              | $\{0,1\}$                                    | Definition 1；§3.4    | 只影响 PV，论文表 6 将其单列                               |
+| $\tau$                                     | TopCdf 累计概率质量阈值                                          | author-defined          | per layer calibration   | $(0,1)$                                      | §3.2，§3.6            | 越大通常保留更多 blocks、降低稀疏率                           |
+| $\theta$                                   | self-similarity gate 阈值                                  | author-defined          | per layer calibration   | $(-1,1)$                                     | §3.2，§3.6            | 低于阈值的 Q/K block 被强制完整计算                         |
+| $\lambda$                                  | online-softmax 的负阈值                                      | author-defined          | per layer/warp          | $\lambda<0$                                  | §3.4，§3.6            | Algorithm 1 用 `> λ` 决定执行 PV；文字用 `< λ` 决定跳过，二者互补 |
+| $c_w,I_w$                                  | 一个 QK/PV tile 使用的 GPU warp 数与第 $w$ 个 warp 的 query-row 区间 | author-defined          | per kernel tile         | 正整数/索引区间                                     | Algorithm 1          | 不是 CUDA block 数                                 |
+| $\delta_Q,\delta_K$                        | 按块量化的缩放因子                                                | author-defined          | per Q/K block           | 未报告精度/布局                                     | Algorithm 1          | code 未核验，不能确认具体量化公式                             |
+| $l_1,l_2$                                  | 两轮网格搜索允许的 Relative L1 误差门限                               | author-defined          | per model               | 例如 Mochi/CogVideoX 为 0.05/0.06               | §3.6；§4.1            | 不是 online softmax 的归一化向量 $l_{ij}$               |
+| $\rho$                                     | 本文分析推导的 sparsity 比例                                      | analysis-derived        | matched operator run    | $[0,1]$                                      | §4.1 定义              | 用于 infra 估算，论文未以 $\rho$ 命名                      |
+| $t,T_{\mathrm{dense}},T_{\mathrm{method}}$ | kernel 延迟、dense 与方法端到端延迟                                 | author/analysis-derived | matched input/model     | 秒或毫秒                                         | §4.1；Table 2         | kernel metric 和端到端 wall-clock 必须分开              |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Jintao Zhang → Department of Computer Science and Technology, Institute for AI, BNRist Center, THBI Lab, Tsinghua-Bosch Joint ML Center, Tsinghua University。
+- 共同第一作者（仅含论文明确标注者）：
+  - Chendong Xiang → Department of Computer Science and Technology, Institute for AI, BNRist Center, THBI Lab, Tsinghua-Bosch Joint ML Center, Tsinghua University
+  - Haofeng Huang → Department of Computer Science and Technology, Institute for AI, BNRist Center, THBI Lab, Tsinghua-Bosch Joint ML Center, Tsinghua University；Institute for Interdisciplinary Information Sciences, Tsinghua University
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Jun Zhu → Department of Computer Science and Technology, Institute for AI, BNRist Center, THBI Lab, Tsinghua-Bosch Joint ML Center, Tsinghua University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Tsinghua University；Institute for Interdisciplinary Information Sciences, Tsinghua University；EECS, University of California, Berkeley。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：SpargeAttention: Accurate and Training-free Sparse Attention Accelerating Any Model Inference
 - 作者：Jintao Zhang、Chendong Xiang、Haofeng Huang、Jia Wei、Haocheng Xi、Jun Zhu、Jianfei Chen

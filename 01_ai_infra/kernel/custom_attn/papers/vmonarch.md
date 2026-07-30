@@ -11,13 +11,16 @@ VMonarch 的关键价值不是“再做一次 90% 稀疏”，而是把视频注
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前 revision ID：`rev-vmonarch-r1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+
+- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-vmonarch-affiliation-backfill-20260730`
 - 修订模式：`initial`
 
 | Revision ID | 版本 | 时间 | 类型 | Supersedes | 变更位置 | 原因/证据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|
 | `rev-vmonarch-r1` | `1.0.0` | `2026-07-30T00:00:00+08:00` | `initial` | 不适用 | 全文与全部本地证据资产 | 基于 arXiv:2601.22275v1 PDF 的首次隔离精读 | 建立初始结论；source/code/OpenReview 未能外部核验 |
+| `rev-vmonarch-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `metadata-update` | `rev-vmonarch-r1` / `1.0.0` | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 资料与图表清单
 
@@ -34,6 +37,16 @@ VMonarch 的关键价值不是“再做一次 90% 稀疏”，而是把视频注
 > 元数据注意：任务包标题写作 “VMonarch: Hardware-Efficient Structured Sparse Attention for Video Diffusion”，PDF 正式标题为 “VMonarch: Efficient Video Diffusion Transformers with Structured Attention”。本文以 PDF 标题为准。
 
 ## 1. 基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Cheng Liang → State Key Laboratory for Novel Software Technology, Nanjing University；Kling Team, Kuaishou Technology。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Limin Wang → State Key Laboratory for Novel Software Technology, Nanjing University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：State Key Laboratory for Novel Software Technology, Nanjing University；School of Intelligence Science and Technology, Nanjing University；Kling Team, Kuaishou Technology。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：VMonarch: Efficient Video Diffusion Transformers with Structured Attention
 - 作者：Cheng Liang、Haoxian Chen、Liang Hou、Qi Fan、Gangshan Wu、Xin Tao、Limin Wang

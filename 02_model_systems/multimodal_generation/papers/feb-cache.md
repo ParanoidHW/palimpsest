@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-feb-cache-1.0.0`
-- 当前修订时间：`2026-07-25T21:30:00+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-feb-cache-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-feb-cache-1.0.0` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-feb-cache-1.0.0` | `1.0.0` | 2026-07-25T21:30:00+08:00 | `paper-deep-review agent` | initial | 无 | 无 | 首次建立 FEB-Cache 完整精读、视觉证据、源码/代码/checkpoint 核验 | 补齐 canonical Paper 交付标准 | 本文、[Figure inventory](../evidence/figure-inventory.md) | arXiv v3、官方代码 commit、结构与语义验证 | material |
+| `rev-feb-cache-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-feb-cache-1.0.0` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -75,6 +77,15 @@
 | $U_{\mathrm{BW}}$ | 有效带宽相对峰值利用率 | analysis-derived | per device/path | ratio | §8.4 | 无法从 H100 型号名直接反推 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Zhen Zou → MoE Key Laboratory of Brain-inspired Intelligent Perception and Cognition, University of Science and Technology of China。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：MoE Key Laboratory of Brain-inspired Intelligent Perception and Cognition, University of Science and Technology of China。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：*FEB-Cache: Frequency-Guided Exposure Bias Reduction for Enhancing Diffusion Transformer Caching*。
 - 作者：Zhen Zou、Feng Zhao；arXiv v3 元数据仅列两位作者。

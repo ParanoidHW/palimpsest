@@ -7,6 +7,17 @@
 > - 证据资产：`../assets/papers/ascend-craft/`
 > - 相关文档：[AscendKernelGen](ascend-kernel-gen.md)，[Kernel generation survey](towards-automated-kernel-generation.md)，[Figure inventory](../evidence/figure-inventory.md)
 
+## 修订信息
+
+- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-ascend-craft-affiliation-backfill-20260730`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`pre-affiliation-metadata` / `1.0.0`
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-ascend-craft-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `pre-affiliation-metadata` / `1.0.0` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+
 ## 0. 资料与配图索引
 
 - 论文：arXiv:2601.22760v1，2026-01-30；Nanjing University 与 Huawei；[官方摘要与 PDF](https://arxiv.org/abs/2601.22760)。当前为 arXiv preprint，未确认正式 venue。
@@ -36,6 +47,15 @@
 | refinement pass | 可选对齐/padding 修正 | 不能等同于完整 autotuning | Sec. 4.2 |
 
 ## 1. 问题到方案
+
+### 作者与机构
+
+- 第一作者（首位列名）：Zhongzhen Wen → State Key Laboratory for Novel Software Technology, Nanjing University。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：State Key Laboratory for Novel Software Technology, Nanjing University；Software Engineering Application Technology Laboratory, Huawei。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 直接生成 AscendC 同时要求模型处理算法、host tiling、分层存储、队列同步、对齐和冗长 API；公开语料稀缺使这些约束难以内化。AscendCraft 把一次高熵生成改成两层：先生成更短、结构化且保留 Ascend 执行语义的 DSL，再用明确映射规则做四个 LLM lowering pass。其核心假设是“约束生成空间”比“仅扩大模型或训练语料”更适合专有 NPU 编程。
 

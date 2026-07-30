@@ -11,16 +11,18 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-flex-problem-solution-20260725`
-- 当前修订时间：`2026-07-25T10:05:32+08:00`
-- 替代版本：`rev-source-complete-20260724` / `1.0.0` / manifest `2f07f9ed784dc8cd6eefb8651b417a7c4a5e7e60f79898a3d37e7dcaae197f22`
+- 当前修订 ID：`rev-flex-forcing-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.1.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-flex-problem-solution-20260725` / `1.1.0`
 
 | 修订 ID                                | 文档版本    | 时间                          | 修订者                    | 类型               | 替代修订                                                                                                          | 迁移问题/解析 | 变更摘要                                                  | 原因                           | 影响位置                                                                                                      | 依据                                                                    | 对结论影响                           |
 | ------------------------------------ | ------- | --------------------------- | ---------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------- |
 | `rev-initial`                        | `0.1.0` | `2026-07-17T00:00:00+08:00` | `review_flex_forcing`  | `initial`        | 无                                                                                                             | 无       | 首次建立 blocked 单篇审阅包                                    | 主 PDF 下载不完整且无法解析             | `analysis.md`; `figure_inventory.md`; `review_checklist.md`                                               | `paper.pdf`; `extracted_text/error.log`                               | material                        |
 | `rev-source-complete-20260724`       | `1.0.0` | `2026-07-24T20:20:34+08:00` | `flex_forcing_refresh` | `mixed`          | tracked `rev-initial` / `0.1.0` / `075d43a87072c1b36cf647ac3a6ca1513c68dd44bdf23e86982108de8e32310d`          | 无       | 用完整 PDF/source 重做方法、实验、视觉、venue、项目页与系统分析；补全所有清单与清单化证据 | 刷新任务要求替换不可读 PDF 的 blocked 交付 | `analysis.md`; `figure_inventory.md`; `openreview_reviews.md`; `source_verification.md`; `figures/crops/` | arXiv v1 PDF/source；官方 NVIDIA 项目页；ICML Downloads；OpenReview 索引元数据；任务包 | material                        |
 | `rev-flex-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root`                | `content-update` | `rev-source-complete-20260724` / `1.0.0` / `2f07f9ed784dc8cd6eefb8651b417a7c4a5e7e60f79898a3d37e7dcaae197f22` | 无       | 新增统一 AR/双向视频扩散的问题—方案—优化—证据闭环                          | 统一回写既有 Paper 报告              | `研究动机与问题—方案闭环`                                                                                            | Figure 7/8、Table 2 与源码公式                                              | minor：不改变主结论，明确并非所有 schedule 占优 |
+| `rev-flex-forcing-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-flex-problem-solution-20260725` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -74,6 +76,18 @@
 环境中存在 `$openrouter-icu-image` skill，且 `OPENROUTER_ICU_API_KEY` 已配置；但是该 skill/CLI 只提供 `generate` 与 `edit`，全目录检索和 CLI help 均没有强制要求的 `responses-doc --input-file analysis.md` 文档输入路径。因此按 workflow 跳过；未调用 prompt-only `/images/generations`，也未创建占位图。这个缺口不影响原论文证据。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Xinyin Ma → National University of Singapore；NVIDIA Research。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Arash Vahdat → NVIDIA Research
+  - Xinchao Wang → National University of Singapore
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：National University of Singapore；NVIDIA Research。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：论文的 * 表示 equal advising，不作为共同一作标记。
+
 
 - 作者：Xinyin Ma, Julius Berner, Chao Liu, Arash Vahdat, Weili Nie, Xinchao Wang。
 - 机构：NUS、NVIDIA Research。

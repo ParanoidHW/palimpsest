@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-hunyuanvideo-1-5-1.0.0`
-- 当前修订时间：`2026-07-25T21:22:49+08:00`
-- 替代版本：`none`
+- 当前修订 ID：`rev-hunyuanvideo-1-5-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-hunyuanvideo-1-5-1.0.0` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-hunyuanvideo-1-5-1.0.0` | `1.0.0` | `2026-07-25T21:22:49+08:00` | `paper-deep-review agent` | `initial` | `none` | `none` | 首次冻结完整单篇深评，覆盖论文、源码、代码、checkpoint、视觉、机制、实验与 infra | 补齐 canonical Paper 交付标准 | 本文、[Figure inventory](../evidence/figure-inventory.md) | arXiv v2、代码 commit、HF revision、两张 QA 图 | `material` |
+| `rev-hunyuanvideo-1-5-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-hunyuanvideo-1-5-1.0.0` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -79,6 +81,14 @@
 | $U_{\mathrm{BW}}$ | 相对峰值带宽利用率 | analysis-derived | device/path | ratio | 本文 §8.4 | 峰值带宽不能代替实测利用率 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 署名类型：机构署名（标题下未列个人作者）。
+- 署名机构：Tencent Hunyuan Foundation Model Team。
+- 第一作者、共同第一作者、通讯作者：不适用。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：*HunyuanVideo 1.5 Technical Report*。
 - 作者/机构：Tencent Hunyuan Foundation Model Team。

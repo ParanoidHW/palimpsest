@@ -11,15 +11,17 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-latentlm-problem-solution-20260725`
-- 当前修订时间：`2026-07-25T10:05:32+08:00`
-- 替代版本：`rev-latentlm-20260716-initial` / `1.0.0` / manifest `ed220a43616c7af6b26d4477c7227a7366d60ce2a0082c51ac6ac4882f637441`
+- 当前修订 ID：`rev-latentlm-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.1.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-latentlm-problem-solution-20260725` / `1.1.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-latentlm-20260716-initial` | `1.0.0` | `2026-07-16T18:50:00+08:00` | `review_latentlm` | initial | 无 | 无 | 首次建立论文级证据分析、视觉 QA、代码/OpenReview/infra 边界 | 用户题单 | 本文各节与正式 Figure inventory | arXiv v1、LaTeX、Figure 2/7、UniLM commit | material |
 | `rev-latentlm-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root` | `content-update` | `rev-latentlm-20260716-initial` / `1.0.0` / `ed220a43616c7af6b26d4477c7227a7366d60ce2a0082c51ac6ac4882f637441` | 无 | 新增连续 token 自回归建模的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 2/6/7、Tables 3–6 与 UniLM 代码 | minor：不改变主结论，明确组件混杂 |
+| `rev-latentlm-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-latentlm-problem-solution-20260725` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -59,6 +61,17 @@
 | `U=B/(T P)` | 有效带宽利用率占位推导 | analysis-derived | per kernel/request | ratio | Sec. 7.4 derivation | 论文未报告 bytes/runtime/peak，不能数值化 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Yutao Sun → Microsoft Research；Tsinghua University。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Furu Wei → Microsoft Research
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Microsoft Research；Tsinghua University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：论文的 * 表示 core contributors，不作为共同一作标记。
+
 
 - 作者：Yutao Sun、Hangbo Bao、Wenhui Wang、Zhiliang Peng、Li Dong、Shaohan Huang、Jianyong Wang、Furu Wei；Microsoft Research / Tsinghua University。
 - 研究领域：统一多模态生成与理解、连续 token 自回归建模、VAE/diffusion。

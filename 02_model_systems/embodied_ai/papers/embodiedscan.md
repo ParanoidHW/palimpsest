@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-embodiedscan-1.0.0`
-- 当前修订时间：`2026-07-25T17:30:00+08:00`
-- 替代版本：无；这是新冻结 review delivery。既有 canonical Paper 仅作为只读迁移线索，不是先前 deliverable manifest。
+- 当前修订 ID：`rev-embodiedscan-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-embodiedscan-1.0.0` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-embodiedscan-1.0.0` | `1.0.0` | `2026-07-25T17:30:00+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从一手 PDF/source/code 重建精读并核验既有 canonical claims | EmbodiedScan 单篇交付完整性修复 | 本文、[Figure inventory](../evidence/figure-inventory.md)、来源与公开评审边界 | CVF PDF、arXiv source、固定代码、视觉 QA | material |
+| `rev-embodiedscan-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-embodiedscan-1.0.0` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -57,6 +59,18 @@
 | $B_{eff},U_B$ | effective bandwidth 与相对 peak utilization | analysis-derived | 指定数据路径 | byte/s、ratio | §8.4 推导 | 论文没有 runtime/bytes telemetry，不能实测 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Tai Wang → Shanghai Artificial Intelligence Laboratory。
+- 共同第一作者（仅含论文明确标注者）：
+  - Xiaohan Mao → Shanghai Artificial Intelligence Laboratory；Shanghai Jiao Tong University
+  - Chenming Zhu → Shanghai Artificial Intelligence Laboratory；The University of Hong Kong
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Jiangmiao Pang → Shanghai Artificial Intelligence Laboratory
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Shanghai Artificial Intelligence Laboratory；Shanghai Jiao Tong University；The University of Hong Kong；The Chinese University of Hong Kong；Tsinghua University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 作者：Tai Wang、Xiaohan Mao、Chenming Zhu 等。
 - 发表：CVPR 2024；arXiv 2312.16170。

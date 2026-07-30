@@ -11,10 +11,11 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.5.0`
-- 当前修订 ID：`rev-dlmr-readable-projection-20260727`
-- 当前修订时间：`2026-07-27T23:50:00+08:00`
-- 替代版本：`rev-dlmr-schema-projection-20260727` / `1.4.0`
+- 当前修订 ID：`rev-dual-latent-memory-routing-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.5.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-dlmr-readable-projection-20260727` / `1.5.0`
 
 | 修订 ID | 版本 | 时间 | 类型 | 替代修订 | 摘要 | 结论影响 |
 |---|---|---|---|---|---|---|
@@ -25,6 +26,7 @@
 | `rev-dlmr-final-pdf-promotion-20260727` | `1.3.0` | 2026-07-27 | evidence-promotion | `rev-dlmr-indexed-body-promotion-20260725` | 提升 最终版 PDF、appendix 与 3 个 QA 资产 | material |
 | `rev-dlmr-schema-projection-20260727` | `1.4.0` | 2026-07-27 | mixed | `rev-dlmr-final-pdf-promotion-20260727` | 补齐标准 claim/evidence/rationale/Infra 结构与语义边界 | material：不改变论文数字，修正交付完整性 |
 | `rev-dlmr-readable-projection-20260727` | `1.5.0` | 2026-07-27 | mixed | `rev-dlmr-schema-projection-20260727` | 补公式解释卡、具体失败场景、口语化表述和算法解释图 | material：不改变论文数字，提高一眼理解能力 |
+| `rev-dual-latent-memory-routing-affiliation-backfill-20260730` | `1.5.1` | `2026-07-30T23:30:00+08:00` | `metadata-update` | `rev-dlmr-readable-projection-20260727` / `1.5.0` | 无 | 无 |
 
 ## 0. 资料与配图索引
 
@@ -77,6 +79,17 @@
 > 这是基于已核验论文内容生成的解释图，不是论文原图，也不提供新的实验依据。阅读顺序是：长回答中的遗忘问题 → 两类记忆 → 候选位置与路由 → 按当前上下文生成记忆 token → 冻结的基础模型继续回答。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Hao-Xuan Ma → School of Artificial Intelligence, Nanjing University；National Key Laboratory for Novel Software Technology, Nanjing University。
+- 共同第一作者（仅含论文明确标注者）：
+  - Jin-Fei Qi → School of Artificial Intelligence, Nanjing University；National Key Laboratory for Novel Software Technology, Nanjing University
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Han-Jia Ye → School of Artificial Intelligence, Nanjing University；National Key Laboratory for Novel Software Technology, Nanjing University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：School of Artificial Intelligence, Nanjing University；National Key Laboratory for Novel Software Technology, Nanjing University；Institute of Automation, Chinese Academy of Sciences。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 领域：多模态大语言模型、长程视觉语言推理、latent memory、参数高效后训练。
 - 核心问题：输出变长后，固定视觉前缀和中间约束在单一、不断增长的上下文中更难被再次调用。

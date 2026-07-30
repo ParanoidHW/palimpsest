@@ -11,12 +11,27 @@
 
 ## 修订信息
 
-- 版本：`1.0.0`
-- 修订 ID：`rev-helios-1.0.0`
-- 时间：`2026-07-28T20:30:00+08:00`
-- 类型：initial
+- 版本：`1.0.1`
+- 当前修订 ID：`rev-helios-affiliation-backfill-20260730`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 类型：metadata-update
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-helios-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-helios-1.0.0` / `1.0.0` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 1. 核心口径
+
+### 作者与机构
+
+- 第一作者（首位列名）：Shenghai Yuan → Peking University；ByteDance China。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Li Yuan → Peking University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Peking University；ByteDance China；Canva；Chengdu Anu Intelligence。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：◦ 是 ByteDance 实习工作说明，§ 是 project leader；均不扩展为共同一作或通讯作者。
+
 
 Helios 是 Wan-2.1-derived **14B parameter-dense DiT**，没有 MoE/router 证据。它的“autoregressive”不是逐视觉 token，而是按视频 latent chunk 延续：历史 chunk 是 clean context，当前 chunk 在 diffusion trajectory 内去噪。
 

@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-vgsa-009-initial`
-- 当前修订时间：`2026-07-29T17:00:00+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-sparse-videogen2-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-vgsa-009-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-vgsa-009-initial` | `1.0.0` | `2026-07-29T17:00:00+08:00` | `review_sparse_videogen2` | `initial` | 无 | 无 | 首次建立单篇精读、证据图、公式解释、设计与技术点证据矩阵 | 任务包要求 initial delivery | `本文`；`Figure inventory`；`../assets/papers/sparse-videogen2/` | `arXiv PDF`、Section 3–6、Appendix D–E | material：形成首个可审计结论 |
+| `rev-sparse-videogen2-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-vgsa-009-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -76,6 +78,16 @@
 一眼读法：输入是当前 DiT attention 层的 $Q,K,V$；Q/K 分别做 k-means，得到 cluster、centroid 与两套置换；centroid 分数和 top-p 决定计算哪些 cluster pair；token 按 cluster 重排后，自定义 kernel 对选中块执行稀疏加载、密集 MMA；最后对 Q 维逆置换，输出与原顺序一致的 attention 结果。整个方法发生在推理/去噪阶段，不需要训练或校准；centroid 只跨相邻去噪步缓存，不是跨请求永久学习的参数。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Shuo Yang → University of California, Berkeley。
+- 共同第一作者（仅含论文明确标注者）：
+  - Haocheng Xi → University of California, Berkeley
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of California, Berkeley；Massachusetts Institute of Technology；NVIDIA；Stanford University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 研究领域：视频扩散 Transformer（DiT）推理、稀疏注意力、GPU kernel。
 - 核心问题：已有 block sparse attention 既找不准高贡献 token，又因其物理位置分散而浪费 dense accelerator 的计算块。

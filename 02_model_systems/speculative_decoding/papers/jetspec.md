@@ -12,7 +12,27 @@
 > 状态：arXiv 预印本；截至 2026-07-25 未检索到公开 OpenReview 记录
 > 代码：JetSpec 主仓库固定于 `2c7b3fae75690dfe9a188a37d7fdfd43ee0e032f`；vLLM 分支固定于 `f90d5ca17a2c05f436a80ee2e0984cc7a22e1a16`
 
+## 修订信息
+
+- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-jetspec-affiliation-backfill-20260730`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`pre-affiliation-metadata` / `1.0.0`
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-jetspec-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `pre-affiliation-metadata` / `1.0.0` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+
 ## 1. 一句话结论
+
+### 作者与机构
+
+- 第一作者（首位列名）：Lanxiang Hu → University of California, San Diego。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of California, San Diego；Zhejiang University；University of Illinois Urbana-Champaign；Nanjing University；StepFun。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 JetSpec 最可信的贡献不是“单次前向为树中每个分支生成真正的分支条件分布”，而是：用深度因果掩码把一次并行草稿前向锚定到一条自回归式 rank-1 主干，再以累计对数概率扩展高预算候选树；它在 Qwen3-8B 的高预算实验中稳定提高接受长度和端到端加速，并显著降低无深度因果头对损失深度权重 $\gamma$ 的敏感性。证据对 rank-1 主干保真和高预算扩展较强，对 off-argmax 分支条件性、非贪心无损验证、跨模型/跨硬件普适性及各系统优化的独立收益则不足。
 

@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-act-20260725-initial`
-- 当前修订时间：`2026-07-25T17:20:00+08:00`
-- 替代版本：`none`
+- 当前修订 ID：`rev-act-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-act-20260725-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-act-20260725-initial` | 1.0.0 | 2026-07-25T17:20:00+08:00 | `delegated-paper-review-agent` | initial | none | none | 重新取得论文、源码、代码并验证既有 canonical claims | ACT 单篇交付完整性修复 | 本文、[Figure inventory](../evidence/figure-inventory.md)、来源与公开评审边界 | 官方 paper/source、固定代码提交、视觉 QA | material：补全证据闭环，并纠正“无 TE 时当前代码 H2D 流量按 $k$ 倍下降”的旧推断 |
+| `rev-act-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-act-20260725-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -79,6 +81,15 @@
 | $U$ | 有效带宽利用率 | analysis-derived | per data path | ratio | §8 推导 | peak bandwidth 未报告时不能数值化 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Tony Z. Zhao → Stanford University。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Stanford University；University of California, Berkeley；Meta。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：*Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware*。
 - 作者：Tony Z. Zhao、Vikash Kumar、Sergey Levine、Chelsea Finn。

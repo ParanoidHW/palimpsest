@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-minference-a1-initial`
-- 当前修订时间：`2026-07-25T13:08:31+08:00`
-- 替代版本：无；这是 remediation 工作区的首个可验证交付。旧工作区只提供源材料，没有旧 `deliverable_manifest.json`，因此不构成待迁移的历史交付。
+- 当前修订 ID：`rev-minference-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-minference-a1-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-minference-a1-initial` | `1.0.0` | `2026-07-25T13:08:31+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 首次建立完整单篇精读、视觉证据、代码核验、OpenReview 访问分类、infra 分析与可验证 manifests | 父任务要求修复非 ICML 论文交付 | `analysis.md` 全文；[Figure inventory](../evidence/figure-inventory.md)；过程侧公开评审记录；`code/MInference` | 任务包、论文 PDF/LaTeX、官方代码、结构与语义验证 | material |
+| `rev-minference-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-minference-a1-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -81,6 +83,18 @@
 | $\mathrm{BW}_{\mathrm{eff}},U_{\mathrm{BW}}$ | 有效带宽与峰值带宽利用率 | analysis-derived | kernel/runtime | byte/s、ratio | §8.4 推导 | 论文未报告 bytes moved，不能数值化 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Huiqiang Jiang → Microsoft Corporation。
+- 共同第一作者（仅含论文明确标注者）：
+  - Yucheng Li → University of Surrey
+  - Chengruidong Zhang → Microsoft Corporation
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Microsoft Corporation；University of Surrey。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：† 明确表示前三位作者同等贡献；Yucheng Li 的 Microsoft 经历在论文中写作 internship note，未据此增写正式机构映射。
+
 
 - 标题：*MInference 1.0: Accelerating Pre-filling for Long-Context LLMs via Dynamic Sparse Attention*
 - 作者：Huiqiang Jiang、Yucheng Li、Chengruidong Zhang 等

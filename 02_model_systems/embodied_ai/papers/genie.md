@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`2.0.0`
-- 当前修订 ID：`rev-migration-20260725-genie`
-- 当前修订时间：`2026-07-25T17:34:59+08:00`
-- 替代版本：legacy manifest `036fb34a611df022bc51863278ef539eeb33cf2fcc19a07c4162994bd875c09a`（legacy version `1.0.0`, revision `rev-initial-20260714`）
+- 当前修订 ID：`rev-genie-affiliation-backfill-20260730`
+
+- 当前文档版本：`2.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-migration-20260725-genie` / `2.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-migration-20260725-genie` | `2.0.0` | `2026-07-25T17:34:59+08:00` | `delegated-paper-review-agent` | `migration` | legacy `rev-initial-20260714` / `1.0.0` / manifest `036fb34a611df022bc51863278ef539eeb33cf2fcc19a07c4162994bd875c09a` | 无 unresolved migration | 重新获取官方 PDF/source，独立核验 canonical claims，重做 mechanism 与 ablation crops，补齐术语/符号、论文级问题—方案闭环、15 项语义验证与 delegated provenance | non-ICML Paper 交付完整性修复 | 本文各分析章节、[Figure inventory](../evidence/figure-inventory.md)与公开评审边界 | official arXiv/PMLR/DeepMind source；legacy manifest；原 canonical Paper 仅作 claim inventory | minor：核心判断保持，证据边界与机器可审计性增强 |
+| `rev-genie-affiliation-backfill-20260730` | `2.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-migration-20260725-genie` / `2.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -74,6 +76,21 @@
 - 核心问题：互联网视频通常没有 action labels，如何仍学习一个按帧可控、可从新图像提示启动的生成环境？
 - 研究目标：将视频压成时空 tokens，从相邻帧自动发现少量离散 actions，再用 action-conditioned dynamics 逐帧生成。
 - 关键约束：约 `O(10^4)` 时空 tokens、16-frame context、10 FPS training data、25 MaskGIT iterations/frame、最终约 1 FPS；主训练数据和权重不公开。
+
+## 作者与机构
+
+- 第一作者（首位列名）：Jake Bruce → Google DeepMind。
+- 共同第一作者（仅含论文明确标注者）：
+  - Michael Dennis → Google DeepMind
+  - Ashley Edwards → Google DeepMind
+  - Jack Parker-Holder → Google DeepMind
+  - Yuge Shi → Google DeepMind
+  - Tim Rocktäschel → Google DeepMind
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Ashley Edwards → Google DeepMind
+  - Jack Parker-Holder → Google DeepMind
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Google DeepMind；University of British Columbia。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
 
 ## 研究动机与问题—方案闭环
 

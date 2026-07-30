@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-initial-20260725-causal-rcm`
-- 当前修订时间：`2026-07-25T20:45:00+08:00`
-- 替代版本：无；这是首次满足当前交付规范的正式版本。
+- 当前修订 ID：`rev-causal-rcm-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-initial-20260725-causal-rcm` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-initial-20260725-causal-rcm` | `1.0.0` | `2026-07-25T20:45:00+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 重新取得论文、源码和代码，完成机制、结果、系统、代码与视觉证据审阅 | non-ICML Paper 交付完整性修复 | 本文各分析章节与 [Figure inventory](../evidence/figure-inventory.md) | arXiv:2606.25473v1；NVlabs/rcm commit `ed3cb14...` | material |
+| `rev-causal-rcm-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-initial-20260725-causal-rcm` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -70,6 +72,16 @@
 | $\mathrm{EffectiveBandwidth}$ | moved bytes 除 runtime | analysis-derived | per operator/run | byte/s | 本文 §8.4 | 论文未报告所需 bytes/runtime telemetry |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Kaiwen Zheng → Tsinghua University；NVIDIA。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Jun Zhu → Tsinghua University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Tsinghua University；The University of Texas at Austin；NVIDIA。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 | 项目 | 核验结果 |
 |---|---|

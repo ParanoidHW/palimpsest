@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-motubrain-20260725-initial`
-- 当前修订时间：`2026-07-25T18:20:00+08:00`
-- 替代版本：`none`
+- 当前修订 ID：`rev-motubrain-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-motubrain-20260725-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-motubrain-20260725-initial` | `1.0.0` | `2026-07-25T18:20:00+08:00` | `delegated-paper-review-agent` | `initial` | `none` | `none` | 重新获取 PDF/source/repo，审计机制、实验、系统与证据边界 | non-ICML Paper 交付完整性修复 | 本文各分析章节与 [Figure inventory](../evidence/figure-inventory.md) | official PDF/source；repo commit `a845f4b…` | 建立首个满足当前规范的正式版本 |
+| `rev-motubrain-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-motubrain-20260725-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -58,6 +60,14 @@
 | $B_{\mathrm{eff}},U_B$ | 有效带宽与峰值利用率 | analysis-derived | runtime | bytes/s, ratio | 本分析 §8.4 | 缺 bytes/peak，不能数值化 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 署名类型：机构署名（标题下未列个人作者）。
+- 署名机构：Motubrain Team。
+- 第一作者、共同第一作者、通讯作者：不适用。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 领域：具身智能、world model、机器人控制与生成模型 serving。
 - 核心问题：如何同时保留视频模型的时序动力学先验、统一 policy/world-model 功能，并把联合视频—动作去噪降到闭环控制可用延迟。

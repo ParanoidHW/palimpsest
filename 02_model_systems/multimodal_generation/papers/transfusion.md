@@ -11,15 +11,17 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-delivery-remediation-20260725-transfusion`
-- 当前修订时间：`2026-07-25T18:00:00+08:00`
-- 替代版本：`rev-initial-20260712-transfusion`
+- 当前修订 ID：`rev-transfusion-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.1.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-delivery-remediation-20260725-transfusion` / `1.1.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-delivery-remediation-20260725-transfusion` | `1.1.0` | `2026-07-25T18:00:00+08:00` | `paper-review-agent + parent audit` | corrective | `rev-initial-20260712-transfusion` | 旧稿的来源状态、图注与证据边界不一致 | 以官方 PDF 重审全文，补齐术语、符号、动机闭环、设计依据、claim matrix、公式、结果归因、Infra、局限与三张原分辨率视觉 QA | non-ICML delivery remediation | 全文；[Figure inventory](../evidence/figure-inventory.md) | [arXiv:2408.11039](https://arxiv.org/abs/2408.11039)、Figure 4、Table 5、Table 8 | material |
 | `rev-initial-20260712-transfusion` | `1.0.0` | `2026-07-12T17:44:02+08:00` | `review_transfusion` | initial | 无 | 无 | 首次建立论文、视觉、目标函数与 mixed-serving 审阅 | initial delivery | 全文 | arXiv PDF 与论文源码 | superseded |
+| `rev-transfusion-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-delivery-remediation-20260725-transfusion` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -63,6 +65,16 @@
 | $T_{\mathrm{infer}},g$ | 去噪迭代数与 CFG forward 系数 | analysis-derived | per image request | step / multiplier | §8 推导 | $g$ 取值与 fusion 均未核验 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Chunting Zhou → Meta。
+- 共同第一作者（仅含论文明确标注者）：
+  - Lili Yu → Meta
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Meta；Waymo；University of Southern California。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 领域：统一多模态生成；自回归语言模型与 latent diffusion。
 - 核心问题：能否让一个共享 transformer 对离散文本做 next-token prediction，同时对连续图像 latent 做 diffusion，而不先把图像量化为离散词表。

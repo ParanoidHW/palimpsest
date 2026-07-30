@@ -11,16 +11,18 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.1`
-- 当前修订 ID：`rev-lime-format-gate-20260725`
-- 当前修订时间：`2026-07-25T23:59:00+08:00`
-- 替代版本：`rev-lime-problem-solution-20260725` / `1.1.0`
+- 当前修订 ID：`rev-lime-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.1.2`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-lime-format-gate-20260725` / `1.1.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | `rev-lime-initial` | `1.0.0` | 2026-07-17T10:00:00+08:00 | `review_lime` | `initial` | 无 | 新建单篇精读、证据矩阵与图表 inventory | 用户委派 ICML 2026 精读 | 全文 | arXiv v1 PDF、提取文本、图表 QA | 无 |
 | `rev-lime-problem-solution-20260725` | `1.1.0` | 2026-07-25T10:05:32+08:00 | `/root` | `content-update` | `rev-lime-initial` / `1.0.0` / `82016b244a1fa626a9a83e3b2387bc0e546d267e059449dd589b77e915f2b825` | 新增轻量 MoE-PEFT 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1/2、Table 2 与既有消融 | minor：不改变主结论，补充系统边界 |
 | `rev-lime-format-gate-20260725` | `1.1.1` | 2026-07-25T23:59:00+08:00 | `/root` | `format-update` | `rev-lime-problem-solution-20260725` / `1.1.0` | 将结果章标题显式标注为技术声明证据矩阵 | 使单篇 Paper 格式审计可机器判定，不改变正文 | §4 | 既有 claim/ablation 表 | none |
+| `rev-lime-affiliation-backfill-20260730` | `1.1.2` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-lime-format-gate-20260725` / `1.1.1` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -78,6 +80,16 @@
 跳过：父合同明确记录 CLI 不具备 required document-input path 文档输入路径；不生成 prompt-only 图片。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Md Kowsher → University of Central Florida。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Md Kowsher → University of Central Florida
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of Central Florida；Coventry University；Axon。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 研究领域：多模态多任务学习、参数高效微调（PEFT）、稀疏/混合专家。
 - 核心问题：MoE-PEFT 为每个专家复制 adapter，并为每层增加 learned router，参数随专家数线性增长，且通常只适配 LoRA。

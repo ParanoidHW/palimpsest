@@ -9,14 +9,18 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-hyperdflash-initial`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+
+- 当前修订 ID：`rev-hyperdflash-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
 - 修订时间：`2026-07-25T15:41:48+08:00`
 - 修订者：`delegated-paper-review-agent`
 
 | 修订 ID | 版本 | 类型 | 前驱 | 变更位置 | 原因/证据 | 对结论影响 |
 |---|---|---|---|---|---|---|
 | `rev-hyperdflash-initial` | `1.0.0` | `initial` | 无 | 全文、证据清单、图表、代码与 checkpoint 核验 | arXiv v2 PDF/source、DFlash commit `94e4abc…`、DeepSeek-V4-Flash revision `60d8d707…` | material：建立首版完整结论 |
+| `rev-hyperdflash-affiliation-backfill-20260730` | `1.0.1` | `metadata-update` | 无 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 来源与图表清单
 
@@ -98,6 +102,18 @@
 未生成，分类为 `visual-evidence-skip`。该可选辅助图缺口只影响信息可视化，不影响论文原图、公式、实验与代码证据。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Luxi Lin → ByteDance。
+- 共同第一作者（仅含论文明确标注者）：
+  - Shuang Peng → ByteDance
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Fangmin Chen → ByteDance
+  - Songwei Liu → ByteDance
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：ByteDance。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 研究领域：LLM 推理加速、推测解码、块并行 drafting、Hyper-Connection 架构适配。
 - 核心问题：原生 MTP 的后位 acceptance 急降；通用 DFlash 又与 DeepSeek-V4 的多路径 residual 表示不对齐。

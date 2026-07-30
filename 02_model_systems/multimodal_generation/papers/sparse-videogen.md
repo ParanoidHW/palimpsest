@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-sparse-videogen-1.0.0`
-- 当前修订时间：`2026-07-25T23:00:00+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-sparse-videogen-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-sparse-videogen-1.0.0` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-sparse-videogen-1.0.0` | `1.0.0` | `2026-07-25T23:00:00+08:00` | `paper-deep-review agent` | `initial` | 无 | 无 | 首次冻结完整单篇 review | 补齐 canonical Paper 交付标准 | 本文、[Figure inventory](../evidence/figure-inventory.md) | PDF/source 与四图原分辨率 QA | material |
+| `rev-sparse-videogen-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-sparse-videogen-1.0.0` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -69,6 +71,17 @@
 | $B_{\mathrm{eff}},U_B$ | 有效带宽与峰值带宽利用率 | analysis-derived | measured kernel/path | bytes/s, ratio | 本文 §8.4 | 论文缺 bytes/time telemetry，不能数值化 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Haocheng Xi → University of California, Berkeley。
+- 共同第一作者（仅含论文明确标注者）：
+  - Shuo Yang → University of California, Berkeley
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Chenfeng Xu → University of California, Berkeley
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of California, Berkeley；Massachusetts Institute of Technology；NVIDIA；Tsinghua University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：Sparse VideoGen: Accelerating Video Diffusion Transformers with Spatial-Temporal Sparsity。
 - 作者：Haocheng Xi、Shuo Yang、Yilong Zhao 等。

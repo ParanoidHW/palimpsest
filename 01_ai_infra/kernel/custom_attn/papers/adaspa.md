@@ -13,14 +13,16 @@ AdaSpa 要解决的不是“注意力有没有稀疏性”，而是长视频 DiT
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-20260730-adaspa-initial`
-- 当前修订时间：`2026-07-30T12:10:26+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-adaspa-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-20260730-adaspa-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-20260730-adaspa-initial` | `1.0.0` | `2026-07-30T12:10:26+08:00` | `review_adaspa` | `initial` | 无 | 无 | 首次建立单篇完整精读、视觉证据与审查交付 | delegated initial delivery | 全文与本地证据资产 | task packet；arXiv v1 PDF | 初始结论 |
+| `rev-adaspa-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-20260730-adaspa-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -85,6 +87,15 @@ AdaSpa 要解决的不是“注意力有没有稀疏性”，而是长视频 DiT
 > 原论文 Figure 7（PDF 截图裁剪，含完整 caption）。这是可直接使用的算法总览：沿去噪 step 从左到右，前期 full attention；首次更新同时生成 output、LSE 与 block mask；中间 step 执行 head-adaptive block sparse attention；后续更新复用 cached LSE 生成新 mask。竖向 Layer 箭头说明流程逐层执行。该图是论文证据，不是生成图。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Yifei Xia → Peking University；ByteDance。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Peking University；ByteDance。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：Training-free and Adaptive Sparse Attention for Efficient Long Video Generation
 - 作者：Yifei Xia、Suhan Ling、Fangcheng Fu、Yujie Wang、Huixia Li、Xuefeng Xiao、Bin Cui

@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-flexattention-vlm-migration-20260725`
-- 当前修订时间：`2026-07-25T13:05:00+08:00`
-- 替代版本：legacy manifest `7e5f1dcfb018ace593a1972092a4827cfe2b254b1b7a67fe474353b847138260`
+- 当前修订 ID：`rev-flexattention-vlm-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-flexattention-vlm-migration-20260725` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-flexattention-vlm-migration-20260725` | `1.0.0` | `2026-07-25T13:05:00+08:00` | `delegated-paper-review-agent` | migration | legacy manifest `7e5f1dcfb018ace593a1972092a4827cfe2b254b1b7a67fe474353b847138260`；旧 version/revision ID 不存在 | 无 unresolved migration；legacy snapshot 从 remediation 开始时的 Git-tracked canonical Paper 恢复 | 建立完整的论文级问题—方案闭环、组件依据、claim matrix、源码/代码/图表 QA、infra 与交付冻结信息 | 迁移到 `paper-deep-review` 1.4.0 delegated 契约，并修正旧 Fig. 2 截断与训练/推理实现边界 | `analysis.md` 全文；[Figure inventory](../evidence/figure-inventory.md)；`review_checklist.md` | ECCV/arXiv PDF 与 LaTeX；官方代码固定 commit；四图逐张原分辨率 QA | material：核心结论方向不变，但把 dtype、mask/gather 阶段和可归因边界改为证据一致表述 |
+| `rev-flexattention-vlm-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-flexattention-vlm-migration-20260725` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -72,6 +74,15 @@
 | $B_{\mathrm{eff}},B_{\mathrm{peak}},U_B$ | 有效带宽、峰值带宽与利用率 | analysis-derived | per kernel/path | bytes/s、比例 | 本文 §8 推导 | 论文没有 profiler bytes，故不能数值化 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Junyan Li → UMass Amherst。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：UMass Amherst；Princeton University；South China University of Technology；University of California, Los Angeles；MIT-IBM Watson AI Lab。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 作者：Junyan Li 等；ECCV 2024；arXiv:2407.20228v1（2024-07-29）。
 - 研究领域：高分辨率视觉语言模型、动态视觉 token 选择、attention/decoder runtime。

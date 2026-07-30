@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-openvla-initial-20260725`
-- 当前修订时间：`2026-07-25T18:17:47+08:00`
-- 替代版本：无；这是首次满足当前交付规范的正式版本。
+- 当前修订 ID：`rev-openvla-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-openvla-initial-20260725` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-openvla-initial-20260725` | `1.0.0` | `2026-07-25T18:17:47+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 | 从官方 PDF/源码、代码、checkpoint metadata 独立重建完整单篇精读 | non-ICML Paper 交付完整性修复 | 本文各分析章节与 [Figure inventory](../evidence/figure-inventory.md) | 官方论文、源码、固定 commit 代码与公开 checkpoint 配置 | material |
+| `rev-openvla-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-openvla-initial-20260725` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -66,6 +68,20 @@
 | $B_{\mathrm{eff}},U$ | 有效带宽与峰值带宽利用率 | analysis-derived | memory/interconnect path | bytes/s, ratio | §8 derivation | 论文未报告 bytes moved/runtime breakdown，不能数值化 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Moo Jin Kim → Stanford University。
+- 共同第一作者（仅含论文明确标注者）：
+  - Karl Pertsch → Stanford University；University of California, Berkeley
+  - Siddharth Karamcheti → Stanford University；Toyota Research Institute
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Moo Jin Kim → Stanford University
+  - Karl Pertsch → Stanford University；University of California, Berkeley
+  - Siddharth Karamcheti → Stanford University；Toyota Research Institute
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Stanford University；University of California, Berkeley；Toyota Research Institute；Google DeepMind；Physical Intelligence；Massachusetts Institute of Technology。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 研究领域：robot foundation models、vision-language-action、imitation learning、跨机器人预训练与高效适配。
 - 核心问题：如何把 Internet-pretrained VLM 与多机器人 demonstrations 结合成可公开、可微调、可实际部署的 generalist manipulation policy。

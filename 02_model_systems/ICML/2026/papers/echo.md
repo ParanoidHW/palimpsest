@@ -11,15 +11,17 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-echo-problem-solution-20260725`
-- 当前修订时间：`2026-07-25T10:05:32+08:00`
-- 替代版本：`rev-echo-initial` / `1.0.0` / manifest `1996f8ea4d8bfc9a5dfe46dfd5027a7476c5e64f5664c027acbc219c560ef0c0`
+- 当前修订 ID：`rev-echo-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.1.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-echo-problem-solution-20260725` / `1.1.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-echo-initial` | `1.0.0` | `2026-07-17T10:15:00+08:00` | `review_echo` | `initial` | 无 | 无 | 首次建立完整深度审查、视觉证据、venue 核验和 infra 分析 | 用户题单 | 本文各节与两张正式图 | arXiv v2、LaTeX source、OpenReview 主投稿元数据 | material |
 | `rev-echo-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root` | `content-update` | `rev-echo-initial` / `1.0.0` / `1996f8ea4d8bfc9a5dfe46dfd5027a7476c5e64f5664c027acbc219c560ef0c0` | 无 | 新增高并发验证预算的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1/2/5、Algorithm 1、Theorem 2 与既有证据矩阵 | minor：不改变主结论，强化归因边界 |
+| `rev-echo-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-echo-problem-solution-20260725` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -61,6 +63,18 @@
 | $\mathrm{BW}_{eff}$ | 搬运字节数/运行时间 | analysis-derived | kernel/iteration | byte/s | 本分析 Sec. 7.4 | 论文未报告 bytes moved，不能给出实测利用率 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Xinyi Hu → Alibaba Group。
+- 共同第一作者（仅含论文明确标注者）：
+  - Yuhao Shen → Alibaba Group；Zhejiang University
+  - Baolin Zhang → Alibaba Group
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Shuang Ge → Alibaba Group
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Alibaba Group；Zhejiang University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 作者：Xinyi Hu 等九人；标题页机构为 Kuaishou Technology。
 - Venue：**ICML 2026 spotlight**，由 OpenReview 主投稿元数据独立确认；不是仅凭候选清单推断。

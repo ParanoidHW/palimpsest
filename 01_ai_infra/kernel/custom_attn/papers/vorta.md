@@ -13,14 +13,16 @@ VORTA 的核心不是“把所有注意力都改成同一种稀疏模式”，�
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-vorta-initial`
-- 当前修订时间：`2026-07-30T13:38:35+08:00`
-- 替代版本：无；这是初始交付
+- 当前修订 ID：`rev-vorta-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-vorta-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-vorta-initial` | `1.0.0` | `2026-07-30T13:38:35+08:00` | `review_vorta` | `initial` | 无 | 无 | 创建单篇精读、两张证据图、公式解释、设计动机与系统分析 | 初始交付 | `本文`、`Figure inventory`、`figures/` | arXiv 2505.18809v2 PDF、任务包验证问题 | `material` |
+| `rev-vorta-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-vorta-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -69,6 +71,17 @@ VORTA 的核心不是“把所有注意力都改成同一种稀疏模式”，�
 | $t_{\mathrm{VORTA}}$ | VORTA 采样延迟 | analysis-derived | matched configuration | 秒 | Table 1 推导 | 必须与相同 backbone/分辨率/步数基线比较 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Wenhao Sun → College of Computing and Data Science, Nanyang Technological University。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Rong-Cheng Tu → College of Computing and Data Science, Nanyang Technological University
+  - Dacheng Tao → College of Computing and Data Science, Nanyang Technological University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：College of Computing and Data Science, Nanyang Technological University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 标题：VORTA: Efficient Video Diffusion via Routing Sparse Attention。
 - 作者：Wenhao Sun 等；NeurIPS 2025，arXiv 2505.18809v2。

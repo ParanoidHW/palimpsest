@@ -9,14 +9,16 @@
 
 ## 修订信息
 
-- 当前版本：`1.1.1`
-- 当前修订：`rev-xdlm-format-visual-gate-20260725`
+- 当前版本：`1.1.2`
+- 当前修订：`rev-xdlm-affiliation-backfill-20260730`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
 
 | revision_id | version | revised_at | revised_by | revision_type | supersedes | migration_resolution | summary | reason | affected_locations | evidence | impact_on_conclusions |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-initial-xdlm` | `1.0.0` | `2026-07-16T18:44:15+08:00` | `review_xdlm` | `initial` | `null` | `null` | Initial deep review of arXiv:2602.01362v1 with PDF visuals and pinned code evidence. | 用户要求建立首版审计交付。 | 本文各节；正式 Figure inventory | arXiv v1；XDLM commit `66c34ac5` | `material` |
 | `rev-xdlm-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root` | `content-update` | `rev-initial-xdlm` / `1.0.0` / `0aa01d529b3eab614a75cf265f645ae0738c03e5be2eac9f021149e5183d4cea` | `null` | 新增理解—生成权衡的问题—方案—优化—证据闭环，并统一行内公式为 `$...$`。 | 统一回写既有 Paper 报告并修正 Markdown 数学兼容性。 | `研究动机与问题—方案闭环`；术语/符号与方法、局限 | PDF Figure 1/3/4、Table 17、XDLM commit `66c34ac5` | `minor`：不改变主结论，修复公式渲染 |
 | `rev-xdlm-format-visual-gate-20260725` | `1.1.1` | `2026-07-25T23:59:45+08:00` | `/root` | `format-update` | `rev-xdlm-problem-solution-20260725` / `1.1.0` | `null` | 将设计矩阵标题显式标注 rationale，并在实验章嵌入已 QA 的 Figure 3/4。 | 关闭 Paper 格式与视觉交付自动审计缺口。 | 设计矩阵；关键实验 | Figure inventory 中既有 Figure 3/4 | `none`：不改变分析结论 |
+| `rev-xdlm-affiliation-backfill-20260730` | `1.1.2` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-xdlm-format-visual-gate-20260725` / `1.1.1` | `null` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | `none`：不改变方法、实验与归因结论 |
 
 ## 来源与证据库存
 
@@ -26,6 +28,16 @@
 - arXiv source archive 下载断流并报 `Unexpected EOF`，不作为证据；未取得公开 OpenReview 评审。
 
 ![Figure 1：stationary kernel 与理解-生成权衡（PDF crop）](../assets/papers/xdlm/fig1-stationary-kernel-tradeoff.png)
+
+## 作者与机构
+
+- 第一作者（首位列名）：Yue Liu → University of Chinese Academy of Sciences。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Shaosheng Cao → Xiaohongshu Inc.
+  - Yunfan Liu → University of Chinese Academy of Sciences
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of Chinese Academy of Sciences；Xiaohongshu Inc.。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
 
 ## 摘要结论
 

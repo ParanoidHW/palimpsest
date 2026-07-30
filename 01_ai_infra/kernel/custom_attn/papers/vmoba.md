@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-vmoba-20260725-initial`
-- 当前修订时间：`2026-07-25T13:30:48+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-vmoba-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-vmoba-20260725-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-vmoba-20260725-initial` | `1.0.0` | `2026-07-25T13:30:48+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无；legacy workspace 仅含源材料，没有旧 analysis/deliverable manifest，不构成既有交付迁移 | 首次形成完整隔离评审 | `vmoba-a1` delegated remediation | `analysis.md` 与本工作区全部交付物 | task packet、arXiv v1 PDF/source、代码 commit、视觉 QA | material |
+| `rev-vmoba-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-vmoba-20260725-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -70,6 +72,16 @@
 | $\mathrm{Utilization}$ | 有效带宽/峰值带宽 | analysis-derived | device/kernel | ratio | 本分析 §8 | H800 峰值与实际 IO 未提供，故仅公式 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Jianzong Wu → Peking University；Kling Team, Kuaishou Technology。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Peking University；Kling Team, Kuaishou Technology。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+- 边界说明：标题页的 * 未在可核验角色脚注中定义，故不据此扩展共同一作或通讯作者。
+
 
 - 标题：*VMoBA: Mixture-of-Block Attention for Video Diffusion Models*
 - 作者：arXiv v1 为 Jianzong Wu 等 8 人；OpenReview final PDF 搜索片段列 7 人且未列 Xin Tao，未取得 final 全文，故作者差异未决。

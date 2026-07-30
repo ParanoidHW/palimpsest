@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-20260730-jenga-initial`
-- 当前修订时间：`2026-07-30T14:04:26+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-jenga-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-20260730-jenga-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-20260730-jenga-initial` | `1.0.0` | `2026-07-30T14:04:26+08:00` | `review_jenga` | `initial` | 无 | 无 | 首次 PDF-only 精读、两图 QA、证据与归因审计 | delegated initial delivery | 全文及本地 artifacts | task packet；arXiv v2 PDF | 不适用 |
+| `rev-jenga-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-20260730-jenga-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -71,6 +73,15 @@
 | $T,S$ | 总 denoising steps 与分辨率 stage 数 | author-defined | generation | integer | §3.2 | Jenga 结果常同时改变 $T$ 和 $S$，归因需拆开 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Yuechen Zhang → The Chinese University of Hong Kong。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：The Chinese University of Hong Kong；Hong Kong University of Science and Technology；Kuaishou Technology；SmartMore。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 研究领域：视频 Diffusion Transformer 推理加速。
 - 核心问题：高分辨率视频使 self-attention 随 token 数近似二次增长；扩散又把 DiT forward 重复数十次。

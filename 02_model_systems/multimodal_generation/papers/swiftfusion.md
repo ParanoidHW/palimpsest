@@ -11,15 +11,17 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-swiftfusion-m4-pdf-recovery`
-- 当前修订时间：`2026-07-25T20:30:00+08:00`
-- 替代版本：`rev-swiftfusion-m4-initial` / `1.0.0`
+- 当前修订 ID：`rev-swiftfusion-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.1.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-swiftfusion-m4-pdf-recovery` / `1.1.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-swiftfusion-m4-initial` | `1.0.0` | `2026-07-25T18:30:00+08:00` | `paper-deep-review agent` | `initial` | 无 | 无 | 从既有精读与正式资产建立审查，完成证据分类与视觉 QA | 补齐 canonical Paper 交付标准 | 本文、[Figure inventory](../evidence/figure-inventory.md) | 既有资料与正式资产 | material：确认系统结论但机制视觉仍 blocked |
 | `rev-swiftfusion-m4-pdf-recovery` | `1.1.0` | `2026-07-25T20:30:00+08:00` | `paper-deep-review agent` | `evidence-update` | `rev-swiftfusion-m4-initial` / `1.0.0` | 无 | 接入官方 PDF，重裁 Figure 6/10，解除 primary/visual blockers | 补齐原始页面证据 | 资料索引、机制图、证据边界与 QA | 官方 PDF physical pp.6/12、[Figure inventory](../evidence/figure-inventory.md) | material：delivery 从 blocked 恢复为 complete |
+| `rev-swiftfusion-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-swiftfusion-m4-pdf-recovery` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -82,6 +84,15 @@
 | $T_{comm}$ | 一个 Torus stage 的通信时间 | analysis-derived | stage | seconds | 本分析 §4.4 | 与拓扑、拥塞和消息粒度相关 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Jiacheng Yang → University of Toronto；Vector Institute。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：University of Toronto；Vector Institute；Amazon；NVIDIA。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 研究领域：分布式 diffusion transformer 推理与 sequence parallel runtime。
 - 核心问题：USP 在层级网络中把 Ring 放到跨机慢链路，跨机流量不随机器数充分下降；原子 all-to-all 与双边通信又限制重叠。

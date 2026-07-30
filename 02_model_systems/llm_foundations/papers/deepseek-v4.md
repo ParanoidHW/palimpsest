@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-deepseek-v4-c-initial`
-- 当前修订时间：`2026-07-25T16:18:32+08:00`
-- 替代版本：`none`
+- 当前修订 ID：`rev-deepseek-v4-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-deepseek-v4-c-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-deepseek-v4-c-initial` | `1.0.0` | `2026-07-25T16:18:32+08:00` | `delegated-paper-review-agent` | `initial` | `none` | `none` | 建立完整论文精读、来源/代码核验、视觉清单、证据矩阵和 infra 分析 | C 批隔离精读任务 | 本文；[Figure inventory](../evidence/figure-inventory.md)；来源与公开评审边界 | arXiv `2606.19348` v1、官方检查点/代码、固定 revision 第三方实现 | `material` |
+| `rev-deepseek-v4-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-deepseek-v4-c-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -86,6 +88,14 @@
 未生成，分类为 `visual-evidence-skip`。该可选辅助图缺口不影响论文原图、公式、实验与代码证据；Figure 3、Figure 5 与 Table 1 已覆盖架构、系统和实验三条主证据链。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 署名类型：机构署名（标题下未列个人作者）。
+- 署名机构：DeepSeek-AI。
+- 第一作者、共同第一作者、通讯作者：不适用。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 研究领域：超长上下文 LLM、MoE 架构、分布式训练与推理、后训练。
 - 核心问题：如何让开放权重 MoE 模型原生支持 100 万 token，而不让 attention FLOPs、KV cache、EP 通信和训练不稳定性吞噬可用性。

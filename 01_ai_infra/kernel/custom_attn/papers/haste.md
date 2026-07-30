@@ -11,14 +11,16 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-haste-a2-initial`
-- 当前修订时间：`2026-07-25T14:16:29+08:00`
-- 替代版本：无；legacy workspace 只有源材料和过程图，没有既有 `analysis.md` / `deliverable_manifest.json`，因此本交付以 `initial` 启动。
+- 当前修订 ID：`rev-haste-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.0.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-haste-a2-initial` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-haste-a2-initial` | `1.0.0` | `2026-07-25T14:16:29+08:00` | `delegated-paper-review-agent` | `initial` | 无 | 无 unresolved migration；legacy 没有 delivery manifest | 首次建立完整问题—方案闭环、术语/符号、设计 rationale、claim matrix、公式、实验归因、源码/公开评审/infra 核验、视觉 QA 与冻结交付 | `haste-a2` 非 ICML paper delivery remediation | `analysis.md`、[Figure inventory](../evidence/figure-inventory.md)、过程侧公开评审记录、`source_verification.md`、三张 accepted crops | arXiv v1 PDF/source、论文源码、官方 API 检索、逐图 QA、交付 schema/semantic checks | `material`：把 legacy 摘要提升为可审计的单篇精读，并收紧理论、实现和归因边界 |
+| `rev-haste-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-haste-a2-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -86,6 +88,17 @@
 未生成。`openrouter-icu-image` CLI 和 API key 可用，但 CLI 只有 prompt/image 的 `generate`/`edit`，不支持本技能规定的 `responses-doc --input-file analysis.md`。按执行契约，不能把本 Markdown 手工摘要后做 prompt-only 图片；这不影响下列论文原始机制图与消融表证据。
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Xuzhe Zheng → Key Laboratory of Multimedia Trusted Perception and Efficient Computing, Ministry of Education of China, Xiamen University。
+- 共同第一作者（仅含论文明确标注者）：
+  - Yuexiao Ma → Key Laboratory of Multimedia Trusted Perception and Efficient Computing, Ministry of Education of China, Xiamen University
+- 通讯作者/通讯联系人（仅含论文明确标注者）：
+  - Fei Chao → Key Laboratory of Multimedia Trusted Perception and Efficient Computing, Ministry of Education of China, Xiamen University
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Key Laboratory of Multimedia Trusted Perception and Efficient Computing, Ministry of Education of China, Xiamen University。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 完整标题：*HASTE: Training-Free Video Diffusion Acceleration via Head-Wise Adaptive Sparse Attention*。
 - 作者：Xuzhe Zheng、Yuexiao Ma、Jing Xu、Xiawu Zheng、Rongrong Ji、Fei Chao；Xiamen University。

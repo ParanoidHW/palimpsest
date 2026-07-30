@@ -11,15 +11,17 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-ldm-pdf-evidence-20260725`
-- 当前修订时间：`2026-07-25T21:35:41+08:00`
-- 替代版本：`rev-ldm-isolated-initial-20260725` / `1.0.0`
+- 当前修订 ID：`rev-ldm-affiliation-backfill-20260730`
+
+- 当前文档版本：`1.1.1`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`rev-ldm-pdf-evidence-20260725` / `1.1.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-ldm-isolated-initial-20260725` | `1.0.0` | `2026-07-25T21:20:16+08:00` | `paper-deep-review agent` | `initial` | `none` | `none` | 创建 LDM review delivery；复核已有图表和可追溯声明，显式分类缺失材料。 | 补齐 canonical Paper 交付标准 | 本文、[Figure inventory](../evidence/figure-inventory.md) | 既有资料与两张 retained crops | `material` |
 | `rev-ldm-pdf-evidence-20260725` | `1.1.0` | `2026-07-25T21:35:41+08:00` | `paper-deep-review agent` | `evidence-update` | `rev-ldm-isolated-initial-20260725` / `1.0.0` | `none` | 纳入官方 PDF，重做全文提取、Figure 2/Table 18 裁剪、caption 与 bbox QA，并解除 page-provenance 阻塞。 | 补齐原始页面证据 | 资料索引、术语/证据定位、Sections 2–10、[Figure inventory](../evidence/figure-inventory.md) | 官方 PDF 与两张 QA crop | `material` |
+| `rev-ldm-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-ldm-pdf-evidence-20260725` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 
 ## 0. 资料与配图索引
 
@@ -65,6 +67,16 @@
 | $B_{\mathrm{eff}}$ | 本分析中的有效带宽 | analysis-derived | 每 operator / stage | bytes/s | Section 8.4 推导 | 论文未给 bytes moved 或 runtime，不能数值化。 |
 
 ## 1. 论文基本信息
+
+### 作者与机构
+
+- 第一作者（首位列名）：Robin Rombach → Ludwig Maximilian University of Munich；IWR, Heidelberg University。
+- 共同第一作者（仅含论文明确标注者）：
+  - Andreas Blattmann → Ludwig Maximilian University of Munich；IWR, Heidelberg University
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Ludwig Maximilian University of Munich；IWR, Heidelberg University；Runway ML。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 - 研究领域：高分辨率图像生成、扩散模型、表示压缩与条件生成。
 - 核心问题：像素空间扩散在每个去噪步都重复处理大量感知上冗余的高分辨率位置，训练与推理代价高。

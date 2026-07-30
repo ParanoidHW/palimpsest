@@ -7,6 +7,17 @@
 > - 证据资产：`../assets/papers/towards-automated-kernel-generation/`
 > - 相关文档：[AscendKernelGen](ascend-kernel-gen.md)，[AscendCraft](ascend-craft.md)，[s1](s1-test-time-scaling.md)，[Figure inventory](../evidence/figure-inventory.md)
 
+## 修订信息
+
+- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-towards-automated-kernel-generation-affiliation-backfill-20260730`
+- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 替代版本：`pre-affiliation-metadata` / `1.0.0`
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-towards-automated-kernel-generation-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `pre-affiliation-metadata` / `1.0.0` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+
 ## 0. 资料与配图索引
 
 - 论文：arXiv:2601.15727v3，2026-06-06；Beijing Academy of Artificial Intelligence 等；[官方摘要与 PDF](https://arxiv.org/abs/2601.15727)。这是 survey preprint，未确认正式 venue。
@@ -36,6 +47,15 @@
 | SOL | speed-of-light 性能目标/评分 | 不等于硬件宣称 peak FLOPs | Sec. 6 |
 
 ## 1. Survey 的核心问题与框架
+
+### 作者与机构
+
+- 第一作者（首位列名）：Yang Yu → Beijing Academy of Artificial Intelligence。
+- 共同第一作者（仅含论文明确标注者）：论文未显式标注。
+- 通讯作者/通讯联系人（仅含论文明确标注者）：论文未显式标注。
+- 其他作者涉及的机构（去重列举，不作逐作者映射）：Beijing Academy of Artificial Intelligence；Beijing Normal University；Peking University；Beijing Institute of Technology；Cornell University；Beijing Jiaotong University；Renmin University of China；Hong Kong University of Science and Technology (Guangzhou)。
+- 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
+
 
 论文把碎片化研究组织成四层：LLM-based generation、agentic optimization、data/knowledge、benchmark/evaluation。它的主要价值是领域地图和评估合同，而不是提出一个新生成算法。合理的因果链是：模型/agent 给出候选 -> deterministic harness 验证 correctness -> profiler/latency 形成性能信号 -> 数据或搜索回路更新下一候选。
 
