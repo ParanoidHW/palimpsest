@@ -71,6 +71,8 @@
 
 ### ICML 2026 selected papers（12）
 
+> Obsidian Properties 试验：本组 `12/12` canonical Paper 已加入统一 YAML 属性、共同层级标签及逐篇 `topic/*`、`method/*` 标签（2026-07-30）；不把本题单身份误写为正式 ICML 2026 接收状态。
+
 | Paper | 状态 | Canonical |
 |---|---|---|
 | DODO | 深度精读 | [dodo](../02_model_systems/ICML/2026/papers/dodo.md) |
