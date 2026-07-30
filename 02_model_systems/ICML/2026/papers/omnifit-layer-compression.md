@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/icml-2026
+  - domain/model-systems
+  - status/deep-review
+  - topic/omnimodal-models
+  - method/token-compression
+document_type: paper
+domain: model_systems
+collection: ICML 2026 selected papers
+review_status: deep-review
+canonical: true
+---
+
 # OmniFit: Bridging Modalities via Layer-Adaptive Token Compression for Omnimodal Large Language Models 精读分析
 
 > [!info] 文档关系
@@ -11,11 +26,10 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-omnifit-layer-compression-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.6.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-omnifit-readable-projection-20260727` / `1.6.0`
+- 当前修订 ID：`rev-omnifit-layer-compression-obsidian-properties-20260730`
+- 当前文档版本：`1.6.2`
+- 当前修订时间：`2026-07-30T23:45:00+08:00`
+- 替代版本：`rev-omnifit-layer-compression-affiliation-backfill-20260730` / `1.6.1`
 
 | 修订 ID | 版本 | 时间 | 类型 | 替代修订 | 摘要 | 结论影响 |
 |---|---|---|---|---|---|---|
@@ -27,6 +41,7 @@
 | `rev-omnifit-schema-projection-20260727` | `1.5.0` | 2026-07-27 | mixed | `rev-omnifit-final-pdf-promotion-20260727` | 补齐标准 claim/evidence/rationale/Infra 结构并纠正 anchor/score/merge 边界 | material |
 | `rev-omnifit-readable-projection-20260727` | `1.6.0` | 2026-07-27 | mixed | `rev-omnifit-schema-projection-20260727` | 补公式解释卡、三类失败场景、口语化表述和离线/在线算法解释图 | material：不改变论文数字，提高可读性并强化冲突边界 |
 | `rev-omnifit-layer-compression-affiliation-backfill-20260730` | `1.6.1` | `2026-07-30T23:30:00+08:00` | `metadata-update` | `rev-omnifit-readable-projection-20260727` / `1.6.0` | 无 | 无 |
+| `rev-omnifit-layer-compression-obsidian-properties-20260730` | `1.6.2` | `2026-07-30T23:45:00+08:00` | `metadata-update` | `rev-omnifit-layer-compression-affiliation-backfill-20260730` / `1.6.1` | 无 | 无 |
 
 ## 0. 资料与配图索引
 

@@ -9,6 +9,17 @@
 3. 单篇精读：从下表进入方法、公式、实验、Infra、代码核验和局限。
 4. [Figure inventory](evidence/figure-inventory.md)：追溯正式图表的页码、bbox、caption 与父级 QA。
 
+## Obsidian Properties 标签试验
+
+本批次 12 篇 Paper 已在文件头加入 Obsidian 原生 YAML Properties，作为全库推广前的小范围试验：
+
+- 共同层级标签：`paper`、`collection/icml-2026`、`domain/model-systems`、`status/deep-review`。
+- 论文特定标签：各一项 `topic/*` 与 `method/*`，用于观察主题和方法两个维度的聚合效果。
+- 独立属性：`document_type`、`domain`、`collection`、`review_status`、`canonical`；它们适合 Properties view、Bases 或程序化筛选，不必全部膨胀为标签。
+- Obsidian 搜索示例：`tag:#collection/icml-2026` 查看本批次；`tag:#topic/speculative-decoding` 查看 speculative decoding 子集。
+
+试验只增加可机器读取的元数据，不改变 Paper 的分析、venue 判断或证据结论。
+
 ## 状态总览
 
 | Paper                                                                    | Venue 核验                                                   | Review 状态                                                                 |

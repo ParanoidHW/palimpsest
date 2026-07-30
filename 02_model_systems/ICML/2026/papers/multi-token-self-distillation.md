@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/icml-2026
+  - domain/model-systems
+  - status/deep-review
+  - topic/multi-token-prediction
+  - method/self-distillation
+document_type: paper
+domain: model_systems
+collection: ICML 2026 selected papers
+review_status: deep-review
+canonical: true
+---
+
 # Multi-Token Prediction via Self-Distillation 精读分析
 
 > [!info] 文档关系
@@ -11,11 +26,10 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-multi-token-self-distillation-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.2.2`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-mtp-format-gate-20260725` / `1.2.1`
+- 当前修订 ID：`rev-multi-token-self-distillation-obsidian-properties-20260730`
+- 当前文档版本：`1.2.3`
+- 当前修订时间：`2026-07-30T23:45:00+08:00`
+- 替代版本：`rev-multi-token-self-distillation-affiliation-backfill-20260730` / `1.2.2`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -24,6 +38,7 @@
 | `rev-mtp-problem-solution-20260725` | `1.2.0` | 2026-07-25T10:05:32+08:00 | `/root` | `content-update` | `rev-mtp-source-code-refresh` / `1.1.0` / `0c69275a93ca140f479b0710fa0477e48c85e5b2d97de306c08f216528e38693` | `none` | 新增 standalone MTP 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 2/3/4/12 与官方 commit `167413e` | minor：不改变主结论，明确并发瓶颈 |
 | `rev-mtp-format-gate-20260725` | `1.2.1` | 2026-07-25T23:59:30+08:00 | `/root` | `format-update` | `rev-mtp-problem-solution-20260725` / `1.2.0` | `none` | 将结果章标题显式标注为技术声明证据矩阵 | 使单篇 Paper 格式审计可机器判定，不改变正文 | §4 | 既有主结果/消融/收益归因 | none |
 | `rev-multi-token-self-distillation-affiliation-backfill-20260730` | `1.2.2` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-mtp-format-gate-20260725` / `1.2.1` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-multi-token-self-distillation-obsidian-properties-20260730` | `1.2.3` | `2026-07-30T23:45:00+08:00` | `/root` | `metadata-update` | `rev-multi-token-self-distillation-affiliation-backfill-20260730` / `1.2.2` | 无 | 增加 Obsidian YAML Properties 与层级标签 | ICML 2026 小范围标签呈现实验 | 文件头 YAML frontmatter | Obsidian 原生 tags/Properties 语法；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 

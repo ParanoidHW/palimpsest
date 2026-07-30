@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/icml-2026
+  - domain/model-systems
+  - status/deep-review
+  - topic/discrete-diffusion
+  - method/understanding-generation-balance
+document_type: paper
+domain: model_systems
+collection: ICML 2026 selected papers
+review_status: deep-review
+canonical: true
+---
+
 # Balancing Understanding and Generation in Discrete Diffusion Models（XDLM）
 
 > [!info] 文档关系
@@ -9,9 +24,9 @@
 
 ## 修订信息
 
-- 当前版本：`1.1.2`
-- 当前修订：`rev-xdlm-affiliation-backfill-20260730`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 当前版本：`1.1.3`
+- 当前修订：`rev-xdlm-obsidian-properties-20260730`
+- 当前修订时间：`2026-07-30T23:45:00+08:00`
 
 | revision_id | version | revised_at | revised_by | revision_type | supersedes | migration_resolution | summary | reason | affected_locations | evidence | impact_on_conclusions |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -19,6 +34,7 @@
 | `rev-xdlm-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root` | `content-update` | `rev-initial-xdlm` / `1.0.0` / `0aa01d529b3eab614a75cf265f645ae0738c03e5be2eac9f021149e5183d4cea` | `null` | 新增理解—生成权衡的问题—方案—优化—证据闭环，并统一行内公式为 `$...$`。 | 统一回写既有 Paper 报告并修正 Markdown 数学兼容性。 | `研究动机与问题—方案闭环`；术语/符号与方法、局限 | PDF Figure 1/3/4、Table 17、XDLM commit `66c34ac5` | `minor`：不改变主结论，修复公式渲染 |
 | `rev-xdlm-format-visual-gate-20260725` | `1.1.1` | `2026-07-25T23:59:45+08:00` | `/root` | `format-update` | `rev-xdlm-problem-solution-20260725` / `1.1.0` | `null` | 将设计矩阵标题显式标注 rationale，并在实验章嵌入已 QA 的 Figure 3/4。 | 关闭 Paper 格式与视觉交付自动审计缺口。 | 设计矩阵；关键实验 | Figure inventory 中既有 Figure 3/4 | `none`：不改变分析结论 |
 | `rev-xdlm-affiliation-backfill-20260730` | `1.1.2` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-xdlm-format-visual-gate-20260725` / `1.1.1` | `null` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | `none`：不改变方法、实验与归因结论 |
+| `rev-xdlm-obsidian-properties-20260730` | `1.1.3` | `2026-07-30T23:45:00+08:00` | `/root` | `metadata-update` | `rev-xdlm-affiliation-backfill-20260730` / `1.1.2` | 无 | 增加 Obsidian YAML Properties 与层级标签 | ICML 2026 小范围标签呈现实验 | 文件头 YAML frontmatter | Obsidian 原生 tags/Properties 语法；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 来源与证据库存
 

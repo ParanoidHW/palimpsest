@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/icml-2026
+  - domain/model-systems
+  - status/deep-review
+  - topic/speculative-decoding
+  - method/online-learning
+document_type: paper
+domain: model_systems
+collection: ICML 2026 selected papers
+review_status: deep-review
+canonical: true
+---
+
 # When Drafts Evolve: Speculative Decoding Meets Online Learning 精读分析
 
 > [!info] 文档关系
@@ -11,17 +26,17 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-onlinespec-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.1.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-onlinespec-problem-solution-20260725` / `1.1.0`
+- 当前修订 ID：`rev-onlinespec-obsidian-properties-20260730`
+- 当前文档版本：`1.1.2`
+- 当前修订时间：`2026-07-30T23:45:00+08:00`
+- 替代版本：`rev-onlinespec-affiliation-backfill-20260730` / `1.1.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | rev-onlinespec-initial | 1.0.0 | 2026-07-17T09:30:00+08:00 | review_onlinespec | initial | 无 | 完成单篇论文证据审阅、图表 QA、代码核验与 infra 分析 | 用户请求及委派任务包 | 全文、图表索引、manifest | arXiv v1、LaTeX source、Git commit 3a6cc69 | 无 |
 | rev-onlinespec-problem-solution-20260725 | 1.1.0 | 2026-07-25T10:05:32+08:00 | `/root` | content-update | rev-onlinespec-initial / 1.0.0 / `70362e83757e70a5159e0bb0fb29ade04e3f642ce934acd9798cd084610cfdb5` | 新增在线适应 draft 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Theorem 1、Algorithm 1、Table 1/2、Figure 3 | minor：不改变 workshop/venue 判断 |
 | `rev-onlinespec-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-onlinespec-problem-solution-20260725` / `1.1.0` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-onlinespec-obsidian-properties-20260730` | `1.1.2` | `2026-07-30T23:45:00+08:00` | `/root` | `metadata-update` | `rev-onlinespec-affiliation-backfill-20260730` / `1.1.1` | 增加 Obsidian YAML Properties 与层级标签 | ICML 2026 小范围标签呈现实验 | 文件头 YAML frontmatter | Obsidian 原生 tags/Properties 语法；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 

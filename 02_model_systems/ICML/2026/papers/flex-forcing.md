@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/icml-2026
+  - domain/model-systems
+  - status/deep-review
+  - topic/video-diffusion
+  - method/flexible-conditioning
+document_type: paper
+domain: model_systems
+collection: ICML 2026 selected papers
+review_status: deep-review
+canonical: true
+---
+
 # Flex-Forcing: Towards a Unified Autoregressive and Bidirectional Video Diffusion Model 精读分析
 
 > [!info] 文档关系
@@ -11,11 +26,10 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-flex-forcing-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.1.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-flex-problem-solution-20260725` / `1.1.0`
+- 当前修订 ID：`rev-flex-forcing-obsidian-properties-20260730`
+- 当前文档版本：`1.1.2`
+- 当前修订时间：`2026-07-30T23:45:00+08:00`
+- 替代版本：`rev-flex-forcing-affiliation-backfill-20260730` / `1.1.1`
 
 | 修订 ID                                | 文档版本    | 时间                          | 修订者                    | 类型               | 替代修订                                                                                                          | 迁移问题/解析 | 变更摘要                                                  | 原因                           | 影响位置                                                                                                      | 依据                                                                    | 对结论影响                           |
 | ------------------------------------ | ------- | --------------------------- | ---------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------- |
@@ -23,6 +37,7 @@
 | `rev-source-complete-20260724`       | `1.0.0` | `2026-07-24T20:20:34+08:00` | `flex_forcing_refresh` | `mixed`          | tracked `rev-initial` / `0.1.0` / `075d43a87072c1b36cf647ac3a6ca1513c68dd44bdf23e86982108de8e32310d`          | 无       | 用完整 PDF/source 重做方法、实验、视觉、venue、项目页与系统分析；补全所有清单与清单化证据 | 刷新任务要求替换不可读 PDF 的 blocked 交付 | `analysis.md`; `figure_inventory.md`; `openreview_reviews.md`; `source_verification.md`; `figures/crops/` | arXiv v1 PDF/source；官方 NVIDIA 项目页；ICML Downloads；OpenReview 索引元数据；任务包 | material                        |
 | `rev-flex-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root`                | `content-update` | `rev-source-complete-20260724` / `1.0.0` / `2f07f9ed784dc8cd6eefb8651b417a7c4a5e7e60f79898a3d37e7dcaae197f22` | 无       | 新增统一 AR/双向视频扩散的问题—方案—优化—证据闭环                          | 统一回写既有 Paper 报告              | `研究动机与问题—方案闭环`                                                                                            | Figure 7/8、Table 2 与源码公式                                              | minor：不改变主结论，明确并非所有 schedule 占优 |
 | `rev-flex-forcing-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-flex-problem-solution-20260725` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-flex-forcing-obsidian-properties-20260730` | `1.1.2` | `2026-07-30T23:45:00+08:00` | `/root` | `metadata-update` | `rev-flex-forcing-affiliation-backfill-20260730` / `1.1.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | ICML 2026 小范围标签呈现实验 | 文件头 YAML frontmatter | Obsidian 原生 tags/Properties 语法；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 

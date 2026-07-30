@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/icml-2026
+  - domain/model-systems
+  - status/deep-review
+  - topic/multimodal-learning
+  - method/mixture-of-experts
+document_type: paper
+domain: model_systems
+collection: ICML 2026 selected papers
+review_status: deep-review
+canonical: true
+---
+
 # LiME：Lightweight Mixture of Experts for Efficient Multimodal Multi-task Learning 精读分析
 
 > [!info] 文档关系
@@ -11,11 +26,10 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-lime-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.1.2`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-lime-format-gate-20260725` / `1.1.1`
+- 当前修订 ID：`rev-lime-obsidian-properties-20260730`
+- 当前文档版本：`1.1.3`
+- 当前修订时间：`2026-07-30T23:45:00+08:00`
+- 替代版本：`rev-lime-affiliation-backfill-20260730` / `1.1.2`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -23,6 +37,7 @@
 | `rev-lime-problem-solution-20260725` | `1.1.0` | 2026-07-25T10:05:32+08:00 | `/root` | `content-update` | `rev-lime-initial` / `1.0.0` / `82016b244a1fa626a9a83e3b2387bc0e546d267e059449dd589b77e915f2b825` | 新增轻量 MoE-PEFT 的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1/2、Table 2 与既有消融 | minor：不改变主结论，补充系统边界 |
 | `rev-lime-format-gate-20260725` | `1.1.1` | 2026-07-25T23:59:00+08:00 | `/root` | `format-update` | `rev-lime-problem-solution-20260725` / `1.1.0` | 将结果章标题显式标注为技术声明证据矩阵 | 使单篇 Paper 格式审计可机器判定，不改变正文 | §4 | 既有 claim/ablation 表 | none |
 | `rev-lime-affiliation-backfill-20260730` | `1.1.2` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-lime-format-gate-20260725` / `1.1.1` | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-lime-obsidian-properties-20260730` | `1.1.3` | `2026-07-30T23:45:00+08:00` | `/root` | `metadata-update` | `rev-lime-affiliation-backfill-20260730` / `1.1.2` | 增加 Obsidian YAML Properties 与层级标签 | ICML 2026 小范围标签呈现实验 | 文件头 YAML frontmatter | Obsidian 原生 tags/Properties 语法；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 
