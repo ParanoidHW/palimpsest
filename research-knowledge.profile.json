@@ -1,6 +1,6 @@
 {
   "profile_version": "1.0.0",
-  "profile_id": "huangwei-research-vault",
+  "profile_id": "research-vault",
   "compatible_organization_schema_major": 1,
   "policy_documents": [
     "AGENTS.md",
