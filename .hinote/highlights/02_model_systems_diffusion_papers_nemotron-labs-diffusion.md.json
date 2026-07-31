@@ -1,12 +1,12 @@
 {
   "version": "2.0",
-  "lastModified": 1785492167490,
+  "lastModified": 1785492302619,
   "highlights": {
     "highlight-1014560625-6889": {
       "text": "self-speculation",
-      "position": 7527,
+      "position": 7525,
       "created": 1785484003773,
-      "updated": 1785484308816,
+      "updated": 1785492302619,
       "backgroundColor": "#ffeb3b",
       "contextBefore": "inference-caption.png) > Figure 5（论文原图）：AR、diffusion 与 linear self-speculation。",
       "contextAfter": "的要点是“同一模型、两种 attention pattern、共享 cache”。 - **AR mode**：标准 causal decoding，每轮确",
@@ -28,9 +28,9 @@
     },
     "highlight-415977322-7177": {
       "text": "**Quadratic self-speculation**：扩展更多分支提高候选覆盖，TPF 略高，但验证张量和 kernel 开销更大。",
-      "position": 7815,
+      "position": 7813,
       "created": 1785484551561,
-      "updated": 1785484551561,
+      "updated": 1785492302619,
       "backgroundColor": "#ffeb3b",
       "contextBefore": "lation**：diffusion 模式起草 $k$ 个 token；AR 模式一次验证整段；接受最长相同前缀，并由 target 确认第一个拒绝位置。 -",
       "contextAfter": "如果把一轮 draft 的序列记为 $\\hat{x}_{1:k}$，AR verifier 的输出为 $x^{\\mathrm{AR}}_{1:k+1}$，则",
@@ -45,14 +45,14 @@
       ]
     },
     "highlight-411385342-11321": {
-      "text": "低并发把 self-speculation 作为优先候选；并发升高后重新测量 AR/diffusion/self-speculation 的交叉点，而不是固定只使用某一种模式",
-      "position": 14702,
+      "text": "低并发优先 self-speculation，高并发或吞吐饱和时评估 AR/diffusion 工作点，而不是固定只使用某一种模式",
+      "position": 11321,
       "created": 1785484725667,
-      "updated": 1785492167490,
+      "updated": 1785484725667,
       "backgroundColor": "#ffeb3b",
       "contextBefore": "与最优模式； - FP8/INT4 提升受量化 kernel、带宽和设备支持影响。 最合理的部署策略是把 mode 当成 scheduler policy：",
-      "contextAfter": "。 这里“低并发更适合”并非因为额外开销更小，而是因为单 token AR decode 在低 batch 下通常受权重读取/显存带宽约束",
-      "textFingerprint": "低并发把 self-speculation 作为优先候选；并发升高后重新测量 AR/diffusion/self-speculation 的交叉点，而不是固定只使用某一种模式",
+      "contextAfter": "。 ## 7. 相关工作与公开评审 - 相比传统 speculative decoding，NLD 不使用独立小 drafter，换来单模型和共享 cach",
+      "textFingerprint": "低并发优先 self-speculation，高并发或吞吐饱和时评估 AR/diffusion 工作点，而不是固定只使用某一种模式",
       "comments": [
         {
           "id": "comment-1785484725667-cgyvvd5lo",

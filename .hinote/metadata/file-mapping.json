@@ -17,7 +17,8 @@
     "01_ai_infra/parallelism/papers/zero.md": "01_ai_infra_parallelism_papers_zero.md.json",
     "01_ai_infra/parallelism/surveys/irregular-and-workload-aware-partitioning.md": "01_ai_infra_parallelism_surveys_irregular-and-workload-aware-partitioning.md.json",
     "01_ai_infra/parallelism/surveys/parallel-partitioning-taxonomy.md": "01_ai_infra_parallelism_surveys_parallel-partitioning-taxonomy.md.json",
-    "01_ai_infra/parallelism/surveys/parallel-strategy-selection.md": "01_ai_infra_parallelism_surveys_parallel-strategy-selection.md.json"
+    "01_ai_infra/parallelism/surveys/parallel-strategy-selection.md": "01_ai_infra_parallelism_surveys_parallel-strategy-selection.md.json",
+    "01_ai_infra/parallelism/README.md": "01_ai_infra_parallelism_readme.md.json"
   },
-  "lastUpdated": 1785488251680
+  "lastUpdated": 1785494285742
 }

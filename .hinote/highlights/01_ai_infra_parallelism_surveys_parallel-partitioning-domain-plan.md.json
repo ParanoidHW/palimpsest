@@ -1,12 +1,12 @@
 {
   "version": "2.0",
-  "lastModified": 1785468161420,
+  "lastModified": 1785494190741,
   "highlights": {
     "highlight-758672957-8126": {
       "text": "通信、显存与调度开销",
-      "position": 8126,
+      "position": 8699,
       "created": 1785468161420,
-      "updated": 1785468161420,
+      "updated": 1785494190741,
       "backgroundColor": "#ffeb3b",
       "contextBefore": "id Ulysses+Ring、稀疏 CP 和定制 CP 作为实现族。每篇文档首次使用 SP/CP 时必须同时给出本文语义和来源框架的原始命名。 ## 7.",
       "contextAfter": "后续 cost model 不只统计理论 bytes。统一的 step 分解为： $$ T_{\\text{step}} = T_{\\text{comput",
