@@ -8,7 +8,9 @@
   ],
   "domain_patterns": [
     "01_ai_infra/**",
-    "02_model_systems/**"
+    "02_model_systems/**",
+    "03_agentic_workflows/kernel_agents",
+    "03_agentic_workflows/kernel_agents/**"
   ],
   "overrides": {
     "validation": {

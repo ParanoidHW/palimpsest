@@ -8,6 +8,8 @@
 > 快照日期：2026-07-30。当前共登记 8 个正式 paper domain、78 篇 canonical Paper。
 >
 > 作者机构元数据：`78/78` 已按论文 PDF 标题页、机构编号和角色脚注核验（2026-07-30）。其中 69 篇为个人作者署名，记录首位列名作者、明确共同一作、明确通讯作者/联系人与去重机构；9 篇为机构署名，仅记录署名机构。未披露字段保持“无法核验”，不按邮箱域名或外部履历推断。
+>
+> Obsidian 元数据：`78/78` canonical Paper 已加入统一 YAML Properties（2026-07-31）。每篇均有 `paper`、collection、domain、`status/deep-review` 四项共同层级标签，以及各一项 `topic/*`、`method/*`；独立属性保留文档类型、canonical 状态和集合归属。12 篇 ICML 2026 Paper 先行试验，确认 schema 后推广到其余 66 篇。
 
 ## 使用规则
 
@@ -71,7 +73,7 @@
 
 ### ICML 2026 selected papers（12）
 
-> Obsidian Properties 试验：本组 `12/12` canonical Paper 已加入统一 YAML 属性、共同层级标签及逐篇 `topic/*`、`method/*` 标签（2026-07-30）；不把本题单身份误写为正式 ICML 2026 接收状态。
+> Obsidian Properties 首批试验：本组 `12/12` canonical Paper 于 2026-07-30 先行加入统一 YAML 属性、共同层级标签及逐篇 `topic/*`、`method/*` 标签；该 schema 已于 2026-07-31 推广至覆盖矩阵全部 Paper。本题单身份仍不等于正式 ICML 2026 接收状态。
 
 | Paper | 状态 | Canonical |
 |---|---|---|
