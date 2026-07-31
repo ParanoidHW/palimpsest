@@ -26,16 +26,18 @@ canonical: true
 
 ## 修订信息
 
-- 当前修订 ID：`rev-nemotron-labs-diffusion-obsidian-properties-20260731`
-- 当前文档版本：`1.0.2`
-- 当前修订时间：`2026-07-31T10:00:00+08:00`
-- 替代版本：`rev-nemotron-labs-diffusion-affiliation-backfill-20260730` / `1.0.1`
+- 当前修订 ID：`rev-nemotron-labs-diffusion-hinote-questions-20260731`
+- 当前文档版本：`1.1.0`
+- 当前修订时间：`2026-07-31T23:55:00+08:00`
+- 替代版本：`rev-nemotron-labs-diffusion-obsidian-properties-20260731` / `1.0.2`
+- 前序 review manifest：`69a97e12c9665d02fa67cb24b7e0bdccd09affa9789b35b6db59c71ab13e35e1`
 
 | 修订 ID | 版本 | 时间 | 修订者 | 类型 | 变更摘要 | 对结论影响 |
 |---|---|---|---|---|---|---|
 | `rev-initial-nemotron-labs-diffusion-20260727` | `1.0.0` | `2026-07-27T23:30:00+08:00` | Codex | initial | 基于 arXiv v1、官方源码、官方仓库固定 commit 与原图 QA 建立首版审计式解读 | material |
 | `rev-nemotron-labs-diffusion-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | 补充作者—机构元数据与角色证据边界 | none：不改变方法、实验与归因结论 |
 | `rev-nemotron-labs-diffusion-obsidian-properties-20260731` | `1.0.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | 增加 Obsidian YAML Properties 与层级标签 | none：不改变论文分析与证据结论 |
+| `rev-nemotron-labs-diffusion-hinote-questions-20260731` | `1.1.0` | `2026-07-31T23:55:00+08:00` | `/root` | `content-update` | 回答 Hinote 中关于 self-speculation 成本、quadratic layout 与并发边界的三个问题；补 Figure 12，并纠正 TPF 口径歧义 | material：收紧加速条件与指标解释 |
 
 ## 0. 资料、术语与符号
 
@@ -55,7 +57,7 @@ canonical: true
 | blockwise diffusion | 在已确认前缀后，对固定 block 内的 mask token 并行去噪 | 不是连续高斯 diffusion；这里是离散 masked diffusion |
 | linear self-speculation | 同一模型先以双向 attention 起草一个 block，再用因果 attention 验证最长一致前缀 | “linear”指候选是一条序列，不代表线性复杂度证明 |
 | quadratic self-speculation | 为多个 draft token 构造分支候选并一次验证 | 候选更多，但真实吞吐可能低于 linear 版本 |
-| TPF | 每次模型 forward 最终确认的 token 数 | 不等于 tok/s；forward 成本、kernel 与并发仍决定墙钟速度 |
+| TPF | tokens per forward；但论文对 self-speculation 的表格口径存在歧义 | §5 明确区分 acceptance rate 与 real TPF：linear 每 cycle 有 draft+verify 两次 forward，real TPF 必须再除以 2；因此不能把表格里的所有“TPF”都直接当墙钟加速 |
 | SOL | 基于 target prediction 构造的 oracle speculative upper limit | 不是可部署算法，只用于分析潜在上界 |
 | draft-only LoRA | 只在双向 draft pass 激活、AR verify pass 关闭的 adapter | 不改变 AR 路径的基础语义 |
 
@@ -68,7 +70,7 @@ canonical: true
 | $B$ | 序列划分后的 block 集合/数量语境 | author-defined | 与 batch size 无关 |
 | $\alpha$ | diffusion loss 权重，论文联合阶段用 0.3 | author-defined | 第一阶段 $\alpha=0$，即纯 AR |
 | $k$ | self-speculation 一轮 draft 的 token 数 | author-defined | 接受长度通常小于等于 $k$，另含首个拒绝位置 target token |
-| TPF | confirmed tokens / model forward | analysis-used | 只能在 forward 计算大致可比时代表加速潜力 |
+| TPF | tokens per forward；self-spec 需区分 acceptance/cycle 与 real TPF | paper-defined but inconsistently reported | §5 明确 real TPF = acceptance rate / 2；不能把 Table 中的 self-spec 数字无条件按单 forward 解读 |
 
 ## 1. 研究问题与核心判断
 
@@ -93,7 +95,7 @@ canonical: true
 
 1. **统一参数、切换 attention pattern 的机制成立。** 论文公式、推理流程图、公开模型调用路径与 LoRA 开关逻辑互相一致。
 2. **联合训练配方有连续消融支撑。** Table 1 的五行是累积消融，最终相对最初 blockwise baseline 平均提高 16.05 个点，但不能把每行增量解释为彼此独立的因果效应。
-3. **self-speculation 的接受长度优势证据较强。** Native/LoRA 平均接受长度 5.46/6.82，高于论文所列 Eagle3/MTP 的 2.75/4.24；但跨实现的 forward 成本不完全相同。
+3. **self-speculation 的接受长度优势证据较强，但接受长度不等于 real TPF。** Native/LoRA 平均接受长度 5.46/6.82，高于论文所列 Eagle3/MTP 的 2.75/4.24；论文 §5 将 LoRA linear 的 6.82 acceptance rate 换算为 3.41 real TPF，因为每 cycle 有 draft 与 verify 两次完整模型 forward。
 4. **最高吞吐数字是系统条件下的结果。** 最高 3.3×、1015 tok/s、不同设备上的 FP8/INT4 数字均绑定具体 GPU、batch、kernel、量化和 serving stack。
 5. **公开仓库主要是评测与 serving 接入。** 训练实现和全部核心模型逻辑并未以仓库内普通 Python 源码完整发布，部分能力依赖 Hugging Face 模型远程代码，因而“可运行推理”不等于“训练完全可复现”。
 
@@ -150,12 +152,12 @@ $$
 
 ![三模推理过程](../assets/papers/nemotron-labs-diffusion/fig5-tri-mode-inference-caption.png)
 
-> Figure 5（论文原图）：AR、diffusion 与 linear self-speculation。self-speculation 的要点是“同一模型、两种 attention pattern、共享 cache”。
+> Figure 5（论文原图）：AR、diffusion 与 linear self-speculation。==self-speculation== 的要点是“同一模型、两种 attention pattern、共享 cache”。
 
 - **AR mode**：标准 causal decoding，每轮确认一个 token。
 - **Diffusion mode**：在固定 block 中放入多个 mask token，反复按置信度解 mask；并行度更高，但需要多轮去噪。
 - **Linear self-speculation**：diffusion 模式起草 $k$ 个 token；AR 模式一次验证整段；接受最长相同前缀，并由 target 确认第一个拒绝位置。
-- **Quadratic self-speculation**：扩展更多分支提高候选覆盖，TPF 略高，但验证张量和 kernel 开销更大。
+- ==**Quadratic self-speculation**：扩展更多分支提高候选覆盖，TPF 略高，但验证张量和 kernel 开销更大。==
 
 如果把一轮 draft 的序列记为 $\hat{x}_{1:k}$，AR verifier 的输出为 $x^{\mathrm{AR}}_{1:k+1}$，则被确认的前缀长度可写为：
 
@@ -164,6 +166,67 @@ $$
 $$
 
 系统写入 $\ell$ 个 draft token，并额外写入 target 在 $\ell+1$ 位置给出的 token。这解释了为什么平均 TPF 可超过单纯的平均接受前缀。
+
+#### 为什么同一个完整模型跑 draft 和 verify 仍可能加速？
+
+Hinote 中的质疑是成立的：参数共享只消除了独立 drafter 的权重驻留和双模型调度，**并没有让 draft 免费**。Linear self-speculation 每个 cycle 明确包含一次 diffusion draft 和一次 AR verify。若一轮最终确认 $A$ 个 token，三类实测成本分别为 $C_{\mathrm{draft}}$、$C_{\mathrm{verify}}$ 和单 token AR decode 的 $C_{\mathrm{AR}}$，则相对 AR 的近似加速为：
+
+$$
+S
+\approx
+\frac{A\,C_{\mathrm{AR}}}
+{C_{\mathrm{draft}}+C_{\mathrm{verify}}},
+\qquad
+S>1
+\iff
+A>
+\frac{C_{\mathrm{draft}}+C_{\mathrm{verify}}}{C_{\mathrm{AR}}}.
+$$
+
+**这条公式在算什么？** 它判断一轮接受的 token 数能否摊薄 draft 与 verify 的总耗时。
+
+**怎么读？** 纯 AR 生成 $A$ 个 token 要做约 $A$ 次单 token decode；self-speculation 用两次形状不同的 full-model pass 尝试一次确认多个 token。
+
+**输入与输出。** 输入是每轮确认数和三种 pass 的墙钟成本；输出是相对 AR 的近似 speedup。
+
+**变量在这里各做什么？** $A$ 越高越有利；draft/verify 的序列长度、attention pattern、kernel 和 cache 行为会改变分母；$C_{\mathrm{AR}}$ 在不同 batch 下也不同。
+
+**直觉。** 如果粗略假设两次 pass 都与一次 AR decode 等价，break-even 是 $A>2$，而不是“接受率大于 1”。实际 verify 是 multi-token prefill-like 计算，draft 又是双向 block attention，三者不能直接都写成同一个 $T$。
+
+**边界。** 这是本文根据论文执行图重建的成本式，不是作者给出的封闭性能模型。论文 §5 的更直接口径是：LoRA linear 的 acceptance rate 为 6.82，但两次 forward 后 real TPF 为 3.41。最终是否加速仍需看 tok/s；论文在三类 GPU 的 batch 1 测试中报告了正收益。
+
+因此，self-speculation 没有违背 speculative decoding 的目标：它减少的是**每个已确认 token 所需的串行 target invocation 和权重读取次数**，不是消灭 target 计算。它能否优于独立小 drafter，则取决于更高接受长度和 token-parallel drafting 是否足以抵消“完整模型也参与 draft”的额外成本。
+
+#### Quadratic self-speculation 是 tree-like verification 吗？
+
+![Quadratic self-speculation](../assets/papers/nemotron-labs-diffusion/fig12-quadratic-self-speculation-caption.png)
+
+> Figure 12（论文原图）：structured attention mask 在一次 forward 中同时验证上一轮候选，并为下一轮可能的接受位置准备新 draft。
+
+它在功能上有“为多个未来分支预备候选”的 tree-like 味道，但**不是传统的任意 token tree verification**。对 speculative width $k$，论文把上一轮的 $k$ 个候选分别与一组 $k$ 个新 mask 交错，插入总计 $k^2$ 个 mask：
+
+$$
+X_m^{t+1}
+=
+[x_{1:n},x_{n+1}]
++
+\sum_{j=2}^{k+1}
+[x_{n+j}^{t},m_1,\ldots,m_k].
+$$
+
+**这条公式在算什么？** 它构造 quadratic 模式下一次 single-forward draft/verify 的交错输入。
+
+**怎么读？** 已确认前缀后，先放一个立即确认的 AR token；再为上一轮每个 speculative token 各放一组 $k$ 个 mask。
+
+**输入与输出。** 输入是 verified prefix、上一轮的 $k$ 个候选和 speculative width $k$；输出是带 $k^2$ 个 mask 的结构化序列。
+
+**变量在这里各做什么？** $j$ 枚举可能的接受终点；$x_{n+j}^{t}$ 是待验证旧候选；$m_{1:k}$ 为对应终点生成下一轮 draft。
+
+**直觉。** 用更多输入位置换掉“先等验证结束、再决定从哪里起草”的串行依赖。
+
+**边界。** 需要专用 structured attention mask；$k^2$ layout 与 kernel 效率使高 TPF 不保证更高 tok/s。
+
+因果位置负责逐前缀验证旧 draft；每个候选后的 diffusion mask 同时生成“如果接受停在这里，下一轮应使用什么 draft”。所以它展开的是**所有可能接受位置**，不是对任意词表分支建树。好处是即使早早 mismatch，也已经在同一次 forward 里备好了下一轮候选；代价是输入 token 数和 attention layout 按 $k^2$ 增长。论文报告 Instruct 8B 的表格指标从 linear 5.99 提到 quadratic 6.38，但专用 FlexAttention mask 的 kernel 尚不够高效，真实设备吞吐反而低于 linear，因此作者默认使用 linear。
 
 ### 3.3 draft-only LoRA
 
@@ -193,7 +256,7 @@ SOL 递归地使用 target 预测构造动态候选并压缩已确认位置，�
 
 ### 4.2 能力—效率折中
 
-Instruct 8B 汇总中，Qwen3-8B 为 62.75/1 TPF；NLD AR 为 63.61/1；diffusion 为 63.18/2.57；linear self-speculation 为 62.81/5.99；quadratic 为 64.04/6.38。它支持三点：
+Instruct 8B 汇总表中，Qwen3-8B 为 62.75/1；NLD AR 为 63.61/1；diffusion 为 63.18/2.57；linear self-speculation 为 62.81/5.99；quadratic 为 64.04/6.38。需要注意：表头统一写 TPF，但论文 §5 另行澄清 linear 的 real TPF 要把每 cycle 接受数除以两次 forward；因此 5.99/6.38 更稳妥地视为论文表格的并行产出指标，而不是可直接比较的真实单-forward tok 数。它支持三点：
 
 - AR 能力未因联合训练明显崩溃；
 - diffusion 以很小的平均精度变化换取多 token forward；
@@ -257,7 +320,9 @@ Instruct 8B 汇总中，Qwen3-8B 为 62.75/1 TPF；NLD AR 为 63.61/1；diffusio
 - batch/并发变化会改变 per-user throughput 与最优模式；
 - FP8/INT4 提升受量化 kernel、带宽和设备支持影响。
 
-最合理的部署策略是把 mode 当成 scheduler policy：低并发优先 self-speculation，高并发或吞吐饱和时评估 AR/diffusion 工作点，而不是固定只使用某一种模式。
+最合理的部署策略是把 mode 当成 scheduler policy：==低并发把 self-speculation 作为优先候选；并发升高后重新测量 AR/diffusion/self-speculation 的交叉点，而不是固定只使用某一种模式==。
+
+这里“低并发更适合”并非因为额外开销更小，而是因为单 token AR decode 在低 batch 下通常受权重读取/显存带宽约束，GPU 计算单元没有吃满；multi-token verify 能在近似的一次权重搬运窗口里确认多个 token，diffusion draft 也增加 token 维并行度。高并发时，普通 AR 已通过 batch 把 GPU 填满，额外 draft、长 verify、structured mask 与 cache 操作更可能变成净开销。论文因此明确写 AR mode preferred at high concurrency，并把 self-speculation 定位为 low-concurrency acceleration；但它没有给出一个跨硬件通用阈值，真实 scheduler 必须依据 Figure 1(c)/Figure 9 一类曲线测出切换点。
 
 ## 7. 相关工作与公开评审
 
@@ -295,4 +360,3 @@ Instruct 8B 汇总中，Qwen3-8B 为 62.75/1 TPF；NLD AR 为 63.61/1；diffusio
 ## 9. 最终评价
 
 Nemotron-Labs-Diffusion 值得归入 **diffusion** 主线，因为它的模型训练基础和第一性机制是 blockwise masked diffusion；self-speculation 是由三模统一能力派生出的一个推理模式，而不是它唯一或最上位的分类。论文对“统一建模 + 多工作点 serving”给出了较完整的机制和系统证据，训练配方消融也有说服力。需要克制的是峰值加速的外推，以及把公开推理仓库误称为完整训练复现。
-
