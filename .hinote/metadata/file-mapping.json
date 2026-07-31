@@ -1,0 +1,7 @@
+{
+  "version": "2.0",
+  "mapping": {
+    "01_ai_infra/parallelism/surveys/parallel-partitioning-domain-plan.md": "01_ai_infra_parallelism_surveys_parallel-partitioning-domain-plan.md.json"
+  },
+  "lastUpdated": 1785468099872
+}

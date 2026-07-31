@@ -238,7 +238,7 @@ DP、EP、PP、Ulysses、Ring 和 CFGP 都沿用“全局对象 → rank-local l
 
 本领域把 **Context Parallelism** 作为“长上下文 attention 分布式执行”的上位目标，把 Ulysses、Ring、hybrid Ulysses+Ring、稀疏 CP 和定制 CP 作为实现族。每篇文档首次使用 SP/CP 时必须同时给出本文语义和来源框架的原始命名。
 
-## 7. 通信、显存与调度开销
+## 7. ==通信、显存与调度开销==
 
 后续 cost model 不只统计理论 bytes。统一的 step 分解为：
 
