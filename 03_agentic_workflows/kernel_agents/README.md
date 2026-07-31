@@ -16,6 +16,15 @@
 - Evidence：[Paper index](evidence/paper-index.md)，[Figure inventory](evidence/figure-inventory.md)
 - Papers：[Towards Automated Kernel Generation](papers/towards-automated-kernel-generation.md)，[AscendKernelGen](papers/ascend-kernel-gen.md)，[AscendCraft](papers/ascend-craft.md)，[s1](papers/s1-test-time-scaling.md)
 
+## Obsidian Properties
+
+本领域 `4/4` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+
+- 共同标签：`paper`、`collection/kernel-agents`、`domain/agentic-workflows`、`status/deep-review`。
+- 每篇另有一项 `topic/*` 和一项 `method/*`，分别表达研究问题与核心方法。
+- 独立属性：`document_type`、`domain`、`collection`、`review_status`、`canonical`，用于 Properties view、Bases 和程序化筛选。
+- 搜索示例：`tag:#collection/kernel-agents` 查看本领域全部精读；`tag:#topic/kernel-generation` 查看 kernel 生成主线。
+
 ## 证据边界
 
 - PDF、提取文本、页面 render、裁剪过程和网络核验日志只保留在过程目录；正式文档不依赖这些临时材料。
