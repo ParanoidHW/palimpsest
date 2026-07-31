@@ -17,7 +17,7 @@
 | 目录 | 用途 | 建议入口 |
 | --- | --- | --- |
 | [00_meta](./00_meta/) | 仓库规范、入口资产与研究覆盖索引 | [调研知识组织规范](./00_meta/research-knowledge-organization.md)，[Paper/领域覆盖矩阵](./00_meta/research-paper-coverage-matrix.md) |
-| [01_ai_infra](./01_ai_infra/) | 评测、硬件运行时、硬件规格与性能建模 | [evaluation](./01_ai_infra/evaluation/), [performance modeling](./01_ai_infra/performance_modeling/) |
+| [01_ai_infra](./01_ai_infra/) | 评测、并行切分、硬件运行时、硬件规格与性能建模 | [parallelism](./01_ai_infra/parallelism/), [evaluation](./01_ai_infra/evaluation/), [performance modeling](./01_ai_infra/performance_modeling/) |
 | [02_model_systems](./02_model_systems/) | LLM、投机解码、多模态生成、diffusion/world model 与 embodied AI | [LLM foundations](./02_model_systems/llm_foundations/), [speculative decoding](./02_model_systems/speculative_decoding/), [embodied AI](./02_model_systems/embodied_ai/) |
 | [03_agentic_workflows](./03_agentic_workflows/) | Agent 化论文精读、kernel 生成与研究工作流 | [kernel agents](./03_agentic_workflows/kernel_agents/) |
 | [99_references](./99_references/) | 一手论文、数据集与参考材料索引 | [papers](./99_references/papers/), [datasets](./99_references/datasets/) |
@@ -48,7 +48,7 @@ AI Infra 不是单纯的“部署”或“工程实现”。它关心的是模�
 
 **算子、内存与通信**是 AI Infra 的第一性分析层。Attention、GEMM、LayerNorm、MoE dispatch、KV cache、PagedAttention、通信 overlap 和 Roofline，不只是性能优化细节，而是判断模型结构是否可扩展的基本语言。相关判断沉淀在 [kernel开销计算逻辑](./01_ai_infra/performance_modeling/kernel开销计算逻辑.md)、[Roofline模型](./01_ai_infra/performance_modeling/Roofline模型.md) 和 [部署能力评测](./01_ai_infra/performance_modeling/部署能力评测-内存算力带宽与通信.md) 中。
 
-**训练与推理执行系统**连接论文方法和线上服务。分布式训练里的 TP、EP、CP、PP，推理里的 prefill/decode 分离、KV cache 管理、batching、speculative decoding、draft/verify 合同，本质上都在处理同一个问题：如何把模型计算图映射到受限资源上，并让延迟、吞吐和成本可控。
+**训练与推理执行系统**连接论文方法和线上服务。分布式训练里的 TP、EP、CP、PP，推理里的 prefill/decode 分离、KV cache 管理、batching、speculative decoding、draft/verify 合同，本质上都在处理同一个问题：如何把模型计算图映射到受限资源上，并让延迟、吞吐和成本可控。并行切分的统一分析框架与建设规划见 [parallelism](./01_ai_infra/parallelism/)。
 
 **模型架构与生成范式**在这里被当作 infra 需求的来源，而不是孤立的算法分类。MoE 关心 expert routing 与通信隐藏；长上下文关心 KV cache 和 attention 压缩；diffusion/flow 关心 denoising step、时空 attention、量化敏感性和并行采样；多模态与 world model 关心数据管线、状态展开和长序列生成。对应内容分布在 [LLM foundations](./02_model_systems/llm_foundations/)、[speculative decoding](./02_model_systems/speculative_decoding/)、[multimodal generation](./02_model_systems/multimodal_generation/) 和 [diffusion](./02_model_systems/diffusion/)。
 

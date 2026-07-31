@@ -5,7 +5,7 @@
 1. 哪些研究领域/子领域已经有正式 Survey 或 Paper；
 2. 某篇论文是否已经完成 canonical 分析，应当复用、链接或增量更新，而不是重新生成一份。
 
-> 快照日期：2026-07-30。当前共登记 8 个正式 paper domain、78 篇 canonical Paper。
+> 快照日期：2026-07-31。当前共登记 8 个正式 paper domain、78 篇 canonical Paper；另有 1 个处于建设规划阶段、尚无本地 canonical Paper 的领域。
 >
 > 作者机构元数据：`78/78` 已按论文 PDF 标题页、机构编号和角色脚注核验（2026-07-30）。其中 69 篇为个人作者署名，记录首位列名作者、明确共同一作、明确通讯作者/联系人与去重机构；9 篇为机构署名，仅记录署名机构。未披露字段保持“无法核验”，不按邮箱域名或外部履历推断。
 >
@@ -35,6 +35,7 @@
 
 | Domain / 子领域 | 已分析 Paper | 主要覆盖 | 当前汇总入口 | 维护判断 |
 |---|---:|---|---|---|
+| `01_ai_infra/parallelism` | 0 | DP/TP/EP/PP/SP/CP/CFGP、状态切分、通信开销与定制切分 | [Parallel partitioning domain plan](../01_ai_infra/parallelism/surveys/parallel-partitioning-domain-plan.md) | 领域规划已落盘；后续 Paper 先查重、已有系统案例采用 `link-only` |
 | `01_ai_infra/kernel/custom_attn` | 20 | LLM/VLM 与视频 diffusion 的 mask、selector、layout、kernel、量化、并行 | [Video generation sparse attention](../01_ai_infra/kernel/custom_attn/surveys/video-generation-sparse-attention.md) | 已形成跨算法—系统专题精读簇 |
 | `02_model_systems/ICML/2026` | 12 | diffusion/latent LM、speculative decoding、MoE/压缩、3D/多模态 | [ICML 2026 selected papers](../02_model_systems/ICML/2026/surveys/icml-2026-selected-papers.md) | 会议批次已覆盖 |
 | `02_model_systems/diffusion` | 1 | language diffusion 与 AR/diffusion/self-speculative 统一 | [Language diffusion serving](../02_model_systems/diffusion/surveys/language-diffusion-serving.md) | 单篇锚点，可继续扩展 |
