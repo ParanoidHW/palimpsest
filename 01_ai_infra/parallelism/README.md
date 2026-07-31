@@ -7,21 +7,49 @@
 3. 为恢复全局语义需要什么通信；
 4. 在目标 workload 与硬件拓扑下，这个切分是否值得。
 
-当前处于领域建设规划阶段。首版规划已经确定统一分析坐标、文档职责、视觉语言、跨域复用边界和后续实施顺序；基础 Topic、方法 Survey、Evidence 与新增 Paper 将在评审规划后逐步建立。
+首版已完成统一坐标、成本模型、方法体系、选型指南、不规则切分、六篇 canonical Paper、Figure inventory 和跨域采用索引。后续以增量补充 pipeline schedule、FSDP/ZeRO 实现演进、自动切分编译器和 serving 并行为主。
 
 ## 阅读路径
 
-1. [并行切分知识领域规划](surveys/parallel-partitioning-domain-plan.md)：先看领域边界、统一分析框架、计划文档树、呈现方式和实施顺序。
-2. 后续从 `tensor-and-state-coordinate-system` 建立 $B/S/H/D/E/L/G$ 坐标，再进入 DP/TP/EP/PP 与 attention SP/CP。
-3. 需要做系统选型时，进入计划中的 `parallel-strategy-selection`，按 Dense LLM、MoE、长上下文、图像/视频生成和在线 serving 查找。
-4. 遇到不能沿规则 tensor axis 均分的工作负载时，进入计划中的 `irregular-and-workload-aware-partitioning`。
+1. [并行切分方法体系](surveys/parallel-partitioning-taxonomy.md)：DP/ZeRO/TP/PP/EP/SP/CP 的统一总览。
+2. [并行切分坐标系](topics/parallel-coordinate-system.md)：切分对象、placement 与 device mesh。
+3. [通信原语与成本模型](topics/communication-primitives-and-cost-model.md)：collective、bubble、overlap、topology 与 peak buffer。
+4. [并行策略选型](surveys/parallel-strategy-selection.md)：按 Dense LLM、MoE、长上下文、视频生成和 serving 选择。
+5. [不规则与 workload-aware 切分](surveys/irregular-and-workload-aware-partitioning.md)：`o_proj`、CFGP、稀疏/causal CP 和 stateful CP。
+6. [并行切分知识领域规划](surveys/parallel-partitioning-domain-plan.md)：领域组织、视觉语言和建设边界。
 
 ## 文档索引
 
-- Survey：[并行切分知识领域规划](surveys/parallel-partitioning-domain-plan.md)
-- Topic：待规划评审后创建
-- Paper：当前不新建；优先跨域复用已有 canonical Paper
-- Evidence：待后续检索、选篇和 adoption 核验时创建
+### Surveys
+
+- [并行切分方法体系](surveys/parallel-partitioning-taxonomy.md)
+- [并行策略选型](surveys/parallel-strategy-selection.md)
+- [不规则与 workload-aware 切分](surveys/irregular-and-workload-aware-partitioning.md)
+- [并行切分知识领域规划](surveys/parallel-partitioning-domain-plan.md)
+
+### Topics
+
+- [并行切分坐标系](topics/parallel-coordinate-system.md)
+- [通信原语与成本模型](topics/communication-primitives-and-cost-model.md)
+- [序列与上下文并行](topics/sequence-and-context-parallelism.md)
+- [多轴组合与设备网格](topics/composition-and-device-mesh.md)
+
+### Papers
+
+- [Megatron-LM](papers/megatron-lm.md)：tensor parallel
+- [GPipe](papers/gpipe.md)：pipeline parallel
+- [ZeRO](papers/zero.md)：data-parallel state sharding
+- [GShard](papers/gshard.md)：expert parallel 与 sharding annotation
+- [DeepSpeed Ulysses](papers/deepspeed-ulysses.md)：all-to-all sequence parallel
+- [Ring Attention](papers/ring-attention.md)：ring sequence/context parallel
+
+### Evidence
+
+- [选篇与影响力证据](evidence/parallel-partitioning-selection.md)
+- [方法与系统索引](evidence/parallel-partitioning-method-system-index.md)
+- [跨领域采用](evidence/parallel-partitioning-cross-domain-adoption.md)
+- [主张—证据矩阵](evidence/parallel-partitioning-claim-matrix.md)
+- [Figure inventory](evidence/figure-inventory.md)
 
 ## 领域边界
 
@@ -36,6 +64,8 @@
 
 ## 资产说明
 
-- `assets/surveys/parallel-partitioning-domain-plan/`：领域规划 Survey 自有的生成图或整理图。
-- 后续引用的原论文 Figure/Table 仍归对应 canonical Paper，不在本领域复制。
+- `assets/surveys/parallel-partitioning-domain-plan/`：领域规划 Survey 的生成图。
+- `assets/topics/parallel-coordinate-system/`：`$imagegen` 生成并经人工纠错的坐标系教学图。
+- `assets/papers/<slug>/`：六篇 canonical Paper 的 QA-passed 原论文 Figure/Table。
+- 跨域 Paper 资产仍归原领域 owner，本领域只链接。
 - 生成图只用于解释与导航，不能代替论文机制或实验依据。

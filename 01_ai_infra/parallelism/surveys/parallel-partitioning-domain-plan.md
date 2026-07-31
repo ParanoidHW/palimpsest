@@ -4,21 +4,28 @@
 > - 文档类型：Survey
 > - 领域入口：[README](../README.md)
 > - 证据资产：`../assets/surveys/parallel-partitioning-domain-plan/`
+> - 已实现总览：[并行切分方法体系](parallel-partitioning-taxonomy.md)
+> - 已实现选型：[并行策略选型](parallel-strategy-selection.md)
+> - 已实现定制切分：[不规则与 workload-aware 切分](irregular-and-workload-aware-partitioning.md)
 > - 相关文档：[DeepSeek-V4](../../../02_model_systems/llm_foundations/papers/deepseek-v4.md) · [Kimi K3](../../../02_model_systems/llm_foundations/papers/kimi-k3.md) · [SwiftFusion](../../../02_model_systems/multimodal_generation/papers/swiftfusion.md) · [DSV](../../kernel/custom_attn/papers/dsv.md)
 
-> **状态**：领域建设规划，尚不是完整技术 Survey。
+> [!success] 实现状态（2026-07-31）
+> 首版规划已落地：4 个 Topics、3 个方法/选型 Surveys、6 篇新 canonical Papers、5 个 Evidence 文档、12 张原论文 QA 资产和 1 张 `$imagegen` 教学图均已建立。本文继续作为整体设计与增量路线，不再表示“尚未开始”。
+
+> **状态**：领域整体规划与增量路线；技术正文见上方已实现文档。
 > **读者**：需要理解、实现或评审分布式训练与推理方案的算法、系统、框架和 kernel 工程人员。
 > **范围**：DP、TP、EP、PP、sequence/context parallel、Ulysses、Ring、CFGP、状态切分、并行组合，以及非规则或模型定制切分。
 > **证据边界**：本文固定知识结构、分析问题和呈现模板；后续具体公式、通信量、实现约束与性能判断仍需通过论文、官方文档、代码和 profiling 证据补全。
 
 ## 修订信息
 
-- 当前文档版本：`0.1.0`
-- 当前修订 ID：`rev-parallel-partitioning-domain-plan-initial-20260731`
-- 当前修订时间：`2026-07-31T18:00:00+08:00`
+- 当前文档版本：`1.0.0`
+- 当前修订 ID：`rev-parallel-partitioning-domain-plan-implemented-20260731`
+- 当前修订时间：`2026-07-31T23:30:00+08:00`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 对结论影响 |
 |---|---|---|---|---|---|
+| `rev-parallel-partitioning-domain-plan-implemented-20260731` | `1.0.0` | `2026-07-31T23:30:00+08:00` | content-update | 落地方法体系、选型、不规则切分、Topics、Papers、Evidence 与正式资产，并补齐入口链路 | material：规划转为首版可阅读知识领域 |
 | `rev-parallel-partitioning-domain-plan-initial-20260731` | `0.1.0` | `2026-07-31T18:00:00+08:00` | initial | 建立领域边界、文档树、统一分析框架、视觉方案、跨域复用和实施顺序 | planning：尚未形成方法覆盖结论 |
 
 ## 1. 领域定位
