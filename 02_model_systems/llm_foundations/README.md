@@ -15,6 +15,15 @@
 - Paper：[Kimi K3](papers/kimi-k3.md)
 - Evidence：[Figure inventory](evidence/figure-inventory.md)
 
+## Obsidian Properties
+
+本领域 `2/2` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+
+- 共同标签：`paper`、`collection/llm-foundations`、`domain/model-systems`、`status/deep-review`。
+- 每篇另有一项 `topic/*` 和一项 `method/*`，分别表达研究问题与核心方法。
+- 独立属性：`document_type`、`domain`、`collection`、`review_status`、`canonical`，用于 Properties view、Bases 和程序化筛选。
+- 搜索示例：`tag:#collection/llm-foundations` 查看本领域全部精读。
+
 ## 资产说明
 
 - `assets/papers/deepseek-v4/`：DeepSeek-V4 精读正文实际嵌入、带完整 caption 且通过原分辨率 QA 的论文图表。

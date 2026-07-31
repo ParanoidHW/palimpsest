@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/llm-foundations
+  - domain/model-systems
+  - status/deep-review
+  - topic/foundation-models
+  - method/hybrid-attention
+document_type: paper
+domain: llm_foundations
+collection: LLM Foundations
+review_status: deep-review
+canonical: true
+---
+
 # DeepSeek-V4 精读分析
 
 > [!info] 文档关系
@@ -11,16 +26,16 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-deepseek-v4-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.0.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-deepseek-v4-c-initial` / `1.0.0`
+- 当前修订 ID：`rev-deepseek-v4-obsidian-properties-20260731`
+- 当前文档版本：`1.0.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-deepseek-v4-affiliation-backfill-20260730` / `1.0.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-deepseek-v4-c-initial` | `1.0.0` | `2026-07-25T16:18:32+08:00` | `delegated-paper-review-agent` | `initial` | `none` | `none` | 建立完整论文精读、来源/代码核验、视觉清单、证据矩阵和 infra 分析 | C 批隔离精读任务 | 本文；[Figure inventory](../evidence/figure-inventory.md)；来源与公开评审边界 | arXiv `2606.19348` v1、官方检查点/代码、固定 revision 第三方实现 | `material` |
 | `rev-deepseek-v4-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-deepseek-v4-c-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-deepseek-v4-obsidian-properties-20260731` | `1.0.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-deepseek-v4-affiliation-backfill-20260730` / `1.0.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | 全量 canonical Paper 标签补齐 | 文件头 YAML frontmatter | 已验证的 ICML 2026 标签 schema；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 
