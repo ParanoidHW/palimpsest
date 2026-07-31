@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/speculative-decoding
+  - domain/model-systems
+  - status/deep-review
+  - topic/speculative-decoding
+  - method/hyperconnection-alignment
+document_type: paper
+domain: speculative_decoding
+collection: Speculative Decoding
+review_status: deep-review
+canonical: true
+---
+
 # HyperDFlash：面向 Hyper-Connection 的块并行推测解码精读
 
 > [!info] 文档关系
@@ -9,11 +24,10 @@
 
 ## 修订信息
 
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
 
-- 当前修订 ID：`rev-hyperdflash-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-hyperdflash-obsidian-properties-20260731`
+- 当前文档版本：`1.0.2`
 - 修订时间：`2026-07-25T15:41:48+08:00`
 - 修订者：`delegated-paper-review-agent`
 
@@ -21,6 +35,7 @@
 |---|---|---|---|---|---|---|
 | `rev-hyperdflash-initial` | `1.0.0` | `initial` | 无 | 全文、证据清单、图表、代码与 checkpoint 核验 | arXiv v2 PDF/source、DFlash commit `94e4abc…`、DeepSeek-V4-Flash revision `60d8d707…` | material：建立首版完整结论 |
 | `rev-hyperdflash-affiliation-backfill-20260730` | `1.0.1` | `metadata-update` | 无 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-hyperdflash-obsidian-properties-20260731` | `1.0.2` | `metadata-update` | 无 | 无 | 无 | none：不改变论文分析与证据结论 |
 
 ## 0. 来源与图表清单
 

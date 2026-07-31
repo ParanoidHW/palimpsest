@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/speculative-decoding
+  - domain/model-systems
+  - status/deep-review
+  - topic/speculative-decoding
+  - method/semi-autoregressive-drafting
+document_type: paper
+domain: speculative_decoding
+collection: Speculative Decoding
+review_status: deep-review
+canonical: true
+---
+
 # DSpark：置信度调度的半自回归推测解码——隔离精读
 
 > [!info] 文档关系
@@ -11,11 +26,10 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-dspark-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.4.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-dspark-20260728-algorithm-evolution` / `1.4.0`
+- 当前修订 ID：`rev-dspark-obsidian-properties-20260731`
+- 当前文档版本：`1.4.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-dspark-affiliation-backfill-20260730` / `1.4.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -26,6 +40,7 @@
 | `rev-dspark-20260727-two-step-relay-clarification` | 1.3.0 | 2026-07-27T19:00:03+08:00 | Codex | clarification | `rev-dspark-20260727-sglang-adoption` / 1.2.0 / canonical Markdown `0635f1971edd31f6dc63edacf46c62aed422f70ec25489afa9c00a3f78d33f9a` | none | 澄清论文 production adaptation 与 SGLang 两步延迟 Confidence relay 的关系、时序和正确性边界，并修正“高并发前移”的含糊表述 | 原文容易被误读为额外执行两步模型，或把 ZOS 整体 1.5×收益归因给 relay 单项 | §0.1.1、§2.4、§5.2、§5.4、§8.6、§10 | 论文 `infra.tex`；SGLang 官方工程博文与合入 PR #30261 | none：不改变社区接入与吞吐结论，只提高机制和归因表述精度 |
 | `rev-dspark-20260728-algorithm-evolution` | 1.4.0 | 2026-07-28T18:30:00+08:00 | Codex | content-update | `rev-dspark-20260727-two-step-relay-clarification` / 1.3.0 / canonical Markdown `303b7d9653fe8943b91ac5d84de474a8969a4799d9df3e161b14d1c0d7d3155a` | none | 增补 DeLS-Spec 对 DSpark 发布资产的直接算法增量，并把 loss、tree、feature fusion、动态融合等组合拆成可证伪实验假设 | 用户要求独立算法工作单独交付，其他方案先落入 DSpark 交付件阐释 | §6、§10.3、§11–12 | DeLS-Spec arXiv:2607.07409v1、官方源码/代码、Table 2；相关工作机制边界 | material：确认一个发布后直接算法增量，同时阻止把前置工作或未实验组合误写成已验证演进 |
 | `rev-dspark-affiliation-backfill-20260730` | `1.4.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-dspark-20260728-algorithm-evolution` / `1.4.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-dspark-obsidian-properties-20260731` | `1.4.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-dspark-affiliation-backfill-20260730` / `1.4.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | 全量 canonical Paper 标签补齐 | 文件头 YAML frontmatter | 已验证的 ICML 2026 标签 schema；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 

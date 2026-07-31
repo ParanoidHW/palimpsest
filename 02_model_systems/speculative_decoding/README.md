@@ -17,6 +17,15 @@
 - Evidence：[Figure inventory](evidence/figure-inventory.md)
 - Supplement：[DFlash draft-model acceptance risk](supplements/dflash-acceptance-risk.html)
 
+## Obsidian Properties
+
+本领域 `7/7` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+
+- 共同标签：`paper`、`collection/speculative-decoding`、`domain/model-systems`、`status/deep-review`。
+- 每篇另有一项 `topic/*` 和一项 `method/*`，分别表达研究问题与 draft/verification 方法。
+- 独立属性：`document_type`、`domain`、`collection`、`review_status`、`canonical`，用于 Properties view、Bases 和程序化筛选。
+- 搜索示例：`tag:#collection/speculative-decoding` 查看本领域全部精读；`tag:#topic/block-diffusion-drafting` 查看 block diffusion 分支。
+
 ## 资产说明
 
 - `assets/surveys/evolution/` 保存时间线汇总图。
