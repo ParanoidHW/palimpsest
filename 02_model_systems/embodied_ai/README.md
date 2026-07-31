@@ -47,6 +47,15 @@
 - [MotuBrain](papers/motubrain.md)：统一视频-动作主干与 action-only 优化。
 - [WAM4D](papers/wam4d.md)：spatial register、因果可见性和训练期 4D 几何监督。
 
+## Obsidian Properties
+
+本领域 `13/13` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+
+- 共同标签：`paper`、`collection/embodied-ai`、`domain/model-systems`、`status/deep-review`。
+- 每篇另有一项 `topic/*` 和一项 `method/*`，分别表达研究问题与核心方法。
+- 独立属性：`document_type`、`domain`、`collection`、`review_status`、`canonical`，用于 Properties view、Bases 和程序化筛选。
+- 搜索示例：`tag:#collection/embodied-ai` 查看本领域全部精读；`tag:#topic/vision-language-action` 聚合 VLA 论文。
+
 ## 资产说明
 
 原论文 Figure/Table 的唯一 canonical owner 位于 `assets/papers/<paper-slug>/`。PDF、源码、整页渲染、裁剪过程、contact sheet、日志和原始一次性交付均保留在审计区，不作为正式知识入口。

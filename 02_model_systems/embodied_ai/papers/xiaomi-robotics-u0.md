@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/embodied-ai
+  - domain/model-systems
+  - status/deep-review
+  - topic/world-action-models
+  - method/synthetic-data-generation
+document_type: paper
+domain: embodied_ai
+collection: Embodied AI
+review_status: deep-review
+canonical: true
+---
+
 # Xiaomi-Robotics-U0：以世界基础模型统一具身数据合成
 
 > [!info] 文档关系
@@ -11,16 +26,16 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-xiaomi-robotics-u0-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.0.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：无（initial）
+- 当前修订 ID：`rev-xiaomi-robotics-u0-obsidian-properties-20260731`
+- 当前文档版本：`1.0.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-xiaomi-robotics-u0-affiliation-backfill-20260730` / `1.0.1`
 
 | 修订 ID | 版本 | 时间 | 修订者 | 类型 | 变更摘要 | 对结论影响 |
 |---|---|---|---|---|---|---|
 | `rev-initial-xiaomi-robotics-u0-20260727` | `1.0.0` | `2026-07-27T23:30:00+08:00` | Codex | initial | 基于 arXiv v1、官方源码、项目页、固定 commit 代码与原图 QA 建立首版审计式解读 | material |
 | `rev-xiaomi-robotics-u0-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | 补充作者—机构元数据与角色证据边界 | none：不改变方法、实验与归因结论 |
+| `rev-xiaomi-robotics-u0-obsidian-properties-20260731` | `1.0.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | 增加 Obsidian YAML Properties 与层级标签 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料、术语与符号
 
