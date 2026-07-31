@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/multimodal-generation
+  - domain/model-systems
+  - status/deep-review
+  - topic/image-generation
+  - method/latent-diffusion
+document_type: paper
+domain: multimodal_generation
+collection: Multimodal Generation
+review_status: deep-review
+canonical: true
+---
+
 # High-Resolution Image Synthesis with Latent Diffusion Models 精读分析
 
 > [!info] 文档关系
@@ -11,17 +26,17 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-ldm-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.1.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-ldm-pdf-evidence-20260725` / `1.1.0`
+- 当前修订 ID：`rev-ldm-obsidian-properties-20260731`
+- 当前文档版本：`1.1.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-ldm-affiliation-backfill-20260730` / `1.1.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-ldm-isolated-initial-20260725` | `1.0.0` | `2026-07-25T21:20:16+08:00` | `paper-deep-review agent` | `initial` | `none` | `none` | 创建 LDM review delivery；复核已有图表和可追溯声明，显式分类缺失材料。 | 补齐 canonical Paper 交付标准 | 本文、[Figure inventory](../evidence/figure-inventory.md) | 既有资料与两张 retained crops | `material` |
 | `rev-ldm-pdf-evidence-20260725` | `1.1.0` | `2026-07-25T21:35:41+08:00` | `paper-deep-review agent` | `evidence-update` | `rev-ldm-isolated-initial-20260725` / `1.0.0` | `none` | 纳入官方 PDF，重做全文提取、Figure 2/Table 18 裁剪、caption 与 bbox QA，并解除 page-provenance 阻塞。 | 补齐原始页面证据 | 资料索引、术语/证据定位、Sections 2–10、[Figure inventory](../evidence/figure-inventory.md) | 官方 PDF 与两张 QA crop | `material` |
 | `rev-ldm-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-ldm-pdf-evidence-20260725` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-ldm-obsidian-properties-20260731` | `1.1.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-ldm-affiliation-backfill-20260730` / `1.1.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | 全量 canonical Paper 标签补齐 | 文件头 YAML frontmatter | 已验证的 ICML 2026 标签 schema；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 

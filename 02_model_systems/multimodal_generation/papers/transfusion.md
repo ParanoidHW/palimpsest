@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/multimodal-generation
+  - domain/model-systems
+  - status/deep-review
+  - topic/unified-multimodal-models
+  - method/autoregressive-diffusion
+document_type: paper
+domain: multimodal_generation
+collection: Multimodal Generation
+review_status: deep-review
+canonical: true
+---
+
 # Transfusion: Predict the Next Token and Diffuse Images with One Multi-Modal Model 精读审计
 
 > [!info] 文档关系
@@ -11,17 +26,17 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-transfusion-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.1.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-delivery-remediation-20260725-transfusion` / `1.1.0`
+- 当前修订 ID：`rev-transfusion-obsidian-properties-20260731`
+- 当前文档版本：`1.1.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-transfusion-affiliation-backfill-20260730` / `1.1.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-delivery-remediation-20260725-transfusion` | `1.1.0` | `2026-07-25T18:00:00+08:00` | `paper-review-agent + parent audit` | corrective | `rev-initial-20260712-transfusion` | 旧稿的来源状态、图注与证据边界不一致 | 以官方 PDF 重审全文，补齐术语、符号、动机闭环、设计依据、claim matrix、公式、结果归因、Infra、局限与三张原分辨率视觉 QA | non-ICML delivery remediation | 全文；[Figure inventory](../evidence/figure-inventory.md) | [arXiv:2408.11039](https://arxiv.org/abs/2408.11039)、Figure 4、Table 5、Table 8 | material |
 | `rev-initial-20260712-transfusion` | `1.0.0` | `2026-07-12T17:44:02+08:00` | `review_transfusion` | initial | 无 | 无 | 首次建立论文、视觉、目标函数与 mixed-serving 审阅 | initial delivery | 全文 | arXiv PDF 与论文源码 | superseded |
 | `rev-transfusion-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-delivery-remediation-20260725-transfusion` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-transfusion-obsidian-properties-20260731` | `1.1.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-transfusion-affiliation-backfill-20260730` / `1.1.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | 全量 canonical Paper 标签补齐 | 文件头 YAML frontmatter | 已验证的 ICML 2026 标签 schema；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 

@@ -27,6 +27,15 @@
 - Word 交付：[Diffusion 多模态生成与 AI Infra](supplements/multimodal-diffusion-infra.docx)
 - Evidence：[Figure inventory](evidence/figure-inventory.md)
 
+## Obsidian Properties
+
+本领域 `19/19` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+
+- 共同标签：`paper`、`collection/multimodal-generation`、`domain/model-systems`、`status/deep-review`。
+- 每篇另有一项 `topic/*` 和一项 `method/*`，分别表达生成任务与核心方法。
+- 独立属性：`document_type`、`domain`、`collection`、`review_status`、`canonical`，用于 Properties view、Bases 和程序化筛选。
+- 搜索示例：`tag:#collection/multimodal-generation` 查看本领域全部精读；`tag:#topic/video-generation` 聚合视频生成论文。
+
 ## 资产说明
 
 - `assets/topics/model-pipeline/`：多模态生成管线草图。

@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/multimodal-generation
+  - domain/model-systems
+  - status/deep-review
+  - topic/image-generation
+  - method/pixel-space-diffusion
+document_type: paper
+domain: multimodal_generation
+collection: Multimodal Generation
+review_status: deep-review
+canonical: true
+---
+
 # PixelDiT - Pixel Diffusion Transformers for Image Generation 独立精读
 
 > [!info] 文档关系
@@ -11,17 +26,17 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-pixeldit-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.1.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-pixeldit-20260725-pdf-recovery` / `1.1.0`
+- 当前修订 ID：`rev-pixeldit-obsidian-properties-20260731`
+- 当前文档版本：`1.1.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-pixeldit-affiliation-backfill-20260730` / `1.1.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | rev-pixeldit-20260725-initial | 1.0.0 | 2026-07-25T21:38:19+08:00 | `paper-deep-review agent` | initial | 无 | 无 | 首次交付：来源边界、视觉 QA、动机闭环、组件证据与 infra | 补齐 canonical Paper 交付标准 | 本文、[Figure inventory](../evidence/figure-inventory.md) | 既有精读与资产 | material |
 | rev-pixeldit-20260725-pdf-recovery | 1.1.0 | 2026-07-25T21:52:59+08:00 | `paper-deep-review agent` | evidence-update | `rev-pixeldit-20260725-initial` / `1.0.0` | 无 | 恢复官方 PDF；纠正 Figure 2 physical page；按原页重裁 Figure 2 与 Table 5 | 补齐原始页面证据 | 资料索引、[Figure inventory](../evidence/figure-inventory.md)与来源边界 | 官方 PDF SHA-256 `72de48b4...59b8293`；180 DPI QA | minor |
 | `rev-pixeldit-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-pixeldit-20260725-pdf-recovery` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-pixeldit-obsidian-properties-20260731` | `1.1.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-pixeldit-affiliation-backfill-20260730` / `1.1.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | 全量 canonical Paper 标签补齐 | 文件头 YAML frontmatter | 已验证的 ICML 2026 标签 schema；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 

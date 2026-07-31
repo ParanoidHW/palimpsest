@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/multimodal-generation
+  - domain/model-systems
+  - status/deep-review
+  - topic/long-video-generation
+  - method/chunk-autoregressive-diffusion
+document_type: paper
+domain: multimodal_generation
+collection: Multimodal Generation
+review_status: deep-review
+canonical: true
+---
+
 # MAGI-1: Autoregressive Video Generation at Scale 深度评审
 
 > [!info] 文档关系
@@ -12,16 +27,16 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-magi-1-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.0.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-magi-1-m3-initial` / `1.0.0`
+- 当前修订 ID：`rev-magi-1-obsidian-properties-20260731`
+- 当前文档版本：`1.0.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-magi-1-affiliation-backfill-20260730` / `1.0.1`
 
 | 修订 ID | 版本 | 时间 | 修订者 | 类型 | 替代修订 | 摘要 | 对结论影响 |
 |---|---|---|---|---|---|---|---|
 | `rev-magi-1-m3-initial` | `1.0.0` | 2026-07-25T21:45:00+08:00 | `paper-deep-review agent` | initial | 无 | 从官方 PDF、代码和视觉材料重建完整审阅，补齐论文级问题—方案闭环、证据矩阵与发布验证 | material |
 | `rev-magi-1-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-magi-1-m3-initial` / `1.0.0` | 无 | none：不改变方法、实验与归因结论 |
+| `rev-magi-1-obsidian-properties-20260731` | `1.0.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-magi-1-affiliation-backfill-20260730` / `1.0.1` | 无 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与证据索引
 
