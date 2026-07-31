@@ -33,6 +33,29 @@ def add(errors: list[str], condition: bool, message: str) -> None:
         errors.append(message)
 
 
+def parse_frontmatter_tags(markdown: str) -> list[str] | None:
+    """Read the required block-style tags list from leading YAML frontmatter."""
+    match = re.match(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|$)", markdown, re.DOTALL)
+    if not match:
+        return None
+    tags: list[str] = []
+    in_tags = False
+    for line in match.group(1).splitlines():
+        if re.fullmatch(r"tags:\s*", line):
+            in_tags = True
+            continue
+        if not in_tags:
+            continue
+        item = re.fullmatch(r"\s+-\s+(.+?)\s*", line)
+        if not item:
+            break
+        value = item.group(1)
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+        tags.append(value)
+    return tags
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
@@ -76,6 +99,26 @@ def main() -> int:
     analysis_path = root / "analysis.md"
     analysis = analysis_path.read_text(encoding="utf-8") if analysis_path.exists() else ""
     add(errors, bool(analysis), "analysis.md is missing or empty")
+
+    manifest_tags = manifest.get("paper", {}).get("tags", [])
+    frontmatter_tags = parse_frontmatter_tags(analysis)
+    add(errors, frontmatter_tags is not None,
+        "paper_tags: analysis.md must start with YAML frontmatter")
+    if frontmatter_tags is not None:
+        add(errors, len(frontmatter_tags) == 6 and len(set(frontmatter_tags)) == 6,
+            "paper_tags: frontmatter must contain exactly six unique tags")
+        add(errors, set(frontmatter_tags) == set(manifest_tags),
+            "paper_tags: analysis.md frontmatter and manifest paper.tags differ")
+        dimensions = {
+            "paper": sum(tag == "paper" for tag in frontmatter_tags),
+            "collection": sum(tag.startswith("collection/") for tag in frontmatter_tags),
+            "domain": sum(tag.startswith("domain/") for tag in frontmatter_tags),
+            "status": sum(tag == "status/deep-review" for tag in frontmatter_tags),
+            "topic": sum(tag.startswith("topic/") for tag in frontmatter_tags),
+            "method": sum(tag.startswith("method/") for tag in frontmatter_tags),
+        }
+        add(errors, all(count == 1 for count in dimensions.values()),
+            f"paper_tags: invalid required dimensions {dimensions}")
 
     authorship = manifest.get("paper", {}).get("authorship_and_affiliations", {})
     institutional_authors = authorship.get("institutional_authors", [])

@@ -9,6 +9,7 @@ Load `$research-knowledge-publisher` and resolve its skill-owned organization pl
 - process root and task/paper workspace;
 - stable paper identity and slug;
 - candidate canonical Paper path and owning domain;
+- required `collection/*` and `domain/*` Paper tags from that owner, plus evidence-grounded `topic/*` and `method/*` values;
 - existing Paper/version, parent Survey or Evidence index, and domain entry;
 - formal Paper asset path;
 - organization/default-profile/repository-profile/policy hashes.
@@ -29,6 +30,7 @@ The review workspace owns:
 The formal knowledge base owns only:
 
 - the stable canonical Paper Markdown projection;
+- the validated six-tag Paper metadata set, preserved from the review unless promotion resolves a previously provisional owner;
 - QA-passed original-paper assets under the Paper owner;
 - figure inventory/evidence entries required by repository policy;
 - links from domain entry and parent Survey/Index, plus Paper backlinks.
@@ -64,6 +66,7 @@ The parent Survey agent owns promotion planning, formal edits, inventory merging
 - Review structural and semantic validation passed, or limitations are explicitly blocked.
 - Canonical owner and operation are explicit.
 - Formal Paper is a stable projection, not a copy of the entire process workspace.
+- Formal Paper tags contain exactly the required six dimensions and remain consistent with the resolved canonical owner; an ownership-driven tag change is recorded as publication metadata rather than silently rewriting the frozen review.
 - Every promoted original-paper image passed caption, crop, inventory, and individual-resolution QA.
 - Domain entry and parent Survey/Index link the Paper; Paper links back as required.
 - Formal files use resolvable relative links and tracked assets.

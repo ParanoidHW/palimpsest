@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agent-wushu.local/schemas/paper-deep-review-deliverable-1.6.0.json",
+  "$id": "https://agent-wushu.local/schemas/paper-deep-review-deliverable-1.7.0.json",
   "title": "Paper Deep Review Deliverable Manifest",
   "description": "Machine-readable manifest for one paper-deep-review delivery.",
   "type": "object",
@@ -24,18 +24,19 @@
     "limitations"
   ],
   "properties": {
-    "schema_version": { "const": "1.6.0" },
+    "schema_version": { "const": "1.7.0" },
     "deliverable_type": { "const": "paper-deep-review" },
     "invocation_mode": { "enum": ["standalone", "delegated"] },
     "paper": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["paper_key", "title", "venue_and_year", "paper_url", "authorship_and_affiliations"],
+      "required": ["paper_key", "title", "venue_and_year", "paper_url", "tags", "authorship_and_affiliations"],
       "properties": {
         "paper_key": { "type": "string", "minLength": 1 },
         "title": { "type": "string", "minLength": 1 },
         "venue_and_year": { "type": "string", "minLength": 1 },
         "paper_url": { "type": ["string", "null"], "format": "uri" },
+        "tags": { "$ref": "#/$defs/paperTags" },
         "authorship_and_affiliations": { "$ref": "#/$defs/authorshipAndAffiliations" }
       }
     },
@@ -206,6 +207,7 @@
               "checks": {
                 "properties": {
                   "artifact_paths_and_hashes": { "const": true },
+                  "paper_tags_frontmatter_consistency": { "const": true },
                   "authorship_affiliation_consistency": { "const": true },
                   "revision_section_matches_manifest": { "const": true },
                   "revision_history_consistency": { "const": true },
@@ -435,6 +437,24 @@
     }
   ],
   "$defs": {
+    "paperTags": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(paper|collection/[a-z0-9][a-z0-9-]*|domain/[a-z0-9][a-z0-9-]*|status/deep-review|topic/[a-z0-9][a-z0-9-]*|method/[a-z0-9][a-z0-9-]*)$"
+      },
+      "allOf": [
+        { "contains": { "const": "paper" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "pattern": "^collection/" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "pattern": "^domain/" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "const": "status/deep-review" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "pattern": "^topic/" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "pattern": "^method/" }, "minContains": 1, "maxContains": 1 }
+      ]
+    },
     "authorAffiliationMapping": {
       "type": "object",
       "additionalProperties": false,
@@ -652,6 +672,7 @@
           "additionalProperties": false,
           "required": [
             "artifact_paths_and_hashes",
+            "paper_tags_frontmatter_consistency",
             "authorship_affiliation_consistency",
             "revision_section_matches_manifest",
             "revision_history_consistency",
@@ -674,6 +695,7 @@
           ],
           "properties": {
             "artifact_paths_and_hashes": { "type": "boolean" },
+            "paper_tags_frontmatter_consistency": { "type": "boolean" },
             "authorship_affiliation_consistency": { "type": "boolean" },
             "revision_section_matches_manifest": { "type": "boolean" },
             "revision_history_consistency": { "type": "boolean" },

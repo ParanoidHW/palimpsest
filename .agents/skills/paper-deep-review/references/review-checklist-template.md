@@ -28,6 +28,7 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [pending] W8 Code/config: inspect relevant architecture, loss, data, evaluation, runtime, checkpoint, and serving paths, or classify unavailable evidence.
 - [pending] W9 Gain attribution: separate direct, indirect, confounded, and unsupported component-level attribution.
 - [pending] W10 Report: write complete `analysis.md` from `references/markdown-template.md` with inline evidence visuals and limitations.
+- [pending] W10 Paper tags: add exactly six unique YAML frontmatter tags—`paper`, one `collection/*`, one `domain/*`, `status/deep-review`, one `topic/*`, and one `method/*`—and keep the set identical to `deliverable_manifest.json` `paper.tags`.
 - [pending] W10 Revision information: add/update the centralized revision section; preserve prior history, increment version/revision ID for changed deliveries, and bind non-initial revisions to the previous manifest SHA-256.
 - [pending] W11 Algorithm overview: use a reader-usable original Figure or generate and verify/link an explanatory PNG; try `$openrouter-icu-image` with `gpt-image-2`, then the installed image-generation fallback, record provenance, and inspect the final image at full resolution.
 - [pending] D1 Delegated handoff: after W11, write the preliminary contract-compliant `agent_handoff.md`, or mark standalone invocation with reason; freeze it before final deliverable hashing.
@@ -63,6 +64,7 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [pending] Q21 “现有方案为何不够” contains concrete scenarios for central failure modes, prefers paper examples when available, and explains why a simple patch misses the root cause.
 - [pending] Q22 The first paragraph, prior-solution section, algorithm overview, and formula cards pass the one-glance comprehension test in `references/readability-contract.md`.
 - [pending] Q23 Authorship and affiliation metadata in `analysis.md` and `deliverable_manifest.json` agree: person-authored work has explicit first/co-first and corresponding-author affiliation mappings plus a deduplicated remaining-author institution list; institution-authored work records only institutional authors and marks personal roles not applicable; source evidence is explicit and no identity or affiliation is inferred.
+- [pending] Q24 Paper tags are present in leading YAML, contain exactly the six required dimensions with no duplicates or extras, use evidenced topic/method values and resolved/proposed canonical ownership, and match the manifest exactly.
 
 ## Final Classification
 

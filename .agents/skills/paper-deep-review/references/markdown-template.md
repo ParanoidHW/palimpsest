@@ -3,9 +3,21 @@
 Use this template for Chinese paper-review deliverables. Adapt headings when the user gives a stricter format, but preserve the evidence discipline.
 
 ```markdown
+---
+tags:
+  - paper
+  - collection/<canonical-collection-slug>
+  - domain/<top-level-domain-slug>
+  - status/deep-review
+  - topic/<paper-topic-slug>
+  - method/<core-method-slug>
+---
+
 # <Paper Title> 精读分析
 
 > 资料状态：说明 PDF/LaTeX/source/code 是否存在；说明图片来自原始素材还是 PDF 截图裁剪。
+
+文件头六项标签是交付 schema 的一部分，必须与 `deliverable_manifest.json` 的 `paper.tags` 完全一致。`collection/*` 和 `domain/*` 服从 canonical owner；尚未发布时填写稳定的拟议归属。`topic/*` 描述研究问题，`method/*` 描述论文有证据支持的核心方法；不要把候选题单或未经核验的 venue 状态写成研究标签。
 
 ## 修订信息
 
