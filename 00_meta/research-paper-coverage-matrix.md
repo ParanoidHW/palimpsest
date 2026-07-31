@@ -5,11 +5,11 @@
 1. 哪些研究领域/子领域已经有正式 Survey 或 Paper；
 2. 某篇论文是否已经完成 canonical 分析，应当复用、链接或增量更新，而不是重新生成一份。
 
-> 快照日期：2026-07-31。当前共登记 8 个正式 paper domain、78 篇 canonical Paper；另有 1 个处于建设规划阶段、尚无本地 canonical Paper 的领域。
+> 快照日期：2026-07-31。当前共登记 9 个正式 paper domain、84 篇 canonical Paper。
 >
-> 作者机构元数据：`78/78` 已按论文 PDF 标题页、机构编号和角色脚注核验（2026-07-30）。其中 69 篇为个人作者署名，记录首位列名作者、明确共同一作、明确通讯作者/联系人与去重机构；9 篇为机构署名，仅记录署名机构。未披露字段保持“无法核验”，不按邮箱域名或外部履历推断。
+> 作者机构元数据：`84/84` 已按论文 PDF 标题页、机构编号和角色脚注核验（2026-07-31）。其中 75 篇为个人作者署名，记录首位列名作者、明确共同一作、明确通讯作者/联系人与去重机构；9 篇为机构署名，仅记录署名机构。未披露字段保持“无法核验”，不按邮箱域名或外部履历推断。
 >
-> Obsidian 元数据：`78/78` canonical Paper 已加入统一 YAML Properties（2026-07-31）。每篇均有 `paper`、collection、domain、`status/deep-review` 四项共同层级标签，以及各一项 `topic/*`、`method/*`；独立属性保留文档类型、canonical 状态和集合归属。12 篇 ICML 2026 Paper 先行试验，确认 schema 后推广到其余 66 篇。
+> Obsidian 元数据：`84/84` canonical Paper 已加入统一 YAML Properties（2026-07-31）。每篇均有 `paper`、collection、domain、`status/deep-review` 四项共同层级标签，以及各一项 `topic/*`、`method/*`；独立属性保留文档类型、canonical 状态和集合归属。12 篇 ICML 2026 Paper 先行试验，确认 schema 后推广到其余 Paper。
 
 ## 使用规则
 
@@ -35,7 +35,7 @@
 
 | Domain / 子领域 | 已分析 Paper | 主要覆盖 | 当前汇总入口 | 维护判断 |
 |---|---:|---|---|---|
-| `01_ai_infra/parallelism` | 0 | DP/TP/EP/PP/SP/CP/CFGP、状态切分、通信开销与定制切分 | [Parallel partitioning domain plan](../01_ai_infra/parallelism/surveys/parallel-partitioning-domain-plan.md) | 领域规划已落盘；后续 Paper 先查重、已有系统案例采用 `link-only` |
+| `01_ai_infra/parallelism` | 6 | DP/TP/EP/PP/SP/CP/CFGP、状态切分、通信开销与定制切分 | [Parallel partitioning taxonomy](../01_ai_infra/parallelism/surveys/parallel-partitioning-taxonomy.md) | 首版方法体系、选型、定制切分与六篇基础 Paper 已落盘；跨域系统案例采用 `link-only` |
 | `01_ai_infra/kernel/custom_attn` | 20 | LLM/VLM 与视频 diffusion 的 mask、selector、layout、kernel、量化、并行 | [Video generation sparse attention](../01_ai_infra/kernel/custom_attn/surveys/video-generation-sparse-attention.md) | 已形成跨算法—系统专题精读簇 |
 | `02_model_systems/ICML/2026` | 12 | diffusion/latent LM、speculative decoding、MoE/压缩、3D/多模态 | [ICML 2026 selected papers](../02_model_systems/ICML/2026/surveys/icml-2026-selected-papers.md) | 会议批次已覆盖 |
 | `02_model_systems/diffusion` | 1 | language diffusion 与 AR/diffusion/self-speculative 统一 | [Language diffusion serving](../02_model_systems/diffusion/surveys/language-diffusion-serving.md) | 单篇锚点，可继续扩展 |
@@ -46,6 +46,17 @@
 | `03_agentic_workflows/kernel_agents` | 4 | LLM 自动 kernel 生成、Ascend/NPU、test-time scaling | [Paper index](../03_agentic_workflows/kernel_agents/evidence/paper-index.md) | 当前为 Paper note，适合按需补全 |
 
 ## Paper 明细
+
+### Parallelism（6）
+
+| Paper | 状态 | Canonical |
+|---|---|---|
+| Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism（arXiv:1909.08053） | 深度精读 | [megatron-lm](../01_ai_infra/parallelism/papers/megatron-lm.md) |
+| GPipe: Efficient Training of Giant Neural Networks using Pipeline Parallelism（arXiv:1811.06965） | 深度精读；代码快照受限 | [gpipe](../01_ai_infra/parallelism/papers/gpipe.md) |
+| ZeRO: Memory Optimizations Toward Training Trillion Parameter Models（arXiv:1910.02054） | 深度精读；现代代码快照受限 | [zero](../01_ai_infra/parallelism/papers/zero.md) |
+| GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding（arXiv:2006.16668） | 深度精读；OpenReview 受限 | [gshard](../01_ai_infra/parallelism/papers/gshard.md) |
+| DeepSpeed Ulysses: System Optimizations for Enabling Training of Extreme Long Sequence Transformer Models（arXiv:2309.14509） | 深度精读；复合收益归因受限 | [deepspeed-ulysses](../01_ai_infra/parallelism/papers/deepspeed-ulysses.md) |
+| Ring Attention with Blockwise Transformers for Near-Infinite Context（arXiv:2310.01889） | 深度精读；OpenReview 受限 | [ring-attention](../01_ai_infra/parallelism/papers/ring-attention.md) |
 
 ### Custom attention（20）
 
