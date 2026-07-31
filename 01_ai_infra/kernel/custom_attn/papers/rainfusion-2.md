@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/custom-attention
+  - domain/ai-infra
+  - status/deep-review
+  - topic/video-generation
+  - method/block-sparse-attention
+document_type: paper
+domain: custom_attn
+collection: Custom Attention
+review_status: deep-review
+canonical: true
+---
+
 # RainFusion2.0: Temporal-Spatial Awareness and Hardware-Efficient Block-wise Sparse Attention 精读分析
 
 > [!info] 文档关系
@@ -11,16 +26,16 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-rainfusion-2-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.0.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-20260730-initial` / `1.0.0`
+- 当前修订 ID：`rev-rainfusion-2-obsidian-properties-20260731`
+- 当前文档版本：`1.0.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-rainfusion-2-affiliation-backfill-20260730` / `1.0.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-20260730-initial` | `1.0.0` | `2026-07-30T14:51:33+08:00` | `review_rainfusion2` | `initial` | 无 | 无 | 首次独立精读、图表 QA、RainFusion v1 关系核验与系统证据审计 | `过程任务包` 初始交付要求 | 全文与全部本地证据 | arXiv:2512.24086v2、LaTeX、arXiv:2505.21036 摘要页 | 无前版可比较 |
 | `rev-rainfusion-2-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-20260730-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-rainfusion-2-obsidian-properties-20260731` | `1.0.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-rainfusion-2-affiliation-backfill-20260730` / `1.0.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | 全量 canonical Paper 标签补齐 | 文件头 YAML frontmatter | 已验证的 ICML 2026 标签 schema；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 

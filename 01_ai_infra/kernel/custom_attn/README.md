@@ -11,6 +11,15 @@
 4. 按 Survey 章节下钻到对应 Paper；图表来源与 QA 见 [Figure inventory](evidence/figure-inventory.md)。
 5. [LazyLLM background](topics/lazyllm-background.md) 仅作 token pruning 背景，不属于十篇核心工作。
 
+## Obsidian Properties
+
+本领域 `20/20` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+
+- 共同标签：`paper`、`collection/custom-attention`、`domain/ai-infra`、`status/deep-review`。
+- 每篇另有一项 `topic/*` 和一项 `method/*`，分别表达研究问题与核心方法。
+- 独立属性：`document_type`、`domain`、`collection`、`review_status`、`canonical`，用于 Properties view、Bases 和程序化筛选。
+- 搜索示例：`tag:#collection/custom-attention` 查看本领域全部精读；`tag:#topic/video-generation` 聚合视频生成论文。
+
 ## 文档索引
 
 - Survey：[Video generation sparse attention](surveys/video-generation-sparse-attention.md)，[Multimodal custom attention](surveys/multimodal-custom-attention.md)

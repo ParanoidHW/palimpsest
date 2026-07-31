@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/custom-attention
+  - domain/ai-infra
+  - status/deep-review
+  - topic/vision-language-models
+  - method/token-selection
+document_type: paper
+domain: custom_attn
+collection: Custom Attention
+review_status: deep-review
+canonical: true
+---
+
 # FlexAttention for Efficient High-Resolution Vision-Language Models 精读分析
 
 > [!info] 文档关系
@@ -11,16 +26,16 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-flexattention-vlm-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.0.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-flexattention-vlm-migration-20260725` / `1.0.0`
+- 当前修订 ID：`rev-flexattention-vlm-obsidian-properties-20260731`
+- 当前文档版本：`1.0.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-flexattention-vlm-affiliation-backfill-20260730` / `1.0.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-flexattention-vlm-migration-20260725` | `1.0.0` | `2026-07-25T13:05:00+08:00` | `delegated-paper-review-agent` | migration | legacy manifest `7e5f1dcfb018ace593a1972092a4827cfe2b254b1b7a67fe474353b847138260`；旧 version/revision ID 不存在 | 无 unresolved migration；legacy snapshot 从 remediation 开始时的 Git-tracked canonical Paper 恢复 | 建立完整的论文级问题—方案闭环、组件依据、claim matrix、源码/代码/图表 QA、infra 与交付冻结信息 | 迁移到 `paper-deep-review` 1.4.0 delegated 契约，并修正旧 Fig. 2 截断与训练/推理实现边界 | `analysis.md` 全文；[Figure inventory](../evidence/figure-inventory.md)；`review_checklist.md` | ECCV/arXiv PDF 与 LaTeX；官方代码固定 commit；四图逐张原分辨率 QA | material：核心结论方向不变，但把 dtype、mask/gather 阶段和可归因边界改为证据一致表述 |
 | `rev-flexattention-vlm-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-flexattention-vlm-migration-20260725` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-flexattention-vlm-obsidian-properties-20260731` | `1.0.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-flexattention-vlm-affiliation-backfill-20260730` / `1.0.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | 全量 canonical Paper 标签补齐 | 文件头 YAML frontmatter | 已验证的 ICML 2026 标签 schema；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 

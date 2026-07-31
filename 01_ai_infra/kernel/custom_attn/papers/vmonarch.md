@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/custom-attention
+  - domain/ai-infra
+  - status/deep-review
+  - topic/video-diffusion
+  - method/monarch-attention
+document_type: paper
+domain: custom_attn
+collection: Custom Attention
+review_status: deep-review
+canonical: true
+---
+
 # VMonarch：用 Monarch 结构化矩阵加速视频扩散 Transformer
 
 > [!info] 文档关系
@@ -11,16 +26,17 @@ VMonarch 的关键价值不是“再做一次 90% 稀疏”，而是把视频注
 
 ## 修订信息
 
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
 
-- 当前文档版本：`1.0.1`
-- 当前修订 ID：`rev-vmonarch-affiliation-backfill-20260730`
+- 当前文档版本：`1.0.2`
+- 当前修订 ID：`rev-vmonarch-obsidian-properties-20260731`
 - 修订模式：`initial`
 
 | Revision ID | 版本 | 时间 | 类型 | Supersedes | 变更位置 | 原因/证据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|
 | `rev-vmonarch-r1` | `1.0.0` | `2026-07-30T00:00:00+08:00` | `initial` | 不适用 | 全文与全部本地证据资产 | 基于 arXiv:2601.22275v1 PDF 的首次隔离精读 | 建立初始结论；source/code/OpenReview 未能外部核验 |
 | `rev-vmonarch-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `metadata-update` | `rev-vmonarch-r1` / `1.0.0` | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-vmonarch-obsidian-properties-20260731` | `1.0.2` | `2026-07-31T10:00:00+08:00` | `metadata-update` | `rev-vmonarch-affiliation-backfill-20260730` / `1.0.1` | 无 | 无 | none：不改变论文分析与证据结论 |
 
 ## 资料与图表清单
 

@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/custom-attention
+  - domain/ai-infra
+  - status/deep-review
+  - topic/video-generation
+  - method/sliding-tile-attention
+document_type: paper
+domain: custom_attn
+collection: Custom Attention
+review_status: deep-review
+canonical: true
+---
+
 # Fast Video Generation with Sliding Tile Attention 精读分析
 
 > [!info] 文档关系
@@ -13,16 +28,16 @@ STA 的关键不是“又一种稀疏 mask”，而是把滑窗单位从单 toke
 
 ## 修订信息
 
-- 当前修订 ID：`rev-sliding-tile-attention-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.0.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-vgsa-003-initial` / `1.0.0`
+- 当前修订 ID：`rev-sliding-tile-attention-obsidian-properties-20260731`
+- 当前文档版本：`1.0.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-sliding-tile-attention-affiliation-backfill-20260730` / `1.0.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-vgsa-003-initial` | `1.0.0` | `2026-07-29T14:20:00+08:00` | `review_sliding_tile_attention` | `initial` | 无 | 无 | 首次形成 PDF/source/视觉/公式/实验/infra 的证据闭环 | delegated initial delivery | `本文`、`Figure inventory`、清单与 manifests | task packet；arXiv:2502.04507 PDF/source；Figure 4；Tables 2/4 | material |
 | `rev-sliding-tile-attention-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-vgsa-003-initial` / `1.0.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-sliding-tile-attention-obsidian-properties-20260731` | `1.0.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-sliding-tile-attention-affiliation-backfill-20260730` / `1.0.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | 全量 canonical Paper 标签补齐 | 文件头 YAML frontmatter | 已验证的 ICML 2026 标签 schema；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 

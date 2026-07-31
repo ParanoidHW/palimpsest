@@ -1,3 +1,18 @@
+---
+tags:
+  - paper
+  - collection/custom-attention
+  - domain/ai-infra
+  - status/deep-review
+  - topic/video-generation
+  - method/calibrated-sparse-attention
+document_type: paper
+domain: custom_attn
+collection: Custom Attention
+review_status: deep-review
+canonical: true
+---
+
 # Accelerating Text-to-Video Generation with Calibrated Sparse Attention 精读分析
 
 > [!info] 文档关系
@@ -11,17 +26,17 @@
 
 ## 修订信息
 
-- 当前修订 ID：`rev-calibatt-affiliation-backfill-20260730`
-
-- 当前文档版本：`1.1.1`
-- 当前修订时间：`2026-07-30T23:30:00+08:00`
-- 替代版本：`rev-calibatt-remediation-20260729` / `1.1.0`
+- 当前修订 ID：`rev-calibatt-obsidian-properties-20260731`
+- 当前文档版本：`1.1.2`
+- 当前修订时间：`2026-07-31T10:00:00+08:00`
+- 替代版本：`rev-calibatt-affiliation-backfill-20260730` / `1.1.1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-calibatt-initial-20260729` | `1.0.0` | `2026-07-29T21:30:00+08:00` | `review_calibatt` | initial | 无 | 无 | 首次建立完整 PDF 精读、证据边界、原图 QA 与交付清单 | `vgsa-001-calibatt` initial delivery；父代理后续提供本地 PDF | `本文`; `Figure inventory`; `extracted_text/`; `figures/` | arXiv v1 PDF、官方 HTML、验证日志 | material：PDF 恢复使公式、表格和两类视觉证据可验 |
 | `rev-calibatt-remediation-20260729` | `1.1.0` | `2026-07-29T21:45:00+08:00` | `review_calibatt_remediation` | correction | `rev-calibatt-initial-20260729` / `1.0.0` / `a5c7cb46624ef06824d08b9f9e7b020af6fecb882a771089725c1ea168327308` | 无 | 在新独占目录重建 PDF 文本与两张裁剪，逐式核对 PDF 记号，清除“PDF 记号不可用”遗留表述并修正补充材料编号 | `vgsa-002-calibatt-remediation`；首轮父级写边界审计无效，需 fresh remediation | `本文#修订信息`; `本文#01-术语与符号解释`; `本文#44-关键公式`; `本文#52-技术点证据矩阵`; `Figure inventory`; `figures/` | 本地 arXiv v1 PDF SHA-256 `3cd50c…6ee8`；重新运行 `pdftotext -layout`、200 DPI render/crop；逐图原分辨率 QA | non-material：核心方法、主结果与边界不变；符号来源和附件编号更准确 |
 | `rev-calibatt-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-calibatt-remediation-20260729` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
+| `rev-calibatt-obsidian-properties-20260731` | `1.1.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-calibatt-affiliation-backfill-20260730` / `1.1.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | 全量 canonical Paper 标签补齐 | 文件头 YAML frontmatter | 已验证的 ICML 2026 标签 schema；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
 
 ## 0. 资料与配图索引
 
