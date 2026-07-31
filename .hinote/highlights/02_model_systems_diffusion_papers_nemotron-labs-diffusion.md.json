@@ -1,0 +1,66 @@
+{
+  "version": "2.0",
+  "lastModified": 1785492167490,
+  "highlights": {
+    "highlight-1014560625-6889": {
+      "text": "self-speculation",
+      "position": 7527,
+      "created": 1785484003773,
+      "updated": 1785484308816,
+      "backgroundColor": "#ffeb3b",
+      "contextBefore": "inference-caption.png) > Figure 5（论文原图）：AR、diffusion 与 linear self-speculation。",
+      "contextAfter": "的要点是“同一模型、两种 attention pattern、共享 cache”。 - **AR mode**：标准 causal decoding，每轮确",
+      "textFingerprint": "self-speculation",
+      "comments": [
+        {
+          "id": "comment-1785484308816-nbr786c2n",
+          "content": "应该这么想：原先target突出N个token需要N次decode，假设每次开销为T，现在只需要1次draft（开销同样为T），+1次verify就可以。只要verify的接受率大于1，那self-speculators就有收益",
+          "created": 1785484308816,
+          "updated": 1785484308816
+        },
+        {
+          "id": "comment-1785484003773-bp2vjepfd",
+          "content": "试想一下真实场景：self-speculators是target模型运行耗时t，再统一模型AR verify耗时t。但是草稿模型本身目的是降低target输出每token的时延，提升吞吐。这种self-speculatioin并没有减少target模型开销，是否违背了草稿模型的初衷？",
+          "created": 1785484003773,
+          "updated": 1785484200023
+        }
+      ]
+    },
+    "highlight-415977322-7177": {
+      "text": "**Quadratic self-speculation**：扩展更多分支提高候选覆盖，TPF 略高，但验证张量和 kernel 开销更大。",
+      "position": 7815,
+      "created": 1785484551561,
+      "updated": 1785484551561,
+      "backgroundColor": "#ffeb3b",
+      "contextBefore": "lation**：diffusion 模式起草 $k$ 个 token；AR 模式一次验证整段；接受最长相同前缀，并由 target 确认第一个拒绝位置。 -",
+      "contextAfter": "如果把一轮 draft 的序列记为 $\\hat{x}_{1:k}$，AR verifier 的输出为 $x^{\\mathrm{AR}}_{1:k+1}$，则",
+      "textFingerprint": "**Quadratic self-speculation**：扩展更多分支提高候选覆盖，TPF 略高，但验证张量和 kernel 开销更大。",
+      "comments": [
+        {
+          "id": "comment-1785484551561-4twvyo3hb",
+          "content": "缺乏详细介绍。看起来是tree-like验证？",
+          "created": 1785484551561,
+          "updated": 1785484551561
+        }
+      ]
+    },
+    "highlight-411385342-11321": {
+      "text": "低并发把 self-speculation 作为优先候选；并发升高后重新测量 AR/diffusion/self-speculation 的交叉点，而不是固定只使用某一种模式",
+      "position": 14702,
+      "created": 1785484725667,
+      "updated": 1785492167490,
+      "backgroundColor": "#ffeb3b",
+      "contextBefore": "与最优模式； - FP8/INT4 提升受量化 kernel、带宽和设备支持影响。 最合理的部署策略是把 mode 当成 scheduler policy：",
+      "contextAfter": "。 这里“低并发更适合”并非因为额外开销更小，而是因为单 token AR decode 在低 batch 下通常受权重读取/显存带宽约束",
+      "textFingerprint": "低并发把 self-speculation 作为优先候选；并发升高后重新测量 AR/diffusion/self-speculation 的交叉点，而不是固定只使用某一种模式",
+      "comments": [
+        {
+          "id": "comment-1785484725667-cgyvvd5lo",
+          "content": "为什么是低并发优先self-speculation？低并发时开销较小，引入draft不是更容易导致性能劣化吗？",
+          "created": 1785484725667,
+          "updated": 1785484725667
+        }
+      ]
+    }
+  }
+}
