@@ -41,11 +41,11 @@ canonical: true
 
 Classifier-Free Guidance 同时执行 conditional/unconditional branches：
 
-\[
+$$
 \epsilon_{\mathrm{guided}}
 =\epsilon_{\mathrm{uncond}}
 +w(\epsilon_{\mathrm{cond}}-\epsilon_{\mathrm{uncond}}).
-\]
+$$
 
 CFGP 沿 branch 切分：
 
@@ -76,9 +76,9 @@ CFGP 沿 branch 切分：
 
 [DSV](../../kernel/custom_attn/papers/dsv.md#4-研究方法)联合搜索 head-wise/sequence-wise CP、头分配和节点布局；评价目标应是：
 
-\[
+$$
 \min \max_r \left(T_{\mathrm{compute},r}+T_{\mathrm{comm},r}\right),
-\]
+$$
 
 而不是只最小化平均 FLOPs。
 

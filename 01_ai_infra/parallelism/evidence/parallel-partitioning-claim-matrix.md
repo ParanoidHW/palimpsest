@@ -19,8 +19,8 @@ canonical: true
 |---|---|---|---|---|
 | column→row TP 可让 GeLU/head-local | [Megatron-LM Eq./Figure 3](../papers/megatron-lm.md#42-列并行与行并行到底切哪个维度) | 代数/机制 | direct | 机制成立 |
 | Megatron 8-way TP 77% weak scaling | [Figure 5](../papers/megatron-lm.md#51-扩展效率证据) | 模型随设备变化 | system | 不等于固定模型 speedup |
-| micro-batch 摊薄 PP bubble | [GPipe F3/Table 2](../papers/gpipe.md#43-关键公式) | \(M\) sensitivity；batch 可调整 | partial | \(M/K\) 趋势成立 |
-| ZeRO 三阶段按 \(O/G/P\) 降状态内存 | [ZeRO Figure 1/F1](../papers/zero.md#41-三阶段与训练步内状态流) | theory + mechanism | direct | 平均状态内存，不等于峰值 |
+| micro-batch 摊薄 PP bubble | [GPipe F3/Table 2](../papers/gpipe.md#43-关键公式) | $M$ sensitivity；batch 可调整 | partial | $M/K$ 趋势成立 |
+| ZeRO 三阶段按 $O/G/P$ 降状态内存 | [ZeRO Figure 1/F1](../papers/zero.md#41-三阶段与训练步内状态流) | theory + mechanism | direct | 平均状态内存，不等于峰值 |
 | ZeRO headline speedup | [ZeRO Figure 2](../papers/zero.md#51-主结果与口径) | baseline/GPU 数不完全匹配 | confounded | full-system capacity/throughput |
 | GShard experts shard、普通层复制 | [GShard Figure 3](../papers/gshard.md#42-专家并行与通信的准确位置) | mechanism | direct | placement 成立 |
 | GShard all-to-all 随 expert scale 成压力 | [GShard Figure 8](../papers/gshard.md#52-系统性能证据) | measured/roofline | system | dispatch/combine 是主要扩展压力 |

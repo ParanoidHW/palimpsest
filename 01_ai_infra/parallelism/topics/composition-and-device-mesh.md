@@ -23,9 +23,9 @@ canonical: true
 
 例如 64 GPUs 可以组织为：
 
-\[
+$$
 8_{\mathrm{DP}}\times 4_{\mathrm{TP}}\times 2_{\mathrm{PP}}.
-\]
+$$
 
 这只是逻辑 shape。物理 placement 还需决定：
 

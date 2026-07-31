@@ -23,7 +23,7 @@ canonical: true
 |---|---|---|---|
 | [Megatron-LM](../papers/megatron-lm.md) | TP | column/row parallel 与 collective 边界 | accepted |
 | [GPipe](../papers/gpipe.md) | PP | layer/stage、micro-batch、bubble | accepted-with-limitations |
-| [ZeRO](../papers/zero.md) | state sharding | \(O/G/P\) 三阶段与 DP 关系 | accepted-with-limitations |
+| [ZeRO](../papers/zero.md) | state sharding | $O/G/P$ 三阶段与 DP 关系 | accepted-with-limitations |
 | [GShard](../papers/gshard.md) | EP / compiler | expert dispatch 与 sharding annotation | accepted-with-limitations |
 | [DeepSpeed Ulysses](../papers/deepspeed-ulysses.md) | Ulysses-SP | sequence/head all-to-all transpose | accepted-with-limitations |
 | [Ring Attention](../papers/ring-attention.md) | Ring-SP/CP | local Q、rotating KV、online softmax | accepted-with-limitations |

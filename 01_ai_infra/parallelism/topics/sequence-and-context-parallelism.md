@@ -30,29 +30,29 @@ SP/CP 的术语并不统一。本 Topic 以 attention 内的数据所有权为�
 
 逻辑 layout：
 
-\[
+$$
 [b,S/P,A,d_h]
 \xrightarrow{\mathrm{all\text{-}to\text{-}all}}
 [b,S,A/P,d_h].
-\]
+$$
 
 每 rank 在 attention 内看完整 sequence、只计算部分 heads；attention 后做逆 all-to-all。优点是 local attention kernel 保持标准接口，缺点是依赖 all-to-all fabric 和 head partition。
 
-论文均匀路径要求 \(A\bmod P=0\)。当前有限官方实现有 uneven-head 分支，但引入不均匀负载和 overlap 限制，不能回填为论文实验结论。
+论文均匀路径要求 $A\bmod P=0$。当前有限官方实现有 uneven-head 分支，但引入不均匀负载和 overlap 限制，不能回填为论文实验结论。
 
 ### Ring Attention
 
-每 rank 固定 local \(Q_i\)，K/V blocks 在 logical ring 中移动。online softmax 维护 running max、denominator 和 weighted numerator，使分块合并仍是精确 attention：
+每 rank 固定 local $Q_i$，K/V blocks 在 logical ring 中移动。online softmax 维护 running max、denominator 和 weighted numerator，使分块合并仍是精确 attention：
 
-\[
+$$
 \begin{aligned}
 m_j &= \max(m_{j-1},\max z_j),\\
 \ell_j &= e^{m_{j-1}-m_j}\ell_{j-1}+\sum_k e^{z_{j,k}-m_j},\\
 o_j &= e^{m_{j-1}-m_j}o_{j-1}+\sum_k e^{z_{j,k}-m_j}V_{j,k}.
 \end{aligned}
-\]
+$$
 
-优点是单卡工作集随 local block 而非 global sequence 增长；缺点是 \(p-1\) 个 ring steps、block-size overlap 条件和 causal imbalance。
+优点是单卡工作集随 local block 而非 global sequence 增长；缺点是 $p-1$ 个 ring steps、block-size overlap 条件和 causal imbalance。
 
 ## 2. 对照
 

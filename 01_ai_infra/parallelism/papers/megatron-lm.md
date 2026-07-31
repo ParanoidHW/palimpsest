@@ -56,13 +56,13 @@ Megatron-LM 解决的不是“怎样让单卡算得更快”，而是“模型�
 | 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
 |---|---|---|---|---|
 | intra-layer model parallelism | 在同一个 Transformer 层内部切分 GEMM 权重与计算 | tensor model parallelism，张量并行 | 不是把不同层放在不同设备上的 pipeline parallelism | `source/modelpar.tex` Section 3；Figure 3 |
-| column parallel | 论文矩阵记法 \(Y=XA\) 中，把 \(A\) 的第二维（输出特征列）切成 \([A_1,\ldots,A_p]\) | output-feature sharding | 当前 PyTorch 权重通常存成 `[out,in]`，代码中的 storage dim 0 对应论文的“列” | Section 3 Eq. (3)；当前 `megatron/core/tensor_parallel/layers.py` `ColumnParallelLinear` |
+| column parallel | 论文矩阵记法 $Y=XA$ 中，把 $A$ 的第二维（输出特征列）切成 $[A_1,\ldots,A_p]$ | output-feature sharding | 当前 PyTorch 权重通常存成 `[out,in]`，代码中的 storage dim 0 对应论文的“列” | Section 3 Eq. (3)；当前 `megatron/core/tensor_parallel/layers.py` `ColumnParallelLinear` |
 | row parallel | 把第二个 GEMM 的输入特征维切开，每卡计算一个部分和，出口 all-reduce | input-feature sharding | 不是把 batch 行切给不同卡的数据并行 | Section 3；Figure 3；当前 `RowParallelLinear` |
 | model-parallel region | 从复制输入进入分片 GEMM，到部分结果被归并为复制输出的区间 | TP region | 不等于整个 Transformer 层；一层包含 attention 和 MLP 两个此类边界 | Section 3；Figure 3/4 |
-| \(f\) operator | forward 原样复制；backward 对输入梯度做 all-reduce | copy-to-TP-region | 不是 forward all-reduce | Figure 3 caption；论文 Code 1；当前 `mappings.py` |
-| \(g\) operator | forward 对部分输出做 all-reduce；backward 原样传递 | reduce-from-TP-region | 不是 backward all-reduce | Figure 3 caption；当前 `mappings.py` |
+| $f$ operator | forward 原样复制；backward 对输入梯度做 all-reduce | copy-to-TP-region | 不是 forward all-reduce | Figure 3 caption；论文 Code 1；当前 `mappings.py` |
+| $g$ operator | forward 对部分输出做 all-reduce；backward 原样传递 | reduce-from-TP-region | 不是 backward all-reduce | Figure 3 caption；当前 `mappings.py` |
 | weak scaling | 随 GPU 增多同时扩大问题规模；本文主要扩大参数量，并保持约 1B 参数/GPU | 弱扩展 | 不是固定模型规模的 strong scaling | Section 5.1；Figure 5；Appendix D |
-| fused vocabulary-parallel cross entropy | logits 按词表分片，直接在分片上求交叉熵所需归约量，避免先 all-gather 完整 \(b\times s\times v\) logits | vocab-parallel loss | “融合”表示跨分片损失计算，不代表不通信 | Section 3；当前 `cross_entropy.py` |
+| fused vocabulary-parallel cross entropy | logits 按词表分片，直接在分片上求交叉熵所需归约量，避免先 all-gather 完整 $b\times s\times v$ logits | vocab-parallel loss | “融合”表示跨分片损失计算，不代表不通信 | Section 3；当前 `cross_entropy.py` |
 | model parallelism（论文用语） | 论文对层内张量切分的总称 | tensor parallelism（后续常用名） | 当前 Megatron Core 的“model parallel”还可包含 pipeline/context/expert 等维度 | 论文全篇；当前代码目录结构 |
 | scaling efficiency | 相对一张 GPU 强基线的实际吞吐/理想线性吞吐比 | weak-scaling efficiency | 不是硬件峰值利用率；单卡基线本身为峰值的 30% | Section 5.1；Figure 5 |
 
@@ -70,22 +70,22 @@ Megatron-LM 解决的不是“怎样让单卡算得更快”，而是“模型�
 
 | 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
-| \(X\) | 线性层输入激活 | author-defined | token/batch 维合并后的局部层输入 | 元素张量 | Section 3 Eq. (1)–(3) | row-split 反例中 \(X=[X_1,X_2]\)；列并行方案中每卡读取完整 \(X\) |
-| \(A\) | MLP 第一线性层权重 | author-defined | 输入特征 × 输出特征 | 参数张量 | Section 3 Eq. (1)–(3) | 论文的列维对应当前 `[out,in]` 存储的 dim 0 |
-| \(A_i\) | 第 \(i\) 个列分片 | author-defined | tensor-parallel rank \(i\) | 参数张量 | Section 3 Eq. (3) | 每个 \(A_i\) 产生输出特征子块 |
-| \(B_i\) | 第二线性层的第 \(i\) 个行分片 | author-defined | tensor-parallel rank \(i\) | 参数张量 | Figure 3 | 各卡结果是同一输出的部分和，需 \(g\) 归并 |
-| \(Y,Y_i,Z,Z_i\) | 第一 GEMM/GeLU 输出及第二 GEMM 部分/完整输出 | author-defined | 每层、每 rank | 激活张量 | Eq. (1)–(3)；Figure 3 | \(Z_i\) 不是独立输出特征块，而是需求和的部分贡献 |
-| \(Q_i,K_i,V_i\) | 分到第 \(i\) 张 GPU 的 attention heads 对应投影 | author-defined | attention head/rank | 激活张量 | Figure 3b；Section 3 | 论文假定 head 数可按 TP 度切分 |
-| \(H\) | hidden size | author-defined | model-wide/per-token | features | Section 3 embedding discussion | 在 \(E_{H\times v}\) 中是 embedding hidden 维 |
-| \(v\) | vocabulary size | author-defined | model-wide | tokens；GPT-2 原 50,257，扩展实验 padding 到 51,200 | Sections 3、5.1 | 不等于每卡词表分片大小 |
-| \(b\) | batch size | author-defined | training step | samples | Section 3 | 通信式中的 \(b\) 是未明确区分 global/local 的论文符号 |
-| \(s\) | sequence length | author-defined | sample | tokens；GPT-2 训练为 1024 | Sections 3、4 | 与设备数无关 |
-| \(p\) | tensor-parallel 组大小 | analysis-derived | one TP group | GPUs | 本文对论文 1/2/4/8-way 配置的统一记号 | 论文正文未用 \(p\) 写通信公式 |
-| \(q\) | 每个通信元素的字节数 | analysis-derived | collective | bytes/element | 本文通信量推导 | 与 query \(Q\) 不同，本文只在通信公式中用小写 \(q\) |
-| \(n\) | 一次边界 all-reduce 的元素数，近似 \(bsH\) | analysis-derived | one collective | elements | 本文通信量推导 | 实际 layout、sequence parallel 与 microbatch 会改变它 |
-| \(P\) | 模型参数量 | analysis-derived | full model | parameters | 本文显存下界推导 | 论文表格写 parameter count，不给符号 |
-| \(F_p,F_1\) | \(p\) 卡与单卡基线的持续 FLOP/s | analysis-derived | scaling experiment | FLOP/s | 本文对 Figure 5 的定义重建 | 不是理论峰值 |
-| \(\eta_p\) | 相对单卡基线的弱扩展效率 | analysis-derived | scaling experiment | ratio/% | 本文根据 Section 5.1 重建 | 不等于 \(F_p/\)硬件峰值 |
+| $X$ | 线性层输入激活 | author-defined | token/batch 维合并后的局部层输入 | 元素张量 | Section 3 Eq. (1)–(3) | row-split 反例中 $X=[X_1,X_2]$；列并行方案中每卡读取完整 $X$ |
+| $A$ | MLP 第一线性层权重 | author-defined | 输入特征 × 输出特征 | 参数张量 | Section 3 Eq. (1)–(3) | 论文的列维对应当前 `[out,in]` 存储的 dim 0 |
+| $A_i$ | 第 $i$ 个列分片 | author-defined | tensor-parallel rank $i$ | 参数张量 | Section 3 Eq. (3) | 每个 $A_i$ 产生输出特征子块 |
+| $B_i$ | 第二线性层的第 $i$ 个行分片 | author-defined | tensor-parallel rank $i$ | 参数张量 | Figure 3 | 各卡结果是同一输出的部分和，需 $g$ 归并 |
+| $Y,Y_i,Z,Z_i$ | 第一 GEMM/GeLU 输出及第二 GEMM 部分/完整输出 | author-defined | 每层、每 rank | 激活张量 | Eq. (1)–(3)；Figure 3 | $Z_i$ 不是独立输出特征块，而是需求和的部分贡献 |
+| $Q_i,K_i,V_i$ | 分到第 $i$ 张 GPU 的 attention heads 对应投影 | author-defined | attention head/rank | 激活张量 | Figure 3b；Section 3 | 论文假定 head 数可按 TP 度切分 |
+| $H$ | hidden size | author-defined | model-wide/per-token | features | Section 3 embedding discussion | 在 $E_{H\times v}$ 中是 embedding hidden 维 |
+| $v$ | vocabulary size | author-defined | model-wide | tokens；GPT-2 原 50,257，扩展实验 padding 到 51,200 | Sections 3、5.1 | 不等于每卡词表分片大小 |
+| $b$ | batch size | author-defined | training step | samples | Section 3 | 通信式中的 $b$ 是未明确区分 global/local 的论文符号 |
+| $s$ | sequence length | author-defined | sample | tokens；GPT-2 训练为 1024 | Sections 3、4 | 与设备数无关 |
+| $p$ | tensor-parallel 组大小 | analysis-derived | one TP group | GPUs | 本文对论文 1/2/4/8-way 配置的统一记号 | 论文正文未用 $p$ 写通信公式 |
+| $q$ | 每个通信元素的字节数 | analysis-derived | collective | bytes/element | 本文通信量推导 | 与 query $Q$ 不同，本文只在通信公式中用小写 $q$ |
+| $n$ | 一次边界 all-reduce 的元素数，近似 $bsH$ | analysis-derived | one collective | elements | 本文通信量推导 | 实际 layout、sequence parallel 与 microbatch 会改变它 |
+| $P$ | 模型参数量 | analysis-derived | full model | parameters | 本文显存下界推导 | 论文表格写 parameter count，不给符号 |
+| $F_p,F_1$ | $p$ 卡与单卡基线的持续 FLOP/s | analysis-derived | scaling experiment | FLOP/s | 本文对 Figure 5 的定义重建 | 不是理论峰值 |
+| $\eta_p$ | 相对单卡基线的弱扩展效率 | analysis-derived | scaling experiment | ratio/% | 本文根据 Section 5.1 重建 | 不等于 $F_p/$硬件峰值 |
 
 ## 1. 论文基本信息
 
@@ -125,7 +125,7 @@ Megatron-LM 解决的不是“怎样让单卡算得更快”，而是“模型�
 |---|---|---|---|---|---|---|
 | 只做数据并行/大 batch | GPU 数增加了，但单卡仍要保存完整模型；超大 batch 还可能恶化收敛 | 8.3B 模型需要 8 路模型并行；仅把 batch 分到 512 卡仍不能让一份 8.3B 模型进入单卡 | paper-provided | 数据并行切样本，不切模型状态 | 再加数据并行卡只增加模型副本，不减少每副本显存 | Background 2.3；Table 1 |
 | 用 activation checkpointing | 激活显存下降，但权重、梯度与 Adam 状态仍保留 | 本文构造的说明例，不是论文实验：8.3B 权重仅按 fp16 已约 16.6GB，尚未计梯度、master weights、Adam 一二阶状态，32GB 仍很紧/不足 | reviewer-created | checkpointing 只改变 activation 保存策略 | 更频繁重算不会分片参数或优化器状态 | Introduction；Setup；本文显存下界公式 |
-| 第一 GEMM 按输入维切开并先求部分和 | GeLU 前必须同步；否则非线性不能对部分和分别计算 | 论文给出 \(\mathrm{GeLU}(X_1A_1+X_2A_2)\neq \mathrm{GeLU}(X_1A_1)+\mathrm{GeLU}(X_2A_2)\) | paper-provided | 非线性不满足可加性 | 把同步挪到 GeLU 后会改变数学结果；降低同步频率不能修正错误 | Section 3 Eq. (2) |
+| 第一 GEMM 按输入维切开并先求部分和 | GeLU 前必须同步；否则非线性不能对部分和分别计算 | 论文给出 $\mathrm{GeLU}(X_1A_1+X_2A_2)\neq \mathrm{GeLU}(X_1A_1)+\mathrm{GeLU}(X_2A_2)$ | paper-provided | 非线性不满足可加性 | 把同步挪到 GeLU 后会改变数学结果；降低同步频率不能修正错误 | Section 3 Eq. (2) |
 | 通用 compiler/framework 或 pipeline | 需要改写/编译；pipeline 可能有 bubble 或优化器一致性折中 | GPipe 要安排 microbatch 流水；若阶段不均衡，快阶段会等待慢阶段 | paper-provided（论文概述） | 跨层依赖与阶段负载形成 pipeline 空洞 | 单纯加 microbatch 能减 bubble，但引入调度/激活内存权衡，不替代层内容量切分 | Background 2.3 |
 
 ### 2.3 论文计划解决的问题与成功标准
@@ -138,10 +138,10 @@ Megatron-LM 解决的不是“怎样让单卡算得更快”，而是“模型�
 
 | 原始问题/失败模式 | 根因或约束 | 对应方案设计 | 改变的变量/系统行为 | 作用机制 | 预期优化及指标 | 证据来源 | 判断 |
 |---|---|---|---|---|---|---|---|
-| GeLU 前若切输入维需同步 | 非线性不可对部分和分配 | 第一 GEMM 列并行 | 每卡持有输出特征子块 \(A_i\)，复制读取 \(X\) | 每卡独立算 \(XA_i\) 并本地 GeLU | 删除两 GEMM 中间同步 | Eq. (2)(3)，Figure 3 | supported（数学机制）；性能份额未隔离 |
-| 下一层要恢复完整 hidden 输出 | 各卡持有中间特征子块 | 第二 GEMM 行并行 | 每卡算同一输出的部分和 \(Y_iB_i\) | 出口一次 all-reduce 得到完整 \(Z\) | 每个 MLP forward 仅一次 all-reduce | Section 3，Figure 3 | supported（机制）；仅有整体 scaling |
+| GeLU 前若切输入维需同步 | 非线性不可对部分和分配 | 第一 GEMM 列并行 | 每卡持有输出特征子块 $A_i$，复制读取 $X$ | 每卡独立算 $XA_i$ 并本地 GeLU | 删除两 GEMM 中间同步 | Eq. (2)(3)，Figure 3 | supported（数学机制）；性能份额未隔离 |
+| 下一层要恢复完整 hidden 输出 | 各卡持有中间特征子块 | 第二 GEMM 行并行 | 每卡算同一输出的部分和 $Y_iB_i$ | 出口一次 all-reduce 得到完整 $Z$ | 每个 MLP forward 仅一次 all-reduce | Section 3，Figure 3 | supported（机制）；仅有整体 scaling |
 | attention 投影和 heads 规模大 | heads 可独立计算 | Q/K/V 列并行、按 head 本地 attention、输出投影行并行 | head 参数与工作量按 rank 分配 | softmax/attention 在本地 head 上完成，出口合并 | 降低单卡参数/计算，避免 attention 内同步 | Section 3，Figure 3b；Appendix Table 7 | partially-supported |
-| 完整 vocabulary logits 通信巨大 | \(v\) 为数万，logits 大小 \(bsv\) | vocabulary-parallel embedding + cross entropy | 每卡只保留词表分片，通信标量/归约统计 | 不 all-gather 全 logits，直接求分布式 loss | 通信从 \(bsv\) 级避免为少数 \(bs\) 归约 | Section 3；当前 `cross_entropy.py` | supported（代码/机制）；无独立性能实验 |
+| 完整 vocabulary logits 通信巨大 | $v$ 为数万，logits 大小 $bsv$ | vocabulary-parallel embedding + cross entropy | 每卡只保留词表分片，通信标量/归约统计 | 不 all-gather 全 logits，直接求分布式 loss | 通信从 $bsv$ 级避免为少数 $bs$ 归约 | Section 3；当前 `cross_entropy.py` | supported（代码/机制）；无独立性能实验 |
 | 模型并行扩容量但单实例训练慢 | 单一 TP 组只是一份模型 | TP 组外叠加 64-way DP | 8 卡组成一模型副本，64 个副本同步对应参数梯度 | TP 处理容量，DP 处理吞吐 | 512 卡总持续 15.1 PFLOP/s | Appendix C；Figure 5 | supported（整体系统结果） |
 
 ### 2.5 完整因果链与证据闭环
@@ -153,8 +153,8 @@ Megatron-LM 解决的不是“怎样让单卡算得更快”，而是“模型�
 ## 3. 核心贡献与创新点
 
 1. 在 Transformer MLP 与 attention 中建立“列并行 → 本地非线性/按头计算 → 行并行 → 出口归约”的简洁层内切分。
-2. 用 \(f/g\) 共轭 autograd 边界把 forward/backward collective 位置表达清楚：每层 attention 与 MLP 合计 forward 两次、backward 两次 all-reduce。
-3. 词表并行交叉熵避免聚合 \(b\times s\times v\) 完整 logits。
+2. 用 $f/g$ 共轭 autograd 边界把 forward/backward collective 位置表达清楚：每层 attention 与 MLP 合计 forward 两次、backward 两次 all-reduce。
+3. 词表并行交叉熵避免聚合 $b\times s\times v$ 完整 logits。
 4. 在 512 张 V100 上展示 8.3B 模型与 74% 弱扩展效率，并给出 head 数、强扩展和混合 TP×DP 的补充测量。
 5. 论文还报告 BERT layer norm/residual 重排改善大模型训练稳定性；这与 tensor parallel 是并列贡献，不应混作切分机制收益。
 
@@ -162,28 +162,28 @@ Megatron-LM 解决的不是“怎样让单卡算得更快”，而是“模型�
 
 ### 4.1 方法总览
 
-输入 \(X\) 在 TP 组内复制。第一 GEMM 的每卡权重只覆盖一段输出特征；本地得到 \(XA_i\)，直接做 GeLU 或属于本卡的 attention heads。第二 GEMM 的权重按输入特征切分，与这段中间激活自然对齐；每卡输出 \(Z_i\) 是同一完整输出的部分和。\(g\) 在 forward 合并这些部分和；反向时 \(f\) 在模型并行区域入口合并各列分片对输入梯度的贡献。attention 和 MLP 各重复一次这一结构。
+输入 $X$ 在 TP 组内复制。第一 GEMM 的每卡权重只覆盖一段输出特征；本地得到 $XA_i$，直接做 GeLU 或属于本卡的 attention heads。第二 GEMM 的权重按输入特征切分，与这段中间激活自然对齐；每卡输出 $Z_i$ 是同一完整输出的部分和。$g$ 在 forward 合并这些部分和；反向时 $f$ 在模型并行区域入口合并各列分片对输入梯度的贡献。attention 和 MLP 各重复一次这一结构。
 
 ![Figure 3：Transformer 的 MLP 与 Self-Attention 张量并行块，含原论文完整 caption](../assets/papers/megatron-lm/fig3_tensor_parallel_blocks_caption.png)
 
-> 原论文 Figure 3（PDF crop）。黄色为复制输入，青色为权重/激活分片，绿色 \(f/g\) 标出跨 TP rank 的 autograd 通信边界。它是本报告采用的 reader-usable algorithm overview；训练 forward 从左到右，backward 反向经过同一边界，推理只使用 forward 路径。
+> 原论文 Figure 3（PDF crop）。黄色为复制输入，青色为权重/激活分片，绿色 $f/g$ 标出跨 TP rank 的 autograd 通信边界。它是本报告采用的 reader-usable algorithm overview；训练 forward 从左到右，backward 反向经过同一边界，推理只使用 forward 路径。
 
 ### 4.2 列并行与行并行到底切哪个维度
 
-论文采用 \(Y=XA\)，所以：
+论文采用 $Y=XA$，所以：
 
-- `column parallel`：\(A=[A_1,\ldots,A_p]\)，切的是输出特征维。每卡输出 \(Y_i=XA_i\)，不需要先相加。
-- `row parallel`：下一权重 \(B=[B_1;\ldots;B_p]\)，切的是输入特征维。因为上一层已经输出 \([Y_1,\ldots,Y_p]\)，第 \(i\) 卡直接算 \(Z_i=Y_iB_i\)，最后 \(Z=\sum_i Z_i\)。
-- 当前代码的 `ColumnParallelLinear` 文档仍写 \(A=[A_1,\ldots,A_p]\)，但 PyTorch 参数实际 shape 是 `[out_features,in_features]`；因此 storage 的第 0 维分片就是论文矩阵的“列”。把存储维编号直接叫“行/列”会造成表面矛盾。
+- `column parallel`：$A=[A_1,\ldots,A_p]$，切的是输出特征维。每卡输出 $Y_i=XA_i$，不需要先相加。
+- `row parallel`：下一权重 $B=[B_1;\ldots;B_p]$，切的是输入特征维。因为上一层已经输出 $[Y_1,\ldots,Y_p]$，第 $i$ 卡直接算 $Z_i=Y_iB_i$，最后 $Z=\sum_i Z_i$。
+- 当前代码的 `ColumnParallelLinear` 文档仍写 $A=[A_1,\ldots,A_p]$，但 PyTorch 参数实际 shape 是 `[out_features,in_features]`；因此 storage 的第 0 维分片就是论文矩阵的“列”。把存储维编号直接叫“行/列”会造成表面矛盾。
 
-### 4.3 \(f/g\) 的 forward/backward collective 精确位置
+### 4.3 $f/g$ 的 forward/backward collective 精确位置
 
 | 边界 | forward | backward | 为什么 |
 |---|---|---|---|
-| \(f\)：复制输入进入 column-parallel 层 | identity/copy | 对各输出分片贡献的 input gradient 做 all-reduce | forward 各卡都需完整 \(X\)；backward 完整 \(dX=\sum_i dX_i\) |
-| \(g\)：row-parallel 部分和离开 TP region | 对 \(Z_i\) 做 all-reduce | identity/copy | forward 完整 \(Z=\sum_i Z_i\)；backward 每卡可接收同一个 \(dZ\) 计算本地分片梯度 |
+| $f$：复制输入进入 column-parallel 层 | identity/copy | 对各输出分片贡献的 input gradient 做 all-reduce | forward 各卡都需完整 $X$；backward 完整 $dX=\sum_i dX_i$ |
+| $g$：row-parallel 部分和离开 TP region | 对 $Z_i$ 做 all-reduce | identity/copy | forward 完整 $Z=\sum_i Z_i$；backward 每卡可接收同一个 $dZ$ 计算本地分片梯度 |
 
-论文 Code 1 明示 \(f\) 的 forward identity/backward all-reduce；Figure 3 caption 明示 \(g\) 相反。当前 commit 的 `megatron/core/tensor_parallel/mappings.py` 仍把 `copy_to_tensor_model_parallel_region` 记作 “forward: copy, backward allreduce”，把 `reduce_from_tensor_model_parallel_region` 记作 “forward: all reduce, backward copy”。`ColumnParallelLinear` 默认不 gather 输出，而 `RowParallelLinear` 默认在 forward 调用 reduce；这核对了 2019 概念，但当前代码还包含 sequence parallel、expert communication、异步 dgrad 等后续分支，不能归属于原论文。
+论文 Code 1 明示 $f$ 的 forward identity/backward all-reduce；Figure 3 caption 明示 $g$ 相反。当前 commit 的 `megatron/core/tensor_parallel/mappings.py` 仍把 `copy_to_tensor_model_parallel_region` 记作 “forward: copy, backward allreduce”，把 `reduce_from_tensor_model_parallel_region` 记作 “forward: all reduce, backward copy”。`ColumnParallelLinear` 默认不 gather 输出，而 `RowParallelLinear` 默认在 forward 调用 reduce；这核对了 2019 概念，但当前代码还包含 sequence parallel、expert communication、异步 dgrad 等后续分支，不能归属于原论文。
 
 ### 4.4 组件级设计动机与具体问题映射
 
@@ -192,7 +192,7 @@ Megatron-LM 解决的不是“怎样让单卡算得更快”，而是“模型�
 | MLP 第一 GEMM column parallel | author-stated | Section 3 Eq. (2)(3) | GeLU 前同步 | 输出分片让 GeLU 本地执行 | 输入维切分会先 reduce；代价是复制输入 | theory/algebra + Figure 3 | supported |
 | MLP 第二 GEMM row parallel | author-stated | Section 3，Figure 3a | 中间分片需接续且最终恢复完整 hidden | 直接消费分片激活，只在出口求和 | all-gather 中间激活会通信更多 | mechanism visualization；整体 scaling | partially-supported |
 | Q/K/V column + heads local + output row | author-stated | Section 3，Figure 3b | attention 权重/计算超单卡 | 独立 head 无需跨卡 softmax | head 数须可分；head 太多会缩小 GEMM | Table 7 sensitivity（82→80→77%） | partially-supported |
-| vocabulary parallel + fused CE | author-stated | Section 3 | all-gather \(bsv\) logits 太大 | 只对 max、目标 logit、exp-sum 等统计归约 | 实现复杂、需数值稳定 collective | 当前 `cross_entropy.py` code；无论文消融 | partially-supported |
+| vocabulary parallel + fused CE | author-stated | Section 3 | all-gather $bsv$ logits 太大 | 只对 max、目标 logit、exp-sum 等统计归约 | 实现复杂、需数值稳定 collective | 当前 `cross_entropy.py` code；无论文消融 | partially-supported |
 | elementwise/LN/residual 复制计算 | author-stated | Section 3 | 广播小算子结果增加同步 | 多算少量 FLOPs 换通信消失 | 参数复制占少量内存 | none | unverified |
 | TP×DP 分组 | author-stated | Appendix C，Figure 8 | TP 解容量但单副本吞吐有限 | TP rank 位置对应组成 DP group | 两类 all-reduce 竞争网络 | Figure 5 overall result | partially-supported |
 | model-parallel RNG 双流 | author-stated | Appendix C.2 | dropout 在 TP 区域内外需要不同一致性 | 区域外相同 seed，区域内 rank-specific seed | RNG 状态管理复杂 | description only | unverified |
@@ -209,17 +209,17 @@ $$
 
 **这条公式在算什么？** 它回答第一线性层按输出特征切分后，各 GPU 能否独立完成非线性。
 
-**怎么读？** 同一个输入 \(X\) 分别乘每个列分片 \(A_i\)，各自做 GeLU，拼接后与完整层输出一致。
+**怎么读？** 同一个输入 $X$ 分别乘每个列分片 $A_i$，各自做 GeLU，拼接后与完整层输出一致。
 
-**输入与输出。** 输入是复制的 \(X\) 和权重列分片 \(A_i\)；输出是按输出特征分片的 \(Y_i\)。
+**输入与输出。** 输入是复制的 $X$ 和权重列分片 $A_i$；输出是按输出特征分片的 $Y_i$。
 
-**变量在这里各做什么？** \(X\) 提供所有输入特征；\(A_i\) 只产生第 \(i\) 段输出；\(Y_i\) 是本卡可继续消费的中间激活；\(p\) 是分片数。
+**变量在这里各做什么？** $X$ 提供所有输入特征；$A_i$ 只产生第 $i$ 段输出；$Y_i$ 是本卡可继续消费的中间激活；$p$ 是分片数。
 
-**直觉。** 增加 \(p\) 会缩小每卡的输出宽度和 GEMM，但无需在 GeLU 前同步；过大 \(p\) 会让 GEMM 变小、通信占比上升。
+**直觉。** 增加 $p$ 会缩小每卡的输出宽度和 GEMM，但无需在 GeLU 前同步；过大 $p$ 会让 GEMM 变小、通信占比上升。
 
-**边界。** 输出维必须可合理分片；各卡需要完整 \(X\)；结论依赖 GeLU 按元素作用。
+**边界。** 输出维必须可合理分片；各卡需要完整 $X$；结论依赖 GeLU 按元素作用。
 
-**小例子。** 本文构造的说明例，不是论文实验：若完整输出宽度为 8、\(p=2\)，两卡各算 4 个输出通道并本地 GeLU，拼接即 8 通道输出。
+**小例子。** 本文构造的说明例，不是论文实验：若完整输出宽度为 8、$p=2$，两卡各算 4 个输出通道并本地 GeLU，拼接即 8 通道输出。
 
 #### F2：为什么朴素输入维切分不能越过 GeLU
 
@@ -235,7 +235,7 @@ $$
 
 **输入与输出。** 输入是两段输入/权重乘积；左边输出正确完整层结果，右边是错误的“先非线性后归并”结果。
 
-**变量在这里各做什么？** \(X_iA_i\) 是第 \(i\) 卡对 pre-activation 的部分贡献；GeLU 改变其数值，破坏加法可分性。
+**变量在这里各做什么？** $X_iA_i$ 是第 $i$ 卡对 pre-activation 的部分贡献；GeLU 改变其数值，破坏加法可分性。
 
 **直觉。** 只要两部分跨过 GeLU 前未求和，就改变了网络函数，而不仅是数值误差。
 
@@ -245,7 +245,7 @@ $$
 
 #### F3：一层训练迭代的 all-reduce 近似通信量
 
-对 ring all-reduce、每次边界张量 \(n\approx bsh\) 个元素、每元素 \(q\) bytes，论文所述一层 forward 两次 + backward 两次 all-reduce 的每卡传输量近似为：
+对 ring all-reduce、每次边界张量 $n\approx bsh$ 个元素、每元素 $q$ bytes，论文所述一层 forward 两次 + backward 两次 all-reduce 的每卡传输量近似为：
 
 $$
 C_{\text{layer,train}}
@@ -255,17 +255,17 @@ $$
 
 **这条公式在算什么？** 它估算一个 Transformer 层一次训练 forward+backward 中，tensor-parallel collective 给每张卡带来的链路字节量。
 
-**怎么读？** 四次 all-reduce，每次 ring 算法每卡收发约 \(2(p-1)/p\) 份张量。
+**怎么读？** 四次 all-reduce，每次 ring 算法每卡收发约 $2(p-1)/p$ 份张量。
 
-**输入与输出。** 输入是 \(p,b,s,H,q\)；输出是每卡每层的近似传输 bytes。
+**输入与输出。** 输入是 $p,b,s,H,q$；输出是每卡每层的近似传输 bytes。
 
-**变量在这里各做什么？** \(p\) 决定 ring 分段比例；\(b,s,H\) 决定边界激活元素数；\(q\) 把元素数换成字节；\(n\) 是单次 collective 大小。
+**变量在这里各做什么？** $p$ 决定 ring 分段比例；$b,s,H$ 决定边界激活元素数；$q$ 把元素数换成字节；$n$ 是单次 collective 大小。
 
-**直觉。** 当 \(p\) 增大时每卡计算约按 \(1/p\) 下降，但通信因子趋近常数 \(2\)，所以强扩展最终通信占主导；这与 Appendix D 的 1.2B 模型 8 卡仅 2.98× speedup 一致。
+**直觉。** 当 $p$ 增大时每卡计算约按 $1/p$ 下降，但通信因子趋近常数 $2$，所以强扩展最终通信占主导；这与 Appendix D 的 1.2B 模型 8 卡仅 2.98× speedup 一致。
 
 **边界。** 这是 analysis-derived ring 模型，不是论文报告值；忽略协议开销、拓扑、overlap、microbatch、sequence parallel 和通信融合。
 
-**小例子。** 本文构造的说明例，不是论文实验：\(p=8\) 时四次 all-reduce 合计约搬运 \(7nq\) bytes/卡/层，因为 \(8(p-1)/p=7\)。
+**小例子。** 本文构造的说明例，不是论文实验：$p=8$ 时四次 all-reduce 合计约搬运 $7nq$ bytes/卡/层，因为 $8(p-1)/p=7$。
 
 #### F4：Figure 5 的弱扩展效率
 
@@ -277,13 +277,13 @@ $$
 
 **怎么读？** 实际吞吐除以理想线性吞吐就是效率。
 
-**输入与输出。** 输入为 \(F_p,F_1,p\)；输出 \(\eta_p\in[0,1]\) 或百分比。
+**输入与输出。** 输入为 $F_p,F_1,p$；输出 $\eta_p\in[0,1]$ 或百分比。
 
-**变量在这里各做什么？** \(F_1\) 是 1.2B 单卡强基线的 39 TFLOP/s；\(F_p\) 是扩展配置持续吞吐；\(p\) 是对应 GPU 数。
+**变量在这里各做什么？** $F_1$ 是 1.2B 单卡强基线的 39 TFLOP/s；$F_p$ 是扩展配置持续吞吐；$p$ 是对应 GPU 数。
 
-**直觉。** \(\eta_p\) 越低，说明通信、较小 GEMM 或其他系统开销占比越高。
+**直觉。** $\eta_p$ 越低，说明通信、较小 GEMM 或其他系统开销占比越高。
 
-**边界。** 本文重建定义；不同 \(p\) 的模型规模也改变，属于 weak scaling，不是固定模型的纯加速比。
+**边界。** 本文重建定义；不同 $p$ 的模型规模也改变，属于 weak scaling，不是固定模型的纯加速比。
 
 **小例子。** 论文给出 8 路模型并行效率 77%；即实际持续吞吐约为同一单卡基线理想 8 倍值的 0.77。
 
@@ -297,15 +297,15 @@ $$
 
 **怎么读？** 总参数数乘每参数字节，再除以 TP 卡数。
 
-**输入与输出。** 输入为参数量 \(P\)、权重字节 \(q\)、TP 度 \(p\)；输出为每卡 bytes。
+**输入与输出。** 输入为参数量 $P$、权重字节 $q$、TP 度 $p$；输出为每卡 bytes。
 
-**变量在这里各做什么？** \(P\) 表示模型容量；\(q\) 由数值格式决定；\(p\) 表示均匀分片份数。
+**变量在这里各做什么？** $P$ 表示模型容量；$q$ 由数值格式决定；$p$ 表示均匀分片份数。
 
 **直觉。** 8.3B fp16 权重总计约 16.6GB；8 路均分仅权重约 2.08GB/卡，但训练还需梯度、优化器状态、激活与未分片/复制项。
 
 **边界。** analysis-derived 下界；论文未报告 master weight/Adam state 的确切精度布局，不能用此式还原实际峰值显存。
 
-**小例子。** 上述 8.3B、\(q=2\)、\(p=8\) 即论文配置的容量直觉示例，不是论文实测显存。
+**小例子。** 上述 8.3B、$q=2$、$p=8$ 即论文配置的容量直觉示例，不是论文实测显存。
 
 ### 4.6 训练、数据与部署边界
 
@@ -329,7 +329,7 @@ Figure 5 的模型并行序列为 1/2/4/8 GPUs：100%/95%/82%/77%；模型+数�
 |---|---|---|---|---|---|---|
 | column→row 配对删除中间同步 | 更少 collective、更好 scaling | Figure 3 + Figure 5 | 无组件替换 | 整体 8-way TP 77% | theory + mechanism visualization + confounded system result | 机制成立，性能贡献未隔离 |
 | attention head 本地化 | attention 无即时通信 | Appendix Table 7 | head 数 sensitivity，但 GEMM shape 同时变 | 16/24/32 heads：82/80/77% | sensitivity | head 粒度影响效率；不是“有无该设计”消融 |
-| vocabulary-parallel CE | 避免 \(bsv\) all-gather | 无论文性能表；当前代码实现 | 无 | 未报告 | code-only | 通信阶数机制明确，速度收益未量化 |
+| vocabulary-parallel CE | 避免 $bsv$ all-gather | 无论文性能表；当前代码实现 | 无 | 未报告 | code-only | 通信阶数机制明确，速度收益未量化 |
 | 重复 LN/dropout/residual | 少广播 | 无 | 无 | 未报告 | none | unverified |
 | TP×DP 可组合 | 扩容量并扩吞吐 | Figure 5 | 随 GPU、模型大小、DP 同时变化 | 512 GPU 74% | confounded full-system | 整体系统支持，TP/DP 各自损耗不可分 |
 | BERT LN/residual 重排 | 大模型稳定、loss 更低 | Figure 7 | 架构对照较直接 | 752M 原架构不稳、重排更低 loss | direct architecture comparison | tested setting supported |
@@ -384,7 +384,7 @@ Figure 5 的模型并行序列为 1/2/4/8 GPUs：100%/95%/82%/77%；模型+数�
 ### 8.2 带宽利用率与拓扑边界
 
 论文给的是链路标称带宽和端到端 FLOP scaling，没有给每次 collective 的 bytes、时延或持续有效带宽，所以不能计算
-\(\text{effective bandwidth}=\text{bytes moved}/\text{runtime}\)
+$\text{effective bandwidth}=\text{bytes moved}/\text{runtime}$
 及其相对峰值利用率。F3 只能作为算法通信量近似。实验把一个 8-way TP group 放在同一 DGX-2H 内，利用较快 NVSwitch；64 个副本之间做 DP。这个布局说明 77% TP 结果依赖高速节点内互连，不能直接外推到跨节点 8-way TP。
 
 ### 8.3 异构硬件
@@ -397,9 +397,9 @@ Figure 5 的模型并行序列为 1/2/4/8 GPUs：100%/95%/82%/77%；模型+数�
 
 | 概念 | 当前代码证据 | 与论文关系 |
 |---|---|---|
-| \(f\) | `megatron/core/tensor_parallel/mappings.py:492` `copy_to_tensor_model_parallel_region`: “forward: copy, backward allreduce” | 精确一致 |
-| \(g\) | `mappings.py:498` `reduce_from_tensor_model_parallel_region`: “forward: all reduce, backward copy” | 精确一致 |
-| column parallel | `layers.py:869` `ColumnParallelLinear`：\(A=[A_1,\ldots,A_p]\)，默认每卡保留 \(Y_i=XA_i\) | 基本概念一致；新增异步、sequence/expert 分支 |
+| $f$ | `megatron/core/tensor_parallel/mappings.py:492` `copy_to_tensor_model_parallel_region`: “forward: copy, backward allreduce” | 精确一致 |
+| $g$ | `mappings.py:498` `reduce_from_tensor_model_parallel_region`: “forward: all reduce, backward copy” | 精确一致 |
+| column parallel | `layers.py:869` `ColumnParallelLinear`：$A=[A_1,\ldots,A_p]$，默认每卡保留 $Y_i=XA_i$ | 基本概念一致；新增异步、sequence/expert 分支 |
 | row parallel | `layers.py:1249` `RowParallelLinear`；forward 末 `reduce_from_tensor_model_parallel_region` | 基本概念一致 |
 | vocab embedding | `layers.py:230` `VocabParallelEmbedding`；按 vocab range mask/local lookup 后 reduce | 与论文 Section 3 一致 |
 | vocab CE | `cross_entropy.py` 对全局 max、target logit、exp sum 做 all-reduce，而非 gather 全 logits | 核验论文的通信机制 |
@@ -435,4 +435,4 @@ Figure 5 的模型并行序列为 1/2/4/8 GPUs：100%/95%/82%/77%；模型+数�
 
 ## 11. 阅读结论
 
-这篇论文建立了后来所谓 tensor parallel 的 canonical Transformer 切分：第一线性层切输出维，第二线性层切输入维，attention heads 复用同一模式；\(f\) 在 backward 合并输入梯度，\(g\) 在 forward 合并输出部分和。论文强项是机制清楚、原生 PyTorch 边界少、整体系统规模证据强；弱项是设计项的独立性能证据不足。可以把它作为“张量并行基本语义和 collective 配对”的基线，但不能把当前 Megatron Core 的所有优化或 74%–77% 效率直接外推到不同网络拓扑与现代硬件。
+这篇论文建立了后来所谓 tensor parallel 的 canonical Transformer 切分：第一线性层切输出维，第二线性层切输入维，attention heads 复用同一模式；$f$ 在 backward 合并输入梯度，$g$ 在 forward 合并输出部分和。论文强项是机制清楚、原生 PyTorch 边界少、整体系统规模证据强；弱项是设计项的独立性能证据不足。可以把它作为“张量并行基本语义和 collective 配对”的基线，但不能把当前 Megatron Core 的所有优化或 74%–77% 效率直接外推到不同网络拓扑与现代硬件。

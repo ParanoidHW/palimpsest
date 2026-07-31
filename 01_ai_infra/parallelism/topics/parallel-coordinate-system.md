@@ -27,21 +27,21 @@ canonical: true
 
 | 对象 | 逻辑轴 | 常见切分 | 未切时的冗余或瓶颈 |
 |---|---|---|---|
-| samples / requests | batch \(B\) | DP | 每个副本处理不同样本，模型复制 |
-| tokens / KV blocks | sequence \(S\) | SP / CP | activation、attention 或 KV cache 随序列增长 |
-| features / heads | hidden \(H\)、heads \(A\) | TP | 单层权重或 GEMM 超单卡 |
-| layers | layer \(L\) | PP | 总参数/激活跨层累积 |
-| experts | expert \(E\) | EP | MoE 参数容量和 token routing |
-| training states | parameter \(P\)、gradient \(G\)、optimizer \(O\) | ZeRO / FSDP | DP 重复保存模型状态 |
+| samples / requests | batch $B$ | DP | 每个副本处理不同样本，模型复制 |
+| tokens / KV blocks | sequence $S$ | SP / CP | activation、attention 或 KV cache 随序列增长 |
+| features / heads | hidden $H$、heads $A$ | TP | 单层权重或 GEMM 超单卡 |
+| layers | layer $L$ | PP | 总参数/激活跨层累积 |
+| experts | expert $E$ | EP | MoE 参数容量和 token routing |
+| training states | parameter $P$、gradient $G$、optimizer $O$ | ZeRO / FSDP | DP 重复保存模型状态 |
 | conditional paths | branch / modality / timestep | CFGP / custom | 同一输入执行多条条件分支 |
 
 设备则抽象成逻辑 mesh：
 
-\[
+$$
 \mathcal D=
 D_{\mathrm{DP}}\times D_{\mathrm{TP}}\times D_{\mathrm{PP}}
 \times D_{\mathrm{EP}}\times D_{\mathrm{CP}}.
-\]
+$$
 
 一个 rank 的身份是这组坐标的组合。不同 mesh 维可以映射到不同物理互联域，例如 TP/CP 放节点内 NVLink，DP/PP 放跨节点网络。
 
@@ -68,12 +68,12 @@ D_{\mathrm{DP}}\times D_{\mathrm{TP}}\times D_{\mathrm{PP}}
 
 | Paper | 输入 layout | 局部计算 | 输出/恢复 |
 |---|---|---|---|
-| [Megatron-LM](../papers/megatron-lm.md) | TP 组复制 \(X\) | 第一 GEMM 输出维分片，GeLU/head-local | 第二 GEMM 输入维分片，出口 sum |
+| [Megatron-LM](../papers/megatron-lm.md) | TP 组复制 $X$ | 第一 GEMM 输出维分片，GeLU/head-local | 第二 GEMM 输入维分片，出口 sum |
 | [GPipe](../papers/gpipe.md) | mini-batch 切 micro-batches | 每 stage 持连续 layers | stage P2P，mini-batch 末同步更新 |
-| [ZeRO](../papers/zero.md) | DP batch shard | \(O/G/P\) 按 DP group 分片 | 使用前 gather，梯度后 reduce-scatter |
+| [ZeRO](../papers/zero.md) | DP batch shard | $O/G/P$ 按 DP group 分片 | 使用前 gather，梯度后 reduce-scatter |
 | [GShard](../papers/gshard.md) | 普通层复制、experts 分片 | local expert FFN | token all-to-all dispatch/combine |
-| [Ulysses](../papers/deepspeed-ulysses.md) | \([b,S/P,A,d]\) | \([b,S,A/P,d]\) 上做 attention | 两次 all-to-all 互换 sequence/head ownership |
-| [Ring Attention](../papers/ring-attention.md) | local \(Q_i,K_i,V_i\) | \(Q_i\) 与当前 KV block 更新 online state | KV 环传一圈，输出留在 Q owner |
+| [Ulysses](../papers/deepspeed-ulysses.md) | $[b,S/P,A,d]$ | $[b,S,A/P,d]$ 上做 attention | 两次 all-to-all 互换 sequence/head ownership |
+| [Ring Attention](../papers/ring-attention.md) | local $Q_i,K_i,V_i$ | $Q_i$ 与当前 KV block 更新 online state | KV 环传一圈，输出留在 Q owner |
 
 ## 4. 容易混淆的边界
 

@@ -73,11 +73,11 @@ Stage 3 只在 layer 使用参数时 gather。论文的平均状态公式建立�
 
 关键代数原因：
 
-\[
+$$
 \operatorname{GeLU}(X_1A_1+X_2A_2)
 \neq
 \operatorname{GeLU}(X_1A_1)+\operatorname{GeLU}(X_2A_2).
-\]
+$$
 
 如果先按输入维切第一 GEMM，就必须在非线性前归约；column→row 配对把同步移到更少的边界。
 
@@ -90,9 +90,9 @@ Stage 3 只在 layer 使用参数时 gather。论文的平均状态公式建立�
 
 均衡理想 bubble：
 
-\[
+$$
 \beta\approx\frac{K-1}{M+K-1}.
-\]
+$$
 
 重计算减少 stage 内 activation 保存，但增加 forward compute。GPipe 在 mini-batch 末同步更新，所有 micro-batches 使用同一参数版本。
 
@@ -116,7 +116,7 @@ capacity、random second-choice 和 auxiliary loss分别处理：
 
 ### Ulysses
 
-[Ulysses](../papers/deepspeed-ulysses.md)把 \([b,S/P,A,d]\) 转为 \([b,S,A/P,d]\)，attention 后再转回。它保留标准 attention kernel，但需要 all-to-all 和可分 heads。
+[Ulysses](../papers/deepspeed-ulysses.md)把 $[b,S/P,A,d]$ 转为 $[b,S,A/P,d]$，attention 后再转回。它保留标准 attention kernel，但需要 all-to-all 和可分 heads。
 
 ### Ring
 

@@ -19,20 +19,20 @@ canonical: true
 
 并行方案的通信成本不能只用“总字节数”描述。实际 exposed time 同时由启动延迟、每 rank 字节、同步 step、拓扑、并发 collective、buffer peak 和 overlap 条件决定。
 
-## 1. \(\alpha\)-\(\beta\) 基线
+## 1. $\alpha$-$\beta$ 基线
 
-\[
+$$
 T_{\mathrm{comm}}
 \approx \alpha\,s(p)+\beta\,V(m,p)+T_{\mathrm{contention}}.
-\]
+$$
 
-- \(\alpha\)：一次通信 step 的启动/同步成本；
-- \(s(p)\)：算法 step 数；
-- \(\beta\)：每字节时间；
-- \(V(m,p)\)：每 rank 的有效收发字节；
+- $\alpha$：一次通信 step 的启动/同步成本；
+- $s(p)$：算法 step 数；
+- $\beta$：每字节时间；
+- $V(m,p)$：每 rank 的有效收发字节；
 - `contention`：多个并行轴、NIC、NVLink 或 PCIe 共享资源产生的额外等待。
 
-小消息主要受 \(\alpha\) 支配；大消息主要受带宽和拥塞支配。同样的 \(V\) 经由 all-to-all 与 ring P2P，性能可以完全不同。
+小消息主要受 $\alpha$ 支配；大消息主要受带宽和拥塞支配。同样的 $V$ 经由 all-to-all 与 ring P2P，性能可以完全不同。
 
 ## 2. Primitive 与语义
 
@@ -51,24 +51,24 @@ all-reduce 常被实现为 reduce-scatter + all-gather；因此算法名和 runt
 
 ### TP
 
-以边界 activation \(n\approx bSH\) elements、dtype \(q\) bytes、ring all-reduce 为例，一层训练中四次 all-reduce 的 analysis-derived 每卡传输近似：
+以边界 activation $n\approx bSH$ elements、dtype $q$ bytes、ring all-reduce 为例，一层训练中四次 all-reduce 的 analysis-derived 每卡传输近似：
 
-\[
+$$
 C_{\mathrm{TP,layer}}
 \approx 8\frac{p-1}{p}\,bSHq.
-\]
+$$
 
-TP degree 增大时计算按约 \(1/p\) 缩小，但通信系数趋近常数；这解释了强扩展末端的效率下降。[Megatron-LM](../papers/megatron-lm.md#43-fg-的-forwardbackward-collective-精确位置)给出准确 collective 边界。
+TP degree 增大时计算按约 $1/p$ 缩小，但通信系数趋近常数；这解释了强扩展末端的效率下降。[Megatron-LM](../papers/megatron-lm.md#43-fg-的-forwardbackward-collective-精确位置)给出准确 collective 边界。
 
 ### PP
 
 均衡 stage 的名义 bubble：
 
-\[
+$$
 \beta_{\mathrm{pipe}}\approx\frac{K-1}{M+K-1}.
-\]
+$$
 
-这不是完整性能模型。最慢 stage、activation P2P、重计算、kernel shape 与调度策略会改变实际值。[GPipe](../papers/gpipe.md#43-关键公式)的 Table 2 支持 \(M/K\) 越大吞吐越好，但 batch size 可能调整。
+这不是完整性能模型。最慢 stage、activation P2P、重计算、kernel shape 与调度策略会改变实际值。[GPipe](../papers/gpipe.md#43-关键公式)的 Table 2 支持 $M/K$ 越大吞吐越好，但 batch size 可能调整。
 
 ### ZeRO/FSDP
 
@@ -90,9 +90,9 @@ EP 的 dispatch/combine bytes 与 routed tokens、hidden size、top-k 和 dtype 
 
 论文级每链路元素量：
 
-\[
+$$
 V_{\mathrm{link}}\approx\frac{4SH}{P},
-\]
+$$
 
 来自 Q/K/V 与 attention output 的两次 all-to-all。该式不含 latency、反向、拓扑拥塞和 uneven heads；见 [Ulysses](../papers/deepspeed-ulysses.md#44-关键公式)。
 
@@ -100,11 +100,11 @@ V_{\mathrm{link}}\approx\frac{4SH}{P},
 
 通信被 block compute 覆盖的理想条件：
 
-\[
+$$
 c\ge \frac{F}{B}.
-\]
+$$
 
-其中 \(F\) 是设备 FLOP/s，\(B\) 是邻居链路 bytes/s，\(c\) 是 block length。causal skip 会减少某些 ranks 的 compute，破坏 overlap 窗口；见 [Ring Attention](../papers/ring-attention.md#43-关键公式)。
+其中 $F$ 是设备 FLOP/s，$B$ 是邻居链路 bytes/s，$c$ 是 block length。causal skip 会减少某些 ranks 的 compute，破坏 overlap 窗口；见 [Ring Attention](../papers/ring-attention.md#43-关键公式)。
 
 ## 4. Overlap 不是免费
 

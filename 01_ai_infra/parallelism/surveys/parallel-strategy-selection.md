@@ -26,7 +26,7 @@ canonical: true
 | batch 可扩、模型可单卡 | DP | global batch 与收敛 | sample efficiency 下降 |
 | optimizer/gradient/parameter OOM | ZeRO/FSDP | gather/reduce overlap、peak buffer | 通信或碎片仍 OOM |
 | 单层权重/GEMM OOM | TP | hidden/head divisibility、NVLink | small GEMM、all-reduce 主导 |
-| 总层数/activation OOM | PP | stage balance、\(M/K\) | bubble/最慢 stage |
+| 总层数/activation OOM | PP | stage balance、$M/K$ | bubble/最慢 stage |
 | MoE expert 参数 OOM | EP | routing balance、all-to-all fabric | hot experts、token drop |
 | attention activation OOM | Ulysses/Ring/CP | heads、block、mask、topology | all-to-all 拥塞/causal imbalance |
 | CFG 双分支 latency | CFGP | 分支成本、combine tensor | branch idle、状态复制 |

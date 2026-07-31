@@ -130,7 +130,7 @@ canonical: true
 
 ### 4.2 精确 layout 与前反向通信
 
-设 batch-first QKV 的逻辑 shape 为 $[b,N/P,H,d_h]$。默认实现 `scatter_idx=2, gather_idx=0`：第一次 `_SeqAllToAll` 将其转换为 $[b,N,H/P,d_h]$；local attention 输出同 shape；第二次使用交换后的 `(gather_idx, scatter_idx)` 恢复 $[b,N/P,H,d_h]`（Paper Figure 2；`code/layer.py:426-457`）。
+设 batch-first QKV 的逻辑 shape 为 $[b,N/P,H,d_h]$。默认实现 `scatter_idx=2, gather_idx=0`：第一次 `_SeqAllToAll` 将其转换为 $[b,N,H/P,d_h]$；local attention 输出同 shape；第二次使用交换后的 `(gather_idx, scatter_idx)` 恢复 $[b,N/P,H,d_h]$（Paper Figure 2；`code/layer.py:426-457`）。
 
 反向并非新的协议：`_SeqAllToAll.backward` 再次调用自身并交换 `gather_idx` 与 `scatter_idx`，因此梯度沿前向 layout 变换的逆变换返回（`code/layer.py:344-350`）。当前代码还有 q/k/v 与 output 的通信-计算 overlap 分支，但论文 v2 未分析这项后续实现优化，不能倒推为论文实验来源。
 
