@@ -9,6 +9,15 @@
 3. [具身智能_diffusion最新进展](具身智能_diffusion最新进展.md)：看 world model、VLA diffusion action head、跨 embodiment 和控制 runtime。
 4. [扩散语言模型与 Serving](surveys/language-diffusion-serving.md)：看 dLLM serving、diffusion draft 和 self-speculation；其中 [Nemotron-Labs-Diffusion](papers/nemotron-labs-diffusion.md) 按主要建模机制归入 diffusion。
 
+## Obsidian Properties
+
+本领域 `1/1` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+
+- 共同标签：`paper`、`collection/language-diffusion`、`domain/model-systems`、`status/deep-review`。
+- Paper 另有一项 `topic/*` 和一项 `method/*`，分别表达研究问题与核心方法。
+- 独立属性：`document_type`、`domain`、`collection`、`review_status`、`canonical`，用于 Properties view、Bases 和程序化筛选。
+- 搜索示例：`tag:#collection/language-diffusion` 查看本领域精读。
+
 ## 资产说明
 
 - 正式正文只使用四张 SVG 总览图：`diffusion_overall_2026_map.svg`、`multimodal_2026_diffusion_map.svg`、`embodied_world_2026_diffusion_map.svg`、`language_dllm_draft_2026_map.svg`。
