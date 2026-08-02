@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="dpz-title dpz-desc">
+  <title id="dpz-title">DP 与 ZeRO/FSDP 状态生命周期</title>
+  <desc id="dpz-desc">展示 batch shard、梯度归约、ZeRO 1/2/3 状态分片与 Stage 3 参数临时 gather 峰值。</desc>
+  <defs><marker id="dpz-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#e87927"/></marker></defs>
+  <style>
+    text{font-family:"Noto Sans CJK SC","Microsoft YaHei",Arial,sans-serif;fill:#172033;letter-spacing:0}.t{font-size:34px;font-weight:700}.st{font-size:19px;fill:#566176}.h{font-size:23px;font-weight:700}.b{font-size:18px}.s{font-size:15px}.rank{fill:#e8f2ff;stroke:#2474c6;stroke-width:2}.comm{fill:none;stroke:#e87927;stroke-width:5;marker-end:url(#dpz-arrow)}.state{fill:#eef0f3;stroke:#7b8494;stroke-width:2}.sync{fill:#fff0f0;stroke:#d64b4b;stroke-width:2}.peak{fill:#fff3e7;stroke:#e87927;stroke-width:2}.note{fill:#f7f9fc;stroke:#d7dde7;stroke-width:2}
+  </style>
+  <rect width="1600" height="900" fill="#fff"/>
+  <text class="t" x="70" y="65">DP 与 ZeRO/FSDP：切 batch，也可以切模型状态</text>
+  <text class="st" x="70" y="101">固定全局 batch；p=4。蓝=计算，橙=通信，灰=复制/分片状态，红=同步。</text>
+  <text class="h" x="70" y="155">1  数据并行 (DP)</text>
+  <rect class="note" x="70" y="175" width="300" height="95" rx="6"/><text class="b" x="93" y="212">全局 batch B</text><text class="s" x="93" y="244">每 rank 得到 B/p 个样本</text>
+  <path class="comm" d="M370 222 H455"/>
+  <g><rect class="rank" x="470" y="165" width="210" height="115" rx="6"/><rect class="rank" x="700" y="165" width="210" height="115" rx="6"/><rect class="rank" x="930" y="165" width="210" height="115" rx="6"/><rect class="rank" x="1160" y="165" width="210" height="115" rx="6"/>
+  <text class="b" x="500" y="202">rank 0 · B/4</text><text class="b" x="730" y="202">rank 1 · B/4</text><text class="b" x="960" y="202">rank 2 · B/4</text><text class="b" x="1190" y="202">rank 3 · B/4</text>
+  <text class="s" x="500" y="237">FWD/BWD</text><text class="s" x="730" y="237">FWD/BWD</text><text class="s" x="960" y="237">FWD/BWD</text><text class="s" x="1190" y="237">FWD/BWD</text></g>
+  <path class="comm" d="M575 280 V335 H1270 V280"/><rect class="sync" x="620" y="310" width="600" height="65" rx="6"/><text class="b" x="735" y="350">gradient ring all-reduce：每 rank 约 2(p−1)/p · qΨ bytes</text>
+  <text class="h" x="70" y="435">2  状态从复制到分片</text>
+  <g><text class="b" x="85" y="480">DP</text><text class="b" x="85" y="555">ZeRO-1</text><text class="b" x="85" y="630">ZeRO-2</text><text class="b" x="85" y="705">ZeRO-3</text>
+  <rect class="state" x="210" y="448" width="1150" height="48" rx="5"/><text class="b" x="235" y="480">每 rank：P 全量 + G 全量 + O 全量</text>
+  <rect class="state" x="210" y="523" width="1150" height="48" rx="5"/><text class="b" x="235" y="555">每 rank：P 全量 + G 全量 + O/p</text>
+  <rect class="state" x="210" y="598" width="1150" height="48" rx="5"/><text class="b" x="235" y="630">每 rank：P 全量 + G/p + O/p</text>
+  <rect class="state" x="210" y="673" width="1150" height="48" rx="5"/><text class="b" x="235" y="705">每 rank：(P + G + O)/p；使用参数前 all-gather</text></g>
+  <rect class="peak" x="210" y="755" width="1150" height="72" rx="6"/><text class="b" x="235" y="785">Stage 3 峰值 ≠ 平均状态内存</text><text class="s" x="235" y="812">峰值还含当前 layer 的 gathered parameters、prefetch bucket、live window、通信 workspace 与 allocator fragmentation。</text>
+  <text class="s" x="70" y="868">教学整理图（analysis-derived），非论文原图 · Ψ=参数量，q=dtype bytes，O=optimizer states，G=gradients，P=parameters</text>
+</svg>
