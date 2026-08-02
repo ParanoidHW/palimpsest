@@ -54,21 +54,21 @@ canonical: true
 
 ## 2. 总对照
 
-| 方法 | rank-local layout | 恢复语义 | 典型 per-rank 通信（未 overlap） | 模型状态 | 激活/临时内存 | 固定 workload 的每 rank 计算 | 首要非理想项 |
-|---|---|---|---|---|---|---|---|
-| DP | $B/p$ samples，完整模型 | gradient all-reduce | ring AR 约 $2(p-1)q\Psi/p$ bytes/step，**analysis-derived** | 复制 | 约随 $B/p$ | 约 $1/p$ | global-batch 约束、同步 |
-| ZeRO-1/2/3 | DP batch + O/G/P 逐级分片 | AR 或 RS/AG | Stage 3 逐 layer parameter AG + gradient RS | 平均降至逐级 $1/p$ | gather/prefetch 峰值 buffer | 约 $1/p$ | 高频 gather、峰值而非平均值 |
-| TP | hidden/head shard | sum/RS/concat | 每层多次 activation collective，量级 $qBSH$ | 参数约 $1/p$ | activation shard + collective workspace | 约 $1/p$ | local GEMM 太小、latency |
-| PP | $L/p$ layers/stage | activation/gradient P2P | 每 stage boundary、每 micro-batch send/recv | 参数约 $1/p$ | stage activation + boundary buffers | 理想约 $1/p$ | bubble、最慢 stage、重计算 |
-| EP | $E/p$ experts + routed tokens | dispatch/combine A2A | 每 MoE layer 两次 routed-token A2A；载荷量级 $qT_rH$ | expert state 约 $1/p$ | dispatch buffers，按 max rank | 理想 expert FLOPs 约 $1/p$ | 热点、capacity/drop、小包 |
-| Megatron SP | non-attention activation 按 $S/p$ | AG/RS 接 TP 边界 | 每 block 的 gather/reduce-scatter | 不单独降低参数 | 覆盖区域约 $1/p$ | 覆盖算子约 $1/p$ | layout 边界、与 TP 绑定 |
-| Ulysses | $[B,S/p,A,d_h]\leftrightarrow[B,S,A/p,d_h]$ | 两次 A2A transpose | attention 前后各一次 A2A | 通常由其他轴决定 | shard + transpose workspace | attention 约 $1/p$ | head divisibility、fabric |
-| Ring/CP | local $Q$ + rotating KV | online softmax | $p-1$ neighbor steps/layer | 通常由其他轴决定 | local Q、双 KV buffer、online state | 理想约 $1/p$ | causal max-rank work、step latency |
-| CFGP | branch-local execution | guidance combine | 每 denoise step 交换 branch output | 常复制 | weights/cache 复制 + output buffer | 两分支时每 rank 约 $1/2$ | 总 FLOPs 不变、分支不均 |
+| 方法          | rank-local layout                           | 恢复语义                    | 典型 per-rank 通信（未 overlap）                                 | 模型状态                 | 激活/临时内存                                 | 固定 workload 的每 rank 计算  | 首要非理想项                            |
+| ----------- | ------------------------------------------- | ----------------------- | --------------------------------------------------------- | -------------------- | --------------------------------------- | ----------------------- | --------------------------------- |
+| DP          | $B/p$ samples，完整模型                          | gradient all-reduce     | ring AR 约 $2(p-1)q\Psi/p$ bytes/step，**analysis-derived** | 复制                   | 约随 $B/p$                                | 约 $1/p$                 | global-batch 约束、同步                |
+| ZeRO-1/2/3  | DP batch + O/G/P 逐级分片                       | AR 或 RS/AG              | Stage 3 逐 layer parameter AG + gradient RS                | 平均降至逐级 $1/p$         | gather/prefetch 峰值 buffer               | 约 $1/p$                 | 高频 gather、峰值而非平均值                 |
+| TP          | hidden/head shard                           | sum/RS/concat           | 每层多次 activation collective，量级 $qBSH$                      | 参数约 $1/p$            | activation shard + collective workspace | 约 $1/p$                 | local GEMM 太小、latency             |
+| PP          | $L/p$ layers/stage                          | activation/gradient P2P | 每 stage boundary、每 micro-batch send/recv                  | 参数约 $1/p$            | stage activation + boundary buffers     | 理想约 $1/p$               | bubble、最慢 stage、重计算               |
+| EP          | $E/p$ experts + routed tokens               | dispatch/combine A2A    | 每 MoE layer 两次 routed-token A2A；载荷量级 $qT_rH$              | expert state 约 $1/p$ | dispatch buffers，按 max rank             | 理想 expert FLOPs 约 $1/p$ | 热点、capacity/drop、小包               |
+| Megatron SP | non-attention activation 按 $S/p$            | AG/RS 接 TP 边界           | 每 block 的 gather/reduce-scatter                           | 不单独降低参数              | 覆盖区域约 $1/p$                             | 覆盖算子约 $1/p$             | layout 边界、与 TP 绑定                 |
+| Ulysses     | $[B,S/p,A,d_h]\leftrightarrow[B,S,A/p,d_h]$ | 两次 A2A transpose        | attention 前后各一次 A2A                                       | 通常由其他轴决定             | shard + transpose workspace             | attention 约 $1/p$       | head divisibility、fabric          |
+| Ring/CP     | local $Q$ + rotating KV                     | online softmax          | $p-1$ neighbor steps/layer                                | 通常由其他轴决定             | local Q、双 KV buffer、online state        | 理想约 $1/p$               | causal max-rank work、step latency |
+| CFGP        | branch-local execution                      | guidance combine        | 每 denoise step 交换 branch output                           | 常复制                  | weights/cache 复制 + output buffer        | 两分支时每 rank 约 $1/2$      | 总 FLOPs 不变、分支不均                   |
 
 ## 3. DP 与 ZeRO/FSDP：batch 和模型状态是两条轴
 
-![DP 与 ZeRO/FSDP 状态生命周期](../assets/surveys/parallel-partitioning-taxonomy/dp-zero-state-lifecycle.svg)
+![DP 与 ZeRO/FSDP 状态生命周期|757](../assets/surveys/parallel-partitioning-taxonomy/dp-zero-state-lifecycle.png)
 
 > 教学整理图，非论文证据。论文机制与实验见 [ZeRO](../papers/zero.md#核心机制)。
 
@@ -99,7 +99,7 @@ $$
 
 ## 4. TP：column-parallel 到 row-parallel
 
-![Tensor Parallel block](../assets/surveys/parallel-partitioning-taxonomy/tensor-parallel-block.svg)
+![Tensor Parallel block|783](../assets/surveys/parallel-partitioning-taxonomy/tensor-parallel-block.png)
 
 > 教学整理图，非论文证据。原机制图与实现边界见 [Megatron-LM](../papers/megatron-lm.md#核心机制)。
 
@@ -127,7 +127,7 @@ $$
 
 ## 5. PP：layer stage 与 micro-batch 时间轴
 
-![Pipeline Parallel schedule](../assets/surveys/parallel-partitioning-taxonomy/pipeline-parallel-schedule.svg)
+![Pipeline Parallel schedule|800](../assets/surveys/parallel-partitioning-taxonomy/pipeline-parallel-schedule.png)
 
 > 教学整理图，非论文证据。GPipe 的 schedule、重计算与实验证据见 [GPipe](../papers/gpipe.md#核心机制)。
 
@@ -153,7 +153,7 @@ $$
 
 ## 6. EP：expert ownership 与 token redistribution
 
-![Expert Parallel routing](../assets/surveys/parallel-partitioning-taxonomy/expert-parallel-routing.svg)
+![Expert Parallel routing|760](../assets/surveys/parallel-partitioning-taxonomy/expert-parallel-routing.png)
 
 > 教学整理图，非论文证据。GShard 的 expert placement 与系统证据见 [GShard](../papers/gshard.md#核心机制)。
 
@@ -171,7 +171,7 @@ $$
 
 ## 7. Megatron Sequence Parallel：非 attention activation 的 $S/p$
 
-![Megatron Sequence Parallel](../assets/surveys/parallel-partitioning-taxonomy/megatron-sequence-parallel.svg)
+![Megatron Sequence Parallel|764](../assets/surveys/parallel-partitioning-taxonomy/megatron-sequence-parallel.png)
 
 > 教学整理图，非论文证据。术语边界与 Ulysses/Ring 对照见[序列与上下文并行](../topics/sequence-and-context-parallelism.md)。
 
@@ -189,7 +189,7 @@ $$
 
 ## 8. Ulysses：sequence 与 heads 的 layout transpose
 
-![Ulysses layout transpose](../assets/surveys/parallel-partitioning-taxonomy/ulysses-layout-transpose.svg)
+![Ulysses layout transpose|761](../assets/surveys/parallel-partitioning-taxonomy/ulysses-layout-transpose.png)
 
 > 教学整理图，非论文证据。论文公式、有限实现核验和复合收益边界见 [DeepSpeed Ulysses](../papers/deepspeed-ulysses.md#核心机制)。
 
@@ -207,7 +207,7 @@ $$
 
 ## 9. Ring / Context Parallel：local Q 固定、KV block 环传
 
-![Ring Context Parallel](../assets/surveys/parallel-partitioning-taxonomy/ring-context-parallel.svg)
+![Ring Context Parallel|796](../assets/surveys/parallel-partitioning-taxonomy/ring-context-parallel.png)
 
 > 教学整理图，非论文证据。online softmax、blockwise 机制与证据边界见 [Ring Attention](../papers/ring-attention.md#核心机制)。
 
@@ -225,7 +225,7 @@ $$
 
 ## 10. CFGP：沿 conditional branch 切分
 
-![Classifier-Free Guidance Parallel](../assets/surveys/parallel-partitioning-taxonomy/cfg-branch-parallel.svg)
+![Classifier-Free Guidance Parallel|800](../assets/surveys/parallel-partitioning-taxonomy/cfg-branch-parallel.png)
 
 > 教学整理图，非论文证据。跨域 canonical 案例与 owner 链接见[跨领域采用](../evidence/parallel-partitioning-cross-domain-adoption.md)。
 
@@ -261,4 +261,4 @@ DP → ZeRO/FSDP → TP → PP → EP → CP/SP。
 - DP/ZeRO、TP、PP、EP、Ulysses 与 Ring 的论文级依据分别链接到 [ZeRO](../papers/zero.md)、[Megatron-LM](../papers/megatron-lm.md)、[GPipe](../papers/gpipe.md)、[GShard](../papers/gshard.md)、[DeepSpeed Ulysses](../papers/deepspeed-ulysses.md) 和 [Ring Attention](../papers/ring-attention.md)。
 - Megatron Sequence Parallel 与 CFGP 是跨来源综合；术语与采用边界分别见[序列/上下文并行 Topic](../topics/sequence-and-context-parallelism.md)和[跨领域采用 Evidence](../evidence/parallel-partitioning-cross-domain-adoption.md)。
 - 所有公式描述理论量级与明确假设。full-system throughput、scaling efficiency 或 end-to-end latency 不能自动归因给单个 parallel primitive。
-- 图的 owner、用途、viewBox 和逐图 QA 状态记录在 [Figure Inventory](../evidence/figure-inventory.md)。
+- 图的 owner、用途、分辨率和逐图 QA 状态记录在 [Figure Inventory](../evidence/figure-inventory.md)。

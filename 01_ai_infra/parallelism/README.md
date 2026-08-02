@@ -7,7 +7,7 @@
 3. 为恢复全局语义需要什么通信；
 4. 在目标 workload 与硬件拓扑下，这个切分是否值得。
 
-当前版本已完成统一坐标、成本模型、方法体系、选型指南、不规则切分、六篇 canonical Paper、Figure inventory 和跨域采用索引；方法体系另提供 8 张可编辑 SVG，统一展示 rank-local layout、恢复语义、通信、状态/激活内存、计算量与推理差异。后续以增量补充 pipeline schedule 实现演进、自动切分编译器和 serving 并行为主。
+当前版本已完成统一坐标、成本模型、方法体系、选型指南、不规则切分、六篇 canonical Paper、Figure inventory 和跨域采用索引；方法体系另提供 8 张由 TikZ 排版的高分辨率 PNG，统一展示 rank-local layout、恢复语义、通信、状态/激活内存、计算量与推理差异。后续以增量补充 pipeline schedule 实现演进、自动切分编译器和 serving 并行为主。
 
 ## 阅读路径
 
@@ -64,7 +64,7 @@
 
 ## 资产说明
 
-- `assets/surveys/parallel-partitioning-taxonomy/`：方法体系 Survey 独占的 8 张 `1600×900` 可编辑 SVG 教学整理图，覆盖 DP/ZeRO、TP、PP、EP、Megatron SP、Ulysses、Ring/CP 与 CFGP；这些图是 analysis-derived 解释资产，不是原论文证据。
+- `assets/surveys/parallel-partitioning-taxonomy/`：方法体系 Survey 独占的 8 张 `2400×1350` TikZ 排版 PNG 教学整理图，覆盖 DP/ZeRO、TP、PP、EP、Megatron SP、Ulysses、Ring/CP 与 CFGP；这些图是 analysis-derived 解释资产，不是原论文证据。
 - `assets/surveys/parallel-partitioning-domain-plan/`：领域规划 Survey 的生成图。
 - `assets/topics/parallel-coordinate-system/`：`$imagegen` 生成并经人工纠错的坐标系教学图。
 - `assets/papers/<slug>/`：六篇 canonical Paper 的 QA-passed 原论文 Figure/Table。
