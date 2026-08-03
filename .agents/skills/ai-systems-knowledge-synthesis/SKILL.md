@@ -1,6 +1,6 @@
 ---
 name: ai-systems-knowledge-synthesis
-description: Build method-first, source-traceable knowledge systems for AI training, inference, parallelism, memory, and runtimes. Use for AI systems knowledge synthesis, framework source analysis, distributed training/serving implementation comparisons, method-to-code mappings, tensor/collective walkthroughs, or rewriting systems explanations to remove unexplained framework jargon. Supports Megatron Core, DeepSpeed, PyTorch FSDP/DTensor, Colossal-AI, vLLM, and SGLang without requiring a full literature survey or a fixed paper count.
+description: Build method-first, source-traceable knowledge systems for AI training, inference, parallelism, memory, and runtimes. Use for AI systems knowledge synthesis, framework source analysis, distributed training/serving implementation comparisons, method-to-code mappings, tensor/collective walkthroughs, model-training workflow diagrams, tensor-ownership visualizations, or rewriting systems explanations to remove unexplained framework jargon. Supports Megatron Core, DeepSpeed, PyTorch FSDP/DTensor, Colossal-AI, vLLM, and SGLang without requiring a full literature survey or a fixed paper count.
 ---
 
 # AI Systems Knowledge Synthesis
@@ -32,6 +32,8 @@ Read [references/evidence-and-readability.md](references/evidence-and-readabilit
 - [references/colossal-ai.md](references/colossal-ai.md)
 - [references/vllm.md](references/vllm.md)
 - [references/sglang.md](references/sglang.md)
+
+Read [references/systems-diagrams.md](references/systems-diagrams.md) completely when the user requests a workflow, dataflow, tensor-partition, memory-ownership, collective, or parallelism diagram, or when a diagram is necessary to make the mechanism understandable.
 
 Do not hardcode line numbers from a reference guide. Resolve symbols against the pinned commit and record durable repository-relative paths plus symbol names and line ranges in the trace ledger.
 
@@ -66,6 +68,8 @@ Create `methods/<method>.md` from the method template. Answer all of these:
 
 Include at least one numeric tensor walkthrough. State shape before partition, rank-local shape, payload and participants for every collective, and shape after communication.
 
+When producing a mechanism diagram, make the model or runtime operation the main dataflow and place tensor ownership beside it. Parameterize world size as `p` and the illustrated process as rank `r`; do not imply a fixed two-rank system. For training, show micro-batches as a sequential queue unless the method actually pipelines or overlaps them. Follow the diagram contract in [references/systems-diagrams.md](references/systems-diagrams.md).
+
 ### 4. Trace Framework Implementations
 
 Create `frameworks/<framework>.md` from the framework template and a matching framework guide. Pin one repository commit per trace boundary.
@@ -96,6 +100,8 @@ python3 /path/to/skill-creator/scripts/quick_validate.py <this-skill-directory>
 ```
 
 Fix all errors. Warnings require human review and a recorded disposition. Apply the human rubric in [references/evidence-and-readability.md](references/evidence-and-readability.md): an engineer unfamiliar with the framework must be able to answer what is split, what each device owns, where communication occurs, why it is correct, what it saves, what it costs, and where source execution begins.
+
+For every generated diagram, render the final raster at review resolution and inspect it at original size. Apply the arrow, layout, tensor-ownership, lifecycle, and evidence checks in [references/systems-diagrams.md](references/systems-diagrams.md). Do not promote a diagram whose meaning depends on accompanying prose or whose arrows, ownership snapshots, or phase transitions are ambiguous.
 
 When the user requests formal publication, invoke `$research-knowledge-publisher` and map material into existing Survey, Topic, Evidence, and Paper nodes. Do not invent a global Framework document type or change the publisher schema. Validate the process package and formal knowledge base separately.
 

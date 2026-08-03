@@ -1,4 +1,4 @@
 interface:
   display_name: "AI Systems Knowledge Synthesis"
-  short_description: "Trace AI systems methods from tensors to source code"
-  default_prompt: "Use $ai-systems-knowledge-synthesis to map a distributed AI systems method from tensor semantics to pinned framework source code."
+  short_description: "Trace AI systems methods, tensors, diagrams, and code"
+  default_prompt: "Use $ai-systems-knowledge-synthesis to explain a distributed AI systems method with tensor semantics, a clear workflow or ownership diagram when useful, and pinned framework source code."
