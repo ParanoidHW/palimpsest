@@ -68,7 +68,7 @@ canonical: true
 
 ## 3. DP 与 ZeRO/FSDP：batch 和模型状态是两条轴
 
-![DP 与 ZeRO/FSDP 状态生命周期|757](../assets/surveys/parallel-partitioning-taxonomy/dp-zero-state-lifecycle.png)
+![DP 与 ZeRO/FSDP 状态生命周期|1349](../assets/surveys/parallel-partitioning-taxonomy/dp-zero-state-lifecycle.png)
 
 > 教学整理图，非论文证据。论文机制与实验见 [ZeRO](../papers/zero.md#核心机制)。
 
@@ -99,7 +99,7 @@ $$
 
 ## 4. TP：column-parallel 到 row-parallel
 
-![Tensor Parallel block|783](../assets/surveys/parallel-partitioning-taxonomy/tensor-parallel-block.png)
+![Tensor Parallel block|1337](../assets/surveys/parallel-partitioning-taxonomy/tensor-parallel-block.png)
 
 > 教学整理图，非论文证据。原机制图与实现边界见 [Megatron-LM](../papers/megatron-lm.md#核心机制)。
 
@@ -127,7 +127,7 @@ $$
 
 ## 5. PP：layer stage 与 micro-batch 时间轴
 
-![Pipeline Parallel schedule|800](../assets/surveys/parallel-partitioning-taxonomy/pipeline-parallel-schedule.png)
+![Pipeline Parallel schedule|1376](../assets/surveys/parallel-partitioning-taxonomy/pipeline-parallel-schedule.png)
 
 > 教学整理图，非论文证据。GPipe 的 schedule、重计算与实验证据见 [GPipe](../papers/gpipe.md#核心机制)。
 
@@ -153,7 +153,7 @@ $$
 
 ## 6. EP：expert ownership 与 token redistribution
 
-![Expert Parallel routing|760](../assets/surveys/parallel-partitioning-taxonomy/expert-parallel-routing.png)
+![Expert Parallel routing|1236](../assets/surveys/parallel-partitioning-taxonomy/expert-parallel-routing.png)
 
 > 教学整理图，非论文证据。GShard 的 expert placement 与系统证据见 [GShard](../papers/gshard.md#核心机制)。
 
@@ -171,7 +171,7 @@ $$
 
 ## 7. Megatron Sequence Parallel：非 attention activation 的 $S/p$
 
-![Megatron Sequence Parallel|764](../assets/surveys/parallel-partitioning-taxonomy/megatron-sequence-parallel.png)
+![Megatron Sequence Parallel|1235](../assets/surveys/parallel-partitioning-taxonomy/megatron-sequence-parallel.png)
 
 > 教学整理图，非论文证据。术语边界与 Ulysses/Ring 对照见[序列与上下文并行](../topics/sequence-and-context-parallelism.md)。
 
@@ -189,7 +189,7 @@ $$
 
 ## 8. Ulysses：sequence 与 heads 的 layout transpose
 
-![Ulysses layout transpose|761](../assets/surveys/parallel-partitioning-taxonomy/ulysses-layout-transpose.png)
+![Ulysses layout transpose|1376](../assets/surveys/parallel-partitioning-taxonomy/ulysses-layout-transpose.png)
 
 > 教学整理图，非论文证据。论文公式、有限实现核验和复合收益边界见 [DeepSpeed Ulysses](../papers/deepspeed-ulysses.md#核心机制)。
 
@@ -207,7 +207,7 @@ $$
 
 ## 9. Ring / Context Parallel：local Q 固定、KV block 环传
 
-![Ring Context Parallel|796](../assets/surveys/parallel-partitioning-taxonomy/ring-context-parallel.png)
+![Ring Context Parallel|1525](../assets/surveys/parallel-partitioning-taxonomy/ring-context-parallel.png)
 
 > 教学整理图，非论文证据。online softmax、blockwise 机制与证据边界见 [Ring Attention](../papers/ring-attention.md#核心机制)。
 
@@ -225,7 +225,7 @@ $$
 
 ## 10. CFGP：沿 conditional branch 切分
 
-![Classifier-Free Guidance Parallel|800](../assets/surveys/parallel-partitioning-taxonomy/cfg-branch-parallel.png)
+![Classifier-Free Guidance Parallel|1365](../assets/surveys/parallel-partitioning-taxonomy/cfg-branch-parallel.png)
 
 > 教学整理图，非论文证据。跨域 canonical 案例与 owner 链接见[跨领域采用](../evidence/parallel-partitioning-cross-domain-adoption.md)。
 
