@@ -76,11 +76,11 @@ canonical: true
 
 ![ZeRO-1 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero1-training-workflow.png)
 
-> ZeRO-1：只把 FP32 master weight 与 Adam moments 分给唯一 owner；gradient all-reduce 和完整 BF16 compute weight 仍与普通 DP 相同。
+> ZeRO-1：每个 rank 先累计 $K$ 个 micro-batches 的完整 local FP32 gradient；Megatron Core 的 distributed optimizer 随后直接 reduce-scatter 到 optimizer owner，owner 只更新自己的 FP32 master weight 与 Adam moments，最后 all-gather 更新后的 BF16 parameter shards。reduce-scatter 等价于 all-reduce 后取 local slice，但不必在每卡落地完整的已归约 gradient。对同样大小的 gradient，ring reduce-scatter 的每 rank payload 约为 $(p-1)q\Psi/p$，是 ring all-reduce 的一半；整步还需另计 parameter all-gather。
 
 ![ZeRO-2 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero2-training-workflow.png)
 
-> ZeRO-2：gradient all-reduce 改为 reduce-scatter；每个 owner 只接收已经跨 rank 求和的 FP32 gradient shard，再更新自己的参数区间。
+> ZeRO-2：继续让每个 owner 只接收跨 rank 求和后的 FP32 gradient shard，并进一步把 gradient 的分片存储与生命周期纳入模型状态契约。它与上述 Megatron ZeRO-1 路径的区别不是“首次使用 reduce-scatter”，而是 gradient 是否作为持久分片状态管理。
 
 ![ZeRO-3 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero3-training-workflow.png)
 
@@ -92,7 +92,7 @@ canonical: true
 
 - **全局对象 / local layout**：DP 沿 $B$ 切分，每 rank 处理 $B/p$ 样本，但持完整 parameters、gradients 和 optimizer states。
 - **复制对象**：普通 DP 复制全部模型状态；ZeRO 按 Stage 1 optimizer、Stage 2 gradients、Stage 3 parameters 的顺序消除复制。
-- **恢复语义**：DP 在 optimizer step 前 all-reduce gradients；ZeRO-2 常用 reduce-scatter 让 gradient owner 更新；ZeRO-3 在 layer 使用参数前 all-gather，之后释放或重新分片。
+- **恢复语义**：DP 在 optimizer step 前 all-reduce gradients；ZeRO 的分布式 optimizer 可直接 reduce-scatter，让每个 owner 收到全局 gradient 的对应 slice。Megatron Core 的 ZeRO-1 路径已经这样实现；ZeRO-2 进一步分片 gradient 的存储与生命周期。ZeRO-3 在 layer 使用参数前 all-gather，之后释放或重新分片。
 - **通信频率 / 载荷**：ring all-reduce 一份 $q\Psi$ gradient 时，每 rank 算法 payload 约 $2(p-1)q\Psi/p$ bytes/step，**analysis-derived**。Stage 3 还按 layer/bucket 引入 parameter all-gather，频率通常显著高于普通 DP。
 - **模型状态内存**：忽略 padding、metadata 和临时 buffer，一份 parameter 与 gradient 均按 $q\Psi$、optimizer 为 $\kappa q\Psi$ 时，平均每 rank 状态为：
 
