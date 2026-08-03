@@ -8,6 +8,8 @@ Use this contract for workflow, dataflow, tensor-partition, state-ownership, col
 - Make model or runtime execution the primary left-to-right flow. Do not organize a training diagram solely around gradients, optimizer buffers, framework classes, or collective names.
 - Show only the detail required to answer: what enters, what executes, what state changes, where ranks communicate, and what proceeds to the next step.
 - Use ordinary mechanism labels such as `model forward`, `gradient accumulation`, and `optimizer`. Do not hardcode an algorithm such as Adam unless the evidence and scope require that exact optimizer. Use symbols such as `S_opt` for generic optimizer state and define them locally.
+- Declare the abstraction level. A method-principle diagram must omit runtime optimizations such as buckets, ready hooks, coordinator queues, fused buffers, prefetch thresholds, and overlap cadence unless one of them is required by the method definition. Put those details in a separate framework-implementation supplement backed by pinned source.
+- Use framework source to compare against the principle: confirm matching semantics, expose deviations, and explain engineering extensions. Do not let one framework's optimization redefine the principle diagram. Link each implementation supplement back to the stable method diagram and label its repository, commit, and version boundary.
 
 ## Express Time Honestly
 
@@ -37,7 +39,7 @@ Use this contract for workflow, dataflow, tensor-partition, state-ownership, col
 - Draw and approve a pure data-parallel baseline first. At the optimizer boundary, show full low-precision weights, full synchronized gradients, and full master weights plus optimizer state on every rank when that is the selected baseline.
 - Keep the baseline geometry fixed across ZeRO-1/2/3. Change ownership strips, collective boxes, and short phase transitions; do not redesign each stage so extensively that visual movement hides the mechanism difference.
 - For ZeRO-1 implementations that use reduce-scatter, show the sequence explicitly: accumulated gradient or bucket -> reduce-scatter -> rank-local gradient shard -> local optimizer update of the owned master-weight/state shard -> all-gather updated low-precision weight shards -> full model replica. Do not leave a full synchronized gradient resident after reduce-scatter. Describe `all-reduce + local slice` only as a semantic equivalence, not as an implementation trace, unless pinned source actually materializes it.
-- For ZeRO-2, distinguish when gradient shards become owned and whether a full accumulation buffer exists before bucket reduction. For ZeRO-3, distinguish persistent parameter shards from temporary all-gathered parameters used for forward or backward. Resolve both from pinned source and label the snapshot phase.
+- For a method-level ZeRO-2 diagram, show `local gradient contribution -> reduce-scatter -> owner-shard accumulation`; do not introduce buckets or readiness scheduling. A framework-level diagram may add those implementation details from pinned source. For ZeRO-3, distinguish persistent parameter shards from temporary all-gathered parameters used for forward or backward, and keep runtime-specific prefetch/release timing in the framework view.
 - Show what ZeRO changes relative to the baseline in the workflow itself, not only in a paragraph or legend.
 
 ## Arrow And Layout Rules

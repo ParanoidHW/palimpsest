@@ -70,6 +70,8 @@ Include at least one numeric tensor walkthrough. State shape before partition, r
 
 When producing a mechanism diagram, make the model or runtime operation the main dataflow and place tensor ownership beside it. Parameterize world size as `p` and the illustrated process as rank `r`; do not imply a fixed two-rank system. For training, show micro-batches as a sequential queue unless the method actually pipelines or overlaps them. Follow the diagram contract in [references/systems-diagrams.md](references/systems-diagrams.md).
 
+Keep method principles and framework implementation details in separate visual layers. Use pinned framework source to verify the principle, identify semantic differences, and provide supplemental implementation traces; do not add buckets, hooks, fused buffers, coordinator queues, prefetch policies, or overlap schedules to a principle diagram. When implementation detail is useful, create a separately labeled framework supplement and link it back to the stable method diagram.
+
 ### 4. Trace Framework Implementations
 
 Create `frameworks/<framework>.md` from the framework template and a matching framework guide. Pin one repository commit per trace boundary.
@@ -81,6 +83,8 @@ configuration -> entry API -> runtime/module -> collective -> tensor layout
 ```
 
 At every hop, explain the behavior in ordinary language. Record source path, symbol, line range, evidence ID, and the input/output state. Cover process groups, model rewriting, scheduler or engine, worker/model runner, checkpoint/optimizer state, and KV cache where relevant. Explain how the implementation matches, extends, or differs from the paper mechanism.
+
+Treat framework tracing as comparison evidence, not as permission to rewrite the method around one runtime optimization. Preserve the method-level tensor and collective semantics first; record bucketization, hooks, fusion, scheduling, prefetch, and overlap as supplemental implementation behavior with an explicit version boundary.
 
 ### 5. Synthesize Across Frameworks
 
