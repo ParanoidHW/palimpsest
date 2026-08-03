@@ -72,11 +72,11 @@ canonical: true
 
 ![普通 DP 混合精度训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/dp-training-workflow.png)
 
-> 普通 DP 基线：显式展示 batch shard、forward、backward、FP32 gradient all-reduce、Adam update、BF16 cast，以及每个 rank 复制持有的状态。
+> 普通 DP 基线：每个 micro-batch 分别执行 forward/backward 并产生 $g_{r,k}$，随后立即写入同一个 FP32 buffer；buffer 状态依次从 $G_r^{[0]}=0$ 变为 $G_r^{[1]}$、$G_r^{[2]}$，直至 $G_r^{[K]}=\sum_k g_{r,k}$，之后才执行一次 all-reduce 和 Adam update。
 
 ![ZeRO-1 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero1-training-workflow.png)
 
-> ZeRO-1：每个 rank 先累计 $K$ 个 micro-batches 的完整 local FP32 gradient；Megatron Core 的 distributed optimizer 随后直接 reduce-scatter 到 optimizer owner，owner 只更新自己的 FP32 master weight 与 Adam moments，最后 all-gather 更新后的 BF16 parameter shards。reduce-scatter 等价于 all-reduce 后取 local slice，但不必在每卡落地完整的已归约 gradient。对同样大小的 gradient，ring reduce-scatter 的每 rank payload 约为 $(p-1)q\Psi/p$，是 ring all-reduce 的一半；整步还需另计 parameter all-gather。
+> ZeRO-1：每个 micro-batch 的 backward 结束后，同样立即把 $g_{r,k}$ 加入完整 local FP32 buffer；第 $K$ 次累加完成后，Megatron Core 的 distributed optimizer 才直接 reduce-scatter 到 optimizer owner。owner 只更新自己的 FP32 master weight 与 Adam moments，最后 all-gather 更新后的 BF16 parameter shards。reduce-scatter 等价于 all-reduce 后取 local slice，但不必在每卡落地完整的已归约 gradient。对同样大小的 gradient，ring reduce-scatter 的每 rank payload 约为 $(p-1)q\Psi/p$，是 ring all-reduce 的一半；整步还需另计 parameter all-gather。
 
 ![ZeRO-2 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero2-training-workflow.png)
 
