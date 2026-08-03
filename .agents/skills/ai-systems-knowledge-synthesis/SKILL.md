@@ -68,9 +68,11 @@ Create `methods/<method>.md` from the method template. Answer all of these:
 
 Include at least one numeric tensor walkthrough. State shape before partition, rank-local shape, payload and participants for every collective, and shape after communication.
 
-When producing a mechanism diagram, make the model or runtime operation the main dataflow and place tensor ownership beside it. Parameterize world size as `p` and the illustrated process as rank `r`; do not imply a fixed two-rank system. For training, show micro-batches as a sequential queue unless the method actually pipelines or overlaps them. Follow the diagram contract in [references/systems-diagrams.md](references/systems-diagrams.md).
+When producing a mechanism diagram, make the model or runtime operation the main dataflow and place tensor ownership beside it. Parameterize world size as `p` and the illustrated process as rank `r`; do not imply a fixed two-rank system. For training, show micro-batches as a sequential queue unless the method actually pipelines or overlaps them. Follow the diagram contract and inspect its bundled visual examples in [references/systems-diagrams.md](references/systems-diagrams.md).
 
-Keep method principles and framework implementation details in separate visual layers. Use pinned framework source to verify the principle, identify semantic differences, and provide supplemental implementation traces; do not add buckets, hooks, fused buffers, coordinator queues, prefetch policies, or overlap schedules to a principle diagram. When implementation detail is useful, create a separately labeled framework supplement and link it back to the stable method diagram.
+Define a visual grammar before drawing and preserve it across the diagram set. Keep tensors or weights, model compute, persistent rank-local state, collectives, and runtime actions visually distinct; never color an operation as a tensor or stored state. Keep boxes content-tight and use spacing, not empty padding, to preserve visible arrow shafts.
+
+Keep method principles and framework implementation details in separate visual layers. A principle diagram must be framework-neutral in its visible title, subtitle, nodes, legend, and caption: omit repository names, commits, versions, configuration keys, class names, and source symbols. Use pinned framework source to verify the principle, identify semantic differences, and provide supplemental implementation traces; do not add buckets, hooks, fused buffers, coordinator queues, prefetch policies, or overlap schedules to a principle diagram. When implementation detail is useful, create a separately labeled framework supplement and link it back to the stable method diagram.
 
 ### 4. Trace Framework Implementations
 

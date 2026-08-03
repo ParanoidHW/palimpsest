@@ -1,0 +1,249 @@
+\documentclass{article}
+\usepackage[paperwidth=16in,paperheight=9in,margin=0in]{geometry}
+\usepackage{fontspec}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric}
+\setmainfont{Noto Sans CJK SC}
+\pagestyle{empty}
+\definecolor{ink}{HTML}{172033}
+\definecolor{muted}{HTML}{536174}
+\definecolor{blue}{HTML}{2474C6}
+\definecolor{bluefill}{HTML}{EAF3FC}
+\definecolor{green}{HTML}{2F9254}
+\definecolor{greenfill}{HTML}{EAF7EE}
+\definecolor{orange}{HTML}{D96C1F}
+\definecolor{orangefill}{HTML}{FFF1E5}
+\definecolor{purple}{HTML}{7653B5}
+\definecolor{purplefill}{HTML}{F2ECFF}
+\definecolor{grayline}{HTML}{C9D2DF}
+\definecolor{grayfill}{HTML}{F5F7FA}
+\tikzset{
+  tensor/.style={draw=blue,fill=bluefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=7pt,text=ink},
+  runtime/.style={draw=muted,fill=white,line width=1.5pt,rounded corners=2pt,align=center,inner sep=7pt,text=ink},
+  compute/.style={draw=green,fill=greenfill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=7pt,text=ink},
+  state/.style={draw=purple,fill=purplefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=7pt,text=ink},
+  collective/.style={draw=orange,fill=orangefill,line width=1.8pt,rounded corners=2pt,align=center,inner sep=7pt,text=ink},
+  decision/.style={diamond,aspect=1.8,draw=ink,fill=white,line width=1.5pt,align=center,inner sep=2pt,text=ink},
+  data/.style={-{Stealth[length=4.6mm,width=3.4mm]},line width=2.5pt,draw=blue,shorten <=1.5pt,shorten >=2pt},
+  queueflow/.style={-{Stealth[length=3.2mm,width=2.5mm]},line width=2.0pt,draw=blue,shorten <=1pt,shorten >=1.5pt},
+  grad/.style={-{Stealth[length=4.6mm,width=3.4mm]},line width=2.5pt,draw=purple,shorten <=1.5pt,shorten >=2pt},
+  shortgrad/.style={-{Stealth[length=3.0mm,width=2.3mm]},line width=2.0pt,draw=purple,shorten <=1pt,shorten >=1.5pt},
+  comm/.style={-{Stealth[length=4.9mm,width=3.6mm]},line width=2.8pt,draw=orange,shorten <=1.5pt,shorten >=2pt},
+  shortcomm/.style={-{Stealth[length=3.2mm,width=2.5mm]},line width=2.1pt,draw=orange,shorten <=1pt,shorten >=1.5pt},
+  control/.style={-{Stealth[length=4.2mm,width=3.1mm]},line width=2.2pt,draw=ink,shorten <=1.5pt,shorten >=2pt},
+  shortcontrol/.style={-{Stealth[length=3.0mm,width=2.3mm]},line width=1.9pt,draw=ink,shorten <=1pt,shorten >=1.5pt},
+  title/.style={font=\fontsize{25}{30}\bfseries,text=ink},
+  head/.style={font=\fontsize{16.5}{20}\bfseries,text=ink,align=center},
+  body/.style={font=\fontsize{13}{16}\selectfont,text=ink,align=center},
+  note/.style={font=\fontsize{11}{13.5}\selectfont,text=muted,align=center}
+}
+
+\newcommand{\canvas}[2]{
+  \path[use as bounding box] (0,0) rectangle (40.64,22.86);
+  \fill[white] (0,0) rectangle (40.64,22.86);
+  \node[anchor=west,title] at (1.25,21.55) {#1};
+  \node[anchor=west,font=\fontsize{13.5}{16.5}\selectfont,text=muted] at (1.25,20.55) {#2};
+  \draw[grayline,line width=1pt] (1.25,19.95)--(39.35,19.95);
+  \draw[draw=grayline,fill=grayfill,rounded corners=4pt,line width=1.2pt] (1.25,5.15) rectangle (39.35,19.15);
+  \node[anchor=west,head] at (1.85,18.55) {rank $r$ 的一次 training step};
+}
+
+\newcommand{\batchqueue}{
+  \node[tensor,minimum width=3.8cm,minimum height=1.75cm] (batch) at (3.25,16.25) {\textbf{global mini-batch}\\$X[B,\ldots]$ · $B=pKb_\mu$};
+  \node[runtime,minimum width=3.3cm,minimum height=1.75cm] (sampler) at (8.35,16.25) {\textbf{DP sampler}\\按 batch 轴分给 $p$ 个 ranks};
+  \draw[data] (batch)--(sampler);
+  \node[anchor=west,note] at (11.0,17.45) {rank-local queue · 严格按时间从左到右取出};
+  \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qone) at (12.0,16.25) {$m_1$};
+  \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qtwo) at (14.15,16.25) {$m_2$};
+  \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qmore) at (16.3,16.25) {$\cdots$};
+  \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qlast) at (18.45,16.25) {$m_K$};
+  \draw[queueflow] (sampler.east)--(qone.west);
+  \draw[queueflow] (qone)--(qtwo);
+  \draw[queueflow] (qtwo)--(qmore);
+  \draw[queueflow] (qmore)--(qlast);
+  \node[tensor,minimum width=2.0cm,minimum height=1.25cm] (active) at (12.0,13.35) {当前 $m_k$};
+  \draw[data] (qone.south)--(active.north) node[midway,right,note] {逐个 dequeue};
+}
+
+\newcommand{\fullstrip}[4]{
+  \node[anchor=east,body] at (25.0,#2) {#1};
+  \foreach \ii/\lab in {0/$s_0$,1/$\cdots$,2/$s_r$,3/$\cdots$,4/$s_{p-1}$}{
+    \node[draw=#3,fill=#4,line width=1.4pt,minimum width=1.7cm,minimum height=.8cm,
+      inner sep=1pt,font=\fontsize{10.5}{12}\selectfont,text=ink]
+      at ({26.0+1.72*\ii},#2) {\lab};
+  }
+}
+
+\newcommand{\shardstrip}[4]{
+  \node[anchor=east,body] at (25.0,#2) {#1};
+  \foreach \ii/\lab in {0/$s_0$,1/$\cdots$,2/$s_r$,3/$\cdots$,4/$s_{p-1}$}{
+    \node[draw=muted,dashed,fill=white,line width=1.3pt,minimum width=1.7cm,minimum height=.8cm,
+      inner sep=1pt,font=\fontsize{10.5}{12}\selectfont,text=muted]
+      at ({26.0+1.72*\ii},#2) {\lab};
+  }
+  \node[draw=#3,fill=#4,line width=1.5pt,minimum width=1.7cm,minimum height=.8cm,
+    inner sep=1pt,font=\fontsize{10.5}{12}\selectfont,text=ink] at ({26.0+1.72*2},#2) {$s_r$};
+}
+
+\newcommand{\ownershiplegend}{
+  \node[draw=blue,fill=bluefill,line width=1.3pt,minimum width=.85cm,minimum height=.5cm,inner sep=0pt] at (34.9,16.55) {};
+  \node[anchor=west,note] at (35.5,16.55) {本 rank 持有};
+  \node[draw=muted,dashed,fill=white,line width=1.3pt,minimum width=.85cm,minimum height=.5cm,inner sep=0pt] at (34.9,15.65) {};
+  \node[anchor=west,note] at (35.5,15.65) {本 rank 不持有};
+}
+
+\newcommand{\diagramlegend}{
+  \node[anchor=west,head] at (1.25,4.25) {图例};
+  \node[tensor,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (3.0,3.15) {};
+  \node[anchor=west,body] at (3.8,3.15) {tensor / weight};
+  \node[compute,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (9.3,3.15) {};
+  \node[anchor=west,body] at (10.1,3.15) {model compute};
+  \node[state,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (15.4,3.15) {};
+  \node[anchor=west,body] at (16.2,3.15) {rank-local state};
+  \node[collective,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (22.2,3.15) {};
+  \node[anchor=west,body] at (23.0,3.15) {collective};
+  \draw[data] (28.0,3.15)--(30.1,3.15);
+  \node[anchor=west,body] at (30.5,3.15) {forward / update};
+  \draw[grad] (28.0,1.95)--(30.1,1.95);
+  \node[anchor=west,body] at (30.5,1.95) {backward / gradient};
+  \node[runtime,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (3.0,1.95) {};
+  \node[anchor=west,body] at (3.8,1.95) {runtime action};
+  \draw[control] (19.8,1.95)--(21.9,1.95);
+  \node[anchor=west,body] at (22.3,1.95) {sequential control};
+}
+
+\begin{document}
+
+% ZeRO-1: accumulated gradients are sharded before local optimizer updates.
+\begin{tikzpicture}[x=1cm,y=1cm]
+\canvas{ZeRO-1：完整梯度累计后 reduce-scatter，本地更新 optimizer shard}{方法机制图；world size $p$，展开任意 rank $r\in\{0,\ldots,p-1\}$}
+\batchqueue
+
+\node[anchor=west,head] at (20.2,18.55) {rank $r$ ownership · accumulation phase};
+\node[anchor=west,note] at (20.2,17.75) {完整 gradient buffer 仅保留到最后一个 micro-batch ready};
+\fullstrip{weight $P_{16}$}{16.45}{blue}{bluefill}
+\fullstrip{gradient buffer $G_r$}{15.30}{purple}{purplefill}
+\shardstrip{optimizer $P_{32},S_{\mathrm{opt}}$}{14.15}{purple}{purplefill}
+\ownershiplegend
+
+\node[compute,minimum width=4.3cm,minimum height=2.2cm] (fwd) at (12.0,10.75) {\textbf{model replica · FWD}\\full $P_{16}[\Psi]$ · BF16};
+\node[compute,minimum width=2.8cm,minimum height=2.2cm] (loss) at (16.8,10.75) {\textbf{loss}\\FP32 scalar};
+\node[compute,minimum width=3.7cm,minimum height=2.2cm] (bwd) at (21.2,10.75) {\textbf{BWD}\\local $g_{r,k}[\Psi]$ · FP32};
+\node[state,minimum width=4.5cm,minimum height=2.2cm] (acc) at (26.7,10.75) {\textbf{full accumulation buffer}\\$G_r\leftarrow G_r+g_{r,k}$ · FP32};
+\node[decision,minimum width=2.15cm,minimum height=1.75cm] (boundary) at (31.2,10.75) {$k=K$?};
+\node[collective,minimum width=4.8cm,minimum height=2.8cm] (rs) at (36.4,10.75) {\textbf{REDUCE-SCATTER}\\all $p$ ranks send full $G_r$\\sum / average + owner slice\\rank $r$ receives $G^{(r)}$};
+\draw[data] (active)--(fwd);
+\draw[data] (fwd)--(loss);
+\draw[grad] (loss)--(bwd);
+\draw[grad] (bwd)--(acc);
+\draw[control] (acc)--(boundary);
+\draw[comm] (boundary.east)--(rs.west) node[midway,above,note] {是};
+\draw[control,rounded corners=7pt] (boundary.south)--(31.2,8.25)--(8.1,8.25)--(8.1,13.35)--(active.west);
+\node[anchor=south,note] at (19.4,8.33) {否：$k\leftarrow k+1$，继续写入同一 full buffer};
+
+\node[state,minimum width=4.8cm,minimum height=2.0cm] (opt1) at (36.4,6.55) {\textbf{LOCAL OPTIMIZER}\\$G^{(r)},P_{32}^{(r)},S_{\mathrm{opt}}^{(r)}$ · FP32\\update $\rightarrow P_{16}^{(r)}$ · BF16};
+\node[collective,minimum width=4.4cm,minimum height=2.0cm] (ag1) at (29.8,6.55) {\textbf{ALL-GATHER}\\owners send $P_{16}^{(j)}$\\concat full $P_{16}$};
+\node[tensor,minimum width=4.0cm,minimum height=1.65cm] (next1) at (23.6,6.55) {\textbf{full $P_{16}$ on every rank}\\进入下一 training step};
+\draw[comm] (rs.south)--(opt1.north);
+\draw[comm] (opt1.west)--(ag1.east);
+\draw[data] (ag1.west)--(next1.east);
+
+\diagramlegend
+\node[anchor=west,font=\fontsize{10.2}{12}\selectfont,text=muted] at (1.25,.65) {paper + analysis-derived · 最后一个 micro-batch 完成后 reduce-scatter；本地更新后 parameter all-gather};
+\end{tikzpicture}
+
+\newpage
+
+% ZeRO-2: gradient ownership is persistent; local contributions reduce-scatter before shard accumulation.
+\begin{tikzpicture}[x=1cm,y=1cm]
+\canvas{ZeRO-2：每个 micro-batch 的 gradient contribution 先 reduce-scatter，再累计 owner shard}{方法机制图；world size $p$，只表达 tensor ownership 与 collective 语义，不展开具体 runtime 调度优化}
+\batchqueue
+
+\node[anchor=west,head] at (20.2,18.55) {rank $r$ persistent ownership};
+\node[anchor=west,note] at (20.2,17.75) {gradient 的持久状态只有 owner shard；其余 slices 不在本 rank 常驻};
+\fullstrip{weight $P_{16}$}{16.45}{blue}{bluefill}
+\shardstrip{gradient $G^{(r)}$}{15.30}{purple}{purplefill}
+\shardstrip{optimizer $P_{32},S_{\mathrm{opt}}$}{14.15}{purple}{purplefill}
+\ownershiplegend
+
+\node[compute,minimum width=4.2cm,minimum height=2.2cm] (fwd2) at (12.0,10.75) {\textbf{model replica · FWD}\\full $P_{16}[\Psi]$ · BF16};
+\node[compute,minimum width=2.7cm,minimum height=2.2cm] (loss2) at (16.7,10.75) {\textbf{loss}\\FP32 scalar};
+\node[compute,minimum width=3.6cm,minimum height=2.2cm] (bwd2) at (20.9,10.75) {\textbf{BWD}\\local $g_{r,k}[\Psi]$ · FP32};
+\node[collective,text width=3.65cm,minimum width=4.15cm,minimum height=2.55cm] (rs2) at (25.9,10.75) {\textbf{REDUCE-SCATTER}\\all $p$ ranks send matching slices\\sum / average; rank $r$ gets $g_k^{(r)}$};
+\node[state,text width=3.8cm,minimum width=4.3cm,minimum height=2.2cm] (acc2) at (31.4,10.75) {\textbf{accumulate owner shard}\\$G^{(r)}\leftarrow G^{(r)}+g_k^{(r)}$};
+\node[decision,minimum width=2.15cm,minimum height=1.75cm] (boundary2) at (36.2,10.75) {$k=K$?};
+\draw[data] (active)--(fwd2);
+\draw[data] (fwd2)--(loss2);
+\draw[grad] (loss2)--(bwd2);
+\draw[comm] (bwd2)--(rs2);
+\draw[shortgrad] (rs2)--(acc2);
+\draw[control] (acc2)--(boundary2);
+\node[draw=ink,fill=white,line width=1.4pt,rounded corners=2pt,minimum width=4.5cm,minimum height=.85cm,inner sep=3pt,align=center,text=ink] (repeat2) at (36.2,13.15) {$k<K$: next micro-batch\\repeat from model FWD};
+\draw[shortcontrol] (boundary2.north)--(repeat2.south);
+
+\node[state,minimum width=4.8cm,minimum height=2.0cm] (opt2) at (36.2,6.55) {\textbf{LOCAL OPTIMIZER}\\$G^{(r)},P_{32}^{(r)},S_{\mathrm{opt}}^{(r)}$\\update $\rightarrow P_{16}^{(r)}$};
+\node[collective,minimum width=4.4cm,minimum height=2.0cm] (ag2) at (29.7,6.55) {\textbf{ALL-GATHER}\\owners send $P_{16}^{(j)}$\\concat full $P_{16}$};
+\node[tensor,minimum width=4.0cm,minimum height=1.65cm] (next2) at (23.5,6.55) {\textbf{full $P_{16}$ on every rank}\\进入下一 training step};
+\draw[control] (boundary2.south)--(opt2.north) node[midway,right,note] {$k=K$};
+\draw[comm] (opt2.west)--(ag2.east);
+\draw[data] (ag2.west)--(next2.east);
+
+\diagramlegend
+\node[anchor=west,font=\fontsize{10.2}{12}\selectfont,text=muted] at (1.25,.65) {paper + analysis-derived · 方法层只画 gradient shard ownership 与 collective；工程优化另见独立框架实现补充图};
+\end{tikzpicture}
+
+\newpage
+
+% ZeRO-3: persistent weight shards and temporary layer gather windows.
+\begin{tikzpicture}[x=1cm,y=1cm]
+\canvas{ZeRO-3：临时聚合完整 layer weight，计算后恢复 shard ownership}{方法机制图；橙色箭头生成临时 tensor，蓝色箭头表示 FWD / BWD 对完整 $P_{16,\ell}$ 的输入依赖}
+\batchqueue
+
+\node[anchor=west,head] at (20.2,18.55) {rank $r$ ownership · persistent vs temporary};
+\node[anchor=west,note] at (20.2,17.75) {只有当前 layer 的 compute window 临时拥有 full weight};
+\shardstrip{persistent $P_{16}^{(r)}$}{16.55}{blue}{bluefill}
+\fullstrip{temporary $P_{16,\ell}$}{15.55}{blue}{bluefill}
+\shardstrip{gradient $G^{(r)}$}{14.55}{purple}{purplefill}
+\shardstrip{optimizer $P_{32},S_{\mathrm{opt}}$}{13.55}{purple}{purplefill}
+\ownershiplegend
+
+\draw[draw=muted,dashed,line width=1.3pt,rounded corners=4pt]
+  (10.45,13.15)--(1.55,13.15)--(1.55,6.90)--(22.65,6.90)--(22.65,13.15)--(13.55,13.15);
+\node[anchor=west,font=\fontsize{11}{13.5}\bfseries,text=muted,fill=grayfill,inner sep=2pt] at (1.85,12.72) {MODEL LAYERS $\times L$};
+\node[collective,dashed,text width=3.0cm,minimum width=3.5cm,minimum height=1.85cm,inner sep=4pt] (agf3) at (3.9,10.25) {\textbf{ASYNC PARAM\\ALL-GATHER}\\可提前启动};
+\node[tensor,minimum width=2.6cm,minimum height=1.85cm,inner sep=4pt] (tempf3) at (7.8,10.25) {\textbf{temporary full}\\$P_{16,\ell}$ · BF16};
+\node[compute,minimum width=3.4cm,minimum height=1.85cm,inner sep=4pt] (fwd3) at (12.0,10.25) {\textbf{layer $\ell$ · FWD}\\sample $m_k$ + loss};
+\node[compute,minimum width=3.4cm,minimum height=1.85cm,inner sep=4pt] (bwd3) at (20.5,10.25) {\textbf{layer $\ell$ · BWD}\\$g_{k,\ell}$ · FP32};
+\node[collective,dashed,text width=3.0cm,minimum width=3.5cm,minimum height=1.25cm,inner sep=3pt] (agb3) at (15.8,12.35) {\textbf{ASYNC PARAM ALL-GATHER}\\可与后续 layer BWD 重叠};
+\node[tensor,minimum width=2.6cm,minimum height=1.25cm,inner sep=3pt] (tempb3) at (20.5,12.35) {\textbf{temporary full}\\$P_{16,\ell}$ · BF16};
+\node[runtime,dashed,minimum width=3.4cm,minimum height=1.15cm,inner sep=3pt] (relf3) at (12.0,7.75) {\textbf{async release} · FWD\\full $P_{16,\ell}\rightarrow P_{16,\ell}^{(r)}$};
+\node[runtime,dashed,minimum width=3.4cm,minimum height=1.15cm,inner sep=3pt] (relb3) at (20.5,7.75) {\textbf{async release} · BWD\\full $P_{16,\ell}\rightarrow P_{16,\ell}^{(r)}$};
+\node[collective,text width=3.2cm,minimum width=3.7cm,minimum height=1.95cm,inner sep=4pt] (rs3) at (25.4,10.25) {\textbf{GRAD REDUCE-SCATTER}\\after all $L$ layers\\owner gets $g_k^{(r)}$};
+\node[state,text width=3.3cm,minimum width=3.8cm,minimum height=1.85cm,inner sep=4pt] (acc3) at (30.5,10.25) {\textbf{accumulate owner shard}\\$G^{(r)}\leftarrow G^{(r)}+g_k^{(r)}$};
+\node[decision,minimum width=2.15cm,minimum height=1.75cm] (boundary3) at (35.3,10.25) {$k=K$?};
+
+\draw[data] (active)--(fwd3);
+\draw[shortcomm] (agf3.east)--(tempf3.west);
+\draw[data] (tempf3.east)--(fwd3.west);
+\draw[grad] (fwd3.east)--(bwd3.west);
+\draw[shortcontrol,dashed,draw=muted] (fwd3.south)--(relf3.north);
+\draw[shortcomm] (agb3.east)--(tempb3.west);
+\draw[queueflow] (tempb3.south)--(bwd3.north);
+\draw[shortcontrol,dashed,draw=muted] (bwd3.south)--(relb3.north);
+\draw[shortcomm] (bwd3)--(rs3);
+\draw[shortgrad] (rs3)--(acc3);
+\draw[control] (acc3)--(boundary3);
+
+\node[draw=ink,fill=white,line width=1.4pt,rounded corners=2pt,minimum width=3.4cm,minimum height=.68cm,inner sep=2pt,align=center,text=ink] (repeat3) at (35.3,12.15) {$k<K$: next $m_{k+1}$};
+\node[state,minimum width=4.4cm,minimum height=1.75cm,inner sep=4pt] (opt3) at (35.3,7.45) {\textbf{$k=K$ · LOCAL OPTIMIZER}\\$G^{(r)},P_{32}^{(r)},S_{\mathrm{opt}}^{(r)}$\\update local weight shard};
+\node[tensor,minimum width=4.1cm,minimum height=1.5cm,inner sep=4pt] (persist3) at (28.9,7.45) {\textbf{persistent $P_{16}^{(r)}$ only}\\no step-end full model};
+\draw[shortcontrol] (boundary3.north)--(repeat3.south);
+\draw[shortcontrol] (boundary3.south)--(opt3.north);
+\draw[data] (opt3.west)--(persist3.east);
+
+\diagramlegend
+\node[anchor=west,font=\fontsize{10.2}{12}\selectfont,text=muted] at (1.25,.65) {paper + analysis-derived · 虚线 collective 可提前启动；temporary full $P_{16,\ell}$ 只在当前 layer compute window 存活};
+\end{tikzpicture}
+
+\end{document}

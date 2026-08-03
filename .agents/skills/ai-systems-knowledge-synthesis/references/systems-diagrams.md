@@ -2,6 +2,25 @@
 
 Use this contract for workflow, dataflow, tensor-partition, state-ownership, collective, memory-lifecycle, and parallelism diagrams. A diagram is a mechanism explanation, not decorated prose.
 
+## Contents
+
+- Reference examples
+- Operation viewpoint and semantic visual grammar
+- Time, ownership, and collective semantics
+- Data parallelism and ZeRO comparisons
+- Arrow, layout, density, production, and visual QA
+
+## Reference Examples
+
+Before drawing a data-parallelism or ZeRO workflow, inspect these PNGs at original size and reuse the matching TikZ structure where useful:
+
+- [Pure data parallel baseline](../assets/diagram-examples/dp-training-workflow-sample.png): model-centric flow, sequential micro-batches, and full tensor ownership.
+- [ZeRO-1](../assets/diagram-examples/zero1-training-workflow-sample.png): full gradient accumulation, reduce-scatter, local optimizer update, and parameter all-gather.
+- [ZeRO-2](../assets/diagram-examples/zero2-training-workflow-sample.png): owner-shard gradient accumulation and micro-batch boundary control.
+- [ZeRO-3](../assets/diagram-examples/zero3-training-workflow-sample.png): repeated layer scope, explicit temporary weights, asynchronous release side paths, and persistent shard ownership.
+
+Use [dp-training-workflow-sample.tex](../assets/diagram-examples/dp-training-workflow-sample.tex) and [zero-training-workflow-samples.tex](../assets/diagram-examples/zero-training-workflow-samples.tex) as editable structural references. Preserve the semantic grammar, not every coordinate or phrase; adapt spacing and scope to the mechanism being explained.
+
 ## Start From The Operation
 
 - Choose the viewpoint before drawing. For training, start with `global batch -> sampler -> rank-local micro-batch -> model forward -> loss -> backward -> accumulation -> collective -> optimizer -> updated weights`. For serving, start with request admission, scheduling, model execution, cache reads/writes, communication, and token output.
@@ -10,6 +29,16 @@ Use this contract for workflow, dataflow, tensor-partition, state-ownership, col
 - Use ordinary mechanism labels such as `model forward`, `gradient accumulation`, and `optimizer`. Do not hardcode an algorithm such as Adam unless the evidence and scope require that exact optimizer. Use symbols such as `S_opt` for generic optimizer state and define them locally.
 - Declare the abstraction level. A method-principle diagram must omit runtime optimizations such as buckets, ready hooks, coordinator queues, fused buffers, prefetch thresholds, and overlap cadence unless one of them is required by the method definition. Put those details in a separate framework-implementation supplement backed by pinned source.
 - Use framework source to compare against the principle: confirm matching semantics, expose deviations, and explain engineering extensions. Do not let one framework's optimization redefine the principle diagram. Link each implementation supplement back to the stable method diagram and label its repository, commit, and version boundary.
+- Keep a method-principle diagram framework-neutral in every visible region. Do not put framework or repository names, commits, versions, source IDs, configuration keys, class names, or code symbols in its title, subtitle, nodes, legend, footer, or caption. Record that evidence in the ledger or a separately labeled framework supplement.
+
+## Use A Semantic Visual Grammar
+
+- Assign every node exactly one semantic role and show the role in a graphical legend: tensor or weight, model compute, persistent rank-local state, collective, runtime action, or control decision.
+- Reserve the tensor or weight style for data objects that flow or reside, such as batches, micro-batches, parameters, gradients, activations, and temporary gathered weights. A sampler, scheduler, release, reshard, cast, or optimizer invocation is not a tensor.
+- Reserve the rank-local state style for data that persists on a rank across an operation or lifecycle boundary, such as an accumulation buffer, optimizer state, parameter shard, gradient shard, or KV-cache block. A release, readiness condition, or scheduling action is not state.
+- Use a neutral runtime-action style for samplers and lifecycle operations. Use a solid border for an ordinary action and a dashed border or connector for an asynchronous side action; do not overload tensor or state colors merely because the action consumes that object.
+- Reserve the collective style for communication operations and the compute style for actual model arithmetic. Keep colors and border semantics stable across baseline and variants.
+- Use color plus border or context, and include actual graphical samples in the legend. A reader must not need to infer a node's type from its label alone.
 
 ## Express Time Honestly
 
@@ -17,6 +46,7 @@ Use this contract for workflow, dataflow, tensor-partition, state-ownership, col
 - After each `m_k` backward pass, show `G_r <- G_r + g_{r,k}`. If `k < K`, loop to dequeue `m_{k+1}`. Trigger gradient synchronization and the optimizer only at the documented accumulation boundary.
 - Never place multiple micro-batches in parallel lanes merely to show accumulation; that implies simultaneous execution. Use parallel lanes only for actual pipeline stages, overlap, or concurrency and label the scheduling semantics.
 - Separate training, prefill, and decode diagrams when their shapes, state lifetimes, or communication frequency differ.
+- When one illustrated layer represents a repeated model, enclose the layer-local operations in a dashed scope labeled `MODEL LAYERS x L` or equivalent. Place a collective inside or outside that scope according to its semantic frequency; otherwise a direct `layer l -> collective` edge falsely implies one collective per layer.
 
 ## Show Tensor Ownership Visually
 
@@ -38,9 +68,10 @@ Use this contract for workflow, dataflow, tensor-partition, state-ownership, col
 
 - Draw and approve a pure data-parallel baseline first. At the optimizer boundary, show full low-precision weights, full synchronized gradients, and full master weights plus optimizer state on every rank when that is the selected baseline.
 - Keep the baseline geometry fixed across ZeRO-1/2/3. Change ownership strips, collective boxes, and short phase transitions; do not redesign each stage so extensively that visual movement hides the mechanism difference.
-- For ZeRO-1 implementations that use reduce-scatter, show the sequence explicitly: accumulated gradient or bucket -> reduce-scatter -> rank-local gradient shard -> local optimizer update of the owned master-weight/state shard -> all-gather updated low-precision weight shards -> full model replica. Do not leave a full synchronized gradient resident after reduce-scatter. Describe `all-reduce + local slice` only as a semantic equivalence, not as an implementation trace, unless pinned source actually materializes it.
+- For ZeRO-1 implementations that use reduce-scatter, show the sequence explicitly: accumulated full gradient -> reduce-scatter -> rank-local gradient shard -> local optimizer update of the owned master-weight/state shard -> all-gather updated low-precision weight shards -> full model replica. Do not leave a full synchronized gradient resident after reduce-scatter. Describe `all-reduce + local slice` only as a semantic equivalence, not as an implementation trace, unless pinned source actually materializes it.
 - For a method-level ZeRO-2 diagram, show `local gradient contribution -> reduce-scatter -> owner-shard accumulation`; do not introduce buckets or readiness scheduling. A framework-level diagram may add those implementation details from pinned source. For ZeRO-3, distinguish persistent parameter shards from temporary all-gathered parameters used for forward or backward, and keep runtime-specific prefetch/release timing in the framework view.
 - Show what ZeRO changes relative to the baseline in the workflow itself, not only in a paragraph or legend.
+- In ZeRO-3, draw `parameter all-gather -> temporary full layer weight -> FWD/BWD` as a direct tensor dependency. Do not insert a prose-only readiness box. If releasing or resharding the temporary weight is non-blocking for the main training flow, draw it as a dashed runtime-action side branch rather than an inline dataflow node.
 
 ## Arrow And Layout Rules
 
@@ -51,6 +82,7 @@ Use this contract for workflow, dataflow, tensor-partition, state-ownership, col
 - Route arrows to node borders, not through text. Keep arrow labels off the line and away from arrowheads. Separate the `continue accumulation` path from the `synchronize and optimize` path.
 - Use rounded corners only for necessary orthogonal routes. Do not add bends for decoration.
 - Align peer section headings on one baseline. Keep box sizes, gaps, and fixed-format tensor cells stable so labels and arrowheads cannot shift the layout.
+- Size operation boxes to their actual title and essential tensor lines. Avoid equal oversized boxes and decorative internal whitespace. Preserve clarity by increasing the gap between compact boxes, which creates an arrow shaft, rather than padding the boxes themselves.
 
 ## Density And Legend
 
@@ -80,3 +112,7 @@ A diagram passes only when all answers are yes:
 - Are optimizer and runtime components generic unless a specific implementation requires a named algorithm or class?
 - Are peer headings aligned and all text readable at the target embed size?
 - Does the caption state the evidence level and any omitted overlap, bucketing, checkpointing, or scheduling detail?
+- Does every node's visual type match what it is: data object, compute, persistent state, collective, runtime action, or decision?
+- If a layer-local mechanism repeats, does an explicit `x L` scope make the collective frequency unambiguous?
+- Is every non-blocking lifecycle action off the primary dataflow, with temporary tensors shown as explicit compute inputs?
+- Is the principle diagram free of visible framework names, commits, versions, configuration keys, and source symbols?

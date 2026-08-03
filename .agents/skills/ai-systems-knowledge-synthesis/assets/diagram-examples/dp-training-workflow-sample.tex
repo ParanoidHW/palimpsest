@@ -1,0 +1,132 @@
+\documentclass{article}
+\usepackage[paperwidth=16in,paperheight=9in,margin=0in]{geometry}
+\usepackage{fontspec}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,shapes.geometric}
+\setmainfont{Noto Sans CJK SC}
+\pagestyle{empty}
+\definecolor{ink}{HTML}{172033}
+\definecolor{muted}{HTML}{536174}
+\definecolor{blue}{HTML}{2474C6}
+\definecolor{bluefill}{HTML}{EAF3FC}
+\definecolor{green}{HTML}{2F9254}
+\definecolor{greenfill}{HTML}{EAF7EE}
+\definecolor{orange}{HTML}{D96C1F}
+\definecolor{orangefill}{HTML}{FFF1E5}
+\definecolor{purple}{HTML}{7653B5}
+\definecolor{purplefill}{HTML}{F2ECFF}
+\definecolor{grayline}{HTML}{C9D2DF}
+\definecolor{grayfill}{HTML}{F5F7FA}
+\tikzset{
+  tensor/.style={draw=blue,fill=bluefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=8pt,text=ink},
+  runtime/.style={draw=muted,fill=white,line width=1.5pt,rounded corners=2pt,align=center,inner sep=8pt,text=ink},
+  compute/.style={draw=green,fill=greenfill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=8pt,text=ink},
+  state/.style={draw=purple,fill=purplefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=8pt,text=ink},
+  collective/.style={draw=orange,fill=orangefill,line width=1.8pt,rounded corners=2pt,align=center,inner sep=8pt,text=ink},
+  decision/.style={diamond,aspect=1.8,draw=ink,fill=white,line width=1.5pt,align=center,inner sep=2pt,text=ink},
+  data/.style={-{Stealth[length=4.6mm,width=3.4mm]},line width=2.5pt,draw=blue,shorten <=1.5pt,shorten >=2pt},
+  queueflow/.style={-{Stealth[length=3.2mm,width=2.5mm]},line width=2.0pt,draw=blue,shorten <=1pt,shorten >=1.5pt},
+  grad/.style={-{Stealth[length=4.6mm,width=3.4mm]},line width=2.5pt,draw=purple,shorten <=1.5pt,shorten >=2pt},
+  comm/.style={-{Stealth[length=4.9mm,width=3.6mm]},line width=2.8pt,draw=orange,shorten <=1.5pt,shorten >=2pt},
+  control/.style={-{Stealth[length=4.2mm,width=3.1mm]},line width=2.2pt,draw=ink,shorten <=1.5pt,shorten >=2pt},
+  title/.style={font=\fontsize{26}{31}\bfseries,text=ink},
+  head/.style={font=\fontsize{17}{21}\bfseries,text=ink,align=center},
+  body/.style={font=\fontsize{14}{17}\selectfont,text=ink,align=center},
+  note/.style={font=\fontsize{11.5}{14}\selectfont,text=muted,align=center}
+}
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\path[use as bounding box] (0,0) rectangle (40.64,22.86);
+\fill[white] (0,0) rectangle (40.64,22.86);
+
+\node[anchor=west,title] at (1.25,21.55) {纯数据并行：从样本进入模型，到参数完成一次更新};
+\node[anchor=west,font=\fontsize{14}{17}\selectfont,text=muted] at (1.25,20.55) {任意 world size $p$；下方展开 rank $r\in\{0,\ldots,p-1\}$，其余 ranks 执行相同训练步骤、读取不同样本};
+\draw[grayline,line width=1pt] (1.25,19.95)--(39.35,19.95);
+
+\draw[draw=grayline,fill=grayfill,rounded corners=4pt,line width=1.2pt] (1.25,5.15) rectangle (39.35,19.15);
+\node[anchor=west,head] at (1.85,18.55) {rank $r$ 的一次 training step};
+
+% Data enters a rank-local, strictly ordered micro-batch queue.
+\node[tensor,minimum width=3.8cm,minimum height=1.75cm] (batch) at (3.25,16.25) {\textbf{global mini-batch}\\$X[B,\ldots]$ · $B=pKb_\mu$};
+\node[runtime,minimum width=3.3cm,minimum height=1.75cm] (sampler) at (8.35,16.25) {\textbf{DP sampler}\\按 batch 轴分给 $p$ 个 ranks};
+\draw[data] (batch)--(sampler);
+
+\node[anchor=west,note] at (11.0,17.45) {rank-local queue · 严格按时间从左到右取出};
+\node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qone) at (12.0,16.25) {$m_1$};
+\node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qtwo) at (14.15,16.25) {$m_2$};
+\node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qmore) at (16.3,16.25) {$\cdots$};
+\node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qlast) at (18.45,16.25) {$m_K$};
+\draw[queueflow] (sampler.east)--(qone.west);
+\draw[queueflow] (qone)--(qtwo);
+\draw[queueflow] (qtwo)--(qmore);
+\draw[queueflow] (qmore)--(qlast);
+
+% Tensor ownership inset. The p-way slices are logical comparison units; pure DP owns all of them.
+\node[anchor=west,head] at (20.2,18.55) {rank $r$ 当前持有的完整 tensors};
+\node[anchor=west,note] at (20.2,17.75) {为对比 ZeRO，将 full tensor 画成 $p$ 个逻辑 slices};
+\node[anchor=east,body] at (25.0,16.05) {weight $P_{16}$};
+\node[anchor=east,body] at (25.0,14.95) {gradient $G$};
+\node[anchor=east,body] at (25.0,13.85) {optimizer $P_{32},S_{\mathrm{opt}}$};
+\foreach \yy/\fc/\dc in {16.05/bluefill/blue,14.95/purplefill/purple,13.85/purplefill/purple}{
+  \foreach \ii/\lab in {0/$s_0$,1/$\cdots$,2/$s_r$,3/$\cdots$,4/$s_{p-1}$}{
+    \node[draw=\dc,fill=\fc,line width=1.4pt,minimum width=1.7cm,minimum height=.82cm,
+      inner sep=1pt,font=\fontsize{10.5}{12}\selectfont,text=ink]
+      at ({26.0+1.72*\ii},\yy) {\lab};
+  }
+}
+\node[draw=blue,fill=bluefill,line width=1.3pt,minimum width=.85cm,minimum height=.5cm,inner sep=0pt] at (34.9,16.35) {};
+\node[anchor=west,note] at (35.5,16.35) {本 rank 持有};
+\node[draw=muted,dashed,fill=white,line width=1.3pt,minimum width=.85cm,minimum height=.5cm,inner sep=0pt] at (34.9,15.45) {};
+\node[anchor=west,note] at (35.5,15.45) {本 rank 不持有};
+
+% One active micro-batch traverses the model, loss, backward, and accumulator.
+\node[tensor,minimum width=2.0cm,minimum height=1.25cm] (active) at (12.0,13.35) {当前 $m_k$};
+\draw[data,rounded corners=5pt] (qone.south)--(active.north) node[midway,right,note] {逐个 dequeue};
+
+\node[compute,minimum width=4.5cm,minimum height=2.3cm] (fwd) at (12.0,10.75) {\textbf{model replica · FWD}\\full $P_{16}[\Psi]$ · BF16\\activations · BF16};
+\node[compute,minimum width=3.1cm,minimum height=2.3cm] (loss) at (17.0,10.75) {\textbf{loss}\\FP32 scalar};
+\node[compute,minimum width=4.0cm,minimum height=2.3cm] (bwd) at (21.9,10.75) {\textbf{BWD}\\local $g_{r,k}[\Psi]$ · FP32};
+\node[state,minimum width=4.8cm,minimum height=2.3cm] (acc) at (27.8,10.75) {\textbf{accumulate · FP32}\\$G_r\leftarrow G_r+g_{r,k}$\\跨 micro-batch 保留};
+\node[decision,minimum width=2.25cm,minimum height=1.8cm] (boundary) at (32.4,10.75) {$k=K$?};
+\draw[data] (active)--(fwd);
+\draw[data] (fwd)--(loss);
+\draw[grad] (loss)--(bwd);
+\draw[grad] (bwd)--(acc);
+\draw[control] (acc)--(boundary);
+
+% The no-branch is a separate control lane: only then is the next micro-batch dequeued.
+\draw[control,rounded corners=7pt] (boundary.south)--(32.4,8.15)--(8.1,8.15)--(8.1,13.35)--(active.west);
+\node[anchor=south,note] at (20.0,8.23) {否：$k\leftarrow k+1$，再取下一个 micro-batch};
+
+% The yes-branch performs one collective and one optimizer update per training step.
+\node[collective,minimum width=4.1cm,minimum height=2.9cm] (ar) at (36.6,10.75) {\textbf{ALL-REDUCE}\\$p$ 个 ranks 发送 full $G_r$\\求和 / 平均\\每个 rank 收到 full $G$};
+\draw[comm] (boundary.east)--(ar.west) node[midway,above,note] {是};
+
+\node[state,minimum width=5.0cm,minimum height=2.0cm] (optimizer) at (36.6,6.55) {\textbf{OPTIMIZER · every rank}\\full $P_{32},S_{\mathrm{opt}}$ · FP32\\update and cast to $P_{16}$ · BF16};
+\draw[comm] (ar.south)--(optimizer.north);
+\node[tensor,minimum width=4.7cm,minimum height=1.6cm] (updated) at (29.7,6.55) {\textbf{updated full $P_{16}$}\\进入下一 training step};
+\draw[data] (optimizer.west)--(updated.east);
+
+% Visual legend: actual samples, not text-only labels.
+\node[anchor=west,head] at (1.25,4.25) {图例};
+\node[tensor,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (3.0,3.15) {};
+\node[anchor=west,body] at (3.8,3.15) {tensor / weight};
+\node[compute,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (9.3,3.15) {};
+\node[anchor=west,body] at (10.1,3.15) {model compute};
+\node[state,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (15.4,3.15) {};
+\node[anchor=west,body] at (16.2,3.15) {rank-local state};
+\node[collective,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (22.2,3.15) {};
+\node[anchor=west,body] at (23.0,3.15) {collective};
+\draw[data] (28.0,3.15)--(30.1,3.15);
+\node[anchor=west,body] at (30.5,3.15) {forward / update};
+\draw[grad] (28.0,1.95)--(30.1,1.95);
+\node[anchor=west,body] at (30.5,1.95) {backward / gradient};
+\node[runtime,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (3.0,1.95) {};
+\node[anchor=west,body] at (3.8,1.95) {runtime action};
+\draw[control] (19.8,1.95)--(21.9,1.95);
+\node[anchor=west,body] at (22.3,1.95) {sequential control};
+
+\node[anchor=west,font=\fontsize{10.5}{12}\selectfont,text=muted] at (1.25,.65) {教学整理图（analysis-derived）· 普通同步 DP；为突出主流程，未展开 gradient bucket overlap 与 activation checkpoint};
+\end{tikzpicture}
+\end{document}
