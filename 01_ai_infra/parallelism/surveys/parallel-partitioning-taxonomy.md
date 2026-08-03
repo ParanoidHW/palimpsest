@@ -68,23 +68,23 @@ canonical: true
 
 ## 3. DP 与 ZeRO/FSDP：batch 和模型状态是两条轴
 
-下面先固定一个便于核算的混合精度训练场景：计算参数、输入与 activation 使用 BF16；loss、gradient accumulation、master weight 和 Adam moments 使用 FP32。它是本节用于比较 ownership 的共同基线，不代表所有框架都强制使用这些 dtype。
+下面先固定一个便于核算的混合精度训练场景：计算参数、输入与 activation 使用 BF16；loss、gradient accumulation、master weight 和 optimizer state 使用 FP32。它是本节用于比较 ownership 的共同基线，不限定具体 optimizer，也不代表所有框架都强制使用这些 dtype。
 
 ![普通 DP 混合精度训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/dp-training-workflow.png)
 
-> 普通 DP 基线：同一 rank 内的 micro-batches 沿单条时间线顺序执行。$m_k$ 完成 forward/backward 并产生 $g_{r,k}$ 后，先把它写入 FP32 buffer，再开始 $m_{k+1}$；buffer 从 $G_r^{[0]}=0$ 依次变为 $G_r^{[1]}$、$G_r^{[2]}$，直至 $G_r^{[K]}=\sum_k g_{r,k}$，之后才执行一次 all-reduce 和 Adam update。
+> 普通 DP 基线：DP sampler 是样本分发动作，不是 tensor；它为 rank $r$ 生成严格按时间取出的队列 $m_1,m_2,\ldots,m_K$。$m_k$ 完成 forward/backward 并产生 $g_{r,k}$ 后，先写入同一个 FP32 accumulation buffer；$k<K$ 时再取 $m_{k+1}$，$k=K$ 时才对完整 gradient 执行一次 all-reduce。每个 rank 随后用完整 $G$、$P_{32}$ 与 $S_{\mathrm{opt}}$ 更新自己的完整 BF16 compute weight。
 
 ![ZeRO-1 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero1-training-workflow.png)
 
-> ZeRO-1：同一 rank 内也严格按 $m_1 \rightarrow m_2 \rightarrow \cdots \rightarrow m_K$ 执行；每次 backward 结束后，先把 $g_{r,k}$ 加入完整 local FP32 buffer，再启动下一个 micro-batch。第 $K$ 次累加完成后，Megatron Core 的 distributed optimizer 才直接 reduce-scatter 到 optimizer owner。owner 只更新自己的 FP32 master weight 与 Adam moments，最后 all-gather 更新后的 BF16 parameter shards。reduce-scatter 等价于 all-reduce 后取 local slice，但不必在每卡落地完整的已归约 gradient。对同样大小的 gradient，ring reduce-scatter 的每 rank payload 约为 $(p-1)q\Psi/p$，是 ring all-reduce 的一半；整步还需另计 parameter all-gather。
+> ZeRO-1：micro-batches 仍严格按 $m_1 \rightarrow m_2 \rightarrow \cdots \rightarrow m_K$ 执行，每次 backward 都把 $g_{r,k}$ 加入完整 local FP32 buffer。第 $K$ 次累加完成后，reduce-scatter 对各 rank 的匹配 slices 求和或平均，并把结果直接交给对应 owner；rank $r$ 只更新自己的 $P_{32}^{(r)}$ 与 $S_{\mathrm{opt}}^{(r)}$，再通过 parameter all-gather 恢复每个 rank 的完整 $P_{16}$。reduce-scatter 在语义上等价于 all-reduce 后取 local slice，但无需在每卡落地完整的已归约 gradient。对同样大小的 gradient，ring reduce-scatter 的每 rank payload 约为 $(p-1)q\Psi/p$，是 ring all-reduce 的一半；整步还需另计 parameter all-gather。
 
 ![ZeRO-2 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero2-training-workflow.png)
 
-> ZeRO-2：继续让每个 owner 只接收跨 rank 求和后的 FP32 gradient shard，并进一步把 gradient 的分片存储与生命周期纳入模型状态契约。它与上述 Megatron ZeRO-1 路径的区别不是“首次使用 reduce-scatter”，而是 gradient 是否作为持久分片状态管理。
+> ZeRO-2：每个 $m_k$ 的 backward 先产生 local gradient contribution $g_{r,k}$，随即通过 reduce-scatter 对匹配 slices 求和或平均；rank $r$ 只收到 $g_k^{(r)}$，并把它累加到持久的 owner shard $G^{(r)}$。$k<K$ 时回到下一个 micro-batch，$k=K$ 时才由 owner-local optimizer 更新参数 shard，随后 parameter all-gather 恢复完整 BF16 compute weight。与上图 ZeRO-1 的区别是：ZeRO-1 在 micro-batch 边界保留完整 local accumulation buffer，ZeRO-2 的持久 gradient 状态始终只有 owner shard。
 
 ![ZeRO-3 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero3-training-workflow.png)
 
-> ZeRO-3：BF16 compute weight 也分片；每个 layer 在 forward 前 all-gather，若完整参数已释放则 backward 前再次 all-gather，gradient 随后 reduce-scatter 回 owner。
+> ZeRO-3：BF16 compute weight 也分片。虚线 `MODEL LAYERS × L` 表示同一个 $m_k$ 顺序经过全部 layers；每个 layer 在 forward 前 all-gather 出 temporary full $P_{16,\ell}$，若 forward 后已释放，则 backward 前再次 all-gather。FWD/BWD 消费完成后的 release/reshard 是异步生命周期侧支，不在训练主数据流中。图在方法层把完成全部 $L$ 层后的 gradient reduce-scatter 画在虚框外；具体 runtime 如何流式调度通信属于独立实现补充。
 
 > 教学整理图，非论文证据。论文机制与实验见 [ZeRO](../papers/zero.md#核心机制)。
 
@@ -92,8 +92,8 @@ canonical: true
 
 - **全局对象 / local layout**：DP 沿 $B$ 切分，每 rank 处理 $B/p$ 样本，但持完整 parameters、gradients 和 optimizer states。
 - **复制对象**：普通 DP 复制全部模型状态；ZeRO 按 Stage 1 optimizer、Stage 2 gradients、Stage 3 parameters 的顺序消除复制。
-- **恢复语义**：DP 在 optimizer step 前 all-reduce gradients；ZeRO 的分布式 optimizer 可直接 reduce-scatter，让每个 owner 收到全局 gradient 的对应 slice。Megatron Core 的 ZeRO-1 路径已经这样实现；ZeRO-2 进一步分片 gradient 的存储与生命周期。ZeRO-3 在 layer 使用参数前 all-gather，之后释放或重新分片。
-- **通信频率 / 载荷**：ring all-reduce 一份 $q\Psi$ gradient 时，每 rank 算法 payload 约 $2(p-1)q\Psi/p$ bytes/step，**analysis-derived**。Stage 3 还按 layer/bucket 引入 parameter all-gather，频率通常显著高于普通 DP。
+- **恢复语义**：DP 在 optimizer step 前 all-reduce gradients；ZeRO 可用 reduce-scatter 让每个 owner 只收到全局 gradient 的对应 slice。上图 ZeRO-1 在完整 local accumulation 后 reduce-scatter；ZeRO-2 对每个 micro-batch 的 contribution reduce-scatter 后累计 owner shard；ZeRO-3 在 layer 使用参数前 all-gather temporary full weight，消费后释放或重新分片。
+- **通信频率 / 载荷**：ring all-reduce 一份 $q\Psi$ gradient 时，每 rank 算法 payload 约 $2(p-1)q\Psi/p$ bytes/step，**analysis-derived**。Stage 3 还会在每个 layer 的参数使用窗口引入 parameter all-gather，频率通常显著高于普通 DP；具体流式调度不属于方法原理图。
 - **模型状态内存**：忽略 padding、metadata 和临时 buffer，一份 parameter 与 gradient 均按 $q\Psi$、optimizer 为 $\kappa q\Psi$ 时，平均每 rank 状态为：
 
 $$
@@ -107,9 +107,9 @@ $$
 
 以上为 **analysis-derived** 的平均状态式；mixed precision 应把各状态 dtype 分开相加。ZeRO 论文自己的口径与假设见[状态公式](../papers/zero.md#核心公式与符号体系)。
 
-- **activation / workspace**：DP activation 随 local batch 约降至 $1/p$；ZeRO-3 峰值还含当前 layer 完整参数、prefetch bucket、live parameter window、通信 workspace 与 allocator fragmentation。因此平均 $M_{\mathrm{Z3}}$ 不是 OOM 判据。
+- **activation / workspace**：DP activation 随 local batch 约降至 $1/p$；ZeRO-3 峰值还含当前 layer 的 temporary full weight、通信 workspace 与 allocator fragmentation。因此平均 $M_{\mathrm{Z3}}$ 不是 OOM 判据；prefetch 或 live-window 策略属于具体 runtime 的实现补充。
 - **有效计算**：固定全局 $B$ 时，每 rank forward/backward 约为单卡 workload 的 $1/p$；ZeRO 不减少全局 FLOPs。
-- **额外项**：ZeRO/FSDP 可能增加 prefetch、reshard、CPU/NVMe offload 和小 bucket 启动成本。
+- **额外项**：ZeRO/FSDP 需要 temporary gather、reshard/release 和额外通信 workspace；prefetch、CPU/NVMe offload 与通信分组是具体实现扩展。
 - **推理差异**：replica DP 扩请求吞吐；单请求 decode 不因 DP 降低延迟。参数分片推理会把 weight gather 放入 token critical path，必须与 cache、prefill/decode 批处理单独评估。
 - **失效条件**：参数 gather 无法被 layer compute 遮住、瞬时 gather buffer OOM、跨节点 bandwidth 主导，或固定 global batch 下 local batch 太小。
 
