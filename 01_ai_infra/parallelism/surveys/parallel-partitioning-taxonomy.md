@@ -68,7 +68,23 @@ canonical: true
 
 ## 3. DP 与 ZeRO/FSDP：batch 和模型状态是两条轴
 
-![DP 与 ZeRO/FSDP 状态生命周期|1349](../assets/surveys/parallel-partitioning-taxonomy/dp-zero-state-lifecycle.png)
+下面先固定一个便于核算的混合精度训练场景：计算参数、输入与 activation 使用 BF16；loss、gradient accumulation、master weight 和 Adam moments 使用 FP32。它是本节用于比较 ownership 的共同基线，不代表所有框架都强制使用这些 dtype。
+
+![普通 DP 混合精度训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/dp-training-workflow.png)
+
+> 普通 DP 基线：显式展示 batch shard、forward、backward、FP32 gradient all-reduce、Adam update、BF16 cast，以及每个 rank 复制持有的状态。
+
+![ZeRO-1 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero1-training-workflow.png)
+
+> ZeRO-1：只把 FP32 master weight 与 Adam moments 分给唯一 owner；gradient all-reduce 和完整 BF16 compute weight 仍与普通 DP 相同。
+
+![ZeRO-2 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero2-training-workflow.png)
+
+> ZeRO-2：gradient all-reduce 改为 reduce-scatter；每个 owner 只接收已经跨 rank 求和的 FP32 gradient shard，再更新自己的参数区间。
+
+![ZeRO-3 训练 workflow 与 dataflow|1349](../assets/surveys/parallel-partitioning-taxonomy/zero3-training-workflow.png)
+
+> ZeRO-3：BF16 compute weight 也分片；每个 layer 在 forward 前 all-gather，若完整参数已释放则 backward 前再次 all-gather，gradient 随后 reduce-scatter 回 owner。
 
 > 教学整理图，非论文证据。论文机制与实验见 [ZeRO](../papers/zero.md#核心机制)。
 
