@@ -117,6 +117,8 @@ $$
 
 ![Tensor Parallel block|1337](../assets/surveys/parallel-partitioning-taxonomy/tensor-parallel-block.png)
 
+> 图按 pre-norm Transformer layer 展开 attention 与 FFN 两个子层；`Norm` 只表示归一化操作，不绑定 LayerNorm 等具体实现。蓝色虚线是 residual shortcut，箭头旁的蓝字是流经该边界的 tensor，而非额外算子。输入、输出均保持 $[B,S,H]$；column split 产生可由本 rank 独立消费的 head/hidden shard，row split 产生同 shape 的 partial tensor，再由 all-reduce 按元素求和。上下两组 weight ownership 条带分别给出本 rank 持有的输出轴 shard 与输入轴 shard。
+
 > 教学整理图，非论文证据。原机制图与实现边界见 [Megatron-LM](../papers/megatron-lm.md#核心机制)。
 
 ### 方法卡
@@ -170,6 +172,8 @@ $$
 ## 6. EP：expert ownership 与 token redistribution
 
 ![Expert Parallel routing|1236](../assets/surveys/parallel-partitioning-taxonomy/expert-parallel-routing.png)
+
+> 图按 pre-norm MoE layer 的模型执行顺序从左到右展开。中间矩形只表示处理或通信节点；箭头旁的蓝字标出 tensor layout 如何从 token-owner rows，经 router、按 expert owner 分组、all-to-all dispatch、local expert FFN、all-to-all return，最终恢复原 token slot。蓝色虚线保留输入 $X_r$ 的 residual shortcut，底部 ownership 条带表示 rank $r$ 只持有其负责的 expert weights。
 
 > 教学整理图，非论文证据。GShard 的 expert placement 与系统证据见 [GShard](../papers/gshard.md#核心机制)。
 
