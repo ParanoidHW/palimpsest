@@ -147,6 +147,8 @@ $$
 
 ![Pipeline Parallel schedule|1376](../assets/surveys/parallel-partitioning-taxonomy/pipeline-parallel-schedule.png)
 
+> 图上半部把 layer-stage 参数 ownership 与单个 $m_k$ 的 forward activation / backward gradient P2P 分开；下半部用每个 stage 的单条时间线表示 fill-drain schedule。实线绿格是 forward compute，虚线绿格是 backward compute，空白格才是 bubble；颜色不再表示 rank，以免把持久状态、计算和通信混为一类。
+
 > 教学整理图，非论文证据。GPipe 的 schedule、重计算与实验证据见 [GPipe](../papers/gpipe.md#核心机制)。
 
 ### 方法卡
@@ -193,6 +195,8 @@ $$
 
 ![Megatron Sequence Parallel|1235](../assets/surveys/parallel-partitioning-taxonomy/megatron-sequence-parallel.png)
 
+> 图沿 Transformer 子层主链展示 rank $r$ 的 sequence shard：Norm、dropout、residual 等本地算子保持 $[B,S/p,H]$；进入 TP linear 前沿 $S$ 执行 all-gather，row-parallel partial 出口再用 reduce-scatter 完成逐元素求和并恢复 $[B,S/p,H]$。阶段 ownership 条带区分持久 shard、temporary full sequence 与 TP partial 的生命周期。
+
 > 教学整理图，非论文证据。术语边界与 Ulysses/Ring 对照见[序列与上下文并行](../topics/sequence-and-context-parallelism.md)。
 
 ### 方法卡
@@ -210,6 +214,8 @@ $$
 ## 8. Ulysses：sequence 与 heads 的 layout transpose
 
 ![Ulysses layout transpose|1376](../assets/surveys/parallel-partitioning-taxonomy/ulysses-layout-transpose.png)
+
+> 第一次 all-to-all 让每个 sequence owner 把本地 $S/p$ rows 按 head 切成 $p$ 份；每个 head owner 接收所有 ranks 的 sequence chunks 并 concat，得到 $[B,S,A/p,d_h]$。本地 attention 后第二次 all-to-all 做逆转置，重新得到 $[B,S/p,A,d_h]$。两次通信都只改变元素 owner，不做数值归约。
 
 > 教学整理图，非论文证据。论文公式、有限实现核验和复合收益边界见 [DeepSpeed Ulysses](../papers/deepspeed-ulysses.md#核心机制)。
 
@@ -229,6 +235,8 @@ $$
 
 ![Ring Context Parallel|1525](../assets/surveys/parallel-partitioning-taxonomy/ring-context-parallel.png)
 
+> rank $r$ 固定持有 $Q_r$ 与最终输出 $O_r$；current/next buffer 逐步接收轮转的 $K_j,V_j$ block。两条独立输入线汇入 block attention，online-softmax state 再逐 block 合并。中部环形 P2P 展示 KV ownership transfer，底部 causal block matrix 则单独展示不同 $Q_i$ rows 的有效计算不均衡。
+
 > 教学整理图，非论文证据。online softmax、blockwise 机制与证据边界见 [Ring Attention](../papers/ring-attention.md#核心机制)。
 
 ### 方法卡
@@ -246,6 +254,8 @@ $$
 ## 10. CFGP：沿 conditional branch 切分
 
 ![Classifier-Free Guidance Parallel|1365](../assets/surveys/parallel-partitioning-taxonomy/cfg-branch-parallel.png)
+
+> 同一个 denoising step 先把 conditional 与 unconditional condition 分给两个 branch ranks；两条 model forward 真正并发，输出 $\epsilon_c,\epsilon_u$ 在 combine owner 汇合后执行本地 guidance 公式。下方 ownership 区明确模型权重与 branch cache 通常复制，而跨 rank 传输的是两份 branch output，不是 reduction result。
 
 > 教学整理图，非论文证据。跨域 canonical 案例与 owner 链接见[跨领域采用](../evidence/parallel-partitioning-cross-domain-adoption.md)。
 
@@ -277,7 +287,7 @@ DP → ZeRO/FSDP → TP → PP → EP → CP/SP。
 
 ## 12. 证据边界与使用方式
 
-- 六篇 canonical Paper 均已完成 schema/semantic validation 和原图 QA；本页新增的 8 张 SVG 全部是 **analysis-derived 教学整理图**，不计入原论文视觉证据。
+- 六篇 canonical Paper 均已完成 schema/semantic validation 和原图 QA；本页的 11 张 PNG 全部是 **analysis-derived 教学整理图**，不计入原论文视觉证据。
 - DP/ZeRO、TP、PP、EP、Ulysses 与 Ring 的论文级依据分别链接到 [ZeRO](../papers/zero.md)、[Megatron-LM](../papers/megatron-lm.md)、[GPipe](../papers/gpipe.md)、[GShard](../papers/gshard.md)、[DeepSpeed Ulysses](../papers/deepspeed-ulysses.md) 和 [Ring Attention](../papers/ring-attention.md)。
 - Megatron Sequence Parallel 与 CFGP 是跨来源综合；术语与采用边界分别见[序列/上下文并行 Topic](../topics/sequence-and-context-parallelism.md)和[跨领域采用 Evidence](../evidence/parallel-partitioning-cross-domain-adoption.md)。
 - 所有公式描述理论量级与明确假设。full-system throughput、scaling efficiency 或 end-to-end latency 不能自动归因给单个 parallel primitive。
