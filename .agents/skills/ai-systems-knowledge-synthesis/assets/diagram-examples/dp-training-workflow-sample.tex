@@ -6,6 +6,7 @@
 \usetikzlibrary{arrows.meta,positioning,calc,fit,shapes.geometric}
 \setmainfont{Noto Sans CJK SC}
 \pagestyle{empty}
+\setlength{\parindent}{0pt}
 \definecolor{ink}{HTML}{172033}
 \definecolor{muted}{HTML}{536174}
 \definecolor{blue}{HTML}{2474C6}
@@ -33,7 +34,9 @@
   title/.style={font=\fontsize{26}{31}\bfseries,text=ink},
   head/.style={font=\fontsize{17}{21}\bfseries,text=ink,align=center},
   body/.style={font=\fontsize{14}{17}\selectfont,text=ink,align=center},
-  note/.style={font=\fontsize{11.5}{14}\selectfont,text=muted,align=center}
+  note/.style={font=\fontsize{11.5}{14}\selectfont,text=muted,align=center},
+  tensornote/.style={font=\fontsize{11.5}{14}\selectfont,text=blue!82!ink,fill=grayfill,inner sep=2pt,align=center},
+  gradnote/.style={font=\fontsize{11.5}{14}\selectfont,text=purple!85!ink,fill=grayfill,inner sep=2pt,align=center}
 }
 \begin{document}
 \begin{tikzpicture}[x=1cm,y=1cm]
@@ -81,19 +84,26 @@
 \node[anchor=west,note] at (35.5,15.45) {本 rank 不持有};
 
 % One active micro-batch traverses the model, loss, backward, and accumulator.
-\node[tensor,minimum width=2.0cm,minimum height=1.25cm] (active) at (12.0,13.35) {当前 $m_k$};
-\draw[data,rounded corners=5pt] (qone.south)--(active.north) node[midway,right,note] {逐个 dequeue};
+\coordinate (active) at (12.0,13.35);
 
-\node[compute,minimum width=4.5cm,minimum height=2.3cm] (fwd) at (12.0,10.75) {\textbf{model replica · FWD}\\full $P_{16}[\Psi]$ · BF16\\activations · BF16};
-\node[compute,minimum width=3.1cm,minimum height=2.3cm] (loss) at (17.0,10.75) {\textbf{loss}\\FP32 scalar};
-\node[compute,minimum width=4.0cm,minimum height=2.3cm] (bwd) at (21.9,10.75) {\textbf{BWD}\\local $g_{r,k}[\Psi]$ · FP32};
+\node[compute,minimum width=4.5cm,minimum height=2.3cm] (fwd) at (12.0,10.75) {\textbf{model replica · FWD}};
+\node[compute,minimum width=3.1cm,minimum height=2.3cm] (loss) at (17.0,10.75) {\textbf{loss}};
+\node[compute,minimum width=4.0cm,minimum height=2.3cm] (bwd) at (21.9,10.75) {\textbf{BWD}};
 \node[state,minimum width=4.8cm,minimum height=2.3cm] (acc) at (27.8,10.75) {\textbf{accumulate · FP32}\\$G_r\leftarrow G_r+g_{r,k}$\\跨 micro-batch 保留};
 \node[decision,minimum width=2.25cm,minimum height=1.8cm] (boundary) at (32.4,10.75) {$k=K$?};
-\draw[data] (active)--(fwd);
+\draw[data] (qone.south)--(active)--(fwd.north);
 \draw[data] (fwd)--(loss);
 \draw[grad] (loss)--(bwd);
 \draw[grad] (bwd)--(acc);
 \draw[control] (acc)--(boundary);
+\draw[draw=blue,line width=1.2pt] (12.4,13.35)--(13.15,13.35);
+\node[anchor=west,tensornote] at (13.55,14.05) {$m_k[b_\mu,\ldots]$ · dequeue};
+\draw[draw=blue,line width=1.2pt] (14.8,11.15)--(14.8,12.35);
+\node[tensornote] at (14.8,12.85) {activations / logits · BF16};
+\draw[draw=purple,line width=1.2pt] (19.35,11.15)--(19.35,12.35);
+\node[gradnote] at (19.35,12.85) {loss scalar · FP32};
+\draw[draw=purple,line width=1.2pt] (24.75,11.15)--(24.75,12.35);
+\node[gradnote] at (24.75,12.85) {$g_{r,k}[\Psi]$ · FP32};
 
 % The no-branch is a separate control lane: only then is the next micro-batch dequeued.
 \draw[control,rounded corners=7pt] (boundary.south)--(32.4,8.15)--(8.1,8.15)--(8.1,13.35)--(active.west);
@@ -127,6 +137,6 @@
 \draw[control] (19.8,1.95)--(21.9,1.95);
 \node[anchor=west,body] at (22.3,1.95) {sequential control};
 
-\node[anchor=west,font=\fontsize{10.5}{12}\selectfont,text=muted] at (1.25,.65) {教学整理图（analysis-derived）· 普通同步 DP；为突出主流程，未展开 gradient bucket overlap 与 activation checkpoint};
+\node[anchor=west,font=\fontsize{10.5}{12}\selectfont,text=muted] at (1.25,.65) {教学整理图（analysis-derived）· 普通同步 DP 的训练主流程与 rank-local ownership};
 \end{tikzpicture}
 \end{document}

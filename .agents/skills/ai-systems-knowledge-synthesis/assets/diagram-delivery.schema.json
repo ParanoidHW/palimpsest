@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/ai-systems/diagram-delivery.schema.json",
+  "title": "AI systems diagram delivery contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "diagram_id", "title", "method", "abstraction", "viewpoint", "reference_assets", "semantic_contract", "render", "qa", "approval"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "diagram_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "title": {"type": "string", "minLength": 1},
+    "method": {"type": "string", "minLength": 1},
+    "abstraction": {"enum": ["method-principle", "framework-supplement"]},
+    "viewpoint": {"enum": ["global", "rank-local", "peer-ranks"]},
+    "reference_assets": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+    "semantic_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["primary_chain", "allowed_edges", "forbidden_edges", "tensors", "communications"],
+      "properties": {
+        "primary_chain": {"type": "array", "items": {"type": "string"}, "minItems": 2},
+        "allowed_edges": {"type": "array", "items": {"$ref": "#/$defs/edge"}},
+        "forbidden_edges": {"type": "array", "items": {"type": "string"}},
+        "tensors": {"type": "array", "items": {"$ref": "#/$defs/tensor"}},
+        "communications": {"type": "array", "items": {"$ref": "#/$defs/communication"}}
+      }
+    },
+    "render": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source", "png", "resolution", "artifacts_dir"],
+      "properties": {
+        "source": {"type": "string"}, "png": {"type": "string"},
+        "resolution": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"},
+        "artifacts_dir": {"type": "string", "pattern": "^_artifacts/"}
+      }
+    },
+    "qa": {
+      "type": "object", "additionalProperties": false,
+      "required": ["full_frame", "crops", "checks", "last_render_after_source"],
+      "properties": {
+        "full_frame": {"type": "string"}, "crops": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "checks": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "last_render_after_source": {"type": "boolean", "const": true}
+      }
+    },
+    "approval": {
+      "type": "object", "additionalProperties": false, "required": ["status"],
+      "properties": {"status": {"enum": ["candidate", "user-approved", "rejected"]}, "reviewed_by": {"type": "string"}, "reviewed_at": {"type": "string"}}
+    }
+  },
+  "$defs": {
+    "edge": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "from", "to", "kind", "payload"],
+      "properties": {
+        "id": {"type": "string"}, "from": {"type": "string"}, "to": {"type": "string"},
+        "kind": {"enum": ["tensor-flow", "compute", "p2p", "time", "ownership"]}, "payload": {"type": "string"}
+      }
+    },
+    "tensor": {
+      "type": "object", "additionalProperties": false, "required": ["id", "role", "shape"],
+      "properties": {"id": {"type": "string"}, "role": {"enum": ["input", "activation", "state", "payload", "output"]}, "shape": {"type": "string"}, "owner": {"type": "string"}}
+    },
+    "communication": {
+      "type": "object", "additionalProperties": false, "required": ["id", "payload", "sender", "receiver", "result"],
+      "properties": {"id": {"type": "string"}, "payload": {"type": "string"}, "sender": {"type": "string"}, "receiver": {"type": "string"}, "result": {"type": "string"}}
+    }
+  }
+}

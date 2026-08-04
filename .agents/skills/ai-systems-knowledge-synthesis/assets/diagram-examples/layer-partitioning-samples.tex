@@ -1,0 +1,215 @@
+\documentclass{article}
+\usepackage[paperwidth=16in,paperheight=9in,margin=0in]{geometry}
+\usepackage{fontspec}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,patterns}
+\setmainfont{Noto Sans CJK SC}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\definecolor{ink}{HTML}{172033}
+\definecolor{muted}{HTML}{536174}
+\definecolor{blue}{HTML}{2474C6}
+\definecolor{bluefill}{HTML}{EAF3FC}
+\definecolor{green}{HTML}{2F9254}
+\definecolor{greenfill}{HTML}{EAF7EE}
+\definecolor{orange}{HTML}{D96C1F}
+\definecolor{orangefill}{HTML}{FFF1E5}
+\definecolor{purple}{HTML}{7653B5}
+\definecolor{purplefill}{HTML}{F2ECFF}
+\definecolor{grayline}{HTML}{C9D2DF}
+\definecolor{grayfill}{HTML}{F5F7FA}
+\tikzset{
+  tensor/.style={draw=blue,fill=bluefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  runtime/.style={draw=muted,fill=white,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  compute/.style={draw=green,fill=greenfill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  columnpart/.style={compute,preaction={fill=greenfill},pattern=vertical lines,pattern color=green!32,line width=2.0pt},
+  rowpart/.style={compute,preaction={fill=greenfill},pattern=horizontal lines,pattern color=green!32,line width=2.0pt},
+  state/.style={draw=purple,fill=purplefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  collective/.style={draw=orange,fill=orangefill,line width=1.8pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  data/.style={-{Stealth[length=4.6mm,width=3.4mm]},line width=2.5pt,draw=blue,shorten <=1.5pt,shorten >=2pt},
+  shortcut/.style={-{Stealth[length=4.2mm,width=3.1mm]},line width=2.2pt,draw=blue,dashed,dash pattern=on 7pt off 4pt,shorten <=1.5pt,shorten >=2pt},
+  comm/.style={-{Stealth[length=4.9mm,width=3.6mm]},line width=2.8pt,draw=orange,shorten <=1.5pt,shorten >=2pt},
+  control/.style={-{Stealth[length=4.2mm,width=3.1mm]},line width=2.2pt,draw=ink,shorten <=1.5pt,shorten >=2pt},
+  title/.style={font=\fontsize{25}{30}\bfseries,text=ink},
+  head/.style={font=\fontsize{16}{19}\bfseries,text=ink,align=center},
+  body/.style={font=\fontsize{13}{16}\selectfont,text=ink,align=center},
+  note/.style={font=\fontsize{11}{13.5}\selectfont,text=muted,align=center},
+  tensornote/.style={font=\fontsize{11}{13.5}\selectfont,text=blue!82!ink,fill=grayfill,inner sep=2pt,align=center}
+}
+\newcommand{\canvas}{\path[use as bounding box] (0,0) rectangle (40.64,22.86);\fill[white] (0,0) rectangle (40.64,22.86);}
+\newcommand{\pagehead}[2]{%
+  \node[anchor=west,title] at (1.25,21.55) {#1};
+  \node[anchor=west,font=\fontsize{14}{17}\selectfont,text=muted] at (1.25,20.55) {#2};
+  \draw[grayline,line width=1pt] (1.25,19.95)--(39.35,19.95);
+}
+\newcommand{\legend}{%
+  \node[anchor=west,head] at (1.25,3.9) {图例};
+  \node[tensor,minimum width=1.05cm,minimum height=.62cm,inner sep=1pt] at (3.0,2.95) {};
+  \node[anchor=west,body] at (3.75,2.95) {tensor / weight};
+  \node[compute,minimum width=1.05cm,minimum height=.62cm,inner sep=1pt] at (9.15,2.95) {};
+  \node[anchor=west,body] at (9.9,2.95) {model compute};
+  \node[collective,minimum width=1.05cm,minimum height=.62cm,inner sep=1pt] at (15.5,2.95) {};
+  \node[anchor=west,body] at (16.25,2.95) {collective};
+  \node[runtime,minimum width=1.05cm,minimum height=.62cm,inner sep=1pt] at (21.15,2.95) {};
+  \node[anchor=west,body] at (21.9,2.95) {runtime action};
+  \draw[data] (27.8,2.95)--(29.9,2.95);
+  \node[anchor=west,body] at (30.3,2.95) {tensor flow};
+  \draw[comm] (27.8,1.75)--(29.9,1.75);
+  \node[anchor=west,body] at (30.3,1.75) {collective transition};
+  \node[draw=blue,fill=bluefill,line width=1.3pt,minimum width=.82cm,minimum height=.48cm,inner sep=0pt] at (3.0,1.75) {};
+  \node[anchor=west,note] at (3.65,1.75) {本 rank 持有};
+  \node[draw=muted,dashed,fill=white,line width=1.3pt,minimum width=.82cm,minimum height=.48cm,inner sep=0pt] at (9.15,1.75) {};
+  \node[anchor=west,note] at (9.8,1.75) {本 rank 不持有};
+  \draw[shortcut] (15.0,1.75)--(17.1,1.75);
+  \node[anchor=west,body] at (17.5,1.75) {residual shortcut};
+}
+\newcommand{\ownerslices}[3]{%
+  \node[draw=muted,dashed,fill=white,line width=1.2pt,minimum width=.72cm,minimum height=.55cm,inner sep=0pt,font=\fontsize{8.5}{10}\selectfont,text=ink] (#1szero) at ({#2-1.44},#3) {$s_0$};
+  \node[draw=muted,dashed,fill=white,line width=1.2pt,minimum width=.72cm,minimum height=.55cm,inner sep=0pt,font=\fontsize{8.5}{10}\selectfont,text=ink] (#1dotsa) at ({#2-.72},#3) {$\cdots$};
+  \node[draw=blue,fill=bluefill,line width=1.4pt,minimum width=.72cm,minimum height=.55cm,inner sep=0pt,font=\fontsize{8.5}{10}\selectfont,text=ink] (#1local) at (#2,#3) {$s_r$};
+  \node[draw=muted,dashed,fill=white,line width=1.2pt,minimum width=.72cm,minimum height=.55cm,inner sep=0pt,font=\fontsize{8.5}{10}\selectfont,text=ink] (#1dotsb) at ({#2+.72},#3) {$\cdots$};
+  \node[draw=muted,dashed,fill=white,line width=1.2pt,minimum width=.72cm,minimum height=.55cm,inner sep=0pt,font=\fontsize{8.5}{10}\selectfont,text=ink] (#1slast) at ({#2+1.44},#3) {$s_{p-1}$};
+}
+
+\begin{document}
+
+% Tensor parallelism inside one Transformer layer.
+\begin{tikzpicture}[x=1cm,y=1cm]
+\canvas
+\pagehead{张量并行：切进 Transformer layer 的 attention 与 FFN}{TP world size $p$；$B$ samples，$S$ sequence length，$H$ hidden size，$N$ heads，$D$ head dimension，$H=ND$}
+
+\draw[draw=grayline,fill=grayfill,rounded corners=4pt,line width=1.2pt] (1.25,4.75) rectangle (39.35,19.15);
+\node[anchor=west,head] at (1.85,18.55) {Transformer layer $\ell$ · rank $r$ 的主计算流 · PRE-NORM};
+\node[anchor=east,note] at (38.75,18.55) {上：$X\to\mathrm{Norm}\to\mathrm{Attn}\to{+X}$　下：$X_{\mathrm{attn}}\to\mathrm{Norm}\to\mathrm{FFN}\to{+X_{\mathrm{attn}}}$};
+
+% Attention sublayer, left to right.
+\node[tensor,text width=2.0cm,minimum height=1.65cm,inner sep=3pt] (x) at (2.6,15.25) {input $X$\\$[B,S,H]$};
+\node[compute,text width=1.45cm,minimum height=1.65cm,inner sep=3pt] (ln1) at (5.65,15.25) {Norm};
+\node[columnpart,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (qkvproj) at (8.9,15.25) {QKV projection\\COLUMN split};
+\node[compute,text width=2.3cm,minimum height=1.85cm,inner sep=3pt] (attn) at (16.5,15.25) {local\\attention\\$N/p$ heads};
+\node[rowpart,text width=2.7cm,minimum height=1.85cm,inner sep=3pt] (oproj) at (20.1,15.25) {output\\projection\\ROW split};
+\node[collective,text width=3.2cm,minimum height=2.0cm,inner sep=3pt] (ar1) at (27.6,15.25) {ALL-REDUCE\\sum: $\sum_r U_r$\\result on every rank\\$U[B,S,H]$};
+\node[compute,text width=2.2cm,minimum height=1.85cm,inner sep=3pt] (res1) at (31.55,15.25) {residual add};
+\coordinate (xa) at (35.3,15.25);
+\draw[data] (x)--(ln1);
+\draw[data] (ln1)--(qkvproj);
+\draw[data] (qkvproj)--(attn);
+\draw[data] (attn)--(oproj);
+\draw[comm] (oproj)--(ar1);
+\draw[comm] (ar1)--(res1);
+\draw[data] (res1)--(xa);
+\draw[shortcut,rounded corners=4pt] (x.south)--(2.6,13.05)-|(res1.south) node[pos=.72,below,note] {residual $X$};
+\draw[draw=blue,line width=1.2pt] (12.75,14.85)--(12.75,14.15);
+\node[tensornote] at (12.75,13.65) {$Q_r,K_r,V_r$ · $[B,S,N/p,D]$};
+\draw[draw=blue,line width=1.2pt] (23.65,14.85)--(23.65,14.15);
+\node[tensornote] at (23.65,13.65) {partial $U_r[B,S,H]$};
+
+\node[note] at (8.9,17.85) {$W_{QKV}[H,3H]\ \rightarrow\ W_{QKV}^{(r)}[H,3H/p]$ · output axis};
+\ownerslices{qkvw}{8.9}{17.25}
+\node[note] at (20.1,17.85) {$W_O[H,H]\ \rightarrow\ W_O^{(r)}[H/p,H]$ · input axis};
+\ownerslices{ow}{20.1}{17.25}
+\draw[data] (qkvwlocal.south)--(qkvproj.north);
+\draw[data] (owlocal.south)--(oproj.north);
+
+% FFN sublayer, right to left, continuing the snake.
+\node[compute,text width=1.45cm,minimum height=1.65cm,inner sep=3pt] (ln2) at (35.3,9.35) {Norm};
+\node[columnpart,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (up) at (32.05,9.35) {up projection\\COLUMN split};
+\node[rowpart,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (down) at (24.55,9.35) {down\\projection\\ROW split};
+\node[collective,text width=3.2cm,minimum height=2.0cm,inner sep=3pt] (ar2) at (17.0,9.35) {ALL-REDUCE\\sum: $\sum_r Z_r$\\result on every rank\\$Z[B,S,H]$};
+\node[compute,text width=2.2cm,minimum height=1.85cm,inner sep=3pt] (res2) at (12.75,9.35) {residual add};
+\node[tensor,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (out) at (9.0,9.35) {layer output\\$X_{\ell+1}[B,S,H]$};
+\coordinate (ffnsplit) at (35.3,12.0);
+\draw[line width=2.5pt,draw=blue] (xa)--(ffnsplit);
+\draw[data] (ffnsplit)--(ln2.north);
+\draw[data] (ln2)--(up);
+\draw[data] (up)--(down);
+\draw[comm] (down)--(ar2);
+\draw[comm] (ar2)--(res2);
+\draw[data] (res2)--(out);
+\draw[shortcut,rounded corners=4pt] (ffnsplit)-|(res2.north) node[pos=.55,above,note] {residual $X_{\mathrm{attn}}$};
+\draw[draw=blue,line width=1.2pt] (36.0,13.5)--(36.75,13.5);
+\node[anchor=west,tensornote] at (37.1,13.5) {$X_{\mathrm{attn}}[B,S,H]$};
+\draw[draw=blue,line width=1.2pt] (28.3,9.75)--(28.3,10.5);
+\node[tensornote] at (28.3,10.95) {$V_r$ after GeLU · $[B,S,4H/p]$};
+\draw[draw=blue,line width=1.2pt] (21.0,9.75)--(21.0,10.5);
+\node[tensornote] at (21.0,10.95) {partial $Z_r[B,S,H]$};
+
+\ownerslices{upw}{32.05}{6.95}
+\node[font=\fontsize{9.5}{11}\selectfont,text=muted,text width=6.2cm,align=center] at (32.05,5.9) {$W_{\mathrm{up}}[H,4H]\ \rightarrow\ W_{\mathrm{up}}^{(r)}[H,4H/p]$\\output-axis shard};
+\ownerslices{downw}{24.55}{6.95}
+\node[font=\fontsize{9.5}{11}\selectfont,text=muted,text width=6.2cm,align=center] at (24.55,5.9) {$W_{\mathrm{down}}[4H,H]\ \rightarrow\ W_{\mathrm{down}}^{(r)}[4H/p,H]$\\input-axis shard};
+\draw[data] (upwlocal.north)--(up.south);
+\draw[data] (downwlocal.north)--(down.south);
+
+\node[anchor=west,note] at (1.85,4.98) {切分逻辑：column-parallel 产生可本地消费的 head/hidden shard；row-parallel 产生同 shape partial，必须按元素求和，不是 concat。};
+\legend
+\node[anchor=west,font=\fontsize{10.5}{12}\selectfont,text=muted] at (1.25,.55) {教学整理图（analysis-derived）· TP layer 的计算、tensor layout、collective 与 weight ownership};
+\end{tikzpicture}
+\newpage
+
+% Expert parallelism inside one MoE layer.
+\begin{tikzpicture}[x=1cm,y=1cm]
+\canvas
+\pagehead{专家并行：切进 MoE layer 的 router、dispatch 与 expert FFN}{EP world size $p$；展开 rank $r$；$T_r$ 是进入本 rank 的 token 数，$N_r$ 是路由后由本 rank experts 接收的 token 数}
+
+\draw[draw=grayline,fill=grayfill,rounded corners=4pt,line width=1.2pt] (1.25,5.8) rectangle (39.35,18.9);
+\node[anchor=west,head] at (1.85,18.25) {MoE layer $\ell$ · PRE-NORM · 从 token owner 到 expert owner，再回到 token owner};
+
+% One continuous left-to-right operation flow. Intermediate tensors are arrow annotations.
+\node[tensor,text width=2.0cm,minimum height=1.85cm,inner sep=3pt] (ex) at (2.6,12.25) {input $X_r$\\$[T_r,H]$};
+\node[compute,text width=1.35cm,minimum height=1.85cm,inner sep=3pt] (enorm) at (5.65,12.25) {Norm};
+\node[compute,text width=2.0cm,minimum height=1.95cm,inner sep=3pt] (router) at (8.7,12.25) {router\\top-$k$};
+\node[runtime,text width=2.1cm,minimum height=1.95cm,inner sep=3pt] (pack) at (12.15,12.25) {group rows\\by expert owner};
+\node[collective,text width=2.75cm,minimum height=2.25cm,inner sep=3pt] (dispatch) at (16.05,12.25) {\textbf{A2A dispatch}\\send rows\\concat at owners};
+\node[compute,text width=3.15cm,minimum height=2.25cm,inner sep=3pt] (expert) at (20.6,12.25) {local expert FFNs\\up $\rightarrow$ activation $\rightarrow$ down};
+\node[collective,text width=2.75cm,minimum height=2.25cm,inner sep=3pt] (ret) at (25.15,12.25) {\textbf{A2A return}\\send rows back\\restore token slots};
+\node[compute,text width=3.0cm,minimum height=2.15cm,inner sep=3pt] (combine) at (29.6,12.25) {weighted combine\\$Y_{r,t}=\sum_j\alpha_{t,j}Y_{t,j}$};
+\node[compute,text width=2.0cm,minimum height=1.95cm,inner sep=3pt] (eres) at (33.65,12.25) {residual add};
+\node[tensor,text width=2.75cm,minimum height=1.95cm,inner sep=3pt] (enext) at (37.5,12.25) {layer output\\$X_{\ell+1,r}[T_r,H]$};
+
+\draw[data] (ex)--(enorm);
+\draw[data] (enorm)--(router);
+\draw[data] (router)--(pack);
+\draw[comm] (pack)--(dispatch);
+\draw[comm] (dispatch)--(expert);
+\draw[data] (expert)--(ret);
+\draw[comm] (ret)--(combine);
+\draw[data] (combine)--(eres);
+\draw[data] (eres)--(enext);
+
+\draw[draw=blue,line width=1.2pt] (6.85,12.65)--(6.85,14.05);
+\node[tensornote] at (6.85,14.55) {$\widetilde X_r[T_r,H]$};
+\draw[draw=blue,line width=1.2pt] (10.15,11.85)--(10.15,10.45);
+\node[tensornote] at (10.15,9.95) {routes $(e,\alpha)[T_r,k]$};
+\draw[draw=blue,line width=1.2pt] (13.75,12.65)--(13.75,14.05);
+\node[tensornote] at (13.75,14.55) {packed token rows};
+\draw[draw=blue,line width=1.2pt] (17.95,11.85)--(17.95,10.45);
+\node[tensornote] at (17.95,9.95) {$\widehat X_r[N_r,H]$ · expert-owned};
+\draw[draw=blue,line width=1.2pt] (22.6,12.65)--(22.6,14.05);
+\node[tensornote] at (22.6,14.55) {$\widehat Y_r[N_r,H]$};
+\draw[draw=blue,line width=1.2pt] (27.0,11.85)--(27.0,10.45);
+\node[tensornote] at (27.0,9.95) {returned rows $[T_r,k,H]$};
+\draw[draw=blue,line width=1.2pt] (31.65,12.65)--(31.65,14.05);
+\node[tensornote] at (31.65,14.55) {$Y_r[T_r,H]$};
+\draw[shortcut,rounded corners=4pt] (ex.south)--(2.6,8.55)-|(eres.south) node[pos=.76,below,note] {residual $X_r$};
+
+% Expert-weight ownership is shown as p logical expert groups.
+\node[anchor=east,body] at (16.25,16.55) {expert weights};
+\node[anchor=east,note] at (16.25,15.85) {rank $r$ owns $E_r$ of global $E$ experts};
+\foreach \ii/\lab in {0/$E_0$,1/$\cdots$,2/$E_r$,3/$\cdots$,4/$E_{p-1}$}{
+  \ifnum\ii=2
+    \node[draw=blue,fill=bluefill,line width=1.4pt,minimum width=1.25cm,minimum height=.85cm,inner sep=1pt,font=\fontsize{10.5}{12}\selectfont,text=ink] (ew\ii) at ({18.04+1.28*\ii},16.15) {\lab};
+  \else
+    \node[draw=muted,dashed,fill=white,line width=1.3pt,minimum width=1.25cm,minimum height=.85cm,inner sep=1pt,font=\fontsize{10.5}{12}\selectfont,text=ink] (ew\ii) at ({18.04+1.28*\ii},16.15) {\lab};
+  \fi
+}
+\draw[data] (ew2.south)--(expert.north);
+
+\node[anchor=west,note] at (1.85,6.15) {箭头旁文字表示节点间 tensor 或 layout；只有输入与最终输出保留独立 tensor 框。};
+
+\legend
+\node[anchor=west,font=\fontsize{10.5}{12}\selectfont,text=muted] at (1.25,.55) {教学整理图（analysis-derived）· EP layer 的计算、token layout、collective 与 expert ownership};
+\end{tikzpicture}
+
+\end{document}
