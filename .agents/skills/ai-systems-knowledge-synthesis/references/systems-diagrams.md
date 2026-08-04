@@ -116,6 +116,8 @@ Use [dp-training-workflow-sample.tex](../assets/diagram-examples/dp-training-wor
 - Use rounded corners only for necessary orthogonal routes. Do not add bends for decoration.
 - Align peer section headings on one baseline. Keep box sizes, gaps, and fixed-format tensor cells stable so labels and arrowheads cannot shift the layout.
 - Size operation boxes to their actual title and essential tensor lines. Avoid equal oversized boxes and decorative internal whitespace. Preserve clarity by increasing the gap between compact boxes, which creates an arrow shaft, rather than padding the boxes themselves.
+- Center the occupied mechanism, not merely the outer frame. Measure the primary content bounding box and correct large one-sided empty regions; declare an intentional asymmetric inset when one is required by the method.
+- Budget visible text per panel: one heading, one short subtitle, and at most two short notes. Use symbols, labels, and the legend for definitions; move rationale, caveats, and implementation prose outside the core mechanism.
 
 ## Density And Legend
 
@@ -132,6 +134,7 @@ Use [dp-training-workflow-sample.tex](../assets/diagram-examples/dp-training-wor
 - Re-render after every edit that changes coordinates, node size, labels, arrows, or line routing. A previously inspected raster does not validate a later source revision.
 - Iterate on one baseline diagram first, normally pure data parallelism for ZeRO comparisons. After approval, preserve its layout, visual grammar, tensor-strip scale, and arrow styles across variants so differences encode mechanism changes rather than redesign noise.
 - Do not promote or publish until the user approves the review sample when the task is explicitly iterative.
+- Separate authoring from visual approval. The diagram author prepares deterministic renders and crops; an independent QA-only subagent inspects them and must not edit the diagram. After any fix, regenerate all affected crops and send the new raster back to the independent reviewer.
 
 ### Mandatory Raster QA Procedure
 
@@ -139,8 +142,12 @@ Use [dp-training-workflow-sample.tex](../assets/diagram-examples/dp-training-wor
 2. Inspect the full PNG at original size for hierarchy, margins, density, and unused space.
 3. Create original-pixel crops for every dense or independently routed region: the main operation chain, each communication lane, every cross-rank or return path, ownership/time views, and the legend/footer.
 4. Inspect each crop for text-to-text overlap, text sitting on an arrow or border, arrows crossing nodes, arrowheads landing inside boxes, accidental diagonals, shared or ambiguous endpoints, clipped glyphs, and labels without a clear owning edge.
-5. Fix every visible defect, re-render, recreate the affected crops, and repeat both crop and whole-frame inspection. Do not reuse stale crops.
-6. Record the inspected raster and crop paths in the work log or handoff. Only then may the result be described as visually checked.
+5. Inspect composition in the full frame: content centroid versus core-frame centroid, one-sided whitespace, alignment of peer lanes, and whether secondary labels outweigh the primary chain.
+6. Inspect text ownership and typography: every visible text item must belong to a node, edge, panel heading, legend, or footer; flag isolated labels, ambiguous nearest edges, inconsistent multi-line leading, uneven baselines, and text too close to borders or arrows.
+7. Inspect semantic grouping: headings, formulas, notes, nodes, and arrows that explain one mechanism must occupy one spatial group with a shared baseline or enclosing scope. A readable but detached explanatory cluster fails QA.
+8. Fix every visible defect, re-render, recreate the affected crops, and repeat both crop and whole-frame inspection. Do not reuse stale crops.
+9. Record the inspected raster and crop paths in the work log or handoff. Only then may the result be described as visually checked.
+10. Record the independent reviewer identity, reviewed render timestamp, severity-ordered findings, disposition for every finding, and whether the exact final raster was re-reviewed. Self-review cannot close the QA gate.
 
 Compiler output is supporting evidence only. Successful TikZ/LaTeX compilation, zero `Overfull` or `Underfull` warnings, a valid PDF, or inspection of a scaled-down whole-frame preview does not satisfy visual QA and must never be reported as a pass by itself.
 

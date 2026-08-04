@@ -4,7 +4,7 @@
   "title": "AI systems diagram delivery contract",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "diagram_id", "title", "method", "abstraction", "viewpoint", "reference_assets", "semantic_contract", "render", "qa", "approval"],
+  "required": ["schema_version", "diagram_id", "title", "method", "abstraction", "viewpoint", "reference_assets", "semantic_contract", "layout", "render", "qa", "approval"],
   "properties": {
     "schema_version": {"type": "integer", "const": 1},
     "diagram_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
@@ -13,6 +13,16 @@
     "abstraction": {"enum": ["method-principle", "framework-supplement"]},
     "viewpoint": {"enum": ["global", "rank-local", "peer-ranks"]},
     "reference_assets": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+    "layout": {
+      "type": "object", "additionalProperties": false,
+      "required": ["canvas", "content_bbox", "centering", "text_budget"],
+      "properties": {
+        "canvas": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"},
+        "content_bbox": {"type": "string", "minLength": 1},
+        "centering": {"enum": ["centered", "intentional-asymmetric"]},
+        "text_budget": {"type": "string", "minLength": 1}
+      }
+    },
     "semantic_contract": {
       "type": "object", "additionalProperties": false,
       "required": ["primary_chain", "allowed_edges", "forbidden_edges", "tensors", "communications"],
@@ -26,25 +36,57 @@
     },
     "render": {
       "type": "object", "additionalProperties": false,
-      "required": ["source", "png", "resolution", "artifacts_dir"],
+      "required": ["source", "png", "resolution", "artifacts_dir", "render_id", "rendered_at"],
       "properties": {
         "source": {"type": "string"}, "png": {"type": "string"},
         "resolution": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"},
-        "artifacts_dir": {"type": "string", "pattern": "^_artifacts/"}
+        "artifacts_dir": {"type": "string", "pattern": "^_artifacts/"},
+        "render_id": {"type": "string", "minLength": 1},
+        "rendered_at": {"type": "string", "format": "date-time"}
       }
     },
     "qa": {
       "type": "object", "additionalProperties": false,
-      "required": ["full_frame", "crops", "checks", "last_render_after_source"],
+      "required": ["full_frame", "crops", "checks", "last_render_after_source", "independent_review"],
       "properties": {
-        "full_frame": {"type": "string"}, "crops": {"type": "array", "items": {"type": "string"}, "minItems": 1},
-        "checks": {"type": "array", "items": {"type": "string"}, "minItems": 1},
-        "last_render_after_source": {"type": "boolean", "const": true}
+        "full_frame": {"type": "string"},
+        "crops": {"type": "array", "items": {"$ref": "#/$defs/crop"}, "minItems": 1},
+        "checks": {
+          "type": "array", "items": {"type": "string"}, "minItems": 1,
+          "allOf": [
+            {"contains": {"const": "full-frame-original-resolution"}},
+            {"contains": {"const": "all-crops-original-pixels"}},
+            {"contains": {"const": "arrow-endpoints"}},
+            {"contains": {"const": "nonzero-communication-shaft"}},
+            {"contains": {"const": "isolated-text"}},
+            {"contains": {"const": "line-spacing-baseline"}},
+            {"contains": {"const": "semantic-grouping"}},
+            {"contains": {"const": "composition-centering"}},
+            {"contains": {"const": "one-sided-whitespace"}},
+            {"contains": {"const": "stale-crop"}}
+          ]
+        },
+        "last_render_after_source": {"type": "boolean", "const": true},
+        "independent_review": {
+          "type": "object", "additionalProperties": false,
+          "required": ["reviewer", "reviewer_role", "review_round", "reviewed_render", "reviewed_render_id", "reviewed_at", "status", "findings", "re_reviewed_after_last_edit"],
+          "properties": {
+            "reviewer": {"type": "string", "minLength": 1},
+            "reviewer_role": {"const": "independent-qa-subagent"},
+            "review_round": {"type": "integer", "minimum": 1},
+            "reviewed_render": {"type": "string", "minLength": 1},
+            "reviewed_render_id": {"type": "string", "minLength": 1},
+            "reviewed_at": {"type": "string", "format": "date-time"},
+            "status": {"enum": ["pending", "changes-requested", "passed"]},
+            "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+            "re_reviewed_after_last_edit": {"type": "boolean"}
+          }
+        }
       }
     },
     "approval": {
       "type": "object", "additionalProperties": false, "required": ["status"],
-      "properties": {"status": {"enum": ["candidate", "user-approved", "rejected"]}, "reviewed_by": {"type": "string"}, "reviewed_at": {"type": "string"}}
+      "properties": {"status": {"enum": ["candidate", "user-approved", "rejected"]}, "reviewed_by": {"type": "string"}, "reviewed_at": {"type": "string", "format": "date-time"}}
     }
   },
   "$defs": {
@@ -62,7 +104,34 @@
     },
     "communication": {
       "type": "object", "additionalProperties": false, "required": ["id", "payload", "sender", "receiver", "result"],
-      "properties": {"id": {"type": "string"}, "payload": {"type": "string"}, "sender": {"type": "string"}, "receiver": {"type": "string"}, "result": {"type": "string"}}
+      "properties": {"id": {"type": "string"}, "payload": {"type": "string"}, "sender": {"type": "string"}, "receiver": {"type": "string"}, "result": {"type": "string"}, "edge_id": {"type": "string"}, "nonzero_shaft": {"const": true}, "arrowhead_at_destination": {"const": true}, "visible_path": {"type": "string", "minLength": 1}}
+    },
+    "crop": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "region", "resolution", "generated_after_render", "reviewed"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^_artifacts/"},
+        "region": {"enum": ["main-flow", "communication", "cross-rank-return", "ownership-time", "legend-footer", "other"]},
+        "resolution": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"},
+        "generated_after_render": {"const": true},
+        "reviewed": {"const": true}
+      }
+    },
+    "finding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "severity", "description", "artifact_region", "disposition", "resolved_in_render"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "severity": {"enum": ["blocker", "major", "minor", "note"]},
+        "description": {"type": "string", "minLength": 1},
+        "artifact_region": {"type": "string", "minLength": 1},
+        "disposition": {"type": "string", "minLength": 1},
+        "resolved_in_render": {"type": "boolean"}
+      }
     }
-  }
+  },
+  "allOf": [
+    {"if": {"properties": {"qa": {"properties": {"independent_review": {"properties": {"status": {"const": "passed"}}}}}}}, "then": {"properties": {"qa": {"properties": {"independent_review": {"properties": {"re_reviewed_after_last_edit": {"const": true}}}}}}}},
+    {"if": {"properties": {"approval": {"properties": {"status": {"const": "user-approved"}}}}}, "then": {"properties": {"qa": {"properties": {"independent_review": {"properties": {"status": {"const": "passed"}, "re_reviewed_after_last_edit": {"const": true}}}}}}}}
+  ]
 }
