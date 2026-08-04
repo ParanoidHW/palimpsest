@@ -42,7 +42,7 @@
 | `02_model_systems/embodied_ai` | 13 | VLA、导航、操作策略、world model、3D/4D perception、数据合成 | [Embodied AI evolution](../02_model_systems/embodied_ai/surveys/embodied-ai-evolution-infra.md) | 核心谱系已覆盖 |
 | `02_model_systems/llm_foundations` | 2 | frontier LLM 架构、规模与 Infra | [2026 H1 model scale](../02_model_systems/llm_foundations/surveys/2026h1-model-scale.md) | Kimi K3 父级链路需复核 |
 | `02_model_systems/multimodal_generation` | 19 | image/video diffusion、AR/flow、MoT、VAE、cache、稀疏 attention、serving | [Visual generation landscape](../02_model_systems/multimodal_generation/surveys/visual-generation-model-landscape.md) | Sparse VideoGen 方法族与 Jenga pipeline 已覆盖 |
-| `02_model_systems/speculative_decoding` | 7 | diffusion draft、tree/parallel drafting、解耦 local correction、online/self judge、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖 |
+| `02_model_systems/speculative_decoding` | 9 | diffusion draft、tree/parallel drafting、解耦 local correction、workload-aware drafting、hidden-state training、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖 |
 | `03_agentic_workflows/kernel_agents` | 4 | LLM 自动 kernel 生成、Ascend/NPU、test-time scaling | [Paper index](../03_agentic_workflows/kernel_agents/evidence/paper-index.md) | 当前为 Paper note，适合按需补全 |
 
 ## Paper 明细
@@ -168,6 +168,8 @@
 | HyperDFlash | 深度精读 | [hyperdflash](../02_model_systems/speculative_decoding/papers/hyperdflash.md) |
 | JetSpec | 深度精读 | [jetspec](../02_model_systems/speculative_decoding/papers/jetspec.md) |
 | P-EAGLE | 深度精读 | [p-eagle](../02_model_systems/speculative_decoding/papers/p-eagle.md) |
+| AngelSpec / arXiv:2607.25852 | 深度精读 | [angelspec](../02_model_systems/speculative_decoding/papers/angelspec.md) |
+| TorchSpec / PyTorch Blog 2026-03-19 | 深度精读；技术博客与代码系统 | [torchspec](../02_model_systems/speculative_decoding/papers/torchspec.md) |
 
 ### Kernel agents（4）
 

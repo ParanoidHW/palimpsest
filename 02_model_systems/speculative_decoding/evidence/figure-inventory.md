@@ -7,7 +7,16 @@
 > - 证据资产：`../assets/papers/`
 > - 相关文档：[Foundations and trends](../surveys/foundations-and-trends.md)
 
-本清单索引七篇 canonical Paper 的正式论文视觉证据，不替代逐篇 Paper 的实验解释。所有条目均由官方 PDF/source 重新裁剪，保留完整 caption、单一编号对象、源页尺寸与 crop bbox，并通过 contact-sheet 初筛和逐图原分辨率复核；页面渲染、裁剪过程与 QA 日志仅保存在过程工作区。
+本清单索引九篇 canonical Paper 的正式视觉证据，不替代逐篇 Paper 的实验解释。论文图保留完整 caption、单一编号对象、源页尺寸与 crop bbox；TorchSpec 的博客图是未编号的 standalone official objects，保留完整 image bounds。所有资产均通过 contact-sheet 初筛和逐图原分辨率复核；页面渲染、裁剪过程与 QA 日志仅保存在过程工作区。
+
+| AngelSpec / Figure 2 | `../assets/papers/angelspec/dfly-overview.png` | DFly mechanism overview | pass：原分辨率 QA |
+| AngelSpec / Figure 3 | `../assets/papers/angelspec/dcut-overview.png` | D-cut dynamic verification budget | pass：原分辨率 QA |
+| AngelSpec / Table 7 | `../assets/papers/angelspec/throughput-table7.png` | Serving throughput comparison | pass：原分辨率 QA |
+| AngelSpec / Figure 6 | `../assets/papers/angelspec/framework-overview.png` | AngelSpec training/serving framework | pass：原分辨率 QA |
+| TorchSpec / official architecture | `../assets/papers/torchspec/disaggregated-architecture.png` | Disaggregated inference/training architecture | pass：source-bounds QA |
+| TorchSpec / official Kimi benchmark | `../assets/papers/torchspec/kimi-draft-benchmark.png` | Draft quality benchmark | pass：source-bounds QA |
+| TorchSpec / official throughput | `../assets/papers/torchspec/kimi-throughput.png` | EAGLE3 serving throughput | pass：source-bounds QA |
+| TorchSpec / official max sequence | `../assets/papers/torchspec/max-sequence-length.png` | Maximum sequence length | pass：source-bounds QA |
 
 | Paper / 对象与 source crop | 正式资产 | 完整 caption | 用途 / Provenance | QA |
 |---|---|---|---|---|

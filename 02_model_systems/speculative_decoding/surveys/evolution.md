@@ -25,7 +25,9 @@
 
 ## 精读证据入口
 
-[P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵) · [D²SD](../papers/d2sd.md#5-关键结论) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵) · [DeLS-Spec](../papers/dels-spec.md)
+[P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵) · [D²SD](../papers/d2sd.md#5-关键结论) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵) · [DeLS-Spec](../papers/dels-spec.md) · [AngelSpec](../papers/angelspec.md) · [TorchSpec](../papers/torchspec.md)
+
+2026 年新增的两个系统锚点是 [AngelSpec](../papers/angelspec.md) 和 [TorchSpec](../papers/torchspec.md)：前者把 workload 分工、DFly 并行草稿和 D-cut 全局验证预算组合起来；后者把 target hidden-state 生成与 drafter 训练解耦。两者的吞吐数字都属于完整系统结果，不能脱离 serving、网络和训练配方独立归因。
 
 ## 资料获取与可追溯性
 
