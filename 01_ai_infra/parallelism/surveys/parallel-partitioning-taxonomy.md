@@ -147,7 +147,7 @@ $$
 
 ![Pipeline Parallel schedule|1376](../assets/surveys/parallel-partitioning-taxonomy/pipeline-parallel-schedule.png)
 
-> 图上半部把 layer-stage ownership 与单个 $m_k$ 的双向数据流分开：loss 只把反向入口送入最后一个 stage，随后 activation gradient 按 stage 3 → 2 → 1 → 0 逐边界 P2P 返回，不会从 loss 直接跳到 stage 0。中间状态链显式表示每个 stage 的本地 weight、gradient 与 optimizer state 如何共同完成 update；下半部用每个 stage 的单条时间线表示 fill-drain schedule。实线绿格是 forward compute，虚线绿格是 backward compute，空白格才是 bubble。
+> 图上半部把 layer-stage ownership 与单个 $m_k$ 的双向数据流分开：loss 只把反向入口送入最后一个 stage，随后 activation gradient 按 stage 3 → 2 → 1 → 0 逐边界 P2P 返回，不会从 loss 直接跳到 stage 0。下半部展开 GPipe 的全前向、全反向时间轴，以一个 FWD 时间单位和约两个时间单位的 BWD 表示常见时长差；灰色 global-norm barrier 是常见训练实现中的跨 stage 同步点，它会让各 stage 对齐执行 optimizer step，并非 PP 切分定义本身。
 
 > 教学整理图，非论文证据。GPipe 的 schedule、重计算与实验证据见 [GPipe](../papers/gpipe.md#核心机制)。
 
