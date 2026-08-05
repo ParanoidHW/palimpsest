@@ -39,7 +39,7 @@ canonical: true
 |---|---|
 | $p$ | 当前讨论的并行 group 大小；多轴组合时每个轴分别取 degree |
 | $B,S,H,L,E$ | 全局 batch、sequence length、hidden size、layer 数、expert 数 |
-| $A,d_h$ | attention head 数与单 head 维度，通常 $H=A d_h$ |
+| $N,D$ | attention head 数与单 head 维度，通常 $H=ND$ |
 | $\Psi$ | 参数元素总数；$\Psi_\ell$ 表示当前 layer 参数元素数 |
 | $q$ | 每元素字节数；mixed precision 时应对 parameter、gradient、master weight、optimizer state 分别取 $q_i$ 后求和 |
 | $M$ | 一个 mini-batch 切出的 micro-batch 数 |
@@ -62,8 +62,8 @@ canonical: true
 | PP          | $L/p$ layers/stage                          | activation/gradient P2P | 每 stage boundary、每 micro-batch send/recv                  | 参数约 $1/p$            | stage activation + boundary buffers     | 理想约 $1/p$               | bubble、最慢 stage、重计算               |
 | EP          | $E/p$ experts + routed tokens               | dispatch/combine A2A    | 每 MoE layer 两次 routed-token A2A；载荷量级 $qT_rH$              | expert state 约 $1/p$ | dispatch buffers，按 max rank             | 理想 expert FLOPs 约 $1/p$ | 热点、capacity/drop、小包               |
 | Megatron SP | non-attention activation 按 $S/p$            | AG/RS 接 TP 边界           | 每 block 的 gather/reduce-scatter                           | 不单独降低参数              | 覆盖区域约 $1/p$                             | 覆盖算子约 $1/p$             | layout 边界、与 TP 绑定                 |
-| Ulysses     | $[B,S/p,A,d_h]\leftrightarrow[B,S,A/p,d_h]$ | 两次 A2A transpose        | attention 前后各一次 A2A                                       | 通常由其他轴决定             | shard + transpose workspace             | attention 约 $1/p$       | head divisibility、fabric          |
-| Ring/CP     | local $Q$ + rotating KV                     | online softmax          | $p-1$ neighbor steps/layer                                | 通常由其他轴决定             | local Q、双 KV buffer、online state        | 理想约 $1/p$               | causal max-rank work、step latency |
+| Ulysses     | $[B,S/p,N,D]\leftrightarrow[B,S,N/p,D]$ | 两次 A2A transpose        | attention 前后各一次 A2A                                       | 通常由其他轴决定             | shard + transpose workspace             | attention 约 $1/p$       | head divisibility、fabric          |
+| Ring/CP     | local $Q$ + rotating KV                     | blockwise state merge          | $p-1$ neighbor P2P steps/layer                                | 通常由其他轴决定             | local Q、双 KV buffer、online state        | 理想约 $1/p$               | causal max-rank work、step latency |
 | CFGP        | branch-local execution                      | guidance combine        | 每 denoise step 交换 branch output                           | 常复制                  | weights/cache 复制 + output buffer        | 两分支时每 rank 约 $1/2$      | 总 FLOPs 不变、分支不均                   |
 
 ## 3. DP 与 ZeRO/FSDP：batch 和模型状态是两条轴
@@ -215,27 +215,27 @@ $$
 
 ![Ulysses layout transpose|1376](../assets/surveys/parallel-partitioning-taxonomy/ulysses-layout-transpose.png)
 
-> 第一次 all-to-all 让每个 sequence owner 把本地 $S/p$ rows 按 head 切成 $p$ 份；每个 head owner 接收所有 ranks 的 sequence chunks 并 concat，得到 $[B,S,A/p,d_h]$。本地 attention 后第二次 all-to-all 做逆转置，重新得到 $[B,S/p,A,d_h]$。两次通信都只改变元素 owner，不做数值归约。
+> Ulysses 用第一次 all-to-all 把 attention activation 从 sequence shard 转成 head shard：每个 sequence owner 将本地 $S/p$ rows 按 head 切成 $p$ 份，每个 head owner 接收所有 ranks 的 sequence chunks 并 concat，得到 $[B,S,N/p,D]$。本地 attention 后，第二次 all-to-all 做逆转置，恢复 $[B,S/p,N,D]$ 的 sequence shard。两次通信都只改变元素 owner，不做数值归约。
 
 > 教学整理图，非论文证据。论文公式、有限实现核验和复合收益边界见 [DeepSpeed Ulysses](../papers/deepspeed-ulysses.md#核心机制)。
 
 ### 方法卡
 
-- **全局对象 / local layout**：attention 前由 $[B,S/p,A,d_h]$ 经 all-to-all 变为 $[B,S,A/p,d_h]$；每 rank 看完整 sequence，但只负责 $A/p$ heads。attention 后第二次 all-to-all 恢复 sequence shard。
+- **全局对象 / local layout**：attention 前由 $[B,S/p,N,D]$ 经 all-to-all 变为 $[B,S,N/p,D]$；每 rank 看完整 sequence，但只负责 $N/p$ heads。attention 后第二次 all-to-all 恢复 sequence shard。
 - **复制对象**：参数状态通常由 ZeRO/DP/TP 决定；Ulysses 主要改变 Q/K/V 与 attention output 的 activation ownership。
 - **恢复语义**：两次 all-to-all 是 layout transpose，不是数值求和；local attention 保持标准精确语义。
-- **通信频率 / 载荷**：forward attention 前后各一次 A2A；具体元素倍数取决于 Q/K/V 是否合并传输、kernel 和 backward schedule。总量随 $BSA d_h$，每 rank shard 量级随 $1/p$，**analysis-derived**。
+- **通信频率 / 载荷**：forward attention 前后各一次 A2A；具体元素倍数取决于 Q/K/V 是否合并传输、kernel 和 backward schedule。总量随 $BSND$，每 rank shard 量级随 $1/p$，**analysis-derived**。
 - **模型状态 / activation / workspace**：attention activation 和局部计算约按 $1/p$ 分摊，但 transpose send/recv buffer、通信 workspace 与 full-$S$ local-head kernel workspace 必须计峰值。
 - **有效计算**：attention FLOPs 理想约 $1/p$，全局 exact-attention FLOPs 不变。
 - **额外项**：没有算法近似或 bubble；uneven heads、A2A fragmentation 和 fabric contention 形成 imbalance。
 - **推理差异**：prefill 与训练更接近论文数据流；decode 只有单 token Q，却访问 full-history KV，KV cache ownership 与 A2A 是否值得需另建 serving 模型。
-- **失效条件**：$A$ 不能合理按 $p$ 分片、跨节点 A2A 拥塞、通信不能与 attention compute 重叠，或与 TP head 轴发生 layout 冲突。
+- **失效条件**：$N$ 不能合理按 $p$ 分片、跨节点 A2A 拥塞、通信不能与 attention compute 重叠，或与 TP head 轴发生 layout 冲突。
 
 ## 9. Ring / Context Parallel：local Q 固定、KV block 环传
 
-![Ring Context Parallel|1525](../assets/surveys/parallel-partitioning-taxonomy/ring-context-parallel.png)
+![Ring Context Parallel|1376](../assets/surveys/parallel-partitioning-taxonomy/ring-context-parallel.png)
 
-> rank $r$ 固定持有 $Q_r$ 与最终输出 $O_r$；current/next buffer 逐步接收轮转的 $K_j,V_j$ block。两条独立输入线汇入 block attention，online-softmax state 再逐 block 合并。中部环形 P2P 展示 KV ownership transfer，底部 causal block matrix 则单独展示不同 $Q_i$ rows 的有效计算不均衡。
+> 图以 rank $r$ 为主视角：$Q_r$ 固定不动，当前 $K_j,V_j$ 输入 block attention，并把结果逐块合并进 $\sigma_j=(m_j,l_j,o_j)$；完成 $p$ 个 KV blocks 后得到 $O_r$。左侧邻居链明确通信对端：$r_-\rightarrow r$ 接收 $KV_{next}$，$r\rightarrow r_+$ 发送当前 $KV_j$，轮换后的 KV 在下一步接入同一条 attention 主链。
 
 > 教学整理图，非论文证据。online softmax、blockwise 机制与证据边界见 [Ring Attention](../papers/ring-attention.md#核心机制)。
 
