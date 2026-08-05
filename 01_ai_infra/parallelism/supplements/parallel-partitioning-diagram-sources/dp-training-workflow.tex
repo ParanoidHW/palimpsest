@@ -84,20 +84,21 @@
 \node[anchor=west,note] at (35.5,15.45) {本 rank 不持有};
 
 % One active micro-batch traverses the model, loss, backward, and accumulator.
-\coordinate (active) at (12.0,13.35);
+\node[tensor,minimum width=1.55cm,minimum height=1.1cm,inner sep=2pt] (current) at (12.0,13.35) {$m_k$};
 
 \node[compute,minimum width=4.5cm,minimum height=2.3cm] (fwd) at (12.0,10.75) {\textbf{model replica · FWD}};
 \node[compute,minimum width=3.1cm,minimum height=2.3cm] (loss) at (17.0,10.75) {\textbf{loss}};
 \node[compute,minimum width=4.0cm,minimum height=2.3cm] (bwd) at (21.9,10.75) {\textbf{BWD}};
 \node[state,minimum width=4.8cm,minimum height=2.3cm] (acc) at (27.8,10.75) {\textbf{accumulate · FP32}\\$G_r\leftarrow G_r+g_{r,k}$\\跨 micro-batch 保留};
 \node[decision,minimum width=2.25cm,minimum height=1.8cm] (boundary) at (32.4,10.75) {$k=K$?};
-\draw[data] (qone.south)--(active)--(fwd.north);
+\draw[data] (qone.south)--(current.north);
+\draw[data] (current.south)--(fwd.north);
 \draw[data] (fwd)--(loss);
 \draw[grad] (loss)--(bwd);
 \draw[grad] (bwd)--(acc);
 \draw[control] (acc)--(boundary);
-\draw[draw=blue,line width=1.2pt] (12.4,13.35)--(13.15,13.35);
-\node[anchor=west,tensornote] at (13.55,14.05) {$m_k[b_\mu,\ldots]$ · dequeue};
+\draw[draw=blue,line width=1.2pt] (current.east)--(13.15,13.35);
+\node[anchor=west,tensornote] at (13.55,13.35) {$[b_\mu,\ldots]$ · dequeue};
 \draw[draw=blue,line width=1.2pt] (14.8,11.15)--(14.8,12.35);
 \node[tensornote] at (14.8,12.85) {activations / logits · BF16};
 \draw[draw=purple,line width=1.2pt] (19.35,11.15)--(19.35,12.35);
@@ -106,7 +107,7 @@
 \node[gradnote] at (24.75,12.85) {$g_{r,k}[\Psi]$ · FP32};
 
 % The no-branch is a separate control lane: only then is the next micro-batch dequeued.
-\draw[control,rounded corners=7pt] (boundary.south)--(32.4,8.15)--(8.1,8.15)--(8.1,13.35)--(active.west);
+\draw[control,rounded corners=7pt] (boundary.south)--(32.4,8.15)--(8.1,8.15)--(8.1,13.35)--(current.west);
 \node[anchor=south,note] at (20.0,8.23) {否：$k\leftarrow k+1$，再取下一个 micro-batch};
 
 % The yes-branch performs one collective and one optimizer update per training step.
