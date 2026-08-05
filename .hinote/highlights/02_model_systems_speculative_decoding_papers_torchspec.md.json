@@ -1,0 +1,24 @@
+{
+  "version": "2.0",
+  "lastModified": 1785900203141,
+  "highlights": {
+    "highlight-965434519-721": {
+      "text": "中间只经 Mooncake 流 tensor、经 Ray 流 metadata",
+      "position": 721,
+      "created": 1785900203140,
+      "updated": 1785900203140,
+      "backgroundColor": "#ffeb3b",
+      "contextBefore": "target hidden states”。它把 target inference 与 draft optimization 放到独立 GPU groups，",
+      "contextAfter": "；这样避开百 TB 级离线缓存，也解除 target TP 与 draft FSDP/DP 的资源绑定。最大证据缺口是官方技术博客缺少同行评审和完整复现实验协议",
+      "textFingerprint": "中间只经 Mooncake 流 tensor、经 Ray 流 metadata",
+      "comments": [
+        {
+          "id": "comment-1785900203140-h4wv4xp6h",
+          "content": "为什么要同时采用两个流？不能合并到一个流吗？",
+          "created": 1785900203140,
+          "updated": 1785900203140
+        }
+      ]
+    }
+  }
+}

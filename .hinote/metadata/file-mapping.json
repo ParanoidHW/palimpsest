@@ -20,7 +20,8 @@
     "01_ai_infra/parallelism/surveys/parallel-strategy-selection.md": "01_ai_infra_parallelism_surveys_parallel-strategy-selection.md.json",
     "01_ai_infra/parallelism/README.md": "01_ai_infra_parallelism_readme.md.json",
     "02_model_systems/speculative_decoding/papers/angelspec.md": "02_model_systems_speculative_decoding_papers_angelspec.md.json",
-    "02_model_systems/speculative_decoding/papers/torchspec.md": "02_model_systems_speculative_decoding_papers_torchspec.md.json"
+    "02_model_systems/speculative_decoding/papers/torchspec.md": "02_model_systems_speculative_decoding_papers_torchspec.md.json",
+    "00_meta/inbox/杂七杂八.md": "00_meta_inbox_杂七杂八.md.json"
   },
-  "lastUpdated": 1785850641450
+  "lastUpdated": 1785920225928
 }

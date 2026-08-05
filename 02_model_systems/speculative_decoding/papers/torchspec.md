@@ -22,7 +22,7 @@ canonical: true
 
 # TorchSpec: Speculative Decoding Training at Scale 精读分析
 
-TorchSpec 解决的不是 target 推理本身，而是“如何给 speculative drafter 喂海量 target hidden states”。它把 target inference 与 draft optimization 放到独立 GPU groups，中间只经 Mooncake 流 tensor、经 Ray 流 metadata；这样避开百 TB 级离线缓存，也解除 target TP 与 draft FSDP/DP 的资源绑定。最大证据缺口是官方技术博客缺少同行评审和完整复现实验协议，性能图证明完整系统可用，却没有隔离 RDMA、调度、FSDP 与 EAGLE-3 训练配方各自贡献。
+TorchSpec 解决的不是 target 推理本身，而是“如何给 speculative drafter 喂海量 target hidden states”。它把 target inference 与 draft optimization 放到独立 GPU groups，==中间只经 Mooncake 流 tensor、经 Ray 流 metadata==；这样避开百 TB 级离线缓存，也解除 target TP 与 draft FSDP/DP 的资源绑定。最大证据缺口是官方技术博客缺少同行评审和完整复现实验协议，性能图证明完整系统可用，却没有隔离 RDMA、调度、FSDP 与 EAGLE-3 训练配方各自贡献。
 
 > 资料状态：TorchSpec 没有同名论文。本文以 PyTorch 官方技术博客（2026-03-19）、官方仓库 commit `ae4ee712dd6056000ff36f7f66796fea6866383b`、官方图表与代码为一手证据。
 
