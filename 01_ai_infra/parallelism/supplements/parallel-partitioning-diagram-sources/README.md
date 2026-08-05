@@ -17,10 +17,13 @@ canonical: false
 > - 图表清单：[Figure Inventory](../../evidence/figure-inventory.md)
 > - 正式资产：[`assets/surveys/parallel-partitioning-taxonomy/`](../../assets/surveys/parallel-partitioning-taxonomy/)
 
-本目录保存已通过视觉 QA 的四张教学整理图的可编辑源码。每个 `.tex` 文件均包含完整 LaTeX 导言和 TikZ 图形定义，可独立编译；PNG 仍是 Survey 正式引用的展示资产，源码仅作为复现与后续维护的辅佐材料。
+本目录保存已通过视觉 QA 的教学整理图的可编辑源码。每个 `.tex` 文件均包含完整 LaTeX 导言和 TikZ 图形定义，可独立编译；PNG 仍是 Survey 正式引用的展示资产，源码仅作为复现与后续维护的辅佐材料。
 
 | 方法 | TikZ/LaTeX 源码 | 对应正式 PNG | 目标分辨率 |
 |---|---|---|---|
+| 普通 DP | [dp-training-workflow.tex](dp-training-workflow.tex) | [dp-training-workflow.png](../../assets/surveys/parallel-partitioning-taxonomy/dp-training-workflow.png) | `2400x1350` |
+| ZeRO-1 / ZeRO-2 / ZeRO-3 | [zero-training-workflows.tex](zero-training-workflows.tex) | [zero1](../../assets/surveys/parallel-partitioning-taxonomy/zero1-training-workflow.png)、[zero2](../../assets/surveys/parallel-partitioning-taxonomy/zero2-training-workflow.png)、[zero3](../../assets/surveys/parallel-partitioning-taxonomy/zero3-training-workflow.png) | `2400x1350` |
+| TP / EP | [layer-partitioning-review.tex](layer-partitioning-review.tex) | [TP](../../assets/surveys/parallel-partitioning-taxonomy/tensor-parallel-block.png)、[EP](../../assets/surveys/parallel-partitioning-taxonomy/expert-parallel-routing.png) | `2400x1350` |
 | Pipeline Parallel / GPipe | [pipeline-parallel-schedule.tex](pipeline-parallel-schedule.tex) | [pipeline-parallel-schedule.png](../../assets/surveys/parallel-partitioning-taxonomy/pipeline-parallel-schedule.png) | `2400x1350` |
 | Megatron Sequence Parallel | [megatron-sequence-parallel.tex](megatron-sequence-parallel.tex) | [megatron-sequence-parallel.png](../../assets/surveys/parallel-partitioning-taxonomy/megatron-sequence-parallel.png) | `2400x1350` |
 | Ulysses | [ulysses-layout-transpose.tex](ulysses-layout-transpose.tex) | [ulysses-layout-transpose.png](../../assets/surveys/parallel-partitioning-taxonomy/ulysses-layout-transpose.png) | `2400x1350` |
