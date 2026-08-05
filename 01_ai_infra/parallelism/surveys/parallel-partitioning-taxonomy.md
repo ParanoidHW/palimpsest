@@ -22,6 +22,7 @@ canonical: true
 > - 选篇证据：[Evidence](../evidence/parallel-partitioning-selection.md)
 > - 图表清单：[Figure Inventory](../evidence/figure-inventory.md)
 > - 证据资产：`../assets/surveys/parallel-partitioning-taxonomy/`
+> - 可编辑图源：[PP、Megatron-SP、Ulysses 与 Ring TikZ/LaTeX 源码](../supplements/parallel-partitioning-diagram-sources/README.md)
 
 ## 1. 统一口径：先规定比较对象
 

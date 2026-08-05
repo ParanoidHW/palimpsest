@@ -1,0 +1,150 @@
+\documentclass{article}
+\usepackage[paperwidth=16in,paperheight=9in,margin=0in]{geometry}
+\usepackage{fontspec}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc}
+\setmainfont{Noto Sans CJK SC}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\definecolor{ink}{HTML}{172033}
+\definecolor{muted}{HTML}{536174}
+\definecolor{blue}{HTML}{2474C6}
+\definecolor{bluefill}{HTML}{EAF3FC}
+\definecolor{green}{HTML}{2F9254}
+\definecolor{greenfill}{HTML}{EAF7EE}
+\definecolor{orange}{HTML}{D96C1F}
+\definecolor{orangefill}{HTML}{FFF1E5}
+\definecolor{purple}{HTML}{7653B5}
+\definecolor{purplefill}{HTML}{F2ECFF}
+\definecolor{grayline}{HTML}{C9D2DF}
+\definecolor{grayfill}{HTML}{F5F7FA}
+
+\tikzset{
+  tensor/.style={draw=blue,fill=bluefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  compute/.style={draw=green,fill=greenfill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  state/.style={draw=purple,fill=purplefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  p2p/.style={draw=orange,fill=orangefill,line width=1.8pt,rounded corners=2pt,align=center,inner sep=4pt,text=ink},
+  sync/.style={draw=muted,fill=grayfill,line width=1.8pt,rounded corners=2pt,align=center,inner sep=2pt,text=ink},
+  data/.style={-{Stealth[length=4.6mm,width=3.4mm]},line width=2.5pt,draw=blue,shorten <=1.5pt,shorten >=2pt},
+  grad/.style={-{Stealth[length=4.6mm,width=3.4mm]},line width=2.5pt,draw=purple,shorten <=1.5pt,shorten >=2pt},
+  comm/.style={-{Stealth[length=4.7mm,width=3.5mm]},line width=2.7pt,draw=orange,shorten <=1.5pt,shorten >=2pt},
+  title/.style={font=\fontsize{25}{30}\bfseries,text=ink},
+  head/.style={font=\fontsize{16}{19}\bfseries,text=ink,align=center},
+  body/.style={font=\fontsize{13}{16}\selectfont,text=ink,align=center},
+  note/.style={font=\fontsize{11}{13.5}\selectfont,text=muted,align=center},
+  tensornote/.style={font=\fontsize{10.5}{13}\selectfont,text=blue!82!ink,fill=grayfill,inner sep=2pt,align=center},
+  gradnote/.style={font=\fontsize{10.5}{13}\selectfont,text=purple!85!ink,fill=grayfill,inner sep=2pt,align=center}
+}
+
+\begin{document}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\path[use as bounding box] (0,0) rectangle (40.64,22.86);
+\fill[white] (0,0) rectangle (40.64,22.86);
+
+\node[anchor=west,title] at (1.25,21.55) {流水线并行：一个 micro-batch 逐 stage 前向，再逐 stage 反向};
+\node[anchor=west,font=\fontsize{14}{17}\selectfont,text=muted] at (1.25,20.55) {world size $p$；示例展开 4 个 stages；参数沿 layer 轴切分，stage 边界传 activation 或 activation gradient};
+\draw[grayline,line width=1pt] (1.25,19.95)--(39.35,19.95);
+
+\draw[draw=grayline,fill=grayfill,rounded corners=4pt,line width=1.2pt] (1.25,8.25) rectangle (39.35,19.15);
+\node[anchor=west,head] at (1.85,18.55) {layer → stage → rank 映射：每个 rank 持有一个连续 layer 段及其本地模型状态};
+
+% Persistent stage ownership is separate from the transient micro-batch flow.
+\foreach \xx/\rr/\layers in {7.1/0/0--5,15.6/1/6--11,24.1/2/12--17,32.6/3/18--23}{
+  \node[state,minimum width=6.3cm,minimum height=1.35cm,inner sep=3pt] at (\xx,17.15)
+    {rank~\rr{} · stage~\rr\\持有 layers \layers{} · 本地模型状态 $\Psi_{\rr}\approx\Psi/p$};
+}
+
+\node[anchor=west,body] at (1.85,15.45) {FORWARD};
+\node[tensor,minimum width=2.6cm,minimum height=1.55cm] (xin) at (3.0,13.85) {$X_0^{(k)}$\\$[B/M,S,H]$};
+\node[compute,minimum width=3.5cm,minimum height=1.75cm] (f0) at (7.1,13.85) {stage 0 FWD\\$F_0(X_0^{(k)};\Psi_0)$};
+\node[p2p,minimum width=2.35cm,minimum height=1.75cm] (a01) at (11.35,13.85) {P2P\\send/recv};
+\node[compute,minimum width=3.5cm,minimum height=1.75cm] (f1) at (15.6,13.85) {stage 1 FWD\\$F_1(X_1^{(k)};\Psi_1)$};
+\node[p2p,minimum width=2.35cm,minimum height=1.75cm] (a12) at (19.85,13.85) {P2P\\send/recv};
+\node[compute,minimum width=3.5cm,minimum height=1.75cm] (f2) at (24.1,13.85) {stage 2 FWD\\$F_2(X_2^{(k)};\Psi_2)$};
+\node[p2p,minimum width=2.35cm,minimum height=1.75cm] (a23) at (28.35,13.85) {P2P\\send/recv};
+\node[compute,minimum width=3.5cm,minimum height=1.75cm] (f3) at (32.6,13.85) {stage 3 FWD\\$F_3(X_3^{(k)};\Psi_3)$};
+\node[compute,minimum width=2.5cm,minimum height=1.75cm] (loss) at (37.25,13.85) {loss\\$\mathcal L^{(k)}$};
+
+\draw[data] (xin)--(f0);
+\draw[comm] (f0)--(a01); \draw[comm] (a01)--(f1);
+\draw[comm] (f1)--(a12); \draw[comm] (a12)--(f2);
+\draw[comm] (f2)--(a23); \draw[comm] (a23)--(f3);
+\draw[data] (f3)--(loss);
+\node[tensornote] at (11.35,12.65) {$X_1^{(k)}[B/M,S,H]$};
+\node[tensornote] at (19.85,12.65) {$X_2^{(k)}[B/M,S,H]$};
+\node[tensornote] at (28.35,12.65) {$X_3^{(k)}[B/M,S,H]$};
+
+\node[anchor=west,body] at (1.85,11.8) {BACKWARD · 从最后一个 stage 开始};
+\node[tensor,minimum width=2.6cm,minimum height=1.55cm] (dx0) at (3.0,10.2) {$\partial X_0^{(k)}$\\返回 input};
+\node[compute,minimum width=3.5cm,minimum height=1.75cm] (b0) at (7.1,10.2) {stage 0 BWD\\产生 $\partial\Psi_0$};
+\node[p2p,minimum width=2.35cm,minimum height=1.75cm] (g10) at (11.35,10.2) {P2P\\send/recv};
+\node[compute,minimum width=3.5cm,minimum height=1.75cm] (b1) at (15.6,10.2) {stage 1 BWD\\产生 $\partial\Psi_1$};
+\node[p2p,minimum width=2.35cm,minimum height=1.75cm] (g21) at (19.85,10.2) {P2P\\send/recv};
+\node[compute,minimum width=3.5cm,minimum height=1.75cm] (b2) at (24.1,10.2) {stage 2 BWD\\产生 $\partial\Psi_2$};
+\node[p2p,minimum width=2.35cm,minimum height=1.75cm] (g32) at (28.35,10.2) {P2P\\send/recv};
+\node[compute,minimum width=3.5cm,minimum height=1.75cm] (b3) at (32.6,10.2) {stage 3 BWD\\接收 $\partial\mathcal L^{(k)}$};
+
+% Loss enters the right midpoint of the last stage. Gradients then cross every boundary in reverse order.
+\draw[grad] (loss.south) |- (b3.east);
+\draw[grad] (b3)--(g32); \draw[grad] (g32)--(b2);
+\draw[grad] (b2)--(g21); \draw[grad] (g21)--(b1);
+\draw[grad] (b1)--(g10); \draw[grad] (g10)--(b0);
+\draw[grad] (b0)--(dx0);
+\node[gradnote] at (28.35,9.0) {$\partial X_3^{(k)}[B/M,S,H]$};
+\node[gradnote] at (19.85,9.0) {$\partial X_2^{(k)}[B/M,S,H]$};
+\node[gradnote] at (11.35,9.0) {$\partial X_1^{(k)}[B/M,S,H]$};
+
+% GPipe schedule plus a common implementation-level synchronization before the optimizer step.
+\node[anchor=west,head] at (1.25,7.55) {GPipe 时间轴（常见训练实现）：全前向 → 全反向 → global grad norm 同步 → 对齐执行 OPT；BWD 时长约为 FWD 的 2×（示意）};
+\foreach \rr/\yy in {0/6.75,1/5.65,2/4.55,3/3.45}{\node[anchor=east,note] at (3.5,\yy) {stage \rr};}
+\foreach \yy in {6.75,5.65,4.55,3.45}{
+  \foreach \slot in {0,...,22}{
+    \draw[grayline,line width=.8pt] ({4.0+1.25*\slot},{\yy-.42}) rectangle ({5.15+1.25*\slot},{\yy+.42});
+  }
+}
+\foreach \rr/\yy/\fstart/\bstart in {0/6.75/0/13,1/5.65/1/11,2/4.55/2/9,3/3.45/3/7}{
+  \foreach \mm in {0,...,3}{
+    \pgfmathtruncatemacro{\mlabel}{\mm+1}
+    \node[draw=green,fill=greenfill,line width=1.1pt,minimum width=1.1cm,minimum height=.82cm,inner sep=1pt,font=\fontsize{8.8}{10}\selectfont]
+      at ({4.575+1.25*(\fstart+\mm)},\yy) {F$_{\mlabel}$};
+    \node[draw=green,fill=greenfill,dashed,line width=1.1pt,minimum width=2.35cm,minimum height=.82cm,inner sep=1pt,font=\fontsize{8.8}{10}\selectfont]
+      at ({5.25+1.25*(\bstart+2*\mm)},\yy) {B$_{\mlabel}$};
+  }
+}
+% A common global-norm / overflow decision is a short cross-stage barrier: faster stages wait here.
+\node[sync,minimum width=1.1cm,minimum height=4.2cm,font=\fontsize{8.2}{9.5}\selectfont]
+  (gradnorm) at ({4.625+1.25*21},5.1) {global\\norm\\barrier};
+\foreach \rr/\yy in {0/6.75,1/5.65,2/4.55,3/3.45}{
+  \node[draw=green,fill=greenfill,line width=2pt,minimum width=1.1cm,minimum height=.82cm,inner sep=1pt,font=\fontsize{8.2}{9.5}\bfseries]
+    at ({4.625+1.25*22},\yy) {OPT};
+}
+\node[draw=grayline,fill=white,line width=1pt,minimum width=.9cm,minimum height=.45cm,inner sep=0pt] at (34.0,6.85) {};
+\node[anchor=west,note] at (34.65,6.85) {idle};
+\node[draw=green,fill=greenfill,line width=1.1pt,minimum width=.9cm,minimum height=.45cm,inner sep=0pt] at (34.0,6.05) {};
+\node[anchor=west,note] at (34.65,6.05) {forward};
+\node[draw=green,fill=greenfill,dashed,line width=1.1pt,minimum width=.9cm,minimum height=.45cm,inner sep=0pt] at (34.0,5.25) {};
+\node[anchor=west,note] at (34.65,5.25) {backward};
+\node[sync,minimum width=.9cm,minimum height=.45cm,inner sep=0pt] at (34.0,4.45) {};
+\node[anchor=west,note] at (34.65,4.45) {global norm barrier};
+\node[draw=green,fill=greenfill,line width=2pt,minimum width=.9cm,minimum height=.45cm,inner sep=0pt] at (34.0,3.65) {};
+\node[anchor=west,note] at (34.65,3.65) {optimizer step};
+
+% Shared semantic legend, matching the DP/TP/EP figures.
+\node[tensor,minimum width=.9cm,minimum height=.5cm,inner sep=1pt] at (2.5,1.45) {};
+\node[anchor=west,note] at (3.15,1.45) {tensor / weight};
+\node[compute,minimum width=.9cm,minimum height=.5cm,inner sep=1pt] at (8.0,1.45) {};
+\node[anchor=west,note] at (8.65,1.45) {model compute};
+\node[state,minimum width=.9cm,minimum height=.5cm,inner sep=1pt] at (13.75,1.45) {};
+\node[anchor=west,note] at (14.4,1.45) {rank-local state};
+\node[p2p,minimum width=.9cm,minimum height=.5cm,inner sep=1pt] at (20.1,1.45) {};
+\node[anchor=west,note] at (20.75,1.45) {P2P};
+\draw[data] (24.4,1.45)--(26.1,1.45);
+\node[anchor=west,note] at (26.45,1.45) {forward / update};
+\draw[grad] (32.0,1.45)--(33.7,1.45);
+\node[anchor=west,note] at (34.05,1.45) {backward / gradient};
+
+\node[anchor=west,font=\fontsize{10.5}{12}\selectfont,text=muted] at (1.25,.45) {教学整理图（analysis-derived）· PP training：GPipe 排程；global grad norm 同步是常见实现行为，不是 PP 切分定义};
+\end{tikzpicture}
+\end{document}

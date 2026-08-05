@@ -1,0 +1,135 @@
+\documentclass{article}
+\usepackage[paperwidth=16in,paperheight=9in,margin=0in]{geometry}
+\usepackage{fontspec}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,patterns}
+\setmainfont{Noto Sans CJK SC}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\definecolor{ink}{HTML}{172033}
+\definecolor{muted}{HTML}{536174}
+\definecolor{blue}{HTML}{2474C6}
+\definecolor{bluefill}{HTML}{EAF3FC}
+\definecolor{green}{HTML}{2F9254}
+\definecolor{greenfill}{HTML}{EAF7EE}
+\definecolor{orange}{HTML}{D96C1F}
+\definecolor{orangefill}{HTML}{FFF1E5}
+\definecolor{purple}{HTML}{7653B5}
+\definecolor{purplefill}{HTML}{F2ECFF}
+\definecolor{grayline}{HTML}{C9D2DF}
+\definecolor{grayfill}{HTML}{F5F7FA}
+\tikzset{
+  tensor/.style={draw=blue,fill=bluefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink,font=\fontsize{10.5}{13.5}\selectfont},
+  runtime/.style={draw=muted,fill=white,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink,font=\fontsize{10.5}{13.5}\selectfont},
+  compute/.style={draw=green,fill=greenfill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink,font=\fontsize{10.5}{13.5}\selectfont},
+  columnpart/.style={compute,preaction={fill=greenfill},pattern=vertical lines,pattern color=green!32,line width=2.0pt},
+  rowpart/.style={compute,preaction={fill=greenfill},pattern=horizontal lines,pattern color=green!32,line width=2.0pt},
+  state/.style={draw=purple,fill=purplefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink,font=\fontsize{10.5}{13.5}\selectfont},
+  collective/.style={draw=orange,fill=orangefill,line width=1.8pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink,font=\fontsize{10.5}{13.5}\selectfont},
+  data/.style={-{Stealth[length=4.6mm,width=3.4mm]},line width=2.5pt,draw=blue,shorten <=1.5pt,shorten >=2pt},
+  shortcut/.style={-{Stealth[length=4.2mm,width=3.1mm]},line width=2.2pt,draw=blue,dashed,dash pattern=on 7pt off 4pt,shorten <=1.5pt,shorten >=2pt},
+  comm/.style={-{Stealth[length=4.9mm,width=3.6mm]},line width=2.8pt,draw=orange,shorten <=1.5pt,shorten >=2pt},
+  control/.style={-{Stealth[length=4.2mm,width=3.1mm]},line width=2.2pt,draw=ink,shorten <=1.5pt,shorten >=2pt},
+  title/.style={font=\fontsize{25}{30}\bfseries,text=ink},
+  head/.style={font=\fontsize{16}{19}\bfseries,text=ink,align=center},
+  body/.style={font=\fontsize{13}{16}\selectfont,text=ink,align=center},
+  note/.style={font=\fontsize{11}{13.5}\selectfont,text=muted,align=center},
+  tensornote/.style={font=\fontsize{11}{13.5}\selectfont,text=blue!82!ink,fill=grayfill,inner sep=2pt,align=center}
+}
+\newcommand{\canvas}{\path[use as bounding box] (0,0) rectangle (40.64,22.86);\fill[white] (0,0) rectangle (40.64,22.86);}
+\newcommand{\pagehead}[2]{%
+  \node[anchor=west,title] at (1.25,21.55) {#1};
+  \node[anchor=west,font=\fontsize{14}{17}\selectfont,text=muted] at (1.25,20.55) {#2};
+  \draw[grayline,line width=1pt] (1.25,19.95)--(39.35,19.95);
+}
+\newcommand{\legend}{%
+  \node[anchor=west,head] at (1.25,3.9) {图例};
+  \node[tensor,minimum width=1.05cm,minimum height=.62cm,inner sep=1pt] at (3.0,2.95) {};
+  \node[anchor=west,body] at (3.75,2.95) {tensor / weight};
+  \node[compute,minimum width=1.05cm,minimum height=.62cm,inner sep=1pt] at (9.15,2.95) {};
+  \node[anchor=west,body] at (9.9,2.95) {model compute};
+  \node[collective,minimum width=1.05cm,minimum height=.62cm,inner sep=1pt] at (15.5,2.95) {};
+  \node[anchor=west,body] at (16.25,2.95) {collective};
+  \node[runtime,minimum width=1.05cm,minimum height=.62cm,inner sep=1pt] at (21.15,2.95) {};
+  \node[anchor=west,body] at (21.9,2.95) {runtime action};
+  \draw[data] (27.8,2.95)--(29.9,2.95);
+  \node[anchor=west,body] at (30.3,2.95) {tensor flow};
+  \draw[comm] (27.8,1.75)--(29.9,1.75);
+  \node[anchor=west,body] at (30.3,1.75) {collective transition};
+  \node[draw=blue,fill=bluefill,line width=1.3pt,minimum width=.82cm,minimum height=.48cm,inner sep=0pt] at (3.0,1.75) {};
+  \node[anchor=west,note] at (3.65,1.75) {本 rank 持有};
+  \node[draw=muted,dashed,fill=white,line width=1.3pt,minimum width=.82cm,minimum height=.48cm,inner sep=0pt] at (9.15,1.75) {};
+  \node[anchor=west,note] at (9.8,1.75) {本 rank 不持有};
+  \draw[shortcut] (15.0,1.75)--(17.1,1.75);
+  \node[anchor=west,body] at (17.5,1.75) {residual shortcut};
+}
+\newcommand{\ownerslices}[3]{%
+  \node[draw=muted,dashed,fill=white,line width=1.2pt,minimum width=.72cm,minimum height=.55cm,inner sep=0pt,font=\fontsize{8.5}{10}\selectfont,text=ink] (#1szero) at ({#2-1.44},#3) {$s_0$};
+  \node[draw=muted,dashed,fill=white,line width=1.2pt,minimum width=.72cm,minimum height=.55cm,inner sep=0pt,font=\fontsize{8.5}{10}\selectfont,text=ink] (#1dotsa) at ({#2-.72},#3) {$\cdots$};
+  \node[draw=blue,fill=bluefill,line width=1.4pt,minimum width=.72cm,minimum height=.55cm,inner sep=0pt,font=\fontsize{8.5}{10}\selectfont,text=ink] (#1local) at (#2,#3) {$s_r$};
+  \node[draw=muted,dashed,fill=white,line width=1.2pt,minimum width=.72cm,minimum height=.55cm,inner sep=0pt,font=\fontsize{8.5}{10}\selectfont,text=ink] (#1dotsb) at ({#2+.72},#3) {$\cdots$};
+  \node[draw=muted,dashed,fill=white,line width=1.2pt,minimum width=.72cm,minimum height=.55cm,inner sep=0pt,font=\fontsize{8.5}{10}\selectfont,text=ink] (#1slast) at ({#2+1.44},#3) {$s_{p-1}$};
+}
+
+\begin{document}
+
+% Ulysses attention inside one Transformer layer.
+\begin{tikzpicture}[x=1cm,y=1cm]
+\canvas
+\pagehead{Ulysses：用 A2A 将 sequence shard 转为 head shard}{world size $p$；$N$ = num heads，$D$ = head dim，$H=ND$ = hidden size；attention 前转为 head shard，计算后转回 sequence shard}
+
+\draw[draw=grayline,fill=grayfill,rounded corners=4pt,line width=1.2pt] (0.95,4.35) rectangle (39.7,19.45);
+\node[anchor=west,head] at (1.55,18.85) {Transformer layer $\ell$ · rank $r$ · PRE-NORM · Ulysses attention + sequence-local FFN};
+\node[anchor=east,note] at (39.1,18.85) {attention：$S/p\rightarrow S\rightarrow S/p$；FFN 保持 sequence-local layout};
+
+% Attention sublayer, left to right.
+\node[tensor,text width=2.0cm,minimum height=1.65cm,inner sep=3pt] (x) at (2.6,15.25) {input $X_r$\\$[B,S/p,H]$};
+\node[compute,text width=1.45cm,minimum height=1.65cm,inner sep=3pt] (ln1) at (5.65,15.25) {Norm\\local $S/p$};
+\node[compute,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (qkvproj) at (8.9,15.25) {QKV projection\\replicated weight\\$[B,S/p,N,D]$};
+\node[collective,text width=2.8cm,minimum height=1.85cm,inner sep=3pt] (attn) at (16.5,15.25) {A2A \#1\\$S\rightarrow N$\\$[B,S,N/p,D]$\\no sum};
+\node[compute,text width=2.7cm,minimum height=1.85cm,inner sep=3pt] (oproj) at (20.1,15.25) {local attention\\$N/p$ heads\\full $S$};
+\node[collective,text width=3.2cm,minimum height=2.0cm] (ar1) at (26.0,15.25) {A2A \#2\\$N\rightarrow S$\\$[B,S/p,N,D]$\\no sum};
+\node[compute,text width=2.15cm,minimum height=1.85cm,inner sep=3pt] (outproj) at (29.6,15.25) {output projection\\local $S/p$};
+\node[compute,text width=1.65cm,minimum height=1.85cm,inner sep=3pt] (res1) at (32.6,15.25) {residual\\add};
+\node[tensor,text width=2.8cm,minimum height=1.85cm,inner sep=3pt] (xattn) at (35.6,15.25) {$X_{\mathrm{attn},r}$\\$[B,S/p,H]$};
+\coordinate (xa) at (38.4,15.25);
+\draw[data] (x)--(ln1);
+\draw[data] (ln1)--(qkvproj);
+\draw[comm] (qkvproj)--(attn);
+\draw[comm] (attn)--(oproj);
+\draw[comm] (oproj)--(ar1);
+\draw[comm] (ar1)--(outproj);
+\draw[data] (outproj)--(res1);
+\draw[data] (res1)--(xattn);
+\draw[data] (xattn)--(xa);
+\draw[shortcut,rounded corners=4pt] (x.south)--(2.6,13.05)-|(res1.south) node[pos=.72,below,note] {residual $X$};
+\draw[draw=blue,line width=1.2pt] (12.75,14.85)--(12.75,14.15);
+\node[tensornote] at (12.75,13.65) {$Q_r,K_r,V_r$ · $[B,S/p,N,D]$};
+\draw[draw=blue,line width=1.2pt] (23.65,14.85)--(23.65,14.15);
+\node[tensornote] at (23.65,13.65) {local $O^{(r)}[B,S,N/p,D]$};
+
+% FFN sublayer, right to left, continuing the snake.
+\node[compute,text width=1.45cm,minimum height=1.65cm,inner sep=3pt] (ln2) at (38.4,9.35) {Norm\\local $S/p$};
+\node[compute,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (up) at (32.05,9.35) {up projection\\local FFN\\$[B,S/p,4H]$};
+\node[compute,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (down) at (24.55,9.35) {down projection\\local FFN\\$[B,S/p,H]$};
+\node[compute,text width=2.2cm,minimum height=1.85cm,inner sep=3pt] (res2) at (17.0,9.35) {residual add\\local $S/p$};
+\node[tensor,text width=3.2cm,minimum height=1.85cm,inner sep=3pt] (out) at (12.75,9.35) {layer output\\$X_{\ell+1,r}[B,S/p,H]$};
+\coordinate (ffnsplit) at (38.4,12.0);
+\draw[line width=2.5pt,draw=blue] (xa)--(ffnsplit);
+\draw[data] (ffnsplit)--(ln2.north);
+\draw[data] (ln2)--(up);
+\draw[data] (up)--(down);
+\draw[data] (down)--(res2);
+\draw[data] (res2)--(out);
+\draw[shortcut,rounded corners=4pt] (xattn.south)--(35.6,12.0)-|(res2.north) node[pos=.55,above,note] {residual $X_{\mathrm{attn}}$};
+\draw[draw=blue,line width=1.2pt] (28.3,9.75)--(28.3,10.5);
+\node[tensornote] at (28.3,10.95) {FFN hidden · $[B,S/p,4H]$};
+\draw[draw=blue,line width=1.2pt] (21.0,9.75)--(21.0,10.5);
+\node[tensornote] at (21.0,10.95) {local $Z_r[B,S/p,H]$};
+
+\node[anchor=west,note] at (1.55,4.65) {Ulysses 只转置 attention activation 的 $(S,N)$ ownership；FFN 保持 sequence-local，权重切分若存在由 TP 另行定义。};
+\legend
+\node[anchor=west,font=\fontsize{10.5}{12}\selectfont,text=muted] at (1.25,.55) {教学整理图（analysis-derived）· Ulysses：两次 A2A 转置 attention ownership，FFN 保持 sequence-local};
+\end{tikzpicture}
+\end{document}
