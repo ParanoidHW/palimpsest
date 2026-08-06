@@ -46,6 +46,9 @@ canonical: true
 | $M$ | 一个 mini-batch 切出的 micro-batch 数 |
 | $\kappa$ | optimizer state 相对一份参数的等效字节倍数；只用于状态内存示意 |
 | $T_r$ | routed token 数；EP 关键路径应使用单 rank 最大值而非均值 |
+| $x_t,t,c,\emptyset,w$ | CFGP 中第 $t$ 个 denoising state、timestep、conditional condition、unconditional 空条件与 guidance scale |
+| $\epsilon_c,\epsilon_u$ | conditional 与 unconditional branch 的模型输出 |
+| $P,\mathcal C_c,\mathcal C_u$ | 每个 CFG branch rank 复制的完整模型参数，以及 conditional / unconditional branch-local cache 或 runtime state |
 
 下文标注 **analysis-derived** 的式子是基于上述假设的统一推导，不是某篇论文逐字给出的 benchmark 结果。它们用于量级比较，不能把 full-system 性能归因给单一并行原语。
 
@@ -256,7 +259,7 @@ $$
 
 ![Classifier-Free Guidance Parallel|1365](../assets/surveys/parallel-partitioning-taxonomy/cfg-branch-parallel.png)
 
-> 同一个 denoising step 先把 conditional 与 unconditional condition 分给两个 branch ranks；两条 model forward 真正并发，输出 $\epsilon_c,\epsilon_u$ 在 combine owner 汇合后执行本地 guidance 公式。下方 ownership 区明确模型权重与 branch cache 通常复制，而跨 rank 传输的是两份 branch output，不是 reduction result。
+> 同一个 denoising step 先把 conditional 与 unconditional condition 分给两个 branch ranks；两条 model forward 真正并发，输出 $\epsilon_c,\epsilon_u$ 通过 all-gather 汇合后执行本地 guidance 公式。分支旁的 $P,\mathcal C_c,\mathcal C_u$ 明确模型参数与 branch-local cache/runtime state 通常复制；跨 rank 传输的是两份 branch output，不是 reduction result。
 
 > 教学整理图，非论文证据。跨域 canonical 案例与 owner 链接见[跨领域采用](../evidence/parallel-partitioning-cross-domain-adoption.md)。
 
@@ -264,7 +267,7 @@ $$
 
 - **全局对象 / local layout**：两个 ranks 分别执行 conditional 与 unconditional branch，输入 $x_t,t$ 共享，condition 不同。
 - **复制对象**：若不再组合 TP/PP/FSDP，model weights、runtime state 和部分 cache 在 branch ranks 复制。
-- **恢复语义**：在 guidance boundary 交换或 gather $\epsilon_c,\epsilon_u$，计算 $\epsilon=\epsilon_u+w(\epsilon_c-\epsilon_u)$，再进入下一 denoising step。
+- **恢复语义**：在 guidance boundary all-gather $\epsilon_c,\epsilon_u$，计算 $\epsilon=\epsilon_u+w(\epsilon_c-\epsilon_u)$，再进入下一 denoising step。
 - **通信频率 / 载荷**：每个 denoising step 至少一次 branch-output exchange，payload 由模型输出 tensor 决定；若在更早边界 combine，会增加传输量。
 - **模型状态 / activation / workspace**：模型状态通常复制；每 rank 只保存一条 branch activation，但 combine 端需同时拥有两分支输出。cache 能否共享取决于模型与 runtime。
 - **有效计算**：两分支总 FLOPs 与串行 CFG 基本相同；两 rank 理想各约承担一条分支，即约总分支 FLOPs 的 $1/2$，**analysis-derived**。收益是 wall-time 并发，不是全局 FLOPs 下降。

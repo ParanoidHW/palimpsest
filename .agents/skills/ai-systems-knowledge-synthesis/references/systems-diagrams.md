@@ -149,6 +149,42 @@ Use [dp-training-workflow-sample.tex](../assets/diagram-examples/dp-training-wor
 9. Record the inspected raster and crop paths in the work log or handoff. Only then may the result be described as visually checked.
 10. Record the independent reviewer identity, reviewed render timestamp, severity-ordered findings, disposition for every finding, and whether the exact final raster was re-reviewed. Self-review cannot close the QA gate.
 
+### File-Based Main/Reviewer Handshake
+
+Use one `_artifacts/.../diagram-qa-status.json` file as the authoritative state for each diagram. Do not use chat delivery, subagent lifecycle status, or a remembered hash as the gate signal.
+
+1. The main agent runs `<skill-root>/scripts/diagram_qa_status.py request` after rendering. Tag each crop as `REGION=PATH`. The command snapshots SHA-256 values for the QA tool, source, full raster, every crop, and optional delivery contract, rejects duplicate/full-frame pseudo-crops, writes `pending`, and returns a request ID `<round>-<render-hash-prefix>`.
+2. Pass the status path and request ID to the QA-only subagent. The reviewer reads `request.qa_tool.path` from the status file and uses that exact tool to run `claim` before opening artifacts; the file becomes `reviewing` and records reviewer identity and time. Do not make the reviewer search the repository for the script.
+3. The reviewer inspects exactly the artifacts in the status file. It writes findings as a JSON array with `severity`, `region`, `description`, and `resolved`, then runs `complete`. The file becomes `changes-requested`, `passed`, or `error`.
+4. The main agent polls by reading the file. `pending` and `reviewing` are incomplete. `changes-requested` requires a new render and a new request round. `error` requires diagnosis and a new request. Never edit a reviewer verdict into the file manually.
+5. Before promotion, the main agent runs `verify` with the latest request ID. Verification must confirm `passed`, independent reviewer ownership, matching request/render/crop hashes, unchanged current artifacts, and no unresolved findings.
+
+Run all commands from the same repository/workspace root so repository-relative artifact paths resolve identically. Keep one status file per diagram, preserve its diagram ID, and strictly increment `review_round`; the updater rejects same-round resets and diagram reuse.
+
+Example:
+
+```bash
+qa=_artifacts/path/diagram-qa-status.json
+qa_tool=/absolute/path/to/skill/scripts/diagram_qa_status.py
+request_id=$(python3 "$qa_tool" request \
+  --status-file "$qa" --diagram-id example --round 1 \
+  --source _artifacts/path/example.tex \
+  --render _artifacts/path/example.png \
+  --crop main-flow=_artifacts/path/example-main.png)
+
+# QA subagent
+python3 "$qa_tool" claim \
+  --status-file "$qa" --request-id "$request_id" --reviewer qa-agent
+python3 "$qa_tool" complete \
+  --status-file "$qa" --request-id "$request_id" --reviewer qa-agent \
+  --verdict passed --summary "all required regions passed"
+
+# Main agent
+python3 "$qa_tool" show --status-file "$qa"
+python3 "$qa_tool" verify \
+  --status-file "$qa" --request-id "$request_id"
+```
+
 Compiler output is supporting evidence only. Successful TikZ/LaTeX compilation, zero `Overfull` or `Underfull` warnings, a valid PDF, or inspection of a scaled-down whole-frame preview does not satisfy visual QA and must never be reported as a pass by itself.
 
 ## Visual QA Checklist

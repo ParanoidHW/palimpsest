@@ -113,12 +113,12 @@ AngelSpec 不是单一 drafter，而是把投机解码拆成“按负载选择�
 
 ### 2.4 核心方案如何解决并优化问题
 
-| 问题 | 方案 | 改变的变量/行为 | 机制 | 预期指标 | 证据 | 判断 |
-|---|---|---|---|---|---|---|
-| workload 异质 | 对话数据训练 MTP；代码/数学数据强化 DFly | drafter structure 与训练分布按域分工 | 短 horizon 避免 chat 过度投机；长 block 利用结构化续写 | MAL、tok/s | Intro；Tables 3,7 | partially-supported：只展示有限域与 target |
-| DFlash target conditioning 与块内依赖弱 | hybrid FC + layer-specific fusion + hidden correction | 每层 target view、前驱条件 | 保留并行 backbone，再轻量修正路径一致性 | suffix acceptance/MAL | Table 4 cumulative ablation | supported，但组件消融是累积式 |
-| 固定验证预算浪费 | D-cut top-K prefix scores + profiled cost | 每请求 keep depth、全局 ratio | 把 target slots 给高预期收益 prefix，并按 $U/C$ 选形状 | high-load tok/s | live traffic Figure 4 | paper-supported；代码未开源 |
-| target 与 training 抢 GPU/数据流 | TorchSpec/Mooncake 解耦 + FSDP2/USP | 资源配比、数据驻留与序列切分 | inference/training 独立扩展，避免磁盘中转 | train throughput/context | Section 6/code | implementation-supported；论文少量量化 |
+| 问题                                | 方案                                                    | 改变的变量/行为                    | 机制                                        | 预期指标                     | 证据                          | 判断                                 |
+| --------------------------------- | ----------------------------------------------------- | --------------------------- | ----------------------------------------- | ------------------------ | --------------------------- | ---------------------------------- |
+| workload 异质                       | ==对话数据训练 MTP；代码/数学数据强化 DFly==                         | drafter structure 与训练分布按域分工 | 短 horizon 避免 chat 过度投机；长 block 利用结构化续写    | MAL、tok/s                | Intro；Tables 3,7            | partially-supported：只展示有限域与 target |
+| DFlash target conditioning 与块内依赖弱 | hybrid FC + layer-specific fusion + hidden correction | 每层 target view、前驱条件         | 保留并行 backbone，再轻量修正路径一致性                  | suffix acceptance/MAL    | Table 4 cumulative ablation | supported，但组件消融是累积式                |
+| 固定验证预算浪费                          | D-cut top-K prefix scores + profiled cost             | 每请求 keep depth、全局 ratio     | 把 target slots 给高预期收益 prefix，并按 $U/C$ 选形状 | high-load tok/s          | live traffic Figure 4       | paper-supported；代码未开源              |
+| target 与 training 抢 GPU/数据流       | TorchSpec/Mooncake 解耦 + FSDP2/USP                     | 资源配比、数据驻留与序列切分              | inference/training 独立扩展，避免磁盘中转            | train throughput/context | Section 6/code              | implementation-supported；论文少量量化    |
 
 ### 2.5 完整因果链与证据边界
 

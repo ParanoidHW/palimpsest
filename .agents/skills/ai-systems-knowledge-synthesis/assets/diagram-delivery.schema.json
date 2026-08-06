@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "diagram_id", "title", "method", "abstraction", "viewpoint", "reference_assets", "semantic_contract", "layout", "render", "qa", "approval"],
   "properties": {
-    "schema_version": {"type": "integer", "const": 1},
+    "schema_version": {"type": "integer", "enum": [1, 2]},
     "diagram_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
     "title": {"type": "string", "minLength": 1},
     "method": {"type": "string", "minLength": 1},
@@ -67,6 +67,8 @@
           ]
         },
         "last_render_after_source": {"type": "boolean", "const": true},
+        "status_file": {"type": "string", "pattern": "^_artifacts/.+\\.json$"},
+        "status_schema_version": {"type": "integer", "const": 1},
         "independent_review": {
           "type": "object", "additionalProperties": false,
           "required": ["reviewer", "reviewer_role", "review_round", "reviewed_render", "reviewed_render_id", "reviewed_at", "status", "findings", "re_reviewed_after_last_edit"],
@@ -131,6 +133,7 @@
     }
   },
   "allOf": [
+    {"if": {"properties": {"schema_version": {"const": 2}}}, "then": {"properties": {"qa": {"required": ["status_file", "status_schema_version"]}}}},
     {"if": {"properties": {"qa": {"properties": {"independent_review": {"properties": {"status": {"const": "passed"}}}}}}}, "then": {"properties": {"qa": {"properties": {"independent_review": {"properties": {"re_reviewed_after_last_edit": {"const": true}}}}}}}},
     {"if": {"properties": {"approval": {"properties": {"status": {"const": "user-approved"}}}}}, "then": {"properties": {"qa": {"properties": {"independent_review": {"properties": {"status": {"const": "passed"}, "re_reviewed_after_last_edit": {"const": true}}}}}}}}
   ]
