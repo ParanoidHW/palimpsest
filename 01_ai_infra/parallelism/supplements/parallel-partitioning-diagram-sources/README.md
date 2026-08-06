@@ -28,6 +28,7 @@ canonical: false
 | Megatron Sequence Parallel | [megatron-sequence-parallel.tex](megatron-sequence-parallel.tex) | [megatron-sequence-parallel.png](../../assets/surveys/parallel-partitioning-taxonomy/megatron-sequence-parallel.png) | `2400x1350` |
 | Ulysses | [ulysses-layout-transpose.tex](ulysses-layout-transpose.tex) | [ulysses-layout-transpose.png](../../assets/surveys/parallel-partitioning-taxonomy/ulysses-layout-transpose.png) | `2400x1350` |
 | Ring / Context Parallel | [ring-context-parallel.tex](ring-context-parallel.tex) | [ring-context-parallel.png](../../assets/surveys/parallel-partitioning-taxonomy/ring-context-parallel.png) | `2100x1125` |
+| CFGP | [cfg-branch-parallel.tex](cfg-branch-parallel.tex) | [cfg-branch-parallel.png](../../assets/surveys/parallel-partitioning-taxonomy/cfg-branch-parallel.png) | `2400x1350` |
 
 ## 构建
 
