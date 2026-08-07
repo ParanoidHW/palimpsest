@@ -9,9 +9,17 @@
 
 本清单索引九篇 canonical Paper 的正式视觉证据，不替代逐篇 Paper 的实验解释。论文图保留完整 caption、单一编号对象、源页尺寸与 crop bbox；TorchSpec 的博客图是未编号的 standalone official objects，保留完整 image bounds。所有资产均通过 contact-sheet 初筛和逐图原分辨率复核；页面渲染、裁剪过程与 QA 日志仅保存在过程工作区。
 
+| Paper / 对象与 source crop | 正式资产 | 用途 / Provenance | QA |
+|---|---|---|---|
+| AngelSpec / Figure 1 / p.4；源页 `1530x1980`；crop `(170,140,1190,570)` | `../assets/papers/angelspec/mtp-ttt-overview.png` | Shared-parameter MTP 与 TTT 递归训练机制；完整 caption | pass：2026-08-07 contact-sheet + 原分辨率 QA |
+| AngelSpec / Table 1 / p.6；源页 `1530x1980`；crop `(170,140,1190,415)` | `../assets/papers/angelspec/mtp-loss-ablation.png` | CE/KL/LK/TV/e2e TV loss 控制消融；完整 caption | pass：2026-08-07 contact-sheet + 原分辨率 QA |
+| AngelSpec / Table 2 / p.7；源页 `1530x1980`；crop `(170,140,1190,365)` | `../assets/papers/angelspec/mtp-acceptance.png` | TTT + rollout 对 Avg/MAL 的组合效果；完整 caption | pass：2026-08-07 contact-sheet + 原分辨率 QA |
 | AngelSpec / Figure 2 | `../assets/papers/angelspec/dfly-overview.png` | DFly mechanism overview | pass：原分辨率 QA |
+| AngelSpec / Table 3 / p.10；源页 `1530x1980`；crop `(170,140,1190,430)` | `../assets/papers/angelspec/drafter-quality.png` | Qwen3/Hy3 drafter quality 主结果；完整 caption | pass：2026-08-07 contact-sheet + 原分辨率 QA |
+| AngelSpec / Table 4 / p.10；源页 `1530x1980`；crop `(170,600,1190,370)` | `../assets/papers/angelspec/dfly-ablation.png` | DFly backbone/head/data 累计消融；完整 caption | pass：2026-08-07 contact-sheet + 原分辨率 QA |
 | AngelSpec / Figure 3 | `../assets/papers/angelspec/dcut-overview.png` | D-cut dynamic verification budget | pass：原分辨率 QA |
 | AngelSpec / Table 7 | `../assets/papers/angelspec/throughput-table7.png` | Serving throughput comparison | pass：原分辨率 QA |
+| AngelSpec / Figure 4 / p.16；源页 `1530x1980`；crop `(170,140,1190,725)` | `../assets/papers/angelspec/dcut-live-traffic.png` | D-cut production traffic throughput/frontier；完整 caption | pass：2026-08-07 contact-sheet + 原分辨率 QA |
 | AngelSpec / Figure 6 | `../assets/papers/angelspec/framework-overview.png` | AngelSpec training/serving framework | pass：原分辨率 QA |
 | TorchSpec / official architecture | `../assets/papers/torchspec/disaggregated-architecture.png` | Disaggregated inference/training architecture | pass：source-bounds QA |
 | TorchSpec / official Kimi benchmark | `../assets/papers/torchspec/kimi-draft-benchmark.png` | Draft quality benchmark | pass：source-bounds QA |
