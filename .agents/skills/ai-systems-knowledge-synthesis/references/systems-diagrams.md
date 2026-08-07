@@ -122,7 +122,7 @@ Use [dp-training-workflow-sample.tex](../assets/diagram-examples/dp-training-wor
 ## Density And Legend
 
 - Prefer a spacious 16:9 composition for workflow diagrams. Enlarge boxes and gaps before shrinking text. The diagram must remain readable when embedded at normal document width.
-- Keep vertical margins purposeful. Do not leave large empty bands above or below the mechanism merely to center a sparse flow; use the canvas for ownership strips, legends, or larger inter-node gaps that improve arrow clarity.
+- Keep vertical margins purposeful. Do not leave large empty bands above or below the mechanism merely to center a sparse flow; use the canvas for ownership strips, legends, or larger inter-node gaps that improve arrow clarity. Judge the overall visual center of gravity rather than exact pixel symmetry; a small offset is acceptable when routing or semantic grouping benefits.
 - Keep prose outside the diagram. Inside boxes, use a short operation name, essential tensor/state, shape or dtype, and no paragraph-length explanation.
 - Use tables only for comparison outside the workflow. Do not turn the main mechanism into a dense grid of keywords.
 - Build a graphical legend with actual color swatches, filled/dashed ownership cells, and arrow samples. Label each sample tersely.
@@ -142,7 +142,7 @@ Use [dp-training-workflow-sample.tex](../assets/diagram-examples/dp-training-wor
 2. Inspect the full PNG at original size for hierarchy, margins, density, and unused space.
 3. Create original-pixel crops for every dense or independently routed region: the main operation chain, each communication lane, every cross-rank or return path, ownership/time views, and the legend/footer.
 4. Inspect each crop for text-to-text overlap, text sitting on an arrow or border, arrows crossing nodes, arrowheads landing inside boxes, accidental diagonals, shared or ambiguous endpoints, clipped glyphs, and labels without a clear owning edge.
-5. Inspect composition in the full frame: content centroid versus core-frame centroid, one-sided whitespace, alignment of peer lanes, and whether secondary labels outweigh the primary chain.
+5. Inspect composition in the full frame: visual center of gravity, one-sided whitespace, alignment of peer lanes, and whether secondary labels outweigh the primary chain. Do not fail a diagram for a few pixels of offset or require mathematical centering; fail only when the offset creates a visible imbalance or weakens hierarchy.
 6. Inspect text ownership and typography: every visible text item must belong to a node, edge, panel heading, legend, or footer; flag isolated labels, ambiguous nearest edges, inconsistent multi-line leading, uneven baselines, and text too close to borders or arrows.
 7. Inspect semantic grouping: headings, formulas, notes, nodes, and arrows that explain one mechanism must occupy one spatial group with a shared baseline or enclosing scope. A readable but detached explanatory cluster fails QA.
 8. Fix every visible defect, re-render, recreate the affected crops, and repeat both crop and whole-frame inspection. Do not reuse stale crops.
