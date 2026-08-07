@@ -1,12 +1,12 @@
 {
   "version": "2.0",
-  "lastModified": 1785986607040,
+  "lastModified": 1786070622639,
   "highlights": {
     "highlight-49015162-7282": {
       "text": "对话数据训练 MTP；代码/数学数据强化 DFly",
-      "position": 7282,
+      "position": 8681,
       "created": 1785986607040,
-      "updated": 1785986607040,
+      "updated": 1786070622639,
       "backgroundColor": "#ffeb3b",
       "contextBefore": "-- | ---------------------------------- | | workload 异质 |",
       "contextAfter": "| drafter structure 与训练分布按域分工 | 短 horizon 避免 chat 过度投机；",
