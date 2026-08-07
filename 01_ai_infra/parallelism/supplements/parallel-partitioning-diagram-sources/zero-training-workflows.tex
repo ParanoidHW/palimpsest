@@ -263,7 +263,7 @@
 \draw[draw=purple,line width=1.2pt] (27.95,10.65)--(27.95,11.35);
 \node[gradnote] at (27.95,11.75) {$g_k^{(r)}$ · owner shard};
 
-\node[draw=ink,fill=white,line width=1.4pt,rounded corners=2pt,minimum width=3.8cm,minimum height=.78cm,inner sep=2pt,align=center,text=ink] (repeat3) at (35.0,12.35) {$k<M$: dequeue $m_{k+1}$\\$m_k\leftarrow m_{k+1}$};
+\node[draw=ink,fill=white,line width=1.4pt,rounded corners=2pt,minimum width=3.8cm,minimum height=.78cm,inner sep=2pt,align=center,text=ink] (repeat3) at (35.3,12.35) {$k<M$: dequeue $m_{k+1}$\\$m_k\leftarrow m_{k+1}$};
 \node[state,minimum width=4.4cm,minimum height=1.75cm,inner sep=4pt] (opt3) at (35.3,7.45) {\textbf{$k=M$ · LOCAL OPTIMIZER}\\$G^{(r)},P_{32}^{(r)},S_{\mathrm{opt}}^{(r)}$\\update local weight shard};
 \node[tensor,minimum width=4.1cm,minimum height=1.5cm,inner sep=4pt] (persist3) at (28.9,7.45) {\textbf{persistent $P_{16}^{(r)}$ only}\\no step-end full model};
 \draw[shortcontrol] (boundary3.north)--(repeat3.south);
