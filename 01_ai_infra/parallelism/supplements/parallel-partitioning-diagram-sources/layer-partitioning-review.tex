@@ -77,7 +77,7 @@
 % Tensor parallelism inside one Transformer layer.
 \begin{tikzpicture}[x=1cm,y=1cm]
 \canvas
-\pagehead{张量并行：切进 Transformer layer 的 attention 与 FFN}{TP world size $p$；$B$ samples，$S$ sequence length，$H$ hidden size，$N$ heads，$D$ head dimension，$H=ND$}
+\pagehead{张量并行：切进 Transformer layer 的 attention 与 FFN}{world size $p$；展开 rank $r$；$B$ = batch，$S$ = sequence length，$H$ = hidden size，$N$ = num heads，$D$ = head dim，$H=ND$}
 
 \draw[draw=grayline,fill=grayfill,rounded corners=4pt,line width=1.2pt] (1.25,4.75) rectangle (39.35,19.15);
 \node[anchor=west,head] at (1.85,18.55) {Transformer layer $\ell$ · rank $r$ 的主计算流 · PRE-NORM};
@@ -98,8 +98,8 @@
 \draw[data] (attn)--(oproj);
 \draw[comm] (oproj)--(ar1);
 \draw[comm] (ar1)--(res1);
-\draw[data] (res1)--(xa);
-\draw[shortcut,rounded corners=4pt] (x.south)--(2.6,13.05)-|(res1.south) node[pos=.72,below,note] {residual $X$};
+\draw[shortcut,rounded corners=4pt] (x.south)--(2.6,13.05)-|(res1.south)
+  node[pos=.72,below=2pt,note,fill=grayfill,inner sep=2pt] {residual $X$};
 \draw[draw=blue,line width=1.2pt] (12.75,14.85)--(12.75,14.15);
 \node[tensornote] at (12.75,13.65) {$Q_r,K_r,V_r$ · $[B,S,N/p,D]$};
 \draw[draw=blue,line width=1.2pt] (23.65,14.85)--(23.65,14.15);
@@ -120,14 +120,14 @@
 \node[compute,text width=2.2cm,minimum height=1.85cm,inner sep=3pt] (res2) at (12.75,9.35) {residual add};
 \node[tensor,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (out) at (9.0,9.35) {layer output\\$X_{\ell+1}[B,S,H]$};
 \coordinate (ffnsplit) at (35.3,12.0);
-\draw[line width=2.5pt,draw=blue] (xa)--(ffnsplit);
-\draw[data] (ffnsplit)--(ln2.north);
+\draw[data,rounded corners=4pt] (res1.east)--(xa)--(ffnsplit)--(ln2.north);
 \draw[data] (ln2)--(up);
 \draw[data] (up)--(down);
 \draw[comm] (down)--(ar2);
 \draw[comm] (ar2)--(res2);
 \draw[data] (res2)--(out);
-\draw[shortcut,rounded corners=4pt] (ffnsplit)-|(res2.north) node[pos=.55,above,note] {residual $X_{\mathrm{attn}}$};
+\draw[shortcut,rounded corners=4pt] (ffnsplit)-|(res2.north)
+  node[pos=.55,above=2pt,note,fill=grayfill,inner sep=2pt] {residual $X_{\mathrm{attn}}$};
 \draw[draw=blue,line width=1.2pt] (35.3,13.5)--(35.5,13.5);
 \node[anchor=west,tensornote,text width=3.3cm,align=left] at (35.55,13.5) {$X_{\mathrm{attn}}[B,S,H]$};
 \draw[draw=blue,line width=1.2pt] (28.3,9.75)--(28.3,10.5);

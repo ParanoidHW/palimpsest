@@ -51,7 +51,7 @@
 \node[anchor=west,head] at (1.85,18.55) {rank $r$ 的一次 training step};
 
 % Data enters a rank-local, strictly ordered micro-batch queue.
-\node[tensor,minimum width=3.8cm,minimum height=1.75cm] (batch) at (3.25,16.25) {\textbf{global mini-batch}\\$X[B,\ldots]$ · $B=pKb_\mu$};
+\node[tensor,minimum width=3.8cm,minimum height=1.75cm] (batch) at (3.25,16.25) {\textbf{global mini-batch}\\$X[B,\ldots]$ · $B=pMb_\mu$};
 \node[runtime,minimum width=3.3cm,minimum height=1.75cm] (sampler) at (8.35,16.25) {\textbf{DP sampler}\\按 batch 轴分给 $p$ 个 ranks};
 \draw[data] (batch)--(sampler);
 
@@ -59,7 +59,7 @@
 \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qone) at (12.0,16.25) {$m_1$};
 \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qtwo) at (14.15,16.25) {$m_2$};
 \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qmore) at (16.3,16.25) {$\cdots$};
-\node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qlast) at (18.45,16.25) {$m_K$};
+\node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qlast) at (18.45,16.25) {$m_M$};
 \draw[queueflow] (sampler.east)--(qone.west);
 \draw[queueflow] (qone)--(qtwo);
 \draw[queueflow] (qtwo)--(qmore);
@@ -90,7 +90,7 @@
 \node[compute,minimum width=3.1cm,minimum height=2.3cm] (loss) at (17.0,10.75) {\textbf{loss}};
 \node[compute,minimum width=4.0cm,minimum height=2.3cm] (bwd) at (21.9,10.75) {\textbf{BWD}};
 \node[state,minimum width=4.8cm,minimum height=2.3cm] (acc) at (27.8,10.75) {\textbf{accumulate · FP32}\\$G_r\leftarrow G_r+g_{r,k}$\\跨 micro-batch 保留};
-\node[decision,minimum width=2.25cm,minimum height=1.8cm] (boundary) at (32.4,10.75) {$k=K$?};
+\node[decision,minimum width=2.25cm,minimum height=1.8cm] (boundary) at (32.4,10.75) {$k=M$?};
 \draw[data] (qone.south)--(current.north);
 \draw[data] (current.south)--(fwd.north);
 \draw[data] (fwd)--(loss);

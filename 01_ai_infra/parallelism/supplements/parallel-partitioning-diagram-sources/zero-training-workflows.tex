@@ -53,14 +53,14 @@
 }
 
 \newcommand{\batchqueue}{
-  \node[tensor,minimum width=3.8cm,minimum height=1.75cm] (batch) at (3.25,16.25) {\textbf{global mini-batch}\\$X[B,\ldots]$ · $B=pKb_\mu$};
+  \node[tensor,minimum width=3.8cm,minimum height=1.75cm] (batch) at (3.25,16.25) {\textbf{global mini-batch}\\$X[B,\ldots]$ · $B=pMb_\mu$};
   \node[runtime,minimum width=3.3cm,minimum height=1.75cm] (sampler) at (8.35,16.25) {\textbf{DP sampler}\\按 batch 轴分给 $p$ 个 ranks};
   \draw[data] (batch)--(sampler);
   \node[anchor=west,note] at (11.0,17.45) {rank-local queue · 严格按时间从左到右取出};
   \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qone) at (12.0,16.25) {$m_1$};
   \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qtwo) at (14.15,16.25) {$m_2$};
   \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qmore) at (16.3,16.25) {$\cdots$};
-  \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qlast) at (18.45,16.25) {$m_K$};
+  \node[tensor,minimum width=1.35cm,minimum height=1.15cm,inner sep=2pt] (qlast) at (18.45,16.25) {$m_M$};
   \draw[queueflow] (sampler.east)--(qone.west);
   \draw[queueflow] (qone)--(qtwo);
   \draw[queueflow] (qtwo)--(qmore);
@@ -134,7 +134,7 @@
 \node[compute,minimum width=2.8cm,minimum height=2.2cm] (loss) at (16.8,10.75) {\textbf{loss}};
 \node[compute,minimum width=3.7cm,minimum height=2.2cm] (bwd) at (21.2,10.75) {\textbf{BWD}};
 \node[state,minimum width=4.5cm,minimum height=2.2cm] (acc) at (26.7,10.75) {\textbf{full accumulation buffer}\\$G_r\leftarrow G_r+g_{r,k}$ · FP32};
-\node[decision,minimum width=2.15cm,minimum height=1.75cm] (boundary) at (31.2,10.75) {$k=K$?};
+\node[decision,minimum width=2.15cm,minimum height=1.75cm] (boundary) at (31.2,10.75) {$k=M$?};
 \node[collective,minimum width=4.8cm,minimum height=2.8cm] (rs) at (36.4,10.75) {\textbf{REDUCE-SCATTER}\\all $p$ ranks send full $G_r$\\sum / average + owner slice\\rank $r$ receives $G^{(r)}$};
 \draw[data] (active)--(fwd);
 \draw[data] (fwd)--(loss);
@@ -185,7 +185,7 @@
 \node[compute,minimum width=3.6cm,minimum height=2.2cm] (bwd2) at (20.9,10.75) {\textbf{BWD}};
 \node[collective,text width=3.65cm,minimum width=4.15cm,minimum height=2.55cm] (rs2) at (25.9,10.75) {\textbf{REDUCE-SCATTER}\\all $p$ ranks send matching slices\\sum / average; rank $r$ gets $g_k^{(r)}$};
 \node[state,text width=3.8cm,minimum width=4.3cm,minimum height=2.2cm] (acc2) at (31.4,10.75) {\textbf{accumulate owner shard}\\$G^{(r)}\leftarrow G^{(r)}+g_k^{(r)}$};
-\node[decision,minimum width=2.15cm,minimum height=1.75cm] (boundary2) at (36.2,10.75) {$k=K$?};
+\node[decision,minimum width=2.15cm,minimum height=1.75cm] (boundary2) at (36.2,10.75) {$k=M$?};
 \draw[data] (active)--(fwd2);
 \draw[data] (fwd2)--(loss2);
 \draw[grad] (loss2)--(bwd2);
@@ -200,13 +200,15 @@
 \node[gradnote] at (23.35,12.72) {$g_{r,k}[\Psi]$ · FP32};
 \draw[draw=purple,line width=1.2pt] (28.65,11.15)--(28.65,12.25);
 \node[gradnote] at (28.65,12.72) {$g_k^{(r)}$ · owner shard};
-\node[draw=ink,fill=white,line width=1.4pt,rounded corners=2pt,minimum width=4.5cm,minimum height=.85cm,inner sep=3pt,align=center,text=ink] (repeat2) at (36.2,13.15) {$k<K$: next micro-batch\\repeat from model FWD};
+\node[draw=ink,fill=white,line width=1.4pt,rounded corners=2pt,minimum width=4.5cm,minimum height=.85cm,inner sep=3pt,align=center,text=ink] (repeat2) at (36.2,13.35) {$k<M$: dequeue $m_{k+1}$};
 \draw[shortcontrol] (boundary2.north)--(repeat2.south);
+\draw[shortcontrol] (repeat2.west)--(active.east)
+  node[pos=.53,above,note,fill=grayfill,inner sep=2pt] {$m_k\leftarrow m_{k+1}$};
 
 \node[state,minimum width=4.8cm,minimum height=2.0cm] (opt2) at (36.2,6.55) {\textbf{LOCAL OPTIMIZER}\\$G^{(r)},P_{32}^{(r)},S_{\mathrm{opt}}^{(r)}$\\update $\rightarrow P_{16}^{(r)}$};
 \node[collective,minimum width=4.4cm,minimum height=2.0cm] (ag2) at (29.7,6.55) {\textbf{ALL-GATHER}\\owners send $P_{16}^{(j)}$\\concat full $P_{16}$};
 \node[tensor,minimum width=4.0cm,minimum height=1.65cm] (next2) at (23.5,6.55) {\textbf{full $P_{16}$ on every rank}\\进入下一 training step};
-\draw[control] (boundary2.south)--(opt2.north) node[midway,right,note] {$k=K$};
+\draw[control] (boundary2.south)--(opt2.north) node[midway,right,note] {$k=M$};
 \draw[comm] (opt2.west)--(ag2.east);
 \draw[data] (ag2.west)--(next2.east);
 \draw[draw=blue,line width=1.2pt] (32.95,6.95)--(32.95,7.65);
@@ -242,10 +244,11 @@
 \node[runtime,dashed,minimum width=3.4cm,minimum height=1.15cm,inner sep=3pt] (relb3) at (20.5,7.75) {\textbf{async release} · BWD\\full $P_{16,\ell}\rightarrow P_{16,\ell}^{(r)}$};
 \node[collective,text width=3.2cm,minimum width=3.7cm,minimum height=1.95cm,inner sep=4pt] (rs3) at (25.4,10.25) {\textbf{GRAD REDUCE-SCATTER}\\after all $L$ layers\\owner gets $g_k^{(r)}$};
 \node[state,text width=3.3cm,minimum width=3.8cm,minimum height=1.85cm,inner sep=4pt] (acc3) at (30.5,10.25) {\textbf{accumulate owner shard}\\$G^{(r)}\leftarrow G^{(r)}+g_k^{(r)}$};
-\node[decision,minimum width=2.15cm,minimum height=1.75cm] (boundary3) at (35.3,10.25) {$k=K$?};
+\node[decision,minimum width=2.15cm,minimum height=1.75cm] (boundary3) at (35.3,10.25) {$k=M$?};
 
 \draw[data] (active)--(fwd3);
-\draw[comm] (agf3.east)--(fwd3.west);
+\draw[comm] (agf3.east)--(fwd3.west)
+  node[midway,above=4pt,tensornote,fill=grayfill,inner sep=2pt] {temporary full $P_{16,\ell}$ · BF16};
 \draw[grad] (fwd3.east)--(bwd3.west);
 \draw[shortcontrol,dashed,draw=muted] (fwd3.south)--(relf3.north);
 \draw[comm,rounded corners=4pt] (agb3.east)--(20.5,12.35)--(bwd3.north);
@@ -253,8 +256,6 @@
 \draw[shortcomm] (bwd3)--(rs3);
 \draw[shortgrad] (rs3)--(acc3);
 \draw[control] (acc3)--(boundary3);
-\draw[draw=blue,line width=1.2pt] (7.8,9.85)--(7.8,9.15);
-\node[tensornote] at (7.8,8.75) {temporary full $P_{16,\ell}$ · BF16};
 \draw[draw=blue,line width=1.2pt] (20.95,12.35)--(21.8,12.35);
 \node[anchor=west,tensornote] at (22.15,12.35) {temporary full $P_{16,\ell}$ · BF16};
 \draw[draw=purple,line width=1.2pt] (23.1,10.65)--(23.1,11.35);
@@ -262,10 +263,13 @@
 \draw[draw=purple,line width=1.2pt] (27.95,10.65)--(27.95,11.35);
 \node[gradnote] at (27.95,11.75) {$g_k^{(r)}$ · owner shard};
 
-\node[draw=ink,fill=white,line width=1.4pt,rounded corners=2pt,minimum width=3.4cm,minimum height=.68cm,inner sep=2pt,align=center,text=ink] (repeat3) at (35.3,12.15) {$k<K$: next $m_{k+1}$};
-\node[state,minimum width=4.4cm,minimum height=1.75cm,inner sep=4pt] (opt3) at (35.3,7.45) {\textbf{$k=K$ · LOCAL OPTIMIZER}\\$G^{(r)},P_{32}^{(r)},S_{\mathrm{opt}}^{(r)}$\\update local weight shard};
+\node[draw=ink,fill=white,line width=1.4pt,rounded corners=2pt,minimum width=3.8cm,minimum height=.78cm,inner sep=2pt,align=center,text=ink] (repeat3) at (35.0,12.35) {$k<M$: dequeue $m_{k+1}$\\$m_k\leftarrow m_{k+1}$};
+\node[state,minimum width=4.4cm,minimum height=1.75cm,inner sep=4pt] (opt3) at (35.3,7.45) {\textbf{$k=M$ · LOCAL OPTIMIZER}\\$G^{(r)},P_{32}^{(r)},S_{\mathrm{opt}}^{(r)}$\\update local weight shard};
 \node[tensor,minimum width=4.1cm,minimum height=1.5cm,inner sep=4pt] (persist3) at (28.9,7.45) {\textbf{persistent $P_{16}^{(r)}$ only}\\no step-end full model};
 \draw[shortcontrol] (boundary3.north)--(repeat3.south);
+\draw[shortcontrol,dashed,draw=muted,line width=1.5pt,rounded corners=4pt]
+  (repeat3.east)--(38.35,12.35)--(38.35,5.75)
+  --(9.45,5.75)--(9.45,13.35)--(active.west);
 \draw[shortcontrol] (boundary3.south)--(opt3.north);
 \draw[data] (opt3.west)--(persist3.east);
 

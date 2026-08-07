@@ -19,53 +19,65 @@
 \definecolor{purplefill}{HTML}{F2ECFF}
 \definecolor{red}{HTML}{C94747}
 \definecolor{redfill}{HTML}{FFF0F0}
-\definecolor{grayline}{HTML}{D6DDE7}
-\definecolor{grayfill}{HTML}{F6F8FB}
+\definecolor{grayline}{HTML}{C9D2DF}
+\definecolor{grayfill}{HTML}{F5F7FA}
 \tikzset{
-  box/.style={draw=blue,fill=bluefill,very thick,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
-  local/.style={draw=green,fill=greenfill,very thick,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
-  comm/.style={draw=orange,fill=orangefill,very thick,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
-  state/.style={draw=purple,fill=purplefill,very thick,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
-  runtime/.style={draw=muted,fill=white,very thick,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  box/.style={draw=blue,fill=bluefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  local/.style={draw=green,fill=greenfill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  comm/.style={draw=orange,fill=orangefill,line width=1.8pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  state/.style={draw=purple,fill=purplefill,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
+  runtime/.style={draw=muted,fill=white,line width=1.5pt,rounded corners=2pt,align=center,inner sep=6pt,text=ink},
   warn/.style={draw=red,fill=redfill,very thick,rounded corners=2pt,align=center,inner sep=8pt,text=ink},
   note/.style={draw=grayline,fill=grayfill,thick,rounded corners=2pt,align=left,inner sep=9pt,text=ink},
-  flow/.style={-{Latex[length=4mm,width=2.4mm]},very thick,draw=orange},
-  dataflow/.style={-{Latex[length=4mm,width=2.4mm]},very thick,draw=blue},
-  returnflow/.style={-{Latex[length=4mm,width=2.4mm]},very thick,draw=purple},
-  label/.style={font=\fontsize{13}{15}\selectfont,text=muted,align=center},
-  small/.style={font=\fontsize{12}{14}\selectfont,text=muted,align=center},
-  body/.style={font=\fontsize{15}{18}\selectfont,text=ink,align=center},
-  head/.style={font=\fontsize{18}{21}\bfseries,text=ink,align=center}
+  flow/.style={-{Stealth[length=4.9mm,width=3.6mm]},line width=2.8pt,draw=orange,shorten <=1.5pt,shorten >=2pt},
+  dataflow/.style={-{Stealth[length=4.6mm,width=3.4mm]},line width=2.5pt,draw=blue,shorten <=1.5pt,shorten >=2pt},
+  returnflow/.style={-{Stealth[length=4.6mm,width=3.4mm]},line width=2.5pt,draw=purple,shorten <=1.5pt,shorten >=2pt},
+  control/.style={-{Stealth[length=4.2mm,width=3.1mm]},line width=2.2pt,draw=ink,shorten <=1.5pt,shorten >=2pt},
+  label/.style={font=\fontsize{11}{13.5}\selectfont,text=muted,align=center},
+  small/.style={font=\fontsize{11}{13.5}\selectfont,text=muted,align=center},
+  body/.style={font=\fontsize{13}{16}\selectfont,text=ink,align=center},
+  head/.style={font=\fontsize{16}{19}\bfseries,text=ink,align=center}
 }
 \newcommand{\canvas}{\path[use as bounding box] (0,0) rectangle (40.64,22.86);\fill[white] (0,0) rectangle (40.64,22.86);}
-\newcommand{\pagetitle}[3]{%
+\newcommand{\pagetitle}[2]{%
   \node[anchor=west,font=\fontsize{25}{29}\bfseries,text=ink] at (1.25,21.65) {#1};
   \node[anchor=west,font=\fontsize{14}{17}\selectfont,text=muted] at (1.25,20.72) {#2};
   \draw[grayline,thick] (1.25,20.15)--(39.35,20.15);
-  \node[anchor=east,font=\fontsize{12}{14}\selectfont,text=muted] at (39.35,21.58) {#3};
 }
 \newcommand{\footer}[1]{\node[anchor=west,font=\fontsize{10.5}{12}\selectfont,text=muted] at (1.25,.55) {教学整理图（analysis-derived），非论文原图 · #1};}
 \newcommand{\semanticlegend}{%
-  \node[box,minimum width=.9cm,minimum height=.52cm,inner sep=1pt] at (3.0,3.0) {};
-  \node[anchor=west,small] at (3.65,3.0) {tensor / weight};
-  \node[local,minimum width=.9cm,minimum height=.52cm,inner sep=1pt] at (10.0,3.0) {};
-  \node[anchor=west,small] at (10.65,3.0) {model compute};
-  \node[comm,minimum width=.9cm,minimum height=.52cm,inner sep=1pt] at (17.2,3.0) {};
-  \node[anchor=west,small] at (17.85,3.0) {collective / P2P};
-  \node[state,minimum width=.9cm,minimum height=.52cm,inner sep=1pt] at (25.5,3.0) {};
-  \node[anchor=west,small] at (26.15,3.0) {rank-local state};
-  \node[runtime,minimum width=.9cm,minimum height=.52cm,inner sep=1pt] at (33.4,3.0) {};
-  \node[anchor=west,small] at (34.05,3.0) {runtime action};
+  \node[anchor=west,head] at (1.25,4.25) {图例};
+  \node[box,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (3.0,3.15) {};
+  \node[anchor=west,body] at (3.8,3.15) {tensor / weight};
+  \node[local,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (9.3,3.15) {};
+  \node[anchor=west,body] at (10.1,3.15) {model compute};
+  \node[state,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (15.4,3.15) {};
+  \node[anchor=west,body] at (16.2,3.15) {rank-local state};
+  \node[comm,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (22.2,3.15) {};
+  \node[anchor=west,body] at (23.0,3.15) {collective};
+  \draw[dataflow] (28.0,3.15)--(30.1,3.15);
+  \node[anchor=west,body] at (30.5,3.15) {tensor flow};
+  \node[runtime,minimum width=1.1cm,minimum height=.65cm,inner sep=1pt] at (3.0,1.95) {};
+  \node[anchor=west,body] at (3.8,1.95) {runtime action};
+  \draw[flow] (9.3,1.95)--(11.4,1.95);
+  \node[anchor=west,body] at (11.8,1.95) {collective transition};
+  \draw[returnflow] (20.2,1.95)--(22.3,1.95);
+  \node[anchor=west,body] at (22.7,1.95) {state dependency};
+  \draw[control] (31.4,1.95)--(33.5,1.95);
+  \node[anchor=west,body] at (33.9,1.95) {sequential control};
 }
 \begin{document}
 \begin{tikzpicture}[x=1cm,y=1cm]
 \canvas
-\pagetitle{CFGP：沿 condition branch 并行执行 denoising step}{cond / uncond 并发 · outputs all-gather · guidance 后进入下一步}{CFGP}
+\pagetitle{无分类器引导并行（CFGP）：沿 condition branch 切分}{branch group 为 2 ranks；$r_0:c$，$r_1:\emptyset$；每个 denoising step all-gather 两份 branch output}
+\draw[draw=grayline,fill=grayfill,rounded corners=4pt,line width=1.2pt] (1.25,5.15) rectangle (39.35,19.35);
+\node[anchor=west,head] at (1.85,18.65) {denoising step $t$ · peer ranks $r_0/r_1$ · condition-branch parallel};
+\node[anchor=east,small] at (38.75,18.65) {$x_t\rightarrow\{\epsilon_c,\epsilon_u\}\rightarrow\epsilon\rightarrow x_{t-1}$};
 \node[box,minimum width=4.0cm,minimum height=1.4cm] (cfgin) at (8.4,14.4) {denoising input\\$x_t,t,c,\emptyset$};
 \node[runtime,minimum width=3.2cm,minimum height=1.4cm] (cfgsplit) at (13.2,14.4) {branch assignment\\$r_0:c\quad r_1:\emptyset$};
 \node[local,minimum width=4.7cm,minimum height=1.6cm] (cfg0) at (18.5,15.8) {$r_0$ · cond\\$\epsilon_c=f_\theta(x_t,t,c)$};
 \node[local,minimum width=4.7cm,minimum height=1.6cm] (cfg1) at (18.5,13.0) {$r_1$ · uncond\\$\epsilon_u=f_\theta(x_t,t,\emptyset)$};
-\node[comm,minimum width=4.6cm,minimum height=1.7cm] (cfgcomm) at (25.0,14.4) {\textbf{ALL-GATHER}\\$r_0,r_1:\{\epsilon_c,\epsilon_u\}$};
+\node[comm,minimum width=4.8cm,minimum height=1.7cm] (cfgcomm) at (25.0,14.4) {\textbf{ALL-GATHER}\\$r_0,r_1$ each own\\$\{\epsilon_c,\epsilon_u\}$};
 \node[local,minimum width=5.5cm,minimum height=1.7cm] (cfgcombine) at (32.0,14.4) {guidance combine\\$\epsilon=\epsilon_u+w(\epsilon_c-\epsilon_u)$};
 \draw[dataflow] (cfgin)--(cfgsplit);
 \draw[dataflow] (cfgsplit.east) to[out=15,in=180] (cfg0.west);
@@ -80,12 +92,13 @@
 \node[runtime,minimum width=3.8cm,minimum height=1.25cm] (cfgnext) at (20.0,9.5) {next step\\$t\leftarrow t-1$};
 \draw[dataflow] (cfgcombine.south)--(cfgupdate.north);
 \draw[dataflow] (cfgupdate.west)--(cfgout.east);
-\draw[dataflow] (cfgout.west)--(cfgnext.east);
+\draw[control] (cfgout.west)--(cfgnext.east);
 \draw[returnflow] (cfgw0.south)--(cfg0.north);
 \draw[returnflow] (cfgw1.north)--(cfg1.south);
-\draw[dataflow] (cfgnext.west)--(8.4,9.5)--(cfgin.south);
-\node[small] at (13.2,9.95) {iterate};
-\node[small,text=ink] at (20.32,5.65) {符号：$x_t$ 去噪状态 · $t$ 时间步 · $c/\emptyset$ 条件/空条件 · $\epsilon_c,\epsilon_u$ 分支输出 · $w$ 引导强度 · $P$ 参数 · $\mathcal C_c,\mathcal C_u$ 分支缓存};
+\draw[control] (cfgnext.west)--(8.4,9.5)--(cfgin.south);
+\node[small] at (13.2,9.95) {next iteration};
+\node[small,text=ink] at (20.32,6.2) {$x_t$：去噪状态 · $t$：时间步 · $c/\emptyset$：条件/空条件 · $\epsilon_c,\epsilon_u$：分支输出 · $w$：guidance scale};
+\node[small,text=ink] at (20.32,5.65) {$P$：完整模型参数 · $\mathcal C_c,\mathcal C_u$：conditional / unconditional branch-local cache 或 runtime state};
 \semanticlegend
 \footer{原则图 · 切 condition branch；每个 denoising step all-gather 两份 branch output}
 \end{tikzpicture}

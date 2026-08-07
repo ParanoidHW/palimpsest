@@ -77,19 +77,19 @@
 % Ulysses attention inside one Transformer layer.
 \begin{tikzpicture}[x=1cm,y=1cm]
 \canvas
-\pagehead{Ulysses：用 A2A 将 sequence shard 转为 head shard}{world size $p$；$N$ = num heads，$D$ = head dim，$H=ND$ = hidden size；attention 前转为 head shard，计算后转回 sequence shard}
+\pagehead{Ulysses：用 ALL-TO-ALL（A2A）将 sequence shard 转为 head shard}{world size $p$；展开 rank $r$；$B$ = batch，$S$ = sequence length，$H$ = hidden size，$N$ = num heads，$D$ = head dim，$H=ND$}
 
-\draw[draw=grayline,fill=grayfill,rounded corners=4pt,line width=1.2pt] (0.95,4.35) rectangle (39.7,19.45);
+\draw[draw=grayline,fill=grayfill,rounded corners=4pt,line width=1.2pt] (0.95,5.55) rectangle (39.7,19.45);
 \node[anchor=west,head] at (1.55,18.85) {Transformer layer $\ell$ · rank $r$ · PRE-NORM · Ulysses attention + sequence-local FFN};
 \node[anchor=east,note] at (39.1,18.85) {attention：$S/p\rightarrow S\rightarrow S/p$；FFN 保持 sequence-local layout};
 
 % Attention sublayer, left to right.
 \node[tensor,text width=2.0cm,minimum height=1.65cm,inner sep=3pt] (x) at (2.6,15.25) {input $X_r$\\$[B,S/p,H]$};
 \node[compute,text width=1.45cm,minimum height=1.65cm,inner sep=3pt] (ln1) at (5.65,15.25) {Norm\\local $S/p$};
-\node[compute,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (qkvproj) at (8.9,15.25) {QKV projection\\replicated weight\\$[B,S/p,N,D]$};
-\node[collective,text width=2.8cm,minimum height=1.85cm,inner sep=3pt] (attn) at (16.5,15.25) {A2A \#1\\$S\rightarrow N$\\$[B,S,N/p,D]$\\no sum};
+\node[compute,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (qkvproj) at (8.9,15.25) {QKV\\projection\\replicated weight\\$[B,S/p,N,D]$};
+\node[collective,text width=3.15cm,minimum height=2.15cm,inner sep=3pt] (attn) at (15.8,15.25) {ALL-TO-ALL \#1\\$S\rightarrow N$\\$[B,S,N/p,D]$\\no sum};
 \node[compute,text width=2.7cm,minimum height=1.85cm,inner sep=3pt] (oproj) at (20.1,15.25) {local attention\\$N/p$ heads\\full $S$};
-\node[collective,text width=3.2cm,minimum height=2.0cm] (ar1) at (26.0,15.25) {A2A \#2\\$N\rightarrow S$\\$[B,S/p,N,D]$\\no sum};
+\node[collective,text width=3.2cm,minimum height=2.15cm] (ar1) at (25.4,15.25) {ALL-TO-ALL \#2\\$N\rightarrow S$\\$[B,S/p,N,D]$\\no sum};
 \node[compute,text width=2.15cm,minimum height=1.85cm,inner sep=3pt] (outproj) at (29.6,15.25) {output projection\\local $S/p$};
 \node[compute,text width=1.65cm,minimum height=1.85cm,inner sep=3pt] (res1) at (32.6,15.25) {residual\\add};
 \node[tensor,text width=2.8cm,minimum height=1.85cm,inner sep=3pt] (xattn) at (35.6,15.25) {$X_{\mathrm{attn},r}$\\$[B,S/p,H]$};
@@ -102,34 +102,34 @@
 \draw[comm] (ar1)--(outproj);
 \draw[data] (outproj)--(res1);
 \draw[data] (res1)--(xattn);
-\draw[data] (xattn)--(xa);
-\draw[shortcut,rounded corners=4pt] (x.south)--(2.6,13.05)-|(res1.south) node[pos=.72,below,note] {residual $X$};
+\draw[shortcut,rounded corners=4pt] (x.south)--(2.6,13.05)-|(res1.south)
+  node[pos=.72,below=2pt,note,fill=grayfill,inner sep=2pt] {residual $X$};
 \draw[draw=blue,line width=1.2pt] (12.75,14.85)--(12.75,14.15);
 \node[tensornote] at (12.75,13.65) {$Q_r,K_r,V_r$ · $[B,S/p,N,D]$};
-\draw[draw=blue,line width=1.2pt] (23.65,14.85)--(23.65,14.15);
-\node[tensornote] at (23.65,13.65) {local $O^{(r)}[B,S,N/p,D]$};
+\draw[draw=blue,line width=1.2pt] (22.55,14.85)--(22.55,14.15);
+\node[tensornote] at (22.55,13.65) {local $O^{(r)}[B,S,N/p,D]$};
 
 % FFN sublayer, right to left, continuing the snake.
 \node[compute,text width=1.45cm,minimum height=1.65cm,inner sep=3pt] (ln2) at (38.4,9.35) {Norm\\local $S/p$};
 \node[compute,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (up) at (32.05,9.35) {up projection\\local FFN\\$[B,S/p,4H]$};
-\node[compute,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (down) at (24.55,9.35) {down projection\\local FFN\\$[B,S/p,H]$};
+\node[compute,text width=2.6cm,minimum height=1.85cm,inner sep=3pt] (down) at (24.55,9.35) {down\\projection\\local FFN\\$[B,S/p,H]$};
 \node[compute,text width=2.2cm,minimum height=1.85cm,inner sep=3pt] (res2) at (17.0,9.35) {residual add\\local $S/p$};
 \node[tensor,text width=3.2cm,minimum height=1.85cm,inner sep=3pt] (out) at (12.75,9.35) {layer output\\$X_{\ell+1,r}[B,S/p,H]$};
 \coordinate (ffnsplit) at (38.4,12.0);
-\draw[line width=2.5pt,draw=blue] (xa)--(ffnsplit);
-\draw[data] (ffnsplit)--(ln2.north);
+\draw[data,rounded corners=4pt] (xattn.east)--(xa)--(ffnsplit)--(ln2.north);
 \draw[data] (ln2)--(up);
 \draw[data] (up)--(down);
 \draw[data] (down)--(res2);
 \draw[data] (res2)--(out);
-\draw[shortcut,rounded corners=4pt] (xattn.south)--(35.6,12.0)-|(res2.north) node[pos=.55,above,note] {residual $X_{\mathrm{attn}}$};
+\draw[shortcut,rounded corners=4pt] (xattn.south)--(35.6,12.0)-|(res2.north)
+  node[pos=.55,above=2pt,note,fill=grayfill,inner sep=2pt] {residual $X_{\mathrm{attn}}$};
 \draw[draw=blue,line width=1.2pt] (28.3,9.75)--(28.3,10.5);
 \node[tensornote] at (28.3,10.95) {FFN hidden · $[B,S/p,4H]$};
 \draw[draw=blue,line width=1.2pt] (21.0,9.75)--(21.0,10.5);
 \node[tensornote] at (21.0,10.95) {local $Z_r[B,S/p,H]$};
 
-\node[anchor=west,note] at (1.55,4.65) {Ulysses 只转置 attention activation 的 $(S,N)$ ownership；FFN 保持 sequence-local，权重切分若存在由 TP 另行定义。};
+\node[anchor=west,note] at (1.55,5.85) {Ulysses 只转置 attention activation 的 $(S,N)$ ownership；FFN 保持 sequence-local，权重切分若存在由 TP 另行定义。};
 \legend
-\node[anchor=west,font=\fontsize{10.5}{12}\selectfont,text=muted] at (1.25,.55) {教学整理图（analysis-derived）· Ulysses：两次 A2A 转置 attention ownership，FFN 保持 sequence-local};
+\node[anchor=west,font=\fontsize{10.5}{12}\selectfont,text=muted] at (1.25,.55) {教学整理图（analysis-derived）· Ulysses：两次 ALL-TO-ALL 转置 attention ownership，FFN 保持 sequence-local};
 \end{tikzpicture}
 \end{document}
