@@ -3,7 +3,8 @@
   "mapping": {
     "02_model_systems/diffusion/papers/nemotron-labs-diffusion.md": "02_model_systems_diffusion_papers_nemotron-labs-diffusion.md.json",
     "_artifacts/nemotron-labs-diffusion-group-meeting-discussion.md": "_artifacts_nemotron-labs-diffusion-group-meeting-discussion.md.json",
-    "01_ai_infra/parallelism/surveys/parallel-partitioning-taxonomy.md": "01_ai_infra_parallelism_surveys_parallel-partitioning-taxonomy.md.json"
+    "01_ai_infra/parallelism/surveys/parallel-partitioning-taxonomy.md": "01_ai_infra_parallelism_surveys_parallel-partitioning-taxonomy.md.json",
+    "_artifacts/ai_systems_knowledge_mxfp8-qat-axis-alignment/synthesis.md": "_artifacts_ai_systems_knowledge_mxfp8-qat-axis-alignment_synthesis.md.json"
   },
-  "lastUpdated": 1786348955802
+  "lastUpdated": 1786368023091
 }
