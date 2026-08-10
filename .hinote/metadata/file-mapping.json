@@ -1,27 +1,7 @@
 {
   "version": "2.0",
   "mapping": {
-    "01_ai_infra/parallelism/surveys/parallel-partitioning-domain-plan.md": "01_ai_infra_parallelism_surveys_parallel-partitioning-domain-plan.md.json",
-    "_artifacts/To Analyse.md": "_artifacts_to_analyse.md.json",
-    "99_references/papers/README.md": "99_references_papers_readme.md.json",
-    "02_model_systems/speculative_decoding/papers/dels-spec.md": "02_model_systems_speculative_decoding_papers_dels-spec.md.json",
-    "02_model_systems/speculative_decoding/papers/hyperdflash.md": "02_model_systems_speculative_decoding_papers_hyperdflash.md.json",
-    "02_model_systems/speculative_decoding/papers/jetspec.md": "02_model_systems_speculative_decoding_papers_jetspec.md.json",
-    "02_model_systems/diffusion/papers/nemotron-labs-diffusion.md": "02_model_systems_diffusion_papers_nemotron-labs-diffusion.md.json",
-    "01_ai_infra/kernel/custom_attn/papers/calibatt.md": "01_ai_infra_kernel_custom_attn_papers_calibatt.md.json",
-    "01_ai_infra/parallelism/papers/deepspeed-ulysses.md": "01_ai_infra_parallelism_papers_deepspeed-ulysses.md.json",
-    "01_ai_infra/parallelism/papers/gpipe.md": "01_ai_infra_parallelism_papers_gpipe.md.json",
-    "01_ai_infra/parallelism/papers/gshard.md": "01_ai_infra_parallelism_papers_gshard.md.json",
-    "01_ai_infra/parallelism/papers/megatron-lm.md": "01_ai_infra_parallelism_papers_megatron-lm.md.json",
-    "01_ai_infra/parallelism/papers/ring-attention.md": "01_ai_infra_parallelism_papers_ring-attention.md.json",
-    "01_ai_infra/parallelism/papers/zero.md": "01_ai_infra_parallelism_papers_zero.md.json",
-    "01_ai_infra/parallelism/surveys/irregular-and-workload-aware-partitioning.md": "01_ai_infra_parallelism_surveys_irregular-and-workload-aware-partitioning.md.json",
-    "01_ai_infra/parallelism/surveys/parallel-partitioning-taxonomy.md": "01_ai_infra_parallelism_surveys_parallel-partitioning-taxonomy.md.json",
-    "01_ai_infra/parallelism/surveys/parallel-strategy-selection.md": "01_ai_infra_parallelism_surveys_parallel-strategy-selection.md.json",
-    "01_ai_infra/parallelism/README.md": "01_ai_infra_parallelism_readme.md.json",
-    "02_model_systems/speculative_decoding/papers/angelspec.md": "02_model_systems_speculative_decoding_papers_angelspec.md.json",
-    "02_model_systems/speculative_decoding/papers/torchspec.md": "02_model_systems_speculative_decoding_papers_torchspec.md.json",
-    "00_meta/inbox/杂七杂八.md": "00_meta_inbox_杂七杂八.md.json"
+    "02_model_systems/diffusion/papers/nemotron-labs-diffusion.md": "02_model_systems_diffusion_papers_nemotron-labs-diffusion.md.json"
   },
-  "lastUpdated": 1785920225928
+  "lastUpdated": 1786346060711
 }
