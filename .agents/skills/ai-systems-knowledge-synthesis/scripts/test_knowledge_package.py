@@ -35,6 +35,13 @@ METHOD_TEMPLATE = """# {title}
 
 {summary}
 
+## Symbol Table
+
+| Symbol | Plain-language meaning | Shape or value domain | Lifecycle or owner |
+| --- | --- | --- | --- |
+| W | Global weight tensor | [8, 16] | Split across four ranks |
+| p | Number of participating ranks | Positive integer; here p = 4 | Fixed for this walkthrough |
+
 ## Problem And Failure Without It
 
 One device cannot retain the full state; without partitioning, a 64 GiB state exceeds a 24 GiB device.
@@ -328,6 +335,15 @@ Mappings use pinned source records.
         text = path.read_text(encoding="utf-8").replace("shape [8, 16]", "a large shape").replace("shape [8, 4]", "a local shape").replace("shape [2, 8]", "an input shape").replace("shape [2, 4]", "an output shape").replace("shape [2, 16]", "a restored shape")
         path.write_text(text, encoding="utf-8")
         self.assert_error_contains(root, "numeric global and rank-local shapes", refresh=True)
+
+    def test_missing_symbol_table(self) -> None:
+        root = self.clone("symbol-table")
+        path = root / "methods" / "tensor-parallel.md"
+        text = path.read_text(encoding="utf-8")
+        start = text.index("## Symbol Table")
+        end = text.index("## Problem And Failure Without It")
+        path.write_text(text[:start] + text[end:], encoding="utf-8")
+        self.assert_error_contains(root, "missing sections: Symbol Table", refresh=True)
 
     def test_formula_without_explanation(self) -> None:
         root = self.clone("formula")

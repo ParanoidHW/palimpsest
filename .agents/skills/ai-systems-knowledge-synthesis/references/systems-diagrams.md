@@ -25,6 +25,16 @@ Before drawing a data-parallelism or ZeRO workflow, inspect these PNGs at origin
 
 Use [dp-training-workflow-sample.tex](../assets/diagram-examples/dp-training-workflow-sample.tex), [zero-training-workflow-samples.tex](../assets/diagram-examples/zero-training-workflow-samples.tex), and [layer-partitioning-samples.tex](../assets/diagram-examples/layer-partitioning-samples.tex) as editable structural references. Preserve the semantic grammar, not every coordinate or phrase; adapt spacing and scope to the mechanism being explained.
 
+## Default Source And Symbol Table
+
+- Use TikZ as the default source for technical diagrams. Compile with LuaLaTeX and render the resulting PDF to the review PNG; treat the `.tex` file as the editable source of truth.
+- Use a non-TikZ source only when the user explicitly requests it or the deliverable requires interaction that TikZ cannot provide. Record the exception and reason in the execution checklist and delivery contract.
+- Build a symbol inventory before drawing. List every tensor symbol, dimension, rank/world-size symbol, subscript, superscript, and abbreviation that will appear.
+- Put a compact symbol table inside the diagram when it remains readable at normal embed width. If it would crowd the mechanism, put the table immediately below the diagram in the companion Markdown and reserve a visible figure note that points to it.
+- A symbol table entry must give the symbol, ordinary-language meaning, shape or value domain when relevant, and lifecycle/owner when that distinction matters.
+- Use one canonical symbol per concept across the diagram set. Do not mix `$G$`, `grad_output`, and `dY` in a principle diagram unless the table explicitly maps the aliases and the comparison requires them.
+- Prefer ordinary Chinese mechanism labels. Write `输入梯度` before `DGRAD`, `权重梯度` before `WGRAD`, `按元素求和` before `all-reduce`, and `搬运到持有者` before framework communication jargon. Keep exact code terms in a separately labeled implementation supplement.
+
 ## Start From The Operation
 
 - Choose the viewpoint before drawing. For training, start with `global batch -> sampler -> rank-local micro-batch -> model forward -> loss -> backward -> accumulation -> collective -> optimizer -> updated weights`. For serving, start with request admission, scheduling, model execution, cache reads/writes, communication, and token output.
@@ -129,7 +139,7 @@ Use [dp-training-workflow-sample.tex](../assets/diagram-examples/dp-training-wor
 
 ## Production And Review
 
-- Prefer deterministic diagram sources such as TikZ for technical schematics that require exact alignment, tensor cells, and orthogonal routing. Keep `.tex`, intermediate PDF, renders, and QA files in the process workspace under `_artifacts/` unless repository policy says otherwise.
+- Use TikZ by default for technical schematics. Keep `.tex`, intermediate PDF, renders, and QA files in the process workspace under `_artifacts/` unless repository policy says otherwise.
 - Render a PNG for review before replacing a formal asset. Inspect the PNG at original resolution; do not approve from the PDF source or a thumbnail alone.
 - Re-render after every edit that changes coordinates, node size, labels, arrows, or line routing. A previously inspected raster does not validate a later source revision.
 - Iterate on one baseline diagram first, normally pure data parallelism for ZeRO comparisons. After approval, preserve its layout, visual grammar, tensor-strip scale, and arrow styles across variants so differences encode mechanism changes rather than redesign noise.
@@ -211,3 +221,5 @@ A diagram passes only when all answers are yes:
 - For TP/EP, is pre-norm explicit, normalization generic unless evidence says otherwise, $B/S/H/N/D$ notation consistent, and rank-local weight ownership visible?
 - Are residual shortcuts clearly dashed and separated from tensor-callout leaders and the main operation path?
 - Is the principle diagram free of visible framework names, commits, versions, configuration keys, and source symbols?
+- Does every visible symbol resolve through the figure's symbol table or the immediately adjacent companion table?
+- Are ordinary mechanism labels used in the principle view, with framework jargon confined to implementation supplements?

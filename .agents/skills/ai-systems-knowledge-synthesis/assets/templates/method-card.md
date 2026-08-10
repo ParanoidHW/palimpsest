@@ -4,6 +4,12 @@
 
 <Explain the mechanism without framework jargon.>
 
+## Symbol Table
+
+| Symbol | Plain-language meaning | Shape or value domain | Lifecycle or owner |
+| --- | --- | --- | --- |
+| `<symbol>` | `<ordinary-language definition>` | `<shape/range>` | `<phase/owner>` |
+
 ## Problem And Failure Without It
 
 <State the concrete bottleneck and a numeric failure example.>

@@ -26,6 +26,7 @@ REQUIRED_FILES = {
 }
 METHOD_SECTIONS = {
     "Plain-Language Summary",
+    "Symbol Table",
     "Problem And Failure Without It",
     "Global State And Partition Axis",
     "Tensor Walkthrough",

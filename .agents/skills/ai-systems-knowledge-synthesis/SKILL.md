@@ -66,11 +66,17 @@ Create `methods/<method>.md` from the method template. Answer all of these:
 - How does the method compose with other axes, and under which conditions does it fail?
 - Which statements come from each evidence class?
 
+Add a `Symbol Table` before the first formula or tensor walkthrough. Define every symbol, subscript, superscript, shape dimension, and locally introduced abbreviation in plain Chinese. Keep the same symbols across prose, formulas, diagrams, and framework mappings; do not introduce a second alias merely because a framework uses one.
+
 Include at least one numeric tensor walkthrough. State shape before partition, rank-local shape, payload and participants for every collective, and shape after communication.
 
 When producing a mechanism diagram, make the model or runtime operation the main dataflow and place tensor ownership beside it. Parameterize world size as `p` and the illustrated process as rank `r`; do not imply a fixed two-rank system. For training, show micro-batches as a sequential queue unless the method actually pipelines or overlaps them. Follow the diagram contract and inspect its bundled visual examples in [references/systems-diagrams.md](references/systems-diagrams.md).
 
 Define a visual grammar before drawing and preserve it across the diagram set. Keep tensors or weights, model compute, persistent rank-local state, collectives, and runtime actions visually distinct; never color an operation as a tensor or stored state. Keep boxes content-tight and use spacing, not empty padding, to preserve visible arrow shafts.
+
+Use TikZ as the default source format for technical mechanism diagrams. Start from a bundled `.tex` example or a compact task-local TikZ source, compile with LuaLaTeX, and render the PDF to PNG for review. Use another source format only when the user explicitly requests it or TikZ cannot express the required interaction; record that exception and reason in the execution checklist.
+
+Before placing nodes, create a symbol inventory and a plain-language label map. Put a compact symbol table inside the figure when it fits without crowding; otherwise place it immediately below the figure in the companion Markdown. Every visible formula, tensor shape, subscript, superscript, and abbreviation must resolve through that table. In method-principle diagrams, prefer ordinary Chinese labels such as `正向计算`, `输入梯度`, `权重梯度`, `按元素求和`, and `搬运张量`; do not use framework class names, unexplained English shorthand, or code identifiers as the explanation.
 
 Before drawing, create a diagram contract in the process workspace using `assets/diagram-delivery.schema.json`. It must freeze the viewpoint, abstraction level, primary chain, allowed edges, forbidden edges, tensor shapes, communication payloads, and review regions. If the requested semantics do not determine these fields, ask the user for the missing choices instead of inferring them from labels.
 
@@ -160,6 +166,8 @@ Treat readability as acceptance, not style polish:
 - Expand each abbreviation at first use with its plain-language Chinese meaning.
 - Explain a term in one ordinary-language sentence before its strict definition, tensor expression, or source symbol.
 - Do not use a class name as a mechanism explanation or stack unexplained abbreviations.
+- Put a symbol table before formulas and tensor walkthroughs; define every symbol exactly once and reuse it consistently.
+- Prefer plain Chinese mechanism words in prose and principle diagrams. Keep exact framework jargon only in implementation traces, after first explaining what it does.
 - After every formula, explain every symbol and the question the formula answers.
 - Describe every collective as payload, senders, receivers, and result operation: sum, concatenate, transpose, or ownership transfer.
 - Explain why every core design exists and give a concrete failure example without it.
