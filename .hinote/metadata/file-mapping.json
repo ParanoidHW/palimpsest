@@ -5,7 +5,9 @@
     "_artifacts/nemotron-labs-diffusion-group-meeting-discussion.md": "_artifacts_nemotron-labs-diffusion-group-meeting-discussion.md.json",
     "01_ai_infra/parallelism/surveys/parallel-partitioning-taxonomy.md": "01_ai_infra_parallelism_surveys_parallel-partitioning-taxonomy.md.json",
     "_artifacts/ai_systems_knowledge_mxfp8-qat-axis-alignment/synthesis.md": "_artifacts_ai_systems_knowledge_mxfp8-qat-axis-alignment_synthesis.md.json",
-    "02_model_systems/llm_foundations/surveys/2026h1-model-scale.md": "02_model_systems_llm_foundations_surveys_2026h1-model-scale.md.json"
+    "02_model_systems/llm_foundations/surveys/2026h1-model-scale.md": "02_model_systems_llm_foundations_surveys_2026h1-model-scale.md.json",
+    "_artifacts/To Analyse.md": "_artifacts_to_analyse.md.json",
+    "02_model_systems/embodied_ai/papers/xiaomi-robotics-u0.md": "02_model_systems_embodied_ai_papers_xiaomi-robotics-u0.md.json"
   },
-  "lastUpdated": 1786416264330
+  "lastUpdated": 1786438750317
 }
