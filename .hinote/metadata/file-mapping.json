@@ -7,7 +7,8 @@
     "_artifacts/ai_systems_knowledge_mxfp8-qat-axis-alignment/synthesis.md": "_artifacts_ai_systems_knowledge_mxfp8-qat-axis-alignment_synthesis.md.json",
     "02_model_systems/llm_foundations/surveys/2026h1-model-scale.md": "02_model_systems_llm_foundations_surveys_2026h1-model-scale.md.json",
     "_artifacts/To Analyse.md": "_artifacts_to_analyse.md.json",
-    "02_model_systems/embodied_ai/papers/xiaomi-robotics-u0.md": "02_model_systems_embodied_ai_papers_xiaomi-robotics-u0.md.json"
+    "02_model_systems/embodied_ai/papers/xiaomi-robotics-u0.md": "02_model_systems_embodied_ai_papers_xiaomi-robotics-u0.md.json",
+    "_artifacts/paper-deep-review/xiaomi-robotics-u0/group-discussion.md": "_artifacts_paper-deep-review_xiaomi-robotics-u0_group-discussion.md.json"
   },
-  "lastUpdated": 1786438750317
+  "lastUpdated": 1786448680145
 }
