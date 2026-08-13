@@ -91,7 +91,7 @@
 |---|---|---|
 | DODO | 深度精读 | [dodo](../02_model_systems/ICML/2026/papers/dodo.md) |
 | Dual-Latent Memory Routing | 深度精读 | [dual-latent-memory-routing](../02_model_systems/ICML/2026/papers/dual-latent-memory-routing.md) |
-| ECHO | 深度精读 | [echo](../02_model_systems/ICML/2026/papers/echo.md) |
+| ECHO | 深度精读；交付刷新（代码/公开评审受限） | [echo](../02_model_systems/ICML/2026/papers/echo.md) |
 | Flex-Forcing | 深度精读 | [flex-forcing](../02_model_systems/ICML/2026/papers/flex-forcing.md) |
 | Multimodal Latent Language Modeling | 深度精读 | [latentlm](../02_model_systems/ICML/2026/papers/latentlm.md) |
 | LiME | 深度精读 | [lime](../02_model_systems/ICML/2026/papers/lime.md) |

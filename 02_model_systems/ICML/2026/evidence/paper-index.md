@@ -20,7 +20,7 @@
 | `onlinespec` | [OnlineSpec](../papers/onlinespec.md), [arXiv:2603.12617](https://arxiv.org/abs/2603.12617) | ICLR 2026 Lifelong Agent Workshop | complete | 4 | commit `3a6cc69` |
 | `multi-token-self-distillation` | [MTP Self-Distillation](../papers/multi-token-self-distillation.md), [arXiv:2602.06019v2](https://arxiv.org/abs/2602.06019v2) | `Preprint. Under review`；ICML 身份未独立确认 | complete with limitations | 5 | 完整 source；官方仓 commit `167413e` |
 | `dodo` | [DODO](../papers/dodo.md), [arXiv:2602.16872v2](https://arxiv.org/abs/2602.16872v2) | ICML 2026 SPIGM Workshop | complete | 4 | 未发现官方实现；第三方仓不作论文实现证据 |
-| `echo` | [ECHO](../papers/echo.md), [arXiv:2604.09603v2](https://arxiv.org/abs/2604.09603v2) | ICML 2026 spotlight；OpenReview `L31hKCWRsN` | complete | 2 | 代码尚未发布 |
+| `echo` | [ECHO](../papers/echo.md), [arXiv:2604.09603v2](https://arxiv.org/abs/2604.09603v2) | ICML 2026 spotlight；OpenReview `L31hKCWRsN`；主投稿元数据可得，评审详情 403 | complete with limitations | 2 | 代码尚未发布；高负载 ECHO 与 EAGLE3 的初始树配置不匹配，完整收益不能归因于 elastic scheduler 单一组件 |
 
 ## 选择与排除说明
 

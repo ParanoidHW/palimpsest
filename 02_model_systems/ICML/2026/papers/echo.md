@@ -26,10 +26,10 @@ canonical: true
 
 ## 修订信息
 
-- 当前修订 ID：`rev-echo-obsidian-properties-20260730`
-- 当前文档版本：`1.1.2`
-- 当前修订时间：`2026-07-30T23:45:00+08:00`
-- 替代版本：`rev-echo-affiliation-backfill-20260730` / `1.1.1`
+- 当前修订 ID：`rev-echo-delivery-refresh-20260813`
+- 当前文档版本：`1.2.0`
+- 当前修订时间：`2026-08-13T10:00:00+08:00`
+- 替代版本：`rev-echo-obsidian-properties-20260730` / `1.1.2`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -37,11 +37,12 @@ canonical: true
 | `rev-echo-problem-solution-20260725` | `1.1.0` | `2026-07-25T10:05:32+08:00` | `/root` | `content-update` | `rev-echo-initial` / `1.0.0` / `1996f8ea4d8bfc9a5dfe46dfd5027a7476c5e64f5664c027acbc219c560ef0c0` | 无 | 新增高并发验证预算的问题—方案—优化—证据闭环 | 统一回写既有 Paper 报告 | `研究动机与问题—方案闭环` | Figure 1/2/5、Algorithm 1、Theorem 2 与既有证据矩阵 | minor：不改变主结论，强化归因边界 |
 | `rev-echo-affiliation-backfill-20260730` | `1.1.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | `rev-echo-problem-solution-20260725` / `1.1.0` | 无 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 | `rev-echo-obsidian-properties-20260730` | `1.1.2` | `2026-07-30T23:45:00+08:00` | `/root` | `metadata-update` | `rev-echo-affiliation-backfill-20260730` / `1.1.1` | 无 | 增加 Obsidian YAML Properties 与层级标签 | ICML 2026 小范围标签呈现实验 | 文件头 YAML frontmatter | Obsidian 原生 tags/Properties 语法；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
+| `rev-echo-delivery-refresh-20260813` | `1.2.0` | `2026-08-13T10:00:00+08:00` | `/root` | `delivery-refresh` | `rev-echo-obsidian-properties-20260730` / `1.1.2` | 无 | 按新交付规范刷新 Paper 状态、证据边界、venue/作者限制、反向索引与发布验证记录 | 用户要求按新的交付要求刷新 | 本文资料/证据/限制章节；README、Paper index、Survey | 现有 arXiv v2、OpenReview 主投稿元数据、既有图表清单；代码与公开评审仍不可得 | minor：收窄可复现性和高负载归因结论 |
 
 ## 0. 资料与配图索引
 
 - 论文：[arXiv:2604.09603v2](https://arxiv.org/abs/2604.09603v2)，PDF SHA-256 `d4a7123a6c1581a26058656b14113cc9bdb323a0e83113ba1e884e3a38bdc95c`；v1 2026-03-10，v2 2026-05-14，主分类 cs.DC。
-- Venue：OpenReview forum `L31hKCWRsN` 的主投稿元数据明确为 **ICML 2026 spotlight**。源码仍使用 `iclr2026_conference` 模板，说明模板名不能用于否定正式 venue 元数据。
+- Venue：OpenReview forum `L31hKCWRsN` 的主投稿元数据明确为 **ICML 2026 spotlight**。源码仍使用 `iclr2026_conference` 模板，模板名不作为 venue 证据。OpenReview 评审详情接口返回 403，因此只确认主投稿元数据，不声称已核验 reviewer、meta-review 或 rebuttal。
 - OpenReview 主投稿元数据确认 ICML 2026 spotlight；公开评审详情 API 返回 403。
 - Figure 3/5 及父级重裁记录见[正式 Figure inventory](../evidence/figure-inventory.md#echo)。
 - AI 生成示意图：跳过。已安装 OpenRouter ICU CLI 只有 `generate/edit`，没有 skill 强制要求的 required document-input path 路径。
@@ -91,7 +92,7 @@ canonical: true
 - 对应依据：论文 PDF 标题页、作者机构编号与角色脚注（核验日期：2026-07-30）。
 
 
-- 作者：Xinyi Hu 等九人；标题页机构为 Kuaishou Technology。
+- 作者：Xinyi Hu 等九人。标题页与当前报告中的机构信息存在不一致记录：作者—机构角色映射按标题页脚注保存；正文中的机构归属不以作者单位常识或源码模板推断。若后续取得最终 PDF，应重新核对全部作者机构和 venue 标记。
 - Venue：**ICML 2026 spotlight**，由 OpenReview 主投稿元数据独立确认；不是仅凭候选清单推断。
 - 研究问题：传统 speculative decoding 在低 batch 下可把 target 验证近似当“免费并行”，但高并发下验证转为 compute-bound，静态大树把低价值 token 推入昂贵验证，动态密集控制又有判断误差、控制开销和 ragged-kernel 不兼容。
 - 核心假设：每轮总验证量可被硬预算 $K_{\max}$ 约束；置信度可代理候选的边际接受收益；少数深度比其余深度更可分。
@@ -139,6 +140,29 @@ ECHO 面向大模型高并发服务。传统 speculative decoding 默认 target 
 ### 3.1 问题到方案的逻辑链
 
 高并发使 target verification compute-bound -> 每个无效候选都占用全 batch 的稀缺验证算力 -> 固定全局 token budget -> 用 sparse gate 识别低收益深扩展 -> 优先跨请求把预算移向高置信深度，空闲时才扩宽 -> flatten/pack 后一次 target verification。
+
+### 3.1.1 方法总览：一次 ECHO 迭代怎样运行
+
+ECHO 不改变 target model 的参数，也不改变最终的 speculative acceptance rule；它主要改写的是 draft tree 的构造和 batch 内验证预算的分配。每次迭代接收一批请求及其上下文，先由 draft model 为每个请求生成候选树，再把每个请求的候选节点、深度和路径置信度放入统一的 batch 视图。这里的候选树仍按请求分别生成，`Super-tree` 只是为了统计和分配共享验证预算，并不把不同请求的语义或 token 合并成一个生成树。
+
+执行顺序可以按六步理解：
+
+1. **建立候选树。** 对请求 $i$ 生成候选节点，记录每个节点的深度、父节点和 draft log probability；此阶段改变候选集合，不执行 target verification。
+2. **选择 gating 深度。** 用 warm-up 数据计算各深度的 accept/reject 可分性，只在 AUC 达到条件的少数深度检查置信度；未选深度不额外插入判断。
+3. **稀疏截断或延伸。** 在选中的深度比较 $c_{i,d}$ 与该深度阈值 $\tau_d$：低于阈值的请求在此处截断，高于阈值的请求保留向更深层扩展的机会。这个信号属于 draft/tree construction，不是 target 对 token 的最终接受判定。
+4. **跨请求分配预算。** 统计当前 batch 的候选总量。如果接近或超过 $K_{\max}$，优先把被截断请求释放的 token 预算给仍有高置信深度可扩展的请求；如果深度扩展没有可行空间，剩余预算才用于截断点的宽度扩展。该阶段改变每个请求的 $K_i$ 和最终候选树形状，但不改变 target model 的计算结果。
+5. **展平与打包。** 不同请求的树可能有不同深度和宽度。ECHO 将保留的 ragged candidates 展平为一次 target verification 可消费的布局，并保存请求、节点和父子关系的索引；这是执行布局变化，不应单独解释为接受率提升。
+6. **一次 target verification。** target model 对打包后的候选并集执行验证，按原有规则决定每个请求接受多少 token，然后进入下一轮。论文把主要收益归因于候选数量和预算分配更有效，而不是 target model 本身变快。
+
+| 阶段 | 输入 | 输出/改变的状态 | 不改变的对象 | 证据边界 |
+|---|---|---|---|---|
+| 候选树构造 | 请求上下文、draft model | 每请求候选节点与路径分数 | target 权重、接受规则 | 论文描述；checkpoint/runtime 未提供代码复核 |
+| Sparse gate | 深度候选与校准阈值 | 截断点、可延伸深度 | 未选深度不插入 dense gate | Fig. 2/5 有消融 |
+| Elastic scheduler | 各请求候选、$K_{\max}$ | 跨请求的 $K_i$、深扩展/宽扩展决策 | 请求语义不合并 | Theorem 1/2 与端到端结果；组件收益未完全隔离 |
+| Flatten-and-pack | 不规则候选树 | dense verification 布局与索引 | token 概率和 target 参数 | Figure 3；kernel 实现未验证 |
+| Target verification | packed candidates | 接受 token、下一轮状态 | acceptance rule | 论文实验；无公开 serving code |
+
+因此，ECHO 的核心不是“让 target 一次看更多 token”这一单点技巧，而是把候选生成、稀疏判断、跨请求预算和执行布局串成一个受 $K_{\max}$ 约束的闭环。论文直接验证了 sparse gate 和 depth-aware threshold 的局部消融；完整高负载收益还同时依赖初始树配置、scheduler 和 packing，不能把它简化为某一个 gate 或 kernel 的单独提升。
 
 ### 3.2 设计动机与具体问题映射
 
@@ -264,7 +288,7 @@ $$
 
 ## 8. 代码与配置核验
 
-论文 Appendix “Evaluation Details”明确写代码稍后开放；无仓库 URL/commit。可核验的仅是论文配置：8xH100 80GB、BF16、temperature=0、SGLang high-load、Transformers BS=1、部分 CUDA Graph、六组 target/draft checkpoint 名称。无法核验 SGLang commit、custom op、scheduler、tree mask、KV cache、模型 metadata 或 checkpoint flags。因此所有 implementation-level claim 标为未验证。
+论文 Appendix “Evaluation Details”明确写代码稍后开放；无仓库 URL/commit。可核验的仅是论文配置：8xH100 80GB、BF16、temperature=0、SGLang high-load、Transformers BS=1、部分 CUDA Graph、六组 target/draft checkpoint 名称。无法核验 SGLang commit、custom op、scheduler、tree mask、KV cache、模型 metadata 或 checkpoint flags。因此所有 implementation-level claim 标为未验证；本次刷新没有把论文配置误写成可复现实装证据。
 
 ## 9. 局限、启发与待验证问题
 

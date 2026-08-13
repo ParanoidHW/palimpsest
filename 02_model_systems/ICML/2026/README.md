@@ -35,7 +35,7 @@
 | [OnlineSpec](papers/onlinespec.md)                                       | ICLR 2026 Lifelong Agent Workshop                          | complete，venue mismatch                                                   |
 | [Multi-Token Self-Distillation](papers/multi-token-self-distillation.md) | `Preprint. Under review`                                   | complete with limitations：完整 source、官方代码 commit 与 5 张论文图已复核；venue 未核验     |
 | [DODO](papers/dodo.md)                                                   | ICML 2026 SPIGM Workshop                                   | complete，非主会                                                              |
-| [ECHO](papers/echo.md)                                                   | ICML 2026 spotlight，OpenReview forum `L31hKCWRsN`          | complete                                                                  |
+| [ECHO](papers/echo.md)                                                   | ICML 2026 spotlight，OpenReview forum `L31hKCWRsN`          | complete with limitations：代码未发布，公开评审详情 403；高负载完整收益含树配置/调度/packing 混杂 |
 
 ## 文档索引
 

@@ -29,7 +29,7 @@
 
 [Multi-Token Self-Distillation](../papers/multi-token-self-distillation.md#3-研究方法) 把已有自回归模型训练成无需独立 verifier 的 standalone MTP 模型；本轮完整 source 与官方 commit `167413e` 验证了 randomized offset/span masks、online teacher feedback 和 ConfAdapt 路径。优势是部署形态简单，但 Figure 12 也直接显示置信度自适应解码的 per-token 控制开销会在并发场景限制扩展。[OnlineSpec](../papers/onlinespec.md#4-关键结论与证据矩阵) 把 target verification feedback 解释为在线学习信号，理论上连接 dynamic regret 与加速率，但其 primary source 是 ICLR workshop，不是 ICML 接收证据。
 
-[ECHO](../papers/echo.md#4-关键结论与证据矩阵) 把高并发 speculative decoding 重新表述为全 batch verification budget 调度：sparse gate 决定截断/扩展，global scheduler 在请求间重分配深度预算，最后 flatten-and-pack 适配 dense kernel。matched ablation 支持 sparse gate 与 depth-aware threshold，但 235B、BS=256 的完整收益仍混合了树构造、调度和 packing。
+[ECHO](../papers/echo.md#4-关键结论与证据矩阵) 把高并发 speculative decoding 重新表述为全 batch verification budget 调度：sparse gate 决定截断/扩展，global scheduler 在请求间重分配深度预算，最后 flatten-and-pack 适配 dense kernel。matched ablation 支持 sparse gate 与 depth-aware threshold，但 235B、BS=256 的完整收益仍混合了初始树配置、树构造、调度和 packing；代码未发布，OpenReview 评审详情也无法通过 403 接口核验。
 
 ## 4. 跨论文系统判断
 
