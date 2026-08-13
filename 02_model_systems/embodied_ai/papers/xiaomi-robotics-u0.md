@@ -26,16 +26,17 @@ canonical: true
 
 ## 修订信息
 
-- 当前修订 ID：`rev-xiaomi-robotics-u0-obsidian-properties-20260731`
-- 当前文档版本：`1.0.2`
-- 当前修订时间：`2026-07-31T10:00:00+08:00`
-- 替代版本：`rev-xiaomi-robotics-u0-affiliation-backfill-20260730` / `1.0.1`
+- 当前修订 ID：`rev-xiaomi-robotics-u0-flashar-baseline-20260813`
+- 当前文档版本：`1.0.3`
+- 当前修订时间：`2026-08-13T10:00:00+08:00`
+- 替代版本：`rev-xiaomi-robotics-u0-obsidian-properties-20260731` / `1.0.2`
 
 | 修订 ID | 版本 | 时间 | 修订者 | 类型 | 变更摘要 | 对结论影响 |
 |---|---|---|---|---|---|---|
 | `rev-initial-xiaomi-robotics-u0-20260727` | `1.0.0` | `2026-07-27T23:30:00+08:00` | Codex | initial | 基于 arXiv v1、官方源码、项目页、固定 commit 代码与原图 QA 建立首版审计式解读 | material |
 | `rev-xiaomi-robotics-u0-affiliation-backfill-20260730` | `1.0.1` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | 补充作者—机构元数据与角色证据边界 | none：不改变方法、实验与归因结论 |
 | `rev-xiaomi-robotics-u0-obsidian-properties-20260731` | `1.0.2` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | 增加 Obsidian YAML Properties 与层级标签 | none：不改变论文分析与证据结论 |
+| `rev-xiaomi-robotics-u0-flashar-baseline-20260813` | `1.0.3` | `2026-08-13T10:00:00+08:00` | `/root` | `evidence-boundary-update` | 明确 82.86× 的分母是标准 AR eager；补充标准 AR CUDA Graph 只有代码配置、没有独立性能数据 | 收窄 FlashAR+ 加速比较的可归因范围 |
 
 ## 0. 资料、术语与符号
 
@@ -173,9 +174,9 @@ $$
 |---|---:|---:|---:|
 | 标准 AR | 450.77 | — | 1× |
 | FlashAR+ | 16.56 | 27.22× | 27.22× |
-| FlashAR+ + vLLM | 5.44 | 3.04× | 82.86× |
+| FlashAR+ + vLLM | 5.44 | 3.04× | 82.86×（相对 AR eager） |
 
-vLLM 收益来自 prefix/batching/paged KV 等系统能力，实验 `max_num_seq=28`。82.86× 是两个阶段相乘后的单一测试点，不应外推为任意 batch、分辨率和 GPU 的固定倍率。
+vLLM 收益来自 prefix/batching/paged KV 等系统能力，实验 `max_num_seq=28`。论文和 README 将 82.86× 定义为 FlashAR+ vLLM 相对标准 AR eager 的结果，450.77 秒/图的分母不是标准 AR CUDA Graph。代码的标准 AR vLLM 初始化确实默认设置 `full_cuda_graph: True`，但没有报告该路径的独立耗时、吞吐或加速比，因此不能把 82.86× 解释为相对标准 AR CUDA Graph 的收益，也不应外推为任意 batch、分辨率和 GPU 的固定倍率。
 
 ## 5. 具身任务证据
 
@@ -228,6 +229,7 @@ vLLM 收益来自 prefix/batching/paged KV 等系统能力，实验 `max_num_seq
 | 统一训练带来正迁移 | 多任务最终结果 | 无单任务/leave-one-task-out | unverified causally |
 | FlashAR+ 保持质量并显著加速 | Fig. 7、latency table | 单设备/分辨率点；GenEval 略降 | partially supported |
 | vLLM 再带来 3.04× | matched FlashAR+ 路径 | `max_num_seq=28`，负载敏感 | supported in setup |
+| FlashAR+ vLLM 达到 82.86× | Figure 7、README、代码运行配置 | 分母是 AR eager；标准 AR CUDA Graph 无独立性能数据 | supported only for reported baseline |
 | transfer 数据提升策略鲁棒性 | Fig. 17 controlled addition | 三任务、progress metric、trial 数有限 | supported |
 | U0 是更强世界模型 | WorldArena 总分 +0.58 | 子指标混合、缺显著性 | weakly supported |
 | 训练可复现 | inference code/weights 发布 | 无完整训练代码/数据 | not supported |
@@ -245,6 +247,8 @@ vLLM 收益来自 prefix/batching/paged KV 等系统能力，实验 `max_num_seq
 - tests 覆盖 prompt 模板、task config、checkpoint path 和多 GPU profile。
 
 项目公开的是推理代码和部分任务权重。项目页在核验日仍把视频 checkpoint 标为后续开放；因此“统一论文能力”大于“当前已发布 checkpoint 覆盖”。
+
+标准 AR 的 vLLM 初始化代码默认包含 `full_cuda_graph: True` 和 `backend: "cudagraph"`，但 Figure 7 的 450.77 秒/图基线及 README 的 82.86× 说明都把比较对象写成 AR eager。仓库没有标准 AR CUDA Graph 的独立实测数据，故只能确认存在该配置，不能据此推导其性能或重新计算 FlashAR+ 的加速比。
 
 ### 7.2 训练 Infra
 
@@ -298,4 +302,3 @@ U0 与一般 T2I/图像编辑模型的区别是把机器人视角、深度、多
 ## 10. 最终评价
 
 U0 是一个规模大、任务覆盖广、系统实现完整度较高的具身生成基础设施工作。它最可信的贡献有两项：FlashAR+ 在指定 H20/vLLM 条件下显著减少二维 AR 生成时间；合成 transfer 数据在受控策略实验中显著改善 held-out 干扰下的任务进度。它尚未证明统一训练的独立收益，也不应把视觉生成模型等同于完整物理 simulator。对研究和工程团队而言，最有价值的不是“38B”这个规模标签，而是统一序列接口、可控数据增广、下游策略闭环和 serving co-design 的组合。
-

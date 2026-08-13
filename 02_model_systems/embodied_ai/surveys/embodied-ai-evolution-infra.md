@@ -60,7 +60,7 @@ EmbodiedScan 将 RGB-D、文本、3D detection/grounding/occupancy 放入统一�
 
 ### World model：从 latent interactive environment 到 Physical AI 平台
 
-[Genie](../papers/genie.md#核心机制与贡献)在无动作标签视频中学习离散 latent action，并以 tokenizer 与 dynamics 组成可控生成环境；[其系统分析](../papers/genie.md#infra-与部署)表明长视频 token、迭代采样和训练规模更接近数据生成/交互平台。[Cosmos](../papers/cosmos-world-foundation-model.md#4-研究方法)进一步提供 curator、连续/离散 tokenizer、diffusion/AR WFM、后训练与 guardrail；[主结果与证据矩阵](../papers/cosmos-world-foundation-model.md#5-关键结论与技术-claim-证据矩阵)说明高质量生成不能直接进入在线伺服。[Xiaomi-Robotics-U0](../papers/xiaomi-robotics-u0.md#2-问题方案证据闭环)把 T2I、编辑、场景生成、transfer 和视频映射到统一视觉 token 模型，并以固定策略的数据增广对照证明 transfer 数据主要改善 held-out 干扰；[FlashAR+](../papers/xiaomi-robotics-u0.md#4-flashar)则通过二维对角 step 与 vLLM 把 1024² 生成时间从 450.77 秒降到论文条件下的 5.44 秒。
+[Genie](../papers/genie.md#核心机制与贡献)在无动作标签视频中学习离散 latent action，并以 tokenizer 与 dynamics 组成可控生成环境；[其系统分析](../papers/genie.md#infra-与部署)表明长视频 token、迭代采样和训练规模更接近数据生成/交互平台。[Cosmos](../papers/cosmos-world-foundation-model.md#4-研究方法)进一步提供 curator、连续/离散 tokenizer、diffusion/AR WFM、后训练与 guardrail；[主结果与证据矩阵](../papers/cosmos-world-foundation-model.md#5-关键结论与技术-claim-证据矩阵)说明高质量生成不能直接进入在线伺服。[Xiaomi-Robotics-U0](../papers/xiaomi-robotics-u0.md#2-问题方案证据闭环)把 T2I、编辑、场景生成、transfer 和视频映射到统一视觉 token 模型，并以固定策略的数据增广对照证明 transfer 数据主要改善 held-out 干扰；[FlashAR+](../papers/xiaomi-robotics-u0.md#4-flashar)则通过二维对角 step 与 vLLM 把 1024² 生成时间从标准 AR eager 的 450.77 秒降到论文条件下的 5.44 秒。代码虽为标准 AR vLLM 配置了 CUDA Graph，但没有独立性能数据，因此 82.86× 不能解释为相对标准 AR CUDA Graph 的收益。
 
 world model 的价值在于预测、数据闭环、候选分支与不确定性，而非自动构成安全 policy。U0 也说明“像素合成数据提升策略”与“模型在线闭环控制”是两种不同证据；内容 guardrail 同样不能代替碰撞、力矩限制和急停。
 
