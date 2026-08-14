@@ -19,15 +19,16 @@ canonical: true
 > - 文档类型：Paper
 > - 领域入口：[LLM Foundations README](../README.md)
 > - 父级 Survey：[2026 H1 model scale](../surveys/2026h1-model-scale.md)
+> - 相关 Survey：[Linear Attention Transformer 演化](../surveys/linear-attention-transformer-evolution.md)
 > - 正式资产：[Kimi K3 assets](../assets/papers/kimi-k3/)
 > - 证据索引：[Figure inventory](../evidence/figure-inventory.md#kimi-k3)
 
 ## 修订信息
 
-- 当前版本：`1.0.3`
-- 当前修订 ID：`rev-kimi-k3-obsidian-properties-20260731`
-- 当前修订时间：`2026-07-31T10:00:00+08:00`
-- 变更：补充作者机构元数据；此前 `1.0.1` 的公式分隔符修订保持不变。
+- 当前版本：`1.0.4`
+- 当前修订 ID：`rev-kimi-k3-linear-attention-link-20260814`
+- 当前修订时间：`2026-08-14T18:00:00+08:00`
+- 变更：补充 Linear Attention Transformer Survey 反向链接；此前 `1.0.3` 的元数据修订保持不变。
 - 依据：[官方技术报告](https://github.com/MoonshotAI/Kimi-K3/blob/main/k3_tech_report.pdf)、[官方 Hugging Face 权重/配置](https://huggingface.co/moonshotai/Kimi-K3)、[昇腾 CANN 0day 样例](https://gitcode.com/cann/cann-recipes-infer/tree/master/models/kimi_k3)
 - 证据边界：报告没有公开 LaTeX、训练数据清单、核心训练/生产 serving 代码或公开 OpenReview 评审；本次核验了官方 HF revision `9f62e4e9fffbd0a83ddd60e1c209d828994b3569` 和 CANN commit `f6bbf9f1477de09b9c313c74023ff3a4733ad6eb`，但未下载 96 个权重分片或独立运行 32 卡 benchmark。
 
@@ -35,6 +36,7 @@ canonical: true
 |---|---|---|---|---|---|---|---|---|---|---|
 | `rev-kimi-k3-affiliation-backfill-20260730` | `1.0.2` | `2026-07-30T23:30:00+08:00` | `/root` | `metadata-update` | 既有 `1.0.1` 公式格式修订 | 补充作者—机构元数据与角色证据边界 | 统一回填 affiliation 交付字段 | `作者与机构` | 论文 PDF 标题页、机构编号与角色脚注 | none：不改变方法、实验与归因结论 |
 | `rev-kimi-k3-obsidian-properties-20260731` | `1.0.3` | `2026-07-31T10:00:00+08:00` | `/root` | `metadata-update` | `rev-kimi-k3-affiliation-backfill-20260730` / `1.0.2` | 增加 Obsidian YAML Properties 与层级标签 | 全量 canonical Paper 标签补齐 | 文件头 YAML frontmatter | 已验证的 ICML 2026 标签 schema；仓库覆盖矩阵 | none：不改变论文分析与证据结论 |
+| `rev-kimi-k3-linear-attention-link-20260814` | `1.0.4` | `2026-08-14T18:00:00+08:00` | `/root` | `content-update` | `rev-kimi-k3-obsidian-properties-20260731` / `1.0.3` | 增加 linear-attention 演化 Survey 反向链接 | 完成 Paper -> Survey 反向链路 | 文档关系区块 | 新 Survey canonical draft | none：不改变 KDA 技术结论 |
 
 ## 0. 一页结论
 
