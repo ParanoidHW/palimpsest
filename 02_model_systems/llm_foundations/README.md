@@ -7,7 +7,7 @@
 1. [2026 H1 model scale](surveys/2026h1-model-scale.md)：先看近半年云侧模型规模、精度、结构和 Attention 类型的横向表。
 2. [DeepSeek-V4 精读分析](papers/deepseek-v4.md)：再看 1M context、CSA/HCA、mHC、MoE overlap 和 KV cache 的系统影响。
 3. [Kimi K3 精读分析](papers/kimi-k3.md)：最后看 2.8T/104.2B-active、KDA/MLA、AttnRes、896-expert MoE、agent RL 与昇腾 CANN 0day 实现边界。
-4. [Linear Attention Transformer 演化](surveys/linear-attention-transformer-evolution.md)：补充从 Linear Transformer、RetNet、Mamba、GLA、DeltaNet 到 Qwen3-Next/Kimi K3 KDA 的状态与 kernel 谱系。
+4. [Linear Attention Transformer 演化](surveys/linear-attention-transformer-evolution.md)：从 2020 feature-map 状态、RetNet、Mamba/SSD、GLA/DeltaNet 到 2026 KDA、Mamba-3、Gated DeltaNet-2，分别比较方法谱系、Qwen3-Next/Kimi K3 系统采用、kernel、cache 与 serving 约束。
 
 ## 文档索引
 

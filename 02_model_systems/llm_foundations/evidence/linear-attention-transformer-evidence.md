@@ -9,7 +9,7 @@ tags:
 document_type: evidence
 domain: llm_foundations
 collection: LLM Foundations
-review_status: blocked
+review_status: accepted-with-limitations
 canonical: true
 ---
 
@@ -19,21 +19,83 @@ canonical: true
 > - 文档类型：Evidence
 > - 领域入口：[LLM Foundations README](../README.md)
 > - 上位汇总：[Linear Attention Transformer 演化](../surveys/linear-attention-transformer-evolution.md)
+> - 复用 Paper：[Kimi K3](../papers/kimi-k3.md)
 
-## 方法 Paper
+## 版本与范围
 
-| Work | Source | Review status |
+- 当前证据版本：`2.0.0` / `rev-linear-attn-evidence-20260814`
+- 检索截止：`2026-08-14`
+- Survey 模式：`hybrid`
+- 分桶：10 个方法节点、1 个 benchmark/taxonomy、2 个 native-system adoption；backend/integration 不计为论文。
+- 验收结论：除 Kimi K3 外，新方法尚未通过独立 Paper 的 PDF/source/视觉/schema 验收，故不创建 canonical Paper，也不增加覆盖矩阵 Paper 计数。
+
+## 方法候选与证据状态
+
+| Work | Stable identity | Role | Primary source | Code/kernel locator | Review verdict |
+|---|---|---|---|---|---|
+| Linear Transformer | arXiv `2006.16236` | seminal | [arXiv](https://arxiv.org/abs/2006.16236) | 未固定 | `accepted-with-limitations` for survey navigation; Paper promotion blocked |
+| RetNet | arXiv `2307.08621` | bridge | [arXiv](https://arxiv.org/abs/2307.08621) | 官方实现待固定 | 同上 |
+| Mamba | arXiv `2312.00752` | selective-SSM bridge | [arXiv](https://arxiv.org/abs/2312.00752) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | 同上；明确非严格 linear attention |
+| Mamba-2 / SSD | arXiv `2405.21060` | duality bridge | [arXiv](https://arxiv.org/abs/2405.21060) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | 同上 |
+| Gated Linear Attention | arXiv `2312.06635` | core | [arXiv](https://arxiv.org/abs/2312.06635) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
+| DeltaNet | arXiv `2406.06484` | core | [arXiv](https://arxiv.org/abs/2406.06484) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
+| Gated DeltaNet | arXiv `2412.06464` | core/adoption bridge | [arXiv](https://arxiv.org/abs/2412.06464) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
+| Kimi Linear / KDA | technical report / Kimi K3 | recent/system | [Kimi K3 Paper](../papers/kimi-k3.md) | canonical Paper records FlashKDA/KCP evidence | `link-only`; accepted canonical owner |
+| Mamba-3 | 2026 technical-report lineage | recent | stable paper locator not frozen | [state-spaces/mamba](https://github.com/state-spaces/mamba) | rejected for Paper promotion until version/PDF/code pin is fixed |
+| Gated DeltaNet-2 | 2026 technical-report lineage | recent | stable paper locator not frozen | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | rejected for Paper promotion until version/PDF/code pin is fixed |
+
+2026 *Linear Attention Architectures: Mechanisms, Trade-offs, and Cross-Layer Routing* 单列 taxonomy/benchmark；由于本轮没有取得稳定 primary locator，不把其分类结论当作已建立证据，也不计入 10 篇方法。
+
+## System adoption database
+
+### Qwen3-Next-80B-A3B
+
+| Field | Value | Evidence class |
 |---|---|---|
-| Linear Transformer | [arXiv 2006.16236](https://arxiv.org/abs/2006.16236) | blocked PDF/source in isolated review |
-| RetNet | [arXiv 2307.08621](https://arxiv.org/abs/2307.08621) | blocked PDF/source in isolated review |
-| Mamba | [arXiv 2312.00752](https://arxiv.org/abs/2312.00752) | abstract accessible; PDF/source blocked |
-| GLA | [arXiv 2312.06635](https://arxiv.org/abs/2312.06635) | abstract accessible; PDF/source blocked |
-| DeltaNet | [arXiv 2406.06484](https://arxiv.org/abs/2406.06484) | blocked PDF/source in isolated review |
-| Gated Delta Networks | [arXiv 2412.06464](https://arxiv.org/abs/2412.06464) | blocked PDF/source in isolated review |
+| Layer count | 48 | official config (`Model`) |
+| Hybrid cadence | `3 Gated DeltaNet + 1 Gated Attention` | official model card/config (`Model`) |
+| Linear QK/V heads | 16 / 32 | official config (`Model`) |
+| Head dimension | 128 | official config (`Model`) |
+| Causal convolution | kernel size 4 | official config (`Model`) |
+| Native context | 262,144 | official config (`Model`) |
+| Extended context | YaRN path to 1M | official model documentation (`Model`) |
+| Kernel dependencies | FLA and causal-conv1d locators | official dependency/runtime evidence (`Code`) |
+| Serving paths | Transformers, vLLM, SGLang implementation locators | backend evidence (`Runtime`); exact support tier must be checked per release |
 
-## 系统采用
+Sources: official [model card](https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct), raw [config](https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct/raw/main/config.json), and [FLA](https://github.com/fla-org/flash-linear-attention). These establish configuration and integration paths, not a matched causal attribution of model quality.
 
-- Qwen3-Next official [model card](https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct) and [config](https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct/raw/main/config.json): 3 Gated DeltaNet : 1 Gated Attention, 48 layers, 256K native context.
-- Kimi K3: reuse [canonical Paper](../papers/kimi-k3.md) and [figure inventory](figure-inventory.md), covering KDA bounded decay, FlashKDA/KCP, prefix cache and original visuals.
+### Kimi K3
 
-原论文新裁剪资产数量为 0；不能用生成图或摘要替代缺失的 mechanism/result crop。
+Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts include 69 KDA + 24 Gated MLA layers, bounded decay, delta-rule state update, FlashKDA/KCP, and dual-granularity prefix cache. Original-paper assets remain under `../assets/papers/kimi-k3/`; see the domain [Figure inventory](figure-inventory.md). No asset is copied for this Survey.
+
+## Count buckets
+
+| Bucket | Count | Included records |
+|---|---:|---|
+| Peer-reviewed method Papers accepted in this task | 0 | no new Paper passed the full contract |
+| arXiv/technical-report method nodes used for navigation | 10 | table above |
+| Benchmark/taxonomy records | 1 | 2026 taxonomy, locator unresolved |
+| Native-system adoption | 2 | Qwen3-Next, Kimi K3 |
+| Optional official backends | not frozen | per-release Transformers/vLLM/SGLang checks required |
+| Third-party integrations | not counted | discovery-only unless source and support tier are pinned |
+
+## Visual inventory and QA
+
+New original-paper crops promoted by this revision: `0`.
+
+Reason: a qualifying crop must contain one numbered object and complete caption, record PDF page/source dimensions/bbox, pass contact-sheet triage and individual 100% review, and be embedded with an evidence loop. The newly proposed method set did not complete that pipeline. Generated diagrams and README screenshots are not substitutes. Kimi K3 has existing QA-passed crops in the canonical [Figure inventory](figure-inventory.md).
+
+## Claim-to-source matrix
+
+| Survey claim | Source class | Strength | Attribution boundary |
+|---|---|---|---|
+| feature-map reordering yields fixed prefix state | Linear Transformer paper locator | paper-derived, visual not revalidated | no claim of softmax equivalence |
+| RetNet supports parallel/recurrent/chunkwise forms | RetNet paper locator | paper-derived, visual not revalidated | kernel performance not remeasured |
+| Mamba is selective SSM, not strict linear attention | paper/repository + taxonomy synthesis | strong boundary classification | similarity of recurrence is not identity |
+| DeltaNet uses erase-then-write correction | DeltaNet locator + implementation family | mechanism-level, pending full review | component gain not isolated here |
+| Qwen3-Next has 3:1 hybrid cadence and listed dimensions | official model card/config | strong configuration evidence | model-wide gains remain confounded |
+| Kimi K3 has 69 KDA + 24 Gated MLA and prefix-cache stack | canonical Paper and original visuals | strongest local evidence | training data/full production stack remain partly closed |
+
+## Promotion gate
+
+Each remaining candidate requires exactly one fresh `$paper-deep-review` run, unchanged task packet, readable PDF/source, code commit where available, two types of original visual or explicit skip evidence, 100% crop QA, valid paper manifest and deterministic parent verdict. Only then may it become `papers/<slug>.md`, acquire `assets/papers/<slug>/`, enter README, and increment the meta coverage matrix.
