@@ -135,27 +135,27 @@
 
 ### Multimodal generation（19）
 
-| Paper | 状态 | Canonical |
-|---|---|---|
-| BAGEL | 深度精读；近半年 Survey 已复用 | [bagel](../02_model_systems/multimodal_generation/papers/bagel.md) |
-| Causal-rCM | 深度精读 | [causal-rcm](../02_model_systems/multimodal_generation/papers/causal-rcm.md) |
-| Cosmos 3 | 深度精读；近半年 Survey 已复用 | [cosmos-3](../02_model_systems/multimodal_generation/papers/cosmos-3.md) |
-| DC-AE | 深度精读 | [dcae](../02_model_systems/multimodal_generation/papers/dcae.md) |
-| DiT | 深度精读 | [dit](../02_model_systems/multimodal_generation/papers/dit.md) |
-| FEB-Cache | 深度精读 | [feb-cache](../02_model_systems/multimodal_generation/papers/feb-cache.md) |
-| Helios | 深度精读 | [helios](../02_model_systems/multimodal_generation/papers/helios.md) |
-| HunyuanVideo 1.5 | 深度精读 | [hunyuanvideo-1-5](../02_model_systems/multimodal_generation/papers/hunyuanvideo-1-5.md) |
-| LDM | 深度精读 | [ldm](../02_model_systems/multimodal_generation/papers/ldm.md) |
-| MAGI-1 | 深度精读 | [magi-1](../02_model_systems/multimodal_generation/papers/magi-1.md) |
-| PixelDiT | 深度精读 | [pixeldit](../02_model_systems/multimodal_generation/papers/pixeldit.md) |
-| Qwen-Image-2.0 | 深度精读 | [qwen-image-2-0](../02_model_systems/multimodal_generation/papers/qwen-image-2-0.md) |
-| SANA-Video 2.0 | 深度精读 | [sana-video-2](../02_model_systems/multimodal_generation/papers/sana-video-2.md) |
-| Sparse VideoGen | 深度精读 | [sparse-videogen](../02_model_systems/multimodal_generation/papers/sparse-videogen.md) |
-| Sparse VideoGen2: Accelerate Video Generation with Sparse Attention via Semantic-Aware Permutation（SVG2；arXiv:2505.18875） | 深度精读 | [sparse-videogen2](../02_model_systems/multimodal_generation/papers/sparse-videogen2.md) |
-| Training-Free Efficient Video Generation via Dynamic Token Carving（Jenga；TokenCarve；arXiv:2505.16864） | 深度精读；单一 canonical 条目 | [jenga](../02_model_systems/multimodal_generation/papers/jenga.md) |
-| SwiftFusion | 深度精读 | [swiftfusion](../02_model_systems/multimodal_generation/papers/swiftfusion.md) |
-| Transfusion | 深度精读 | [transfusion](../02_model_systems/multimodal_generation/papers/transfusion.md) |
-| Vega | 深度精读 | [vega](../02_model_systems/multimodal_generation/papers/vega.md) |
+| Paper                                                                                                                     | 状态                   | Canonical                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------- | ---------------------------------------------------------------------------------------- |
+| BAGEL                                                                                                                     | 深度精读；近半年 Survey 已复用  | [bagel](../02_model_systems/multimodal_generation/papers/bagel.md)                       |
+| Causal-rCM                                                                                                                | 深度精读                 | [causal-rcm](../02_model_systems/multimodal_generation/papers/causal-rcm.md)             |
+| Cosmos 3                                                                                                                  | 深度精读；近半年 Survey 已复用  | [cosmos-3](../02_model_systems/multimodal_generation/papers/cosmos-3.md)                 |
+| DC-AE                                                                                                                     | 深度精读                 | [dcae](../02_model_systems/multimodal_generation/papers/dcae.md)                         |
+| DiT                                                                                                                       | 深度精读                 | [dit](../02_model_systems/multimodal_generation/papers/dit.md)                           |
+| FEB-Cache                                                                                                                 | 深度精读                 | [feb-cache](../02_model_systems/multimodal_generation/papers/feb-cache.md)               |
+| Helios                                                                                                                    | 深度精读                 | [helios](../02_model_systems/multimodal_generation/papers/helios.md)                     |
+| HunyuanVideo 1.5                                                                                                          | 深度精读                 | [hunyuanvideo-1-5](../02_model_systems/multimodal_generation/papers/hunyuanvideo-1-5.md) |
+| LDM                                                                                                                       | 深度精读                 | [ldm](../02_model_systems/multimodal_generation/papers/ldm.md)                           |
+| MAGI-1                                                                                                                    | 深度精读                 | [magi-1](../02_model_systems/multimodal_generation/papers/magi-1.md)                     |
+| PixelDiT                                                                                                                  | 深度精读                 | [pixeldit](../02_model_systems/multimodal_generation/papers/pixeldit.md)                 |
+| Qwen-Image-2.0                                                                                                            | 深度精读                 | [qwen-image-2-0](../02_model_systems/multimodal_generation/papers/qwen-image-2-0.md)     |
+| SANA-Video 2.0                                                                                                            | 深度精读                 | [sana-video-2](../02_model_systems/multimodal_generation/papers/sana-video-2.md)         |
+| Sparse VideoGen                                                                                                           | 深度精读                 | [sparse-videogen](../02_model_systems/multimodal_generation/papers/sparse-videogen.md)   |
+| Sparse VideoGen2: Accelerate Video Generation with Sparse Attention via Semantic-Aware Permutation（SVG2；arXiv:2505.18875） | 深度精读                 | [sparse-videogen2](../02_model_systems/multimodal_generation/papers/sparse-videogen2.md) |
+| Training-Free Efficient Video Generation via Dynamic Token Carving（Jenga；TokenCarve；arXiv:2505.16864）                     | 深度精读；单一 canonical 条目 | [jenga](../02_model_systems/multimodal_generation/papers/jenga.md)                       |
+| SwiftFusion                                                                                                               | 深度精读                 | [swiftfusion](../02_model_systems/multimodal_generation/papers/swiftfusion.md)           |
+| Transfusion                                                                                                               | 深度精读                 | [transfusion](../02_model_systems/multimodal_generation/papers/transfusion.md)           |
+| Vega                                                                                                                      | 深度精读                 | [vega](../02_model_systems/multimodal_generation/papers/vega.md)                         |
 
 ### Speculative decoding（7）
 
