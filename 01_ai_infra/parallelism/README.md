@@ -17,6 +17,7 @@
 4. [并行策略选型](surveys/parallel-strategy-selection.md)：按 Dense LLM、MoE、长上下文、视频生成和 serving 选择。
 5. [不规则与 workload-aware 切分](surveys/irregular-and-workload-aware-partitioning.md)：`o_proj`、CFGP、稀疏/causal CP 和 stateful CP。
 6. [并行切分知识领域规划](surveys/parallel-partitioning-domain-plan.md)：领域组织、视觉语言和建设边界。
+7. [FSDP2 `fully_shard` 的 bottom-up 分组](topics/fsdp2-fully-shard-bottom-up.md)：参数归属、通信组与峰值显存的因果关系。
 
 ## 文档索引
 
@@ -33,6 +34,7 @@
 - [通信原语与成本模型](topics/communication-primitives-and-cost-model.md)
 - [序列与上下文并行](topics/sequence-and-context-parallelism.md)
 - [多轴组合与设备网格](topics/composition-and-device-mesh.md)
+- [FSDP2 `fully_shard` 的 bottom-up 分组](topics/fsdp2-fully-shard-bottom-up.md)
 
 ### Papers
 

@@ -24,6 +24,8 @@ canonical: true
 > - 证据资产：`../assets/surveys/parallel-partitioning-taxonomy/`
 > - 可编辑图源：[PP、Megatron-SP、Ulysses 与 Ring TikZ/LaTeX 源码](../supplements/parallel-partitioning-diagram-sources/README.md)
 
+FSDP2 的 composable 参数分组补充见：[为什么 `fully_shard` 必须 bottom-up](../topics/fsdp2-fully-shard-bottom-up.md)。
+
 ## 1. 统一口径：先规定比较对象
 
 并行切分的统一定义是：把全局 tensor、模型状态或执行图映射到 device mesh，使每个 rank 执行局部工作，再通过 collective 或 P2P 恢复与单设备程序一致的语义。下文所有成本对比默认：
