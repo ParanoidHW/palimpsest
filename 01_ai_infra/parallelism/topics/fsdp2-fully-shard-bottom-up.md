@@ -98,14 +98,69 @@ FSDP2 通过模块 forward/backward hooks 驱动组的 unshard、reshard 和梯�
 
 这也解释了为什么把 checkpoint、bottom-up 配置或 mesh 初始化画进每一步训练回路是错误的：它们是 setup/边界操作；每步主链应是 `pre-forward all-gather -> FWD -> reshard -> backward all-gather（若需要） -> BWD -> reduce-scatter -> optimizer`。
 
-## 5. 什么时候不应机械套用
+## 5. 与 `MixedPrecisionPolicy` 的配合
+
+### 5.1 混精策略的作用域是通信组，不是参数类型
+
+FSDP2 的 `MixedPrecisionPolicy` 由 `fully_shard(module, mp_policy=...)` 绑定到该调用建立的参数组。它主要控制三件事：
+
+- `param_dtype`：参数在 forward/backward 计算窗口内 materialize 成的 dtype；
+- `reduce_dtype`：梯度 reduce-scatter 使用的 dtype；
+- `output_dtype`：模块输出是否转换成指定 dtype。
+
+持久的 sharded DTensor 通常仍保留参数原始 dtype；策略控制的是计算和通信窗口中的临时表示。因此，`param_dtype=torch.bfloat16` 并不等于把 checkpoint 中的权重永久改成 BF16。
+
+关键限制是：一个组只有一套 policy。若同一个 `fully_shard` 调用递归收进 BF16 参数和必须 FP32 计算的参数，不能仅靠 policy 的字段对其中一部分参数关闭混精；它们会共享同一套参数 materialization 和梯度归约规则。
+
+### 5.2 推荐做法：用 bottom-up 把精度边界做成模块边界
+
+把需要保持原始精度的参数放到独立子模块，先分别 `fully_shard`，再给其余模块设置 BF16 policy，最后对根模块处理剩余参数。例如 embedding 和输出 head 保持 FP32，而 Transformer blocks 使用 BF16：
+
+```python
+import torch
+from torch.distributed.fsdp import fully_shard, MixedPrecisionPolicy
+
+bf16 = MixedPrecisionPolicy(
+    param_dtype=torch.bfloat16,
+    reduce_dtype=torch.float32,
+    output_dtype=torch.bfloat16,
+)
+fp32 = MixedPrecisionPolicy()  # 不把参数 cast 到低精度
+
+for block in model.blocks:
+    fully_shard(block, mesh=mesh, mp_policy=bf16)
+
+fully_shard(model.embed_tokens, mesh=mesh, mp_policy=fp32)
+fully_shard(model.lm_head, mesh=mesh, mp_policy=fp32)
+fully_shard(model, mesh=mesh, mp_policy=bf16)  # 只覆盖剩余参数
+```
+
+这里的 `fp32` 组仍然可以 fully shard、all-gather、reshard 和 reduce-scatter；它只是保持 forward/backward 的参数计算 dtype，不会退化成复制完整参数。若根模块的剩余参数也需要 FP32，应把根调用的 policy 改为 `fp32`，或进一步把这些参数拆到独立子模块。
+
+这正是 bottom-up 对混精的第二个作用：它不仅控制显存生命周期，还提供了一个**可组合的精度作用域**。先建立子模块组，才能让不同模块携带不同 policy；先调用根模块会把所有参数锁在同一组和同一 policy 中。
+
+### 5.3 参数类型不等于模块边界时怎么办
+
+如果“需要 FP32”的参数和 BF16 参数混在同一个自定义模块中，FSDP2 默认没有一个按 dtype 或参数 predicate 直接切分 `MixedPrecisionPolicy` 的接口。优先级如下：
+
+1. **重构模块边界**：把 norm、router、temperature、特殊 embedding 等参数放入独立 `nn.Module`，这是最完整且可维护的方案。
+2. **把整个模块设为 FP32 policy**：牺牲该模块的部分混精收益，换取实现简单和 dtype 一致。
+3. **`ignored_params` 仅作最后手段**：被 ignored 的参数不会被 FSDP 分片、搬移到设备或在 backward 中做梯度归约。它们需要用户自己处理设备、梯度同步、optimizer state 和 checkpoint；这不是“仍由 FSDP 管理但保持 FP32”。
+
+因此，不应通过手动修改某个参数的 `.data.dtype` 来绕过 policy：forward hook 可能重新 materialize 参数，optimizer 也可能看到与 DTensor placement 不一致的表示。要保持 FSDP 语义，应该让 policy 边界与通信组边界一致。
+
+### 5.4 `reduce_dtype` 与“参数不混精”是两个独立选择
+
+有些参数需要 FP32 forward，但梯度归约仍可接受 BF16；也有相反需求。不要把 `param_dtype` 和 `reduce_dtype` 混为一谈：前者影响算子输入和临时 full parameter，后者影响跨 rank 梯度通信的数值精度。对数值敏感参数，通常至少将该组的 `param_dtype` 和 `reduce_dtype` 都设为 FP32，并在实际模型上检查 loss scale、梯度溢出和通信带宽。
+
+## 6. 什么时候不应机械套用
 
 - **根模块只有一组参数**：若模型很小，根调用本身足够，bottom-up 不会凭空带来收益。
 - **参数共享**：同一个 `Parameter` 被多个模块引用时，应确认它归属哪个组，必要时使用 `ignored_params` 或显式分组；不能假设共享参数会自动得到两个独立 shard。
 - **非标准 forward 顺序**：条件分支、chunked loss 或只调用部分模块时，要确保组的 hook 生命周期与实际调用顺序一致；对一次迭代多次独立调用的组，reduce-scatter 可能按调用次数发生。
 - **不规则切分轴**：`shard_placement_fn` 可以改 placement 或 mesh，但它改变的是 ownership 规则，不会取消“每个 `fully_shard` 调用形成通信组”的约束。
 
-## 6. 证据与源码边界
+## 7. 证据与源码边界
 
 本节依据 [PyTorch `fully_shard` API 文档](https://pytorch.org/docs/stable/distributed.fsdp.fully_shard.html) 与 PyTorch `v2.13.0` [源码快照](https://github.com/pytorch/pytorch/tree/cf30153c4c131c8164ee7798e5022d810682e2cb)（commit `cf30153c4c131c8164ee7798e5022d810682e2cb`）的 `torch/distributed/fsdp/_fully_shard/_fully_shard.py` 中 `fully_shard` 文档与 `torch/distributed/fsdp/_fully_shard/_fsdp_param_group.py` 的参数组运行时；官方 API 文档说明了正向/反向 all-gather、reshard 和 reduce-scatter 的生命周期。源码能证明“参数如何归组、hook 如何触发 collective”，不能单独证明某个硬件上的吞吐提升；“bottom-up 降低峰值但增加启动次数”是基于该生命周期的 analysis-derived 推论。
 
