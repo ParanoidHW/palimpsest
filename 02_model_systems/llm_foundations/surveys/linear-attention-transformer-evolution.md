@@ -41,7 +41,7 @@ canonical: true
 
 方法 lane 选取 10 个演化节点：Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet、Kimi Linear/KDA、Mamba-3、Gated DeltaNet-2。2026 年 *Linear Attention Architectures: Mechanisms, Trade-offs, and Cross-Layer Routing* 只作 benchmark/taxonomy 计数，不冒充方法贡献。Qwen3-Next 与 Kimi K3 属于 system-adoption lane，不计入方法论文数量。
 
-证据等级如下：`Paper` 指论文公式/正文/实验；`Code` 指官方或固定实现 locator；`Model` 指官方 model card/config；`Runtime` 指 Transformers、vLLM、SGLang、FLA 等后端入口；`Synthesis` 指跨论文推断。除既有 [Kimi K3 精读](../papers/kimi-k3.md) 外，本轮未能完成其余方法的可读 PDF/source、两类原论文视觉和逐图 100% QA，因此这些条目是带限制的机制导航，不是新增 canonical Paper。详细来源与阻断见 [Evidence](../evidence/linear-attention-transformer-evidence.md)。
+证据等级如下：`Paper` 指论文公式/正文/实验；`Code` 指官方或固定实现 locator；`Model` 指官方 model card/config；`Runtime` 指 Transformers、vLLM、SGLang、FLA 等后端入口；`Synthesis` 指跨论文推断。[Mamba 精读](../papers/mamba.md) 已完成可读 PDF/source、论文时代码、原图和 schema/semantic 验收；其余方法仍是带限制的机制导航，不是新增 canonical Paper。详细来源与阻断见 [Evidence](../evidence/linear-attention-transformer-evidence.md)。
 
 ## 统一术语与符号
 
@@ -136,4 +136,4 @@ Mamba/Mamba-2 的递推外形与上述状态模型相似，但语义属于 selec
 
 2020-2026 的主线不是“用一个线性算子取代 attention”，而是把历史压缩、遗忘、冲突擦写、精确检索和硬件执行拆成可组合部件。Linear Transformer 给出固定状态起点；RetNet/GLA 引入衰减；DeltaNet 系列处理写入冲突；Mamba/SSD 推动选择性状态和块硬件算法；KDA 与 Qwen3-Next/Kimi K3 的 hybrid 部署把方法问题变成 kernel、cache 和 serving 的联合设计问题。
 
-本版可以作为机制与系统导航，但不是 10 篇新增 Paper 的验收替代品。后续只有在 PDF/source、两类原论文视觉、代码 commit 与 schema/semantic checks 全部通过后，才能把对应条目升级为 canonical Paper，并同步覆盖矩阵。
+本版是机制与系统导航；当前已有 Mamba、Kimi K3 两个相关 canonical Paper 链接，其余方法不冒充已验收证据。后续只有在 PDF/source、两类原论文视觉、代码 commit 与 schema/semantic checks 全部通过后，才能把对应条目升级为 canonical Paper，并同步覆盖矩阵。

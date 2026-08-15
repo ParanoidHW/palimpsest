@@ -27,7 +27,7 @@ canonical: true
 - 检索截止：`2026-08-14`
 - Survey 模式：`hybrid`
 - 分桶：10 个方法节点、1 个 benchmark/taxonomy、2 个 native-system adoption；backend/integration 不计为论文。
-- 验收结论：除 Kimi K3 外，新方法尚未通过独立 Paper 的 PDF/source/视觉/schema 验收，故不创建 canonical Paper，也不增加覆盖矩阵 Paper 计数。
+- 验收结论：Mamba 已完成独立 PDF/source/代码/视觉/schema 验收并提升为 canonical Paper（accepted-with-limitations）；其余方法仍保留为导航记录。Kimi K3 继续 `link-only` 复用。
 
 ## 方法候选与证据状态
 
@@ -35,7 +35,7 @@ canonical: true
 |---|---|---|---|---|---|
 | Linear Transformer | arXiv `2006.16236` | seminal | [arXiv](https://arxiv.org/abs/2006.16236) | 未固定 | `accepted-with-limitations` for survey navigation; Paper promotion blocked |
 | RetNet | arXiv `2307.08621` | bridge | [arXiv](https://arxiv.org/abs/2307.08621) | 官方实现待固定 | 同上 |
-| Mamba | arXiv `2312.00752` | selective-SSM bridge | [arXiv](https://arxiv.org/abs/2312.00752) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | 同上；明确非严格 linear attention |
+| Mamba | arXiv `2312.00752` / COLM 2024 | selective-SSM bridge | [arXiv](https://arxiv.org/abs/2312.00752) | [Mamba Paper](../papers/mamba.md); [state-spaces/mamba](https://github.com/state-spaces/mamba) | `accepted-with-limitations`; 明确非严格 linear attention |
 | Mamba-2 / SSD | arXiv `2405.21060` | duality bridge | [arXiv](https://arxiv.org/abs/2405.21060) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | 同上 |
 | Gated Linear Attention | arXiv `2312.06635` | core | [arXiv](https://arxiv.org/abs/2312.06635) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
 | DeltaNet | arXiv `2406.06484` | core | [arXiv](https://arxiv.org/abs/2406.06484) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
@@ -72,7 +72,7 @@ Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts inc
 
 | Bucket | Count | Included records |
 |---|---:|---|
-| Peer-reviewed method Papers accepted in this task | 0 | no new Paper passed the full contract |
+| Peer-reviewed method Papers accepted in this task | 1 | Mamba (COLM 2024; accepted-with-limitations) |
 | arXiv/technical-report method nodes used for navigation | 10 | table above |
 | Benchmark/taxonomy records | 1 | 2026 taxonomy, locator unresolved |
 | Native-system adoption | 2 | Qwen3-Next, Kimi K3 |
@@ -81,9 +81,9 @@ Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts inc
 
 ## Visual inventory and QA
 
-New original-paper crops promoted by this revision: `0`.
+New original-paper crops promoted by this revision: `3` for Mamba; the canonical Paper embeds all three.
 
-Reason: a qualifying crop must contain one numbered object and complete caption, record PDF page/source dimensions/bbox, pass contact-sheet triage and individual 100% review, and be embedded with an evidence loop. The newly proposed method set did not complete that pipeline. Generated diagrams and README screenshots are not substitutes. Kimi K3 has existing QA-passed crops in the canonical [Figure inventory](figure-inventory.md).
+Reason for remaining candidates: a qualifying crop must contain one numbered object and complete caption, record PDF page/source dimensions/bbox, pass contact-sheet triage and individual 100% review, and be embedded with an evidence loop. Generated diagrams and README screenshots are not substitutes. Kimi K3 has existing QA-passed crops in the canonical [Figure inventory](figure-inventory.md).
 
 ## Claim-to-source matrix
 
