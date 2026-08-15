@@ -33,8 +33,8 @@ canonical: true
 
 | Work | Stable identity | Role | Primary source | Code/kernel locator | Review verdict |
 |---|---|---|---|---|---|
-| Linear Transformer | arXiv `2006.16236` | seminal | [arXiv](https://arxiv.org/abs/2006.16236) | 未固定 | `accepted-with-limitations` for survey navigation; Paper promotion blocked |
-| RetNet | arXiv `2307.08621` | bridge | [arXiv](https://arxiv.org/abs/2307.08621) | 官方实现待固定 | 同上 |
+| Linear Transformer | arXiv `2006.16236` / ICML 2020 | seminal | [Linear Transformer Paper](../papers/linear-transformer.md) | official code pin recorded in canonical Paper | `accepted-with-limitations`; canonical |
+| RetNet | arXiv `2307.08621` | bridge | [RetNet Paper](../papers/retnet.md) | official code pin recorded in canonical Paper | `accepted-with-limitations`; canonical technical report |
 | Mamba | arXiv `2312.00752` / COLM 2024 | selective-SSM bridge | [arXiv](https://arxiv.org/abs/2312.00752) | [Mamba Paper](../papers/mamba.md); [state-spaces/mamba](https://github.com/state-spaces/mamba) | `accepted-with-limitations`; 明确非严格 linear attention |
 | Mamba-2 / SSD | arXiv `2405.21060` | duality bridge | [arXiv](https://arxiv.org/abs/2405.21060) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | 同上 |
 | Gated Linear Attention | arXiv `2312.06635` | core | [arXiv](https://arxiv.org/abs/2312.06635) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
@@ -72,7 +72,8 @@ Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts inc
 
 | Bucket | Count | Included records |
 |---|---:|---|
-| Peer-reviewed method Papers accepted in this task | 1 | Mamba (COLM 2024; accepted-with-limitations) |
+| Peer-reviewed method Papers accepted in this task | 2 | Linear Transformer (ICML 2020), Mamba (COLM 2024); both accepted-with-limitations |
+| ArXiv technical-report Papers accepted in this task | 1 | RetNet; accepted-with-limitations |
 | arXiv/technical-report method nodes used for navigation | 10 | table above |
 | Benchmark/taxonomy records | 1 | 2026 taxonomy, locator unresolved |
 | Native-system adoption | 2 | Qwen3-Next, Kimi K3 |
@@ -81,7 +82,7 @@ Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts inc
 
 ## Visual inventory and QA
 
-New original-paper crops promoted by this revision: `3` for Mamba; the canonical Paper embeds all three.
+New original-paper crops promoted by this revision: `9` across Linear Transformer (4), RetNet (2), and Mamba (3); each canonical Paper embeds its owned assets.
 
 Reason for remaining candidates: a qualifying crop must contain one numbered object and complete caption, record PDF page/source dimensions/bbox, pass contact-sheet triage and individual 100% review, and be embedded with an evidence loop. Generated diagrams and README screenshots are not substitutes. Kimi K3 has existing QA-passed crops in the canonical [Figure inventory](figure-inventory.md).
 
