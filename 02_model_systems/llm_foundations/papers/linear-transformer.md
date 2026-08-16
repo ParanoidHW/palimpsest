@@ -158,6 +158,10 @@ tags:
 
 一个 token 进入层后先投影成 Q/K/V；Q、K 经 $\phi$ 映射。非因果训练可一次形成 $\phi(K)^TV$ 和 $\sum\phi(K)$；因果训练按前缀累计并用自定义核完成 forward/backward；自回归推理只带着上一步的 $S,Z$，加入当前 key/value 后让当前 query 读取，最后经过归一化、残差和 feed-forward 得到输出。训练仍可在 layer 内并行处理完整序列；推理因 token 依赖保持串行，但 attention 的每步历史读取成本固定。
 
+![Linear Transformer 固定矩阵状态读写结构](../assets/papers/linear-transformer/linear-transformer-architecture.png)
+
+图中把论文的 normalized causal linear attention 统一写成 $S_t,z_t$ 两个跨 token 状态：$k_t,v_t$ 负责写入，$q_t$ 只负责读取，$n_t/d_t$ 在归一化后形成当前输出。它是依据论文公式与已验收分析绘制的概念结构图，不是原论文图或实验结果；shape 保留符号维度，不假定具体 checkpoint 配置。统一配色用于与 RetNet、GLA、DeltaNet、KDA 和相邻 SSM/SSD 方法逐项比较。
+
 ### 4.2 组件级设计动机与具体问题映射
 
 | 设计项 | why 状态 | 原文证据 | 针对的具体问题 | 因果机制 | 替代方案/权衡 | 验证证据 | 判断 |
