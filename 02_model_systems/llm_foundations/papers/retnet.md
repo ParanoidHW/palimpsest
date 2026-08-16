@@ -139,6 +139,10 @@ Transformer 解决了传统 RNN 难以并行训练的问题，却把历史 token
 
 ## 6. 方法拆解与公式
 
+![RetNet 固定衰减 retention 状态流](../assets/papers/retnet/retnet-architecture.png)
+
+图中用统一符号把 RetNet 的递归形式写成 $S_t=\gamma_hS_{t-1}+k_t^{\mathsf T}v_t$：相位旋转后的 $k_t$ 与 $v_t$ 写入，$q_t$ 只读取，固定的 head-wise $\gamma_h$ 控制遗忘；读取结果再经分 head 归一化、输入门控和输出投影。它是依据论文公式与已验收分析绘制的概念结构图，不是原论文图或实验结果；parallel、recurrent、chunkwise 表示同一 retention 的三种执行形态，而不是三套参数不同的模型。
+
 ### 6.1 从递推到整段并行
 
 论文先写线性状态递推：
