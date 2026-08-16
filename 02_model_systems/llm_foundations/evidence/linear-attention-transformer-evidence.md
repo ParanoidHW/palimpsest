@@ -36,7 +36,7 @@ canonical: true
 | Linear Transformer | arXiv `2006.16236` / ICML 2020 | seminal | [Linear Transformer Paper](../papers/linear-transformer.md) | official code pin recorded in canonical Paper | `accepted-with-limitations`; canonical |
 | RetNet | arXiv `2307.08621` | bridge | [RetNet Paper](../papers/retnet.md) | official code pin recorded in canonical Paper | `accepted-with-limitations`; canonical technical report |
 | Mamba | arXiv `2312.00752` / COLM 2024 | selective-SSM bridge | [arXiv](https://arxiv.org/abs/2312.00752) | [Mamba Paper](../papers/mamba.md); [state-spaces/mamba](https://github.com/state-spaces/mamba) | `accepted-with-limitations`; 明确非严格 linear attention |
-| Mamba-2 / SSD | arXiv `2405.21060` | duality bridge | [arXiv](https://arxiv.org/abs/2405.21060) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | 同上 |
+| Mamba-2 / SSD | arXiv `2405.21060` / ICML 2024 | duality bridge | [Mamba-2 / SSD Paper](../papers/mamba-2-structured-state-space-duality.md) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | `accepted-with-limitations`; canonical |
 | Gated Linear Attention | arXiv `2312.06635` | core | [arXiv](https://arxiv.org/abs/2312.06635) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
 | DeltaNet | arXiv `2406.06484` | core | [arXiv](https://arxiv.org/abs/2406.06484) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
 | Gated DeltaNet | arXiv `2412.06464` | core/adoption bridge | [arXiv](https://arxiv.org/abs/2412.06464) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
@@ -72,7 +72,7 @@ Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts inc
 
 | Bucket | Count | Included records |
 |---|---:|---|
-| Peer-reviewed method Papers accepted in this task | 2 | Linear Transformer (ICML 2020), Mamba (COLM 2024); both accepted-with-limitations |
+| Peer-reviewed method Papers accepted in this task | 3 | Linear Transformer (ICML 2020), Mamba-2/SSD (ICML 2024), Mamba (COLM 2024); all accepted-with-limitations |
 | ArXiv technical-report Papers accepted in this task | 1 | RetNet; accepted-with-limitations |
 | arXiv/technical-report method nodes used for navigation | 10 | table above |
 | Benchmark/taxonomy records | 1 | 2026 taxonomy, locator unresolved |
@@ -82,7 +82,7 @@ Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts inc
 
 ## Visual inventory and QA
 
-New original-paper crops promoted by this revision: `9` across Linear Transformer (4), RetNet (2), and Mamba (3); each canonical Paper embeds its owned assets.
+New original-paper crops promoted by this revision: `11` across Linear Transformer (4), RetNet (2), Mamba (3), and Mamba-2/SSD (2); each canonical Paper embeds its owned assets.
 
 Reason for remaining candidates: a qualifying crop must contain one numbered object and complete caption, record PDF page/source dimensions/bbox, pass contact-sheet triage and individual 100% review, and be embedded with an evidence loop. Generated diagrams and README screenshots are not substitutes. Kimi K3 has existing QA-passed crops in the canonical [Figure inventory](figure-inventory.md).
 
