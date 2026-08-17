@@ -67,7 +67,7 @@ $$
 
 它回答“如何不显式保存 $N\times N$ 注意力矩阵”。$S_t$ 保存历史 key/value 的外积和，$z_t$ 负责归一化，query 只读取固定状态。收益是序列维线性；代价是多个历史 token 被压入同一有限状态，精确检索和冲突更新可能失败。
 
-RetNet 将更新改成带衰减的 $S_t=γS_{t-1}+k_tv_t^T$，把“永不遗忘”改成“随距离减弱”。GLA 进一步让门控依赖输入，解决不同内容需要不同记忆时间的问题。DeltaNet 则把新写入变为：
+RetNet 将更新改成带衰减的 $S_t=γS_{t-1}+k_tv_t^T$，把“永不遗忘”改成“随距离减弱”。[GLA](../papers/gated-linear-attention.md) 进一步让门控依赖输入，解决不同内容需要不同记忆时间的问题；其统一 TikZ 图显式展示 key-wise gate、矩阵状态形状、训练分块与固定状态解码。DeltaNet 则把新写入变为：
 
 $$
 δ_t=v_t-S_{t-1}^Tk_t, S_t=S_{t-1}+β_tk_tδ_t^T,
@@ -84,7 +84,7 @@ Mamba/Mamba-2 的递推外形与上述状态模型相似，但语义属于 selec
 | 2020 | Linear Transformer | softmax attention 的二次序列成本 | feature-map 外积前缀状态 | parallel train / recurrent decode | 固定状态与归一化限制 |
 | 2023 | RetNet | 并行训练与递推推理统一 | decayed retention | parallel / recurrent / chunkwise | 长程精确信息可能衰减 |
 | 2023 | Mamba | SSM 缺少内容选择，scan 不适配 GPU | selective SSM + hardware-aware scan | fused scan / recurrent | 非严格 linear attention；kernel 依赖强 |
-| 2023-24 | GLA | 固定遗忘不足、chunk I/O 高 | input-dependent gate + FlashLinearAttention | chunkwise matrix kernel | 状态矩阵读写仍昂贵 |
+| 2023-24 | [GLA](../papers/gated-linear-attention.md) | 固定遗忘不足、chunk I/O 高 | input-dependent gate + FlashLinearAttention | chunkwise matrix kernel | 状态矩阵读写仍昂贵；组件级归因不完整 |
 | 2024 | Mamba-2/SSD | SSM 与矩阵硬件映射不佳 | SSM-attention duality + block algorithm | Tensor-Core-friendly blocks | duality 不保证同等表达力 |
 | 2024 | DeltaNet | 新旧键值冲突 | delta erase-then-write + WY | parallel chunks / recurrent | 仍有有限状态冲突 |
 | 2024-25 | Gated DeltaNet | gate 和 delta 各自不完整 | decay gate + delta write | FLA/runtime 集成 | 组件收益常被训练配方混杂 |
