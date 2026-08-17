@@ -40,11 +40,17 @@ Mamba-2 的关键不是一句“Transformer 就是 SSM”，而是把两类模�
 - 代码：`https://github.com/state-spaces/mamba`；版本边界和 locator 见 `code/code_evidence.md`。
 - OpenReview：`https://openreview.net/forum?id=ztn8FCR1td`；访问限制见 `openreview_reviews.md`。
 - 原论文机制图与系统证据图已提升至 `../assets/papers/mamba-2-structured-state-space-duality/`。
-- 算法总览：原论文 Figure 5 已覆盖输入、chunk、边界状态、输出和执行顺序，因此不生成替代图。
+- 算法总览：原论文 Figure 5 保留为论文机制证据；另提供统一 TikZ 结构图，便于与 Linear Transformer、RetNet、Mamba 和后续 gated/delta 方法逐节点比较。
 
-## 0.1 术语与符号解释
+## 0.1 统一算法结构示意图
 
-### 0.1.1 术语表
+![Mamba-2 SSD 块内矩阵乘与块间边界状态](../assets/papers/mamba-2-structured-state-space-duality/mamba-2-ssd-architecture.png)
+
+> 图注：使用统一语义配色和 TikZ 确定性生成的解释图，不是论文原始图表。蓝色为张量流，绿色为模型计算，紫色为持久/边界状态，黄色为衰减控制。图中把精确 SSD 分解写成块内项 $Y_{\mathrm{diag}}^{(c)}$ 与历史项 $Y_{\mathrm{off}}^{(c)}$；后者显式包含输出侧位置衰减 $\rho^{(c)}=\exp(\operatorname{cumsum}(a^{(c)}))$，并把当前块压缩、边界更新、旧状态读出与固定大小解码状态分开。原分辨率 1792x1008 经七轮哈希绑定复核，最终请求 `7-c91222ab47ef` 通过。
+
+## 0.2 术语与符号解释
+
+### 0.2.1 术语表
 
 | 术语 | 本文含义 | 别名/来源 | 不等于/易混项 | 证据来源 |
 |---|---|---|---|---|
@@ -59,7 +65,7 @@ Mamba-2 的关键不是一句“Transformer 就是 SSM”，而是把两类模�
 | Mamba-2 | SSD inner mixer 加并行 `A,X,B,C` 投影、额外 gated RMSNorm、multi-input head 等 block 设计 | author-defined | SSD 算法本身不是完整 Mamba-2 | Section 7, Figure 6 |
 | MVA analogy | 论文把 `X,B,C` 类比为 attention 的 `V,K,Q`，Mamba-2 默认共享 `B,C` | author-defined/code-defined | 只是 contraction 维度类比，不是 softmax MVA | Section 7.2; `mamba2_simple.py:178-180` at `41d30ce...` |
 
-### 0.1.2 符号表
+### 0.2.2 符号表
 
 | 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
 |---|---|---|---|---|---|---|
