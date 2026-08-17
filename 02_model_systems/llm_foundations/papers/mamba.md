@@ -91,8 +91,9 @@ Mamba 的核心不是把 softmax attention 换成一个 feature map，而是让�
 
 ## 0.2 AI 生成算法分析示意图
 
+![Mamba 输入选择状态流结构示意图](../assets/papers/mamba/mamba-architecture.png)
 
-> 图注：确定性生成的解释图，不是论文原始图表。它把 fused full-sequence training、fallback full-sequence、one-token recurrent update 与 inference-cache lifecycle 分开，并标明 scan/recompute 和 state 变化。OpenRouter ICU 两次 408 后使用本地 HTML/CSS 渲染；原分辨率 1792x1008 QA 通过。
+> 图注：使用统一语义配色和 TikZ 确定性生成的解释图，不是论文原始图表。蓝色表示张量流，绿色表示模型计算，紫色表示跨 token 持久状态，黄色表示输入选择/门控；图中显式给出输入输出、逐 token shape、卷积缓存与 SSM 状态的生命周期，并区分训练 selective scan 与解码递推。原分辨率 1792x1008 经五轮独立、哈希绑定 QA 后通过。
 
 ## 1. 论文基本信息
 
