@@ -5,11 +5,11 @@
 1. 哪些研究领域/子领域已经有正式 Survey 或 Paper；
 2. 某篇论文是否已经完成 canonical 分析，应当复用、链接或增量更新，而不是重新生成一份。
 
-> 快照日期：2026-07-31。当前共登记 9 个正式 paper domain、84 篇 canonical Paper。
+> 快照日期：2026-08-17。当前共登记 9 个正式 paper domain、85 篇 canonical Paper。
 >
-> 作者机构元数据：`84/84` 已按论文 PDF 标题页、机构编号和角色脚注核验（2026-07-31）。其中 75 篇为个人作者署名，记录首位列名作者、明确共同一作、明确通讯作者/联系人与去重机构；9 篇为机构署名，仅记录署名机构。未披露字段保持“无法核验”，不按邮箱域名或外部履历推断。
+> 作者机构元数据：`85/85` 已按论文 PDF 标题页、机构编号和角色脚注核验（2026-08-17）。其中 76 篇为个人作者署名，记录首位列名作者、明确共同一作、明确通讯作者/联系人与去重机构；9 篇为机构署名，仅记录署名机构。未披露字段保持“无法核验”，不按邮箱域名或外部履历推断。
 >
-> Obsidian 元数据：`84/84` canonical Paper 已加入统一 YAML Properties（2026-07-31）。每篇均有 `paper`、collection、domain、`status/deep-review` 四项共同层级标签，以及各一项 `topic/*`、`method/*`；独立属性保留文档类型、canonical 状态和集合归属。12 篇 ICML 2026 Paper 先行试验，确认 schema 后推广到其余 Paper。
+> Obsidian 元数据：`85/85` canonical Paper 已加入统一 YAML Properties（2026-08-17）。每篇均有 `paper`、collection、domain、`status/deep-review` 四项共同层级标签，以及各一项 `topic/*`、`method/*`；独立属性保留文档类型、canonical 状态和集合归属。12 篇 ICML 2026 Paper 先行试验，确认 schema 后推广到其余 Paper。
 
 ## 使用规则
 
@@ -40,7 +40,7 @@
 | `02_model_systems/ICML/2026` | 12 | diffusion/latent LM、speculative decoding、MoE/压缩、3D/多模态 | [ICML 2026 selected papers](../02_model_systems/ICML/2026/surveys/icml-2026-selected-papers.md) | 会议批次已覆盖 |
 | `02_model_systems/diffusion` | 1 | language diffusion 与 AR/diffusion/self-speculative 统一 | [Language diffusion serving](../02_model_systems/diffusion/surveys/language-diffusion-serving.md) | 单篇锚点，可继续扩展 |
 | `02_model_systems/embodied_ai` | 13 | VLA、导航、操作策略、world model、3D/4D perception、数据合成 | [Embodied AI evolution](../02_model_systems/embodied_ai/surveys/embodied-ai-evolution-infra.md) | 核心谱系已覆盖 |
-| `02_model_systems/llm_foundations` | 6 | frontier LLM 架构、规模、Infra 与 linear-attention system adoption | [2026 H1 model scale](../02_model_systems/llm_foundations/surveys/2026h1-model-scale.md) · [Linear Attention Transformer evolution](../02_model_systems/llm_foundations/surveys/linear-attention-transformer-evolution.md) | Linear Transformer、RetNet、Mamba、Mamba-2/SSD 已完成独立验收并登记为 canonical Paper；Kimi K3 复用；其余方法节点仍按证据状态导航 |
+| `02_model_systems/llm_foundations` | 7 | frontier LLM 架构、规模、Infra 与 linear-attention system adoption | [2026 H1 model scale](../02_model_systems/llm_foundations/surveys/2026h1-model-scale.md) · [Linear Attention Transformer evolution](../02_model_systems/llm_foundations/surveys/linear-attention-transformer-evolution.md) | Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA 已完成独立验收并登记为 canonical Paper；Kimi K3 复用；其余方法节点仍按证据状态导航 |
 | `02_model_systems/multimodal_generation` | 19 | image/video diffusion、AR/flow、MoT、VAE、cache、稀疏 attention、serving | [Visual generation landscape](../02_model_systems/multimodal_generation/surveys/visual-generation-model-landscape.md) | Sparse VideoGen 方法族与 Jenga pipeline 已覆盖 |
 | `02_model_systems/speculative_decoding` | 9 | diffusion draft、tree/parallel drafting、解耦 local correction、workload-aware drafting、hidden-state training、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖 |
 | `03_agentic_workflows/kernel_agents` | 4 | LLM 自动 kernel 生成、Ascend/NPU、test-time scaling | [Paper index](../03_agentic_workflows/kernel_agents/evidence/paper-index.md) | 当前为 Paper note，适合按需补全 |
@@ -126,7 +126,7 @@
 | WAM4D | 深度精读 | [wam4d](../02_model_systems/embodied_ai/papers/wam4d.md) |
 | Xiaomi-Robotics-U0 | 深度精读 | [xiaomi-robotics-u0](../02_model_systems/embodied_ai/papers/xiaomi-robotics-u0.md) |
 
-### LLM foundations（6）
+### LLM foundations（7）
 
 | Paper | 状态 | Canonical |
 |---|---|---|
@@ -136,6 +136,7 @@
 | Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention（arXiv:2006.16236） | 深度精读；accepted-with-limitations；ICML 2020 | [linear-transformer](../02_model_systems/llm_foundations/papers/linear-transformer.md) |
 | Retentive Network: A Successor to Transformer for Large Language Models（arXiv:2307.08621） | 深度精读；accepted-with-limitations；technical report | [retnet](../02_model_systems/llm_foundations/papers/retnet.md) |
 | Transformers are SSMs: Generalized Models and Efficient Algorithms Through Structured State Space Duality（Mamba-2 / SSD；arXiv:2405.21060） | 深度精读；accepted-with-limitations；ICML 2024 | [mamba-2-structured-state-space-duality](../02_model_systems/llm_foundations/papers/mamba-2-structured-state-space-duality.md) |
+| Gated Linear Attention Transformers with Hardware-Efficient Training（GLA；arXiv:2312.06635） | 深度精读；accepted-with-limitations；ICML 2024 | [gated-linear-attention](../02_model_systems/llm_foundations/papers/gated-linear-attention.md) |
 
 ### Multimodal generation（19）
 
