@@ -23,11 +23,11 @@ canonical: true
 
 ## 版本与范围
 
-- 当前证据版本：`2.1.0` / `rev-linear-attn-evidence-gla-20260817`
+- 当前证据版本：`2.2.0` / `rev-linear-attn-evidence-deltanet-20260818`
 - 检索截止：`2026-08-14`
 - Survey 模式：`hybrid`
 - 分桶：10 个方法节点、1 个 benchmark/taxonomy、2 个 native-system adoption；backend/integration 不计为论文。
-- 验收结论：Linear Transformer、RetNet、Mamba、Mamba-2/SSD 与 GLA 已完成独立 PDF/source/代码/视觉/schema 验收并提升为 canonical Paper（accepted-with-limitations）；其余方法仍保留为导航记录。Kimi K3 继续 `link-only` 复用。
+- 验收结论：Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA 与 DeltaNet 已完成独立 PDF/source/代码/视觉/schema 验收并提升为 canonical Paper（accepted-with-limitations）；其余方法仍保留为导航记录。Kimi K3 继续 `link-only` 复用。
 
 ## 方法候选与证据状态
 
@@ -38,7 +38,7 @@ canonical: true
 | Mamba | arXiv `2312.00752` / COLM 2024 | selective-SSM bridge | [arXiv](https://arxiv.org/abs/2312.00752) | [Mamba Paper](../papers/mamba.md); [state-spaces/mamba](https://github.com/state-spaces/mamba) | `accepted-with-limitations`; 明确非严格 linear attention |
 | Mamba-2 / SSD | arXiv `2405.21060` / ICML 2024 | duality bridge | [Mamba-2 / SSD Paper](../papers/mamba-2-structured-state-space-duality.md) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | `accepted-with-limitations`; canonical |
 | Gated Linear Attention | arXiv `2312.06635` / ICML 2024 | core | [Gated Linear Attention Paper](../papers/gated-linear-attention.md) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) pinned in canonical Paper | `accepted-with-limitations`; canonical |
-| DeltaNet | arXiv `2406.06484` | core | [arXiv](https://arxiv.org/abs/2406.06484) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
+| DeltaNet | arXiv `2406.06484` / NeurIPS 2024 | core | [DeltaNet Paper](../papers/deltanet.md) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) pinned in canonical Paper | `accepted-with-limitations`; canonical |
 | Gated DeltaNet | arXiv `2412.06464` | core/adoption bridge | [arXiv](https://arxiv.org/abs/2412.06464) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) | 同上 |
 | Kimi Linear / KDA | technical report / Kimi K3 | recent/system | [Kimi K3 Paper](../papers/kimi-k3.md) | canonical Paper records FlashKDA/KCP evidence | `link-only`; accepted canonical owner |
 | Mamba-3 | 2026 technical-report lineage | recent | stable paper locator not frozen | [state-spaces/mamba](https://github.com/state-spaces/mamba) | rejected for Paper promotion until version/PDF/code pin is fixed |
@@ -72,7 +72,7 @@ Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts inc
 
 | Bucket | Count | Included records |
 |---|---:|---|
-| Peer-reviewed method Papers accepted in this task | 4 | Linear Transformer (ICML 2020), GLA (ICML 2024), Mamba-2/SSD (ICML 2024), Mamba (COLM 2024); all accepted-with-limitations |
+| Peer-reviewed method Papers accepted in this task | 5 | Linear Transformer (ICML 2020), GLA (ICML 2024), Mamba-2/SSD (ICML 2024), Mamba (COLM 2024), DeltaNet (NeurIPS 2024); all accepted-with-limitations |
 | ArXiv technical-report Papers accepted in this task | 1 | RetNet; accepted-with-limitations |
 | arXiv/technical-report method nodes used for navigation | 10 | table above |
 | Benchmark/taxonomy records | 1 | 2026 taxonomy, locator unresolved |
@@ -82,7 +82,7 @@ Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts inc
 
 ## Visual inventory and QA
 
-New original-paper crops promoted by this revision: `13` across Linear Transformer (4), RetNet (2), Mamba (3), Mamba-2/SSD (2), and GLA (2); each canonical Paper embeds its owned assets. Each accepted method also owns a unified TikZ architecture diagram with the same tensor/state/gate palette.
+New original-paper crops promoted by this revision: `15` across Linear Transformer (4), RetNet (2), Mamba (3), Mamba-2/SSD (2), GLA (2), and DeltaNet (2); each canonical Paper embeds its owned assets. Each accepted method also owns a unified TikZ architecture diagram with the same tensor/state/gate palette.
 
 Reason for remaining candidates: a qualifying crop must contain one numbered object and complete caption, record PDF page/source dimensions/bbox, pass contact-sheet triage and individual 100% review, and be embedded with an evidence loop. Generated diagrams and README screenshots are not substitutes. Kimi K3 has existing QA-passed crops in the canonical [Figure inventory](figure-inventory.md).
 
@@ -94,7 +94,7 @@ Reason for remaining candidates: a qualifying crop must contain one numbered obj
 | RetNet supports parallel/recurrent/chunkwise forms | RetNet paper locator | paper-derived, visual not revalidated | kernel performance not remeasured |
 | Mamba is selective SSM, not strict linear attention | paper/repository + taxonomy synthesis | strong boundary classification | similarity of recurrence is not identity |
 | GLA uses input-dependent key-wise forgetting and a chunkwise training algorithm | [canonical GLA Paper](../papers/gated-linear-attention.md), original Figure 3/Figure 6, pinned FLA code | strong mechanism and scoped single-H100 system evidence | kernel tricks, normalization and output gate lack complete component-level causal isolation |
-| DeltaNet uses erase-then-write correction | DeltaNet locator + implementation family | mechanism-level, pending full review | component gain not isolated here |
+| DeltaNet uses erase-then-write correction and WY/UT chunk execution | [canonical DeltaNet Paper](../papers/deltanet.md), original Figure 2/Table 1, pinned FLA code | strong mechanism and scoped kernel evidence | component gain not isolated here; chunk speed is not end-to-end model speed |
 | Qwen3-Next has 3:1 hybrid cadence and listed dimensions | official model card/config | strong configuration evidence | model-wide gains remain confounded |
 | Kimi K3 has 69 KDA + 24 Gated MLA and prefix-cache stack | canonical Paper and original visuals | strongest local evidence | training data/full production stack remain partly closed |
 

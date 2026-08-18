@@ -67,13 +67,13 @@ $$
 
 它回答“如何不显式保存 $N\times N$ 注意力矩阵”。$S_t$ 保存历史 key/value 的外积和，$z_t$ 负责归一化，query 只读取固定状态。收益是序列维线性；代价是多个历史 token 被压入同一有限状态，精确检索和冲突更新可能失败。
 
-RetNet 将更新改成带衰减的 $S_t=γS_{t-1}+k_tv_t^T$，把“永不遗忘”改成“随距离减弱”。[GLA](../papers/gated-linear-attention.md) 进一步让门控依赖输入，解决不同内容需要不同记忆时间的问题；其统一 TikZ 图显式展示 key-wise gate、矩阵状态形状、训练分块与固定状态解码。DeltaNet 则把新写入变为：
+RetNet 将更新改成带衰减的 $S_t=γS_{t-1}+k_tv_t^T$，把“永不遗忘”改成“随距离减弱”。[GLA](../papers/gated-linear-attention.md) 进一步让门控依赖输入，解决不同内容需要不同记忆时间的问题；其统一 TikZ 图显式展示 key-wise gate、矩阵状态形状、训练分块与固定状态解码。[DeltaNet](../papers/deltanet.md) 则把新写入变为：
 
 $$
 δ_t=v_t-S_{t-1}^Tk_t, S_t=S_{t-1}+β_tk_tδ_t^T,
 $$
 
-即先计算旧状态对当前 key 的预测误差，再写入纠正量。这比盲目累加更接近 erase-then-write，但仍受状态维度和 key 冲突约束。Gated DeltaNet 把遗忘门与 delta 写入结合；KDA 再把 decay 细化并限制数值范围。
+即先计算旧状态对当前 key 的预测误差，再写入纠正量。这比盲目累加更接近 erase-then-write，但仍受状态维度和 key 冲突约束。其 canonical Paper 的统一 TikZ 图把 token 级 read-error-write、固定状态 decode 与训练期 WY/UT chunk 边界放在同一视图；论文 kernel speedup 不能外推为端到端模型吞吐。Gated DeltaNet 把遗忘门与 delta 写入结合；KDA 再把 decay 细化并限制数值范围。
 
 Mamba/Mamba-2 的递推外形与上述状态模型相似，但语义属于 selective SSM：输入控制状态转移/离散化参数，并依赖 selective scan 或 SSD 块算法。把它们纳入谱系有助于比较 kernel 和状态机制，把它们直接称为 linear attention 则会掩盖理论差异。
 
@@ -86,7 +86,7 @@ Mamba/Mamba-2 的递推外形与上述状态模型相似，但语义属于 selec
 | 2023 | Mamba | SSM 缺少内容选择，scan 不适配 GPU | selective SSM + hardware-aware scan | fused scan / recurrent | 非严格 linear attention；kernel 依赖强 |
 | 2023-24 | [GLA](../papers/gated-linear-attention.md) | 固定遗忘不足、chunk I/O 高 | input-dependent gate + FlashLinearAttention | chunkwise matrix kernel | 状态矩阵读写仍昂贵；组件级归因不完整 |
 | 2024 | Mamba-2/SSD | SSM 与矩阵硬件映射不佳 | SSM-attention duality + block algorithm | Tensor-Core-friendly blocks | duality 不保证同等表达力 |
-| 2024 | DeltaNet | 新旧键值冲突 | delta erase-then-write + WY | parallel chunks / recurrent | 仍有有限状态冲突 |
+| 2024 | [DeltaNet](../papers/deltanet.md) | 新旧键值冲突 | delta erase-then-write + WY/UT | parallel chunks / recurrent | 仍有有限状态冲突 |
 | 2024-25 | Gated DeltaNet | gate 和 delta 各自不完整 | decay gate + delta write | FLA/runtime 集成 | 组件收益常被训练配方混杂 |
 | 2025 | Kimi Linear/KDA | 长上下文质量、KV cache 与吞吐同时受限 | bounded decay + delta；KDA/MLA hybrid | FlashKDA/KCP + prefix cache | 公开 matched ablation 不完整 |
 | 2026 | Mamba-3 | 状态表达与多输入多输出能力 | complex-valued/MIMO state | 新 kernel 路径 | 版本与部署证据仍在演化 |
