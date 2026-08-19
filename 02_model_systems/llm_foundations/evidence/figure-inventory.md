@@ -4,8 +4,8 @@
 > - 文档类型：Evidence
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[2026H1 model scale](../surveys/2026h1-model-scale.md)
-> - 证据资产：`../assets/papers/deepseek-v4/` · `../assets/papers/kimi-k3/`
-> - 相关文档：[DeepSeek-V4](../papers/deepseek-v4.md) · [Kimi K3](../papers/kimi-k3.md)
+> - 证据资产：`../assets/papers/deepseek-v4/` · `../assets/papers/kimi-k3/` · `../assets/papers/kimi-linear/`
+> - 相关文档：[DeepSeek-V4](../papers/deepseek-v4.md) · [Kimi K3](../papers/kimi-k3.md) · [Kimi Linear](../papers/kimi-linear.md)
 
 本清单索引 LLM Foundations canonical Paper 的正式论文视觉证据。所有原论文对象均由官方 PDF/source 重新裁剪，保留完整 caption、单一编号对象、源页尺寸与 crop bbox，并通过 contact-sheet 初筛和逐图原分辨率复核；页面渲染、裁剪过程与 QA 日志仅保存在过程工作区。
 
@@ -34,3 +34,12 @@
 | Figure 12 / PDF p.23；crop `(195,910,1510,1455)` | `../assets/papers/kimi-k3/fig12-prefix-cache-caption.png` | “Fine-grained prefix caching within a physical cache block. A 6144-token physical block contains twelve 512-token hash blocks, with cached MLA blocks shown in blue and empty blocks in light gray. The markers below show the KDA checkpoint status at each hash boundary. An open circle (◦) denotes a boundary without a stored checkpoint, a gray dot (•) denotes a persisted KDA checkpoint, and an orange dot (•) marks the checkpoint hit at B = 2560. Persisted checkpoints are sparse and typically coincide with conversation-turn boundaries. The request reuses the five MLA hash blocks and the KDA checkpoint at B, then resumes prefill without recomputing [0, B).” | 混合 KDA/MLA 的细粒度 prefix cache | pass：单一 Figure、完整 caption，1315×545，2026-07-28 QA |
 | Table 2 / PDF p.27；crop `(195,200,1510,1945)` | `../assets/papers/kimi-k3/table2-main-results-caption.png` | “Performance comparison of Kimi K3 against proprietary and open-source models. Bold denotes the best result for each benchmark and underline the second-best. Unless otherwise noted, Kimi K3 results are obtained with reasoning effort set to max and temperature equal to 1.0. For HLE-Full, MMMU-Pro, CharXiv (RQ), Math-Vision, and ZeroBench, each cell reports the scores without and with tool augmentation (general tools for HLE-Full, Python for the vision benchmarks), in that order. †On the official Agents’ Last Exam leaderboard, the Claude Fable 5 entry runs at xhigh effort with 40% of tasks annotated as downgraded.” | 主结果、effort、temperature、tool 与对手脚注边界 | pass：完整 Table/caption/脚注，1315×1745，2026-07-28 QA |
 | AI 解释图 / 非论文对象 | `../assets/papers/kimi-k3/algorithm-analysis.png` | “Kimi K3 End-to-End Causal Map.” 基于报告、官方 config 与 CANN 样例生成；不是论文原始证据。 | 训练—推理阶段、状态变化和 CANN 未支持项 | pass：1536×1024 原尺寸文字/事实 QA；OpenRouter ICU 两次 524 后由系统 imagegen 生成，2026-07-28 |
+
+## Kimi Linear
+
+> 源页由 arXiv `2510.26692v2` PDF 以 220 DPI 渲染，尺寸 `1870×2420` px；bbox 使用左上角起点的 `(x,y,width,height)`。两张原论文图均于 2026-08-19 完成 contact-sheet 初筛与逐图原分辨率复核。
+
+| Object / source crop | 正式资产 | 完整 caption | Paper usage | QA |
+|---|---|---|---|---|
+| Figure 2 / PDF p.5；crop `(1150,970,690,485)` | `../assets/papers/kimi-linear/fig2-kda-vs-dplr-kernel-caption.png` | “Figure 2: Execution time of kernels for varying input lengths, with a uniform batch size of 1 and 16 heads.” | 受约束 KDA DPLR 相对一般 DPLR 的 kernel 时间；不外推到端到端模型或其他硬件 | pass：初裁两次暴露 caption/纵轴截断后扩大 bbox；最终 `690×485`，单一 Figure、完整坐标轴/legend/caption，原尺寸 QA 通过 |
+| Figure 7 / PDF p.13；crop `(220,195,1505,595)` | `../assets/papers/kimi-linear/fig7-prefill-decode-system-caption.png` | “Figure 7: (a) The prefilling time of MLA (full attention), hybrid GDN-H and our Kimi Linear. (b) The time per output token (TPOT) for MLA, GDN-H and Kimi Linear during decoding. (We use batch size = 1 here for tests.)” | batch=1 prefill/decode 扩展到 1M；区分约 2.2x TPOT 与另一增批情景的 6.3x | pass：`1505×595`，两子图、legend、标注与完整 caption 可读；单一编号对象，原尺寸 QA 通过 |

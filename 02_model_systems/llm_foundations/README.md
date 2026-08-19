@@ -21,13 +21,14 @@
 - Paper：[Gated Linear Attention](papers/gated-linear-attention.md)
 - Paper：[DeltaNet](papers/deltanet.md)
 - Paper：[Gated DeltaNet](papers/gated-deltanet.md)
+- Paper：[Kimi Linear / KDA](papers/kimi-linear.md)
 - Evidence：[Figure inventory](evidence/figure-inventory.md)
 - Survey：[Linear Attention Transformer 演化](surveys/linear-attention-transformer-evolution.md)
 - Evidence：[Linear Attention Transformer 证据索引](evidence/linear-attention-transformer-evidence.md)
 
 ## Obsidian Properties
 
-本领域 `9/9` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+本领域 `10/10` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
 
 - 共同标签：`paper`、`collection/llm-foundations`、`domain/model-systems`、`status/deep-review`。
 - 每篇另有一项 `topic/*` 和一项 `method/*`，分别表达研究问题与核心方法。

@@ -19,7 +19,7 @@ canonical: true
 > - 文档类型：Survey
 > - 领域入口：[LLM Foundations README](../README.md)
 > - 证据索引：[Linear attention evidence](../evidence/linear-attention-transformer-evidence.md)
-> - 相关 Paper：[Linear Transformer](../papers/linear-transformer.md) · [RetNet](../papers/retnet.md) · [Mamba](../papers/mamba.md) · [Mamba-2 / SSD](../papers/mamba-2-structured-state-space-duality.md) · [Kimi K3](../papers/kimi-k3.md)
+> - 相关 Paper：[Linear Transformer](../papers/linear-transformer.md) · [RetNet](../papers/retnet.md) · [Mamba](../papers/mamba.md) · [Mamba-2 / SSD](../papers/mamba-2-structured-state-space-duality.md) · [GLA](../papers/gated-linear-attention.md) · [DeltaNet](../papers/deltanet.md) · [Gated DeltaNet](../papers/gated-deltanet.md) · [Kimi Linear](../papers/kimi-linear.md) · [Kimi K3](../papers/kimi-k3.md)
 
 ## 修订信息
 
@@ -41,7 +41,7 @@ canonical: true
 
 方法 lane 选取 10 个演化节点：Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet、Kimi Linear/KDA、Mamba-3、Gated DeltaNet-2。2026 年 *Linear Attention Architectures: Mechanisms, Trade-offs, and Cross-Layer Routing* 只作 benchmark/taxonomy 计数，不冒充方法贡献。Qwen3-Next 与 Kimi K3 属于 system-adoption lane，不计入方法论文数量。
 
-证据等级如下：`Paper` 指论文公式/正文/实验；`Code` 指官方或固定实现 locator；`Model` 指官方 model card/config；`Runtime` 指 Transformers、vLLM、SGLang、FLA 等后端入口；`Synthesis` 指跨论文推断。[Linear Transformer](../papers/linear-transformer.md)、[RetNet](../papers/retnet.md)、[Mamba](../papers/mamba.md) 与 [Mamba-2 / SSD](../papers/mamba-2-structured-state-space-duality.md) 已完成 PDF/source、代码、原图和 schema/semantic 验收；其余方法仍是带限制的机制导航，不是新增 canonical Paper。详细来源与阻断见 [Evidence](../evidence/linear-attention-transformer-evidence.md)。
+证据等级如下：`Paper` 指论文公式/正文/实验；`Code` 指官方或固定实现 locator；`Model` 指官方 model card/config；`Runtime` 指 Transformers、vLLM、SGLang、FLA 等后端入口；`Synthesis` 指跨论文推断。截至本次修订，[Linear Transformer](../papers/linear-transformer.md)、[RetNet](../papers/retnet.md)、[Mamba](../papers/mamba.md)、[Mamba-2 / SSD](../papers/mamba-2-structured-state-space-duality.md)、[GLA](../papers/gated-linear-attention.md)、[DeltaNet](../papers/deltanet.md)、[Gated DeltaNet](../papers/gated-deltanet.md) 与 [Kimi Linear](../papers/kimi-linear.md) 已完成 PDF/source、代码、原图和 schema/semantic 验收；其余方法仍是带限制的机制导航。详细来源与阻断见 [Evidence](../evidence/linear-attention-transformer-evidence.md)。
 
 ## 统一术语与符号
 
@@ -73,7 +73,7 @@ $$
 δ_t=v_t-S_{t-1}^Tk_t, S_t=S_{t-1}+β_tk_tδ_t^T,
 $$
 
-即先计算旧状态对当前 key 的预测误差，再写入纠正量。这比盲目累加更接近 erase-then-write，但仍受状态维度和 key 冲突约束。其 canonical Paper 的统一 TikZ 图把 token 级 read-error-write、固定状态 decode 与训练期 WY/UT chunk 边界放在同一视图；论文 kernel speedup 不能外推为端到端模型吞吐。[Gated DeltaNet](../papers/gated-deltanet.md) 把标量衰减门与 delta 写入结合，在同一固定状态里区分“全局清除”和“当前 key 定向修改”；KDA 再把 decay 细化并限制数值范围。
+即先计算旧状态对当前 key 的预测误差，再写入纠正量。这比盲目累加更接近 erase-then-write，但仍受状态维度和 key 冲突约束。其 canonical Paper 的统一 TikZ 图把 token 级 read-error-write、固定状态 decode 与训练期 WY/UT chunk 边界放在同一视图；论文 kernel speedup 不能外推为端到端模型吞吐。[Gated DeltaNet](../papers/gated-deltanet.md) 把标量衰减门与 delta 写入结合，在同一固定状态里区分“全局清除”和“当前 key 定向修改”。[Kimi Linear](../papers/kimi-linear.md) 再把 decay 细化到 key 通道，并用受约束 DPLR 降低 chunk kernel 工作；2025 报告中的 gate 不含后来 Kimi K3 使用的 lower bound，两者必须分开归因。
 
 Mamba/Mamba-2 的递推外形与上述状态模型相似，但语义属于 selective SSM：输入控制状态转移/离散化参数，并依赖 selective scan 或 SSD 块算法。把它们纳入谱系有助于比较 kernel 和状态机制，把它们直接称为 linear attention 则会掩盖理论差异。
 
