@@ -41,7 +41,7 @@ canonical: true
 
 方法 lane 选取 10 个演化节点：Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet、Kimi Linear/KDA、Mamba-3、Gated DeltaNet-2。2026 年 *Linear Attention Architectures: Mechanisms, Trade-offs, and Cross-Layer Routing* 只作 benchmark/taxonomy 计数，不冒充方法贡献。Qwen3-Next 与 Kimi K3 属于 system-adoption lane，不计入方法论文数量。
 
-证据等级如下：`Paper` 指论文公式/正文/实验；`Code` 指官方或固定实现 locator；`Model` 指官方 model card/config；`Runtime` 指 Transformers、vLLM、SGLang、FLA 等后端入口；`Synthesis` 指跨论文推断。截至本次修订，[Linear Transformer](../papers/linear-transformer.md)、[RetNet](../papers/retnet.md)、[Mamba](../papers/mamba.md)、[Mamba-2 / SSD](../papers/mamba-2-structured-state-space-duality.md)、[GLA](../papers/gated-linear-attention.md)、[DeltaNet](../papers/deltanet.md)、[Gated DeltaNet](../papers/gated-deltanet.md) 与 [Kimi Linear](../papers/kimi-linear.md) 已完成 PDF/source、代码、原图和 schema/semantic 验收；其余方法仍是带限制的机制导航。详细来源与阻断见 [Evidence](../evidence/linear-attention-transformer-evidence.md)。
+证据等级如下：`Paper` 指论文公式/正文/实验；`Code` 指官方或固定实现 locator；`Model` 指官方 model card/config；`Runtime` 指 Transformers、vLLM、SGLang、FLA 等后端入口；`Synthesis` 指跨论文推断。截至本次修订，已有 8 个方法 Paper 完成 PDF/source、代码、原图和 schema/semantic 验收，Kimi Linear 另有独立统一 TikZ 结构图；Mamba-3、Gated DeltaNet-2 与 taxonomy 仍需 fresh review 收口。详细来源与阻断见 [Evidence](../evidence/linear-attention-transformer-evidence.md)。
 
 ## 统一术语与符号
 
@@ -94,6 +94,12 @@ Mamba/Mamba-2 的递推外形与上述状态模型相似，但语义属于 selec
 
 谱系关系不是一条直线：Mamba-1/2/3 是 selective SSM 分支；GLA -> DeltaNet -> Gated DeltaNet -> Gated DeltaNet-2 是矩阵状态的 gate/erase/write 分支；KDA 吸收 delta 写入和细粒度 decay，并在 Kimi K3 中与 MLA 混合。Mamba-2 的 SSD 是两支之间的重要表示/实现桥梁，但不能抹掉它们的状态语义差异。
 
+### 统一结构图索引
+
+以下 Paper 内的结构图使用同一 TikZ 规范：蓝色为 token/读写数据流，紫色为持久状态，橙色为 full-attention 或混合锚点；每图都显式标出输入、输出、张量 shape 与符号表，便于横向比较：
+
+`Linear Transformer` · `RetNet` · `Mamba` · `Mamba-2/SSD` · `GLA` · `DeltaNet` · `Gated DeltaNet` · `Kimi Linear`。
+
 ## 系统采用：Qwen3-Next 与 Kimi K3
 
 ### Qwen3-Next
@@ -136,4 +142,4 @@ Mamba/Mamba-2 的递推外形与上述状态模型相似，但语义属于 selec
 
 2020-2026 的主线不是“用一个线性算子取代 attention”，而是把历史压缩、遗忘、冲突擦写、精确检索和硬件执行拆成可组合部件。Linear Transformer 给出固定状态起点；RetNet/GLA 引入衰减；DeltaNet 系列处理写入冲突；Mamba/SSD 推动选择性状态和块硬件算法；KDA 与 Qwen3-Next/Kimi K3 的 hybrid 部署把方法问题变成 kernel、cache 和 serving 的联合设计问题。
 
-本版是机制与系统导航；当前已有 Linear Transformer、RetNet、Mamba、Mamba-2/SSD、Kimi K3 五个相关 canonical Paper 链接，其余方法不冒充已验收证据。后续只有在 PDF/source、两类原论文视觉、代码 commit 与 schema/semantic checks 全部通过后，才能把对应条目升级为 canonical Paper，并同步覆盖矩阵。
+本版是机制与系统导航；方法图均采用统一 TikZ 视觉语法（张量形状、输入输出、状态生命周期与符号表），正式资产由各 Paper owner 持有：Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet 与 Kimi Linear 均可直接对照。Mamba-3 与 Gated DeltaNet-2 只有在 fresh review、原图 QA、代码定位和 schema/semantic checks 全部通过后，才能升级为 canonical Paper，并同步覆盖矩阵。
