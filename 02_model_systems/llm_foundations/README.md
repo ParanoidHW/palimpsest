@@ -22,6 +22,8 @@
 - Paper：[DeltaNet](papers/deltanet.md)
 - Paper：[Gated DeltaNet](papers/gated-deltanet.md)
 - Paper：[Kimi Linear / KDA](papers/kimi-linear.md)
+- Paper：[Mamba-3](papers/mamba-3.md)
+- Paper：[Gated DeltaNet-2](papers/gated-deltanet-2.md)
 - Evidence：[Figure inventory](evidence/figure-inventory.md)
 - Survey：[Linear Attention Transformer 演化](surveys/linear-attention-transformer-evolution.md)
 - Evidence：[Linear Attention Transformer 证据索引](evidence/linear-attention-transformer-evidence.md)
