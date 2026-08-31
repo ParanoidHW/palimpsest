@@ -191,6 +191,10 @@ Prefill 用 chunk kernel，一次消化大块输入；decode 对每个 KDA 层�
 
 ![Figure 7：batch=1 prefill 与 decode 系统测量](../assets/papers/kimi-linear/fig7-prefill-decode-system-caption.png)
 
+![Kimi Linear KDA 统一结构示意图](../assets/papers/kimi-linear/kimi-linear-architecture.png)
+
+上图是按本调研统一 TikZ 视觉规范绘制的机制示意：张量节点标注形状，蓝色表示输入/读出路径，紫色表示固定状态生命周期，橙色表示 3:1 混合中的 MLA 全注意力锚点；它用于跨方法结构对比，不是论文新增实验图。
+
 ## 技术主张—证据矩阵
 
 | 主张 | 证据 | 类型 | 判断/边界 |
