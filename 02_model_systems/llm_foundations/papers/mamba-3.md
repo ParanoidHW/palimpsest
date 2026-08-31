@@ -9,6 +9,8 @@ canonical: true
 
 # Mamba-3: Improved Sequence Modeling using State Space Principles
 
+![统一结构示意图](../assets/papers/mamba-3/mamba-3-architecture.png)
+
 Mamba-3 extends the selective state-space branch with exponential-trapezoidal discretization, complex-valued rotations, and rank-$R$ MIMO heads. It is a selective SSM, not strict feature-map linear attention: its linear-length execution comes from semiseparable state transitions and scan/SSD kernels.
 
 ## Evidence And Boundary

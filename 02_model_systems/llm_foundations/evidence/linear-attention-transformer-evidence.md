@@ -27,7 +27,7 @@ canonical: true
 - 检索截止：`2026-08-14`
 - Survey 模式：`hybrid`
 - 分桶：10 个方法节点、1 个 benchmark/taxonomy、2 个 native-system adoption；backend/integration 不计为论文。
-- 验收结论：Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet、Kimi Linear 与 Mamba-3 已完成独立 PDF/source/代码/视觉/schema 验收并提升为 canonical Paper（accepted-with-limitations）；Gated DeltaNet-2 与 taxonomy 仍保留为导航记录。Kimi K3 继续 `link-only` 复用。
+- 验收结论：10 个方法节点（含 Gated DeltaNet-2）均完成独立 PDF/source/代码/视觉/schema 验收并提升为 canonical Paper（accepted-with-limitations）。2026 taxonomy 独立完成 fresh review，作为 benchmark/navigation 记录，不计入方法论文数量。Kimi K3 继续 `link-only` 复用。
 
 ## 方法候选与证据状态
 
@@ -42,9 +42,9 @@ canonical: true
 | Gated DeltaNet | arXiv `2412.06464` / ICLR 2025 | core/adoption bridge | [Gated DeltaNet Paper](../papers/gated-deltanet.md) | official NVlabs and current FLA commits pinned in canonical Paper | `accepted-with-limitations`; canonical; OpenReview bodies unavailable |
 | Kimi Linear / KDA | arXiv `2510.26692v2` / technical report | recent/method-system bridge | [Kimi Linear Paper](../papers/kimi-linear.md) | official project, paper-era FLA/vLLM and model commits pinned in canonical Paper | `accepted-with-limitations`; canonical; distinct from Kimi K3 |
 | Mamba-3 | arXiv `2603.15569` | recent/selective-SSM | [Mamba-3 Paper](../papers/mamba-3.md) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | fresh review passed; accepted-with-limitations; paper-era tag unavailable |
-| Gated DeltaNet-2 | arXiv `2605.22791` | recent | [arXiv](https://arxiv.org/abs/2605.22791) | [NVlabs/GatedDeltaNet-2](https://github.com/NVlabs/GatedDeltaNet-2) | stable locator verified; fresh review pending |
+| Gated DeltaNet-2 | arXiv `2605.22791` | recent | [Gated DeltaNet-2 Paper](../papers/gated-deltanet-2.md) | [NVlabs/GatedDeltaNet-2](https://github.com/NVlabs/GatedDeltaNet-2) | `accepted-with-limitations`; canonical |
 
-2026 *Linear Attention Architectures: Mechanisms, Trade-offs, and Cross-Layer Routing* 单列 taxonomy/benchmark，稳定 locator 为 [arXiv:2607.07953](https://arxiv.org/abs/2607.07953)；其 benchmark 结论需独立精读后才进入综合，不计入 10 篇方法。
+2026 *Linear Attention Architectures: Mechanisms, Trade-offs, and Cross-Layer Routing* 单列 taxonomy/benchmark，稳定 locator 为 [arXiv:2607.07953](https://arxiv.org/abs/2607.07953)；其 fresh review 已完成，结果只用于比较框架与路由 benchmark，不计入 10 篇方法。
 
 ## System adoption database
 

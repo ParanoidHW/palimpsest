@@ -43,3 +43,10 @@
 |---|---|---|---|---|
 | Figure 2 / PDF p.5；crop `(1150,970,690,485)` | `../assets/papers/kimi-linear/fig2-kda-vs-dplr-kernel-caption.png` | “Figure 2: Execution time of kernels for varying input lengths, with a uniform batch size of 1 and 16 heads.” | 受约束 KDA DPLR 相对一般 DPLR 的 kernel 时间；不外推到端到端模型或其他硬件 | pass：初裁两次暴露 caption/纵轴截断后扩大 bbox；最终 `690×485`，单一 Figure、完整坐标轴/legend/caption，原尺寸 QA 通过 |
 | Figure 7 / PDF p.13；crop `(220,195,1505,595)` | `../assets/papers/kimi-linear/fig7-prefill-decode-system-caption.png` | “Figure 7: (a) The prefilling time of MLA (full attention), hybrid GDN-H and our Kimi Linear. (b) The time per output token (TPOT) for MLA, GDN-H and Kimi Linear during decoding. (We use batch size = 1 here for tests.)” | batch=1 prefill/decode 扩展到 1M；区分约 2.2x TPOT 与另一增批情景的 6.3x | pass：`1505×595`，两子图、legend、标注与完整 caption 可读；单一编号对象，原尺寸 QA 通过 |
+
+## Unified TikZ architecture diagrams
+
+| Object | Formal asset | QA | Scope |
+|---|---|---|---|
+| Mamba-3 unified tensor/state dataflow | `../assets/papers/mamba-3/mamba-3-architecture.png` | pass：1792×1008；独立原尺寸 QA；SHA `20f17bba57f21d18880865613d71eb4276749994fa543fc4b2e17b105e9c60a4` | analysis-derived TikZ diagram; selective SSM, complex rotation, trapezoidal endpoint and MIMO state |
+| Gated DeltaNet-2 unified tensor/state dataflow | `../assets/papers/gated-deltanet-2/gated-deltanet-2-architecture.png` | pass：1792×1008；独立原尺寸 QA；SHA `d25e791d0c6ce52ff86a4a8d4ae8f195ae4beda35ac1b5fa520b6fc3d0e102db` | analysis-derived TikZ diagram; decoupled key erase and value write |
