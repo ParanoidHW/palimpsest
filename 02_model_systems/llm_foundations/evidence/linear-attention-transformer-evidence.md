@@ -75,7 +75,7 @@ Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts inc
 | Peer-reviewed method Papers accepted in this task | 6 | Linear Transformer (ICML 2020), GLA (ICML 2024), Mamba-2/SSD (ICML 2024), Mamba (COLM 2024), DeltaNet (NeurIPS 2024), Gated DeltaNet (ICLR 2025); all accepted-with-limitations |
 | ArXiv technical-report Papers accepted in this task | 2 | RetNet、Kimi Linear；accepted-with-limitations |
 | arXiv/technical-report method nodes used for navigation | 10 | table above |
-| Benchmark/taxonomy records | 1 | arXiv `2607.07953`; independent review pending |
+| Benchmark/taxonomy records | 1 | arXiv `2607.07953`; fresh review accepted-with-limitations; benchmark-only |
 | Native-system adoption | 2 | Qwen3-Next, Kimi K3 |
 | Optional official backends | not frozen | per-release Transformers/vLLM/SGLang checks required |
 | Third-party integrations | not counted | discovery-only unless source and support tier are pinned |
