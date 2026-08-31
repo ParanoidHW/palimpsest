@@ -19,7 +19,7 @@ canonical: true
 > - 文档类型：Survey
 > - 领域入口：[LLM Foundations README](../README.md)
 > - 证据索引：[Linear attention evidence](../evidence/linear-attention-transformer-evidence.md)
-> - 相关 Paper：[Linear Transformer](../papers/linear-transformer.md) · [RetNet](../papers/retnet.md) · [Mamba](../papers/mamba.md) · [Mamba-2 / SSD](../papers/mamba-2-structured-state-space-duality.md) · [GLA](../papers/gated-linear-attention.md) · [DeltaNet](../papers/deltanet.md) · [Gated DeltaNet](../papers/gated-deltanet.md) · [Kimi Linear](../papers/kimi-linear.md) · [Kimi K3](../papers/kimi-k3.md)
+> - 相关 Paper：[Linear Transformer](../papers/linear-transformer.md) · [RetNet](../papers/retnet.md) · [Mamba](../papers/mamba.md) · [Mamba-2 / SSD](../papers/mamba-2-structured-state-space-duality.md) · [GLA](../papers/gated-linear-attention.md) · [DeltaNet](../papers/deltanet.md) · [Gated DeltaNet](../papers/gated-deltanet.md) · [Kimi Linear](../papers/kimi-linear.md) · [Mamba-3](../papers/mamba-3.md) · [Kimi K3](../papers/kimi-k3.md)
 
 ## 修订信息
 
@@ -90,7 +90,7 @@ Mamba/Mamba-2 的递推外形与上述状态模型相似，但语义属于 selec
 | 2024-25 | [Gated DeltaNet](../papers/gated-deltanet.md) | gate 和 delta 各自不完整 | scalar decay gate + delta write | WY/UT chunks / recurrent decode | hybrid 组件收益与训练配方混杂；公开评审正文不可得 |
 | 2025 | Kimi Linear/KDA | 长上下文质量、KV cache 与吞吐同时受限 | bounded decay + delta；KDA/MLA hybrid | FlashKDA/KCP + prefix cache | 公开 matched ablation 不完整 |
 | 2026 | Mamba-3 | 状态表达与多输入多输出能力 | complex-valued/MIMO state | 新 kernel 路径 | 版本与部署证据仍在演化 |
-| 2026 | Gated DeltaNet-2 | erase/write 耦合 | 分离擦除与写入控制 | chunk/runtime 路径待核验 | 缺稳定同预算比较 |
+| 2026 | Gated DeltaNet-2 | erase/write 耦合 | 分离 key erase 与 value write 的 channel-wise gate | chunk train/prefill；fixed-state recurrent decode | provenance blocked；不得作为已建立 Paper 证据 |
 
 谱系关系不是一条直线：Mamba-1/2/3 是 selective SSM 分支；GLA -> DeltaNet -> Gated DeltaNet -> Gated DeltaNet-2 是矩阵状态的 gate/erase/write 分支；KDA 吸收 delta 写入和细粒度 decay，并在 Kimi K3 中与 MLA 混合。Mamba-2 的 SSD 是两支之间的重要表示/实现桥梁，但不能抹掉它们的状态语义差异。
 
