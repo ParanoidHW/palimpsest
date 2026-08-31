@@ -27,7 +27,7 @@ canonical: true
 - 检索截止：`2026-08-14`
 - Survey 模式：`hybrid`
 - 分桶：10 个方法节点、1 个 benchmark/taxonomy、2 个 native-system adoption；backend/integration 不计为论文。
-- 验收结论：Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet 与 Kimi Linear 已完成独立 PDF/source/代码/视觉/schema 验收并提升为 canonical Paper（accepted-with-limitations）；其余方法仍保留为导航记录。Kimi K3 继续 `link-only` 复用。
+- 验收结论：Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet、Kimi Linear 与 Mamba-3 已完成独立 PDF/source/代码/视觉/schema 验收并提升为 canonical Paper（accepted-with-limitations）；Gated DeltaNet-2 与 taxonomy 仍保留为导航记录。Kimi K3 继续 `link-only` 复用。
 
 ## 方法候选与证据状态
 
@@ -41,7 +41,7 @@ canonical: true
 | DeltaNet | arXiv `2406.06484` / NeurIPS 2024 | core | [DeltaNet Paper](../papers/deltanet.md) | [Flash Linear Attention](https://github.com/fla-org/flash-linear-attention) pinned in canonical Paper | `accepted-with-limitations`; canonical |
 | Gated DeltaNet | arXiv `2412.06464` / ICLR 2025 | core/adoption bridge | [Gated DeltaNet Paper](../papers/gated-deltanet.md) | official NVlabs and current FLA commits pinned in canonical Paper | `accepted-with-limitations`; canonical; OpenReview bodies unavailable |
 | Kimi Linear / KDA | arXiv `2510.26692v2` / technical report | recent/method-system bridge | [Kimi Linear Paper](../papers/kimi-linear.md) | official project, paper-era FLA/vLLM and model commits pinned in canonical Paper | `accepted-with-limitations`; canonical; distinct from Kimi K3 |
-| Mamba-3 | arXiv `2603.15569` | recent/selective-SSM | [arXiv](https://arxiv.org/abs/2603.15569) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | stable locator verified; fresh review pending |
+| Mamba-3 | arXiv `2603.15569` | recent/selective-SSM | [Mamba-3 Paper](../papers/mamba-3.md) | [state-spaces/mamba](https://github.com/state-spaces/mamba) | fresh review passed; accepted-with-limitations; paper-era tag unavailable |
 | Gated DeltaNet-2 | arXiv `2605.22791` | recent | [arXiv](https://arxiv.org/abs/2605.22791) | [NVlabs/GatedDeltaNet-2](https://github.com/NVlabs/GatedDeltaNet-2) | stable locator verified; fresh review pending |
 
 2026 *Linear Attention Architectures: Mechanisms, Trade-offs, and Cross-Layer Routing* 单列 taxonomy/benchmark，稳定 locator 为 [arXiv:2607.07953](https://arxiv.org/abs/2607.07953)；其 benchmark 结论需独立精读后才进入综合，不计入 10 篇方法。
@@ -82,7 +82,7 @@ Canonical owner: [Kimi K3 Paper](../papers/kimi-k3.md). Stable adopted facts inc
 
 ## Visual inventory and QA
 
-New original-paper crops promoted by this revision: `19` across Linear Transformer (4), RetNet (2), Mamba (3), Mamba-2/SSD (2), GLA (2), DeltaNet (2), Gated DeltaNet (2), and Kimi Linear (2); each canonical Paper embeds its owned assets. Each accepted method also owns or is passing the final gate for a unified TikZ architecture diagram with the same tensor/state/gate palette.
+New original-paper crops promoted by this revision: `22` across Linear Transformer (4), RetNet (2), Mamba (3), Mamba-2/SSD (2), GLA (2), DeltaNet (2), Gated DeltaNet (2), Kimi Linear (2), and Mamba-3 (3); each canonical Paper embeds its owned assets. Each accepted method also owns or is passing the final gate for a unified TikZ architecture diagram with the same tensor/state/gate palette.
 
 Reason for remaining candidates: a qualifying crop must contain one numbered object and complete caption, record PDF page/source dimensions/bbox, pass contact-sheet triage and individual 100% review, and be embedded with an evidence loop. Generated diagrams and README screenshots are not substitutes. Kimi K3 has existing QA-passed crops in the canonical [Figure inventory](figure-inventory.md).
 
