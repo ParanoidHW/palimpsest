@@ -41,7 +41,7 @@ canonical: true
 
 方法 lane 选取 10 个演化节点：Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet、Kimi Linear/KDA、Mamba-3、Gated DeltaNet-2。2026 年 *Linear Attention Architectures: Mechanisms, Trade-offs, and Cross-Layer Routing* 只作 benchmark/taxonomy 计数，不冒充方法贡献。Qwen3-Next 与 Kimi K3 属于 system-adoption lane，不计入方法论文数量。
 
-证据等级如下：`Paper` 指论文公式/正文/实验；`Code` 指官方或固定实现 locator；`Model` 指官方 model card/config；`Runtime` 指 Transformers、vLLM、SGLang、FLA 等后端入口；`Synthesis` 指跨论文推断。截至本次修订，已有 8 个方法 Paper 完成 PDF/source、代码、原图和 schema/semantic 验收，Kimi Linear 另有独立统一 TikZ 结构图；Mamba-3、Gated DeltaNet-2 与 taxonomy 仍需 fresh review 收口。详细来源与阻断见 [Evidence](../evidence/linear-attention-transformer-evidence.md)。
+证据等级如下：`Paper` 指论文公式/正文/实验；`Code` 指官方或固定实现 locator；`Model` 指官方 model card/config；`Runtime` 指 Transformers、vLLM、SGLang、FLA 等后端入口；`Synthesis` 指跨论文推断。截至本次修订，Mamba-3 已完成 fresh review、原图 QA 与 schema/semantic 验收（accepted-with-limitations）；其余已收录方法同样保持独立证据链，Gated DeltaNet-2 与 taxonomy 仍需 fresh review 收口。详细来源与阻断见 [Evidence](../evidence/linear-attention-transformer-evidence.md)。
 
 ## 统一术语与符号
 
