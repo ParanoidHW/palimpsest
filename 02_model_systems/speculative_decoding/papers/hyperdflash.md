@@ -62,25 +62,25 @@ canonical: true
 
 ### 0.1.1 术语表
 
-| 术语 | 本文含义 | 别名 | 不等于/易混项 | 证据来源 |
-|---|---|---|---|---|
-| target model | 负责并行验证草稿且定义最终采样分布的 DeepSeek-V4-Flash | target、oracle（泛称） | 不是 drafter；“oracle”并非本文正式命名 | Sec. 1、3.2；DFlash `model.py:126-140` |
-| drafter | 一次提出一块候选 token 的轻量 DFlash 派生模型 | draft model | 不等于 target 自带的 MTP 模块 | Sec. 1–2；Figure 2 |
-| speculative decoding | drafter 提案、target 并行验证、只提交被接受前缀的无损解码范式 | draft-and-verify | “无损”指按相同 target 分布采样，不代表零额外计算 | Sec. 1；Related Work |
-| block-parallel drafting | 从已接受 anchor 和 mask block 出发，一次 drafter forward 同时预测多个位置 | one-pass block drafting | 不是 MTP 的逐步串行外推 | Sec. 1；DFlash `model.py:107-121` |
-| anchor token | 每个草稿块的首个已接受 token，作为块内条件锚点 | accepted anchor | 不是待验证草稿位置 | Sec. 1、Figure 2；DFlash `model.py:108-121` |
-| MTP | DeepSeek-V4 原生 Multi-Token Prediction 模块，依赖未验证中间 token 顺序推进 | native MTP | 不等于 HyperDFlash 的块并行 drafter | Sec. 1、3.3；target code `model.py:738-766` |
-| DFlash | 从 target 隐状态条件化、使用 mask block 一次并行起草的基线框架 | vanilla DFlash（本文直接适配版） | 原始 DFlash 代码并不支持 HC；DeepSeek-V4 支持仍标为 coming soon | Sec. 1、4；baseline README:34-38 |
-| HC / mHC | DeepSeek-V4 每 token 保持多条并行 residual path 的 Hyper-Connection / manifold-constrained Hyper-Connection | 论文正文多用 HC，target README 用 mHC | 不是单一路 residual；论文标题的 “Hyper-Connection” 比早期摘要中的 “MHC” 更宽泛 | Sec. 1–2；target config `hc_mult=4` |
-| `pre_hc_head` | target 最后一个 HC block 输出、最终路径折叠之前的多路径残差状态 | pre-collapse residual | 不等于中间多层 feature concatenation，也不等于折叠后的 LM-head 输入 | Sec. 2.1 |
-| `hc_head` | target 在 LM head 前用输入相关 sigmoid gate 聚合 residual paths 的模块 | HC head | 不等于 HC block 内带 Sinkhorn 的 `hc_pre/hc_post` 路径混合 | Sec. 2.2 Eq. 1；target code `model.py:728-735` |
-| Inherited HC-Gate Reducer | drafter 侧复用 `hc_head` 函数形式并继承 target gate 参数的路径 reducer | inherited reducer | 不是复制完整 target layer；不是 softmax gate | Sec. 2.2、Table 1 |
-| generic fc reducer | 把拼接 target features 用密集线性层压到 hidden width 的 vanilla DFlash reducer | generic `fc` reducer；linear compressor | 不具备输入相关 path gate | Sec. 2.2；DFlash `model.py:317-334` |
-| targeted LM-head KL distillation | 用 target LM head 对缓存 target hidden state 形成 soft label，只监督草稿块前两个位置 | early-position KL | 不是全位置 teacher forcing；当前 teacher 还使用 mean-pooled HC paths | Sec. 2.3 |
-| drafting-stage mask | drafter 一次 block forward 中占位未决 token 的 mask | mask token | 不等于 target verification 的 causal/tree mask | Figure 2；DFlash `model.py:79-121` |
-| target verification | target 对候选 block 并行求 posterior 并提交最长匹配前缀 | verification stage | 不等于 drafter 自注意力或训练 KL | Sec. 1；DFlash `model.py:126-140` |
-| accepted length | 一轮 verification 中平均被接受的 draft token 数 | mean accepted length、$\tau$ | 不是生成质量分数，也不自动等价于端到端加速 | Sec. 3.4 |
-| Non-thinking / Think-high | DeepSeek-V4-Flash 的两种推理模式 | Non-think / reasoning mode | 论文未披露完整 chat template、reasoning budget 或输出长度分布 | Sec. 3.2、Tables 2–3 |
+| 术语                               | 本文含义                                                                                                | 别名                                     | 不等于/易混项                                                   | 证据来源                                          |
+| -------------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------- | --------------------------------------------- |
+| target model                     | 负责并行验证草稿且定义最终采样分布的 DeepSeek-V4-Flash                                                                | target、oracle（泛称）                      | 不是 drafter；“oracle”并非本文正式命名                               | Sec. 1、3.2；DFlash `model.py:126-140`          |
+| drafter                          | 一次提出一块候选 token 的轻量 DFlash 派生模型                                                                      | draft model                            | 不等于 target 自带的 MTP 模块                                     | Sec. 1–2；Figure 2                             |
+| speculative decoding             | drafter 提案、target 并行验证、只提交被接受前缀的无损解码范式                                                              | draft-and-verify                       | “无损”指按相同 target 分布采样，不代表零额外计算                             | Sec. 1；Related Work                           |
+| block-parallel drafting          | 从已接受 anchor 和 mask block 出发，一次 drafter forward 同时预测多个位置                                             | one-pass block drafting                | 不是 MTP 的逐步串行外推                                            | Sec. 1；DFlash `model.py:107-121`              |
+| anchor token                     | 每个草稿块的首个已接受 token，作为块内条件锚点                                                                          | accepted anchor                        | 不是待验证草稿位置                                                 | Sec. 1、Figure 2；DFlash `model.py:108-121`     |
+| MTP                              | DeepSeek-V4 原生 Multi-Token Prediction 模块，依赖未验证中间 token 顺序推进                                         | native MTP                             | 不等于 HyperDFlash 的块并行 drafter                              | Sec. 1、3.3；target code `model.py:738-766`     |
+| DFlash                           | 从 target 隐状态条件化、使用 mask block 一次并行起草的基线框架                                                           | vanilla DFlash（本文直接适配版）                | 原始 DFlash 代码并不支持 HC；DeepSeek-V4 支持仍标为 coming soon         | Sec. 1、4；baseline README:34-38                |
+| HC / mHC                         | DeepSeek-V4 每 token 保持多条并行 residual path 的 Hyper-Connection / manifold-constrained Hyper-Connection | 论文正文多用 HC，target README 用 mHC          | 不是单一路 residual；论文标题的 “Hyper-Connection” 比早期摘要中的 “MHC” 更宽泛 | Sec. 1–2；target config `hc_mult=4`            |
+| `pre_hc_head`                    | target 最后一个 HC block 输出、最终路径折叠之前的多路径残差状态                                                            | pre-collapse residual                  | 不等于中间多层 feature concatenation，也不等于折叠后的 LM-head 输入         | Sec. 2.1                                      |
+| `hc_head`                        | target 在 LM head 前用输入相关 sigmoid gate 聚合 residual paths 的模块                                          | HC head                                | 不等于 HC block 内带 Sinkhorn 的 `hc_pre/hc_post` 路径混合          | Sec. 2.2 Eq. 1；target code `model.py:728-735` |
+| Inherited HC-Gate Reducer        | drafter 侧复用 `hc_head` 函数形式并继承 target gate 参数的路径 reducer                                             | inherited reducer                      | 不是复制完整 target layer；不是 softmax gate                       | Sec. 2.2、Table 1                              |
+| generic fc reducer               | 把拼接 target features 用密集线性层压到 hidden width 的 vanilla DFlash reducer                                  | generic `fc` reducer；linear compressor | 不具备输入相关 path gate                                         | Sec. 2.2；DFlash `model.py:317-334`            |
+| targeted LM-head KL distillation | 用 target LM head 对缓存 target hidden state 形成 soft label，只监督草稿块前两个位置                                  | early-position KL                      | 不是全位置 teacher forcing；当前 teacher 还使用 mean-pooled HC paths | Sec. 2.3                                      |
+| drafting-stage mask              | drafter 一次 block forward 中占位未决 token 的 mask                                                         | mask token                             | 不等于 target verification 的 causal/tree mask                | Figure 2；DFlash `model.py:79-121`             |
+| target verification              | target 对候选 block 并行求 posterior 并提交最长匹配前缀                                                            | verification stage                     | 不等于 drafter 自注意力或训练 KL                                    | Sec. 1；DFlash `model.py:126-140`              |
+| accepted length                  | 一轮 verification 中平均被接受的 draft token 数                                                               | mean accepted length、$\tau$            | 不是生成质量分数，也不自动等价于端到端加速                                     | Sec. 3.4                                      |
+| Non-thinking / Think-high        | DeepSeek-V4-Flash 的两种推理模式                                                                           | Non-think / reasoning mode             | 论文未披露完整 chat template、reasoning budget 或输出长度分布            | Sec. 3.2、Tables 2–3                           |
 
 ### 0.1.2 符号表
 
@@ -200,17 +200,17 @@ canonical: true
 
 ### 4.2 组件级设计动机与具体问题映射
 
-| 设计项 | 论文是否明确说明 why | 原文证据 | 针对的具体问题/失败模式 | 可能起作用的因果机制 | 替代方案/权衡 | 验证证据 | 判断 |
-|---|---|---|---|---|---|---|---|
-| one-pass block drafting | author-stated | Sec. 1 | MTP 草稿内部串行依赖与误差累积 | 所有候选位置直接条件于 accepted anchor/target context | MTP 成本小但后位弱；tree/AR drafter 可更灵活但串行 | Figure 1 + complete-system tables | partially-supported |
-| `pre_hc_head` only | author-stated | Sec. 2.1 | 多层 feature 偏离最终 target state、额外 capture overhead | 保留完整 path 结构且取自最终 collapse 前 | multi-layer capture 适配更通用；folded state 更省宽度但丢 path 信息 | paper prose、Figure 2；无发布消融 | plausible |
-| inherited sigmoid path reducer | author-stated | Sec. 2.2、Eq. 1、Table 1 | dense fc 静态、参数重、与 target aggregation 不一致 | 对每 token 自适应给 path 加权，初始化继承 target | dense fc 在 hidden width 不匹配时可 fallback；继承 reducer 要求相同 width/source | 参数直接验证；target code；quality 未隔离 | partially-supported |
-| per-path drafter RMSNorm | author-stated but minimally motivated | Sec. 2.2 | reducer 输入尺度适配 | 在 gating 前稳定路径尺度 | 复用 target exact norm；或不额外 norm | 无消融、无代码 | unverified |
-| first-two-position KL | author-stated | Sec. 2.3、Eq. 2–3 | CE 丢失完整 target distribution；后位 teacher context 错配 | 前位 soft labels 提供更丰富概率监督，限制 $P=2$ 减少冲突 | $P=1$ 更严格对齐；全位置 KL 信号更多但偏差更大 | 理论性信息集分析；无独立 ablation | plausible |
-| KL weight 0.1–0.2 | author-stated | Sec. 2.3 | teacher 仍 mean-pool HC paths，可能有偏 | 低权重限制错误 teacher 的梯度影响 | gated teacher 或温度/权重 sweep | 无 sensitivity | unverified |
-| two-stage 300K→150K training | author-stated | Sec. 3.1 | 通用能力与任务域适配需兼顾 | 先通用后任务导向 adaptation | 混合单阶段、更多公开数据、不同 epoch | 无 data/training ablation | unverified |
-| six-step draft budget | author-stated | Sec. 3.3 | acceptance 与 draft cost 权衡 | 用 MTP(6) 和 DFlash(6) 对齐预算 | 动态 block length 可能更优 | matched-budget main tables | supported as evaluation control |
-| vLLM serving | author-stated | Sec. 3.2 | 需要测吞吐而非只测 acceptance | 在同 stack 计算 target-only 相对 speedup | SGLang/custom runtime；生产调度 | 仅 aggregate speedup，无实现/分解 | partially-supported |
+| 设计项                            | 论文是否明确说明 why                          | 原文证据                   | 针对的具体问题/失败模式                                      | 可能起作用的因果机制                                 | 替代方案/权衡                                                             | 验证证据                              | 判断                              |
+| ------------------------------ | ------------------------------------- | ---------------------- | ------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------- | --------------------------------- | ------------------------------- |
+| one-pass block drafting        | author-stated                         | Sec. 1                 | MTP 草稿内部串行依赖与误差累积                                 | 所有候选位置直接条件于 accepted anchor/target context | MTP 成本小但后位弱；tree/AR drafter 可更灵活但串行                                 | Figure 1 + complete-system tables | partially-supported             |
+| `pre_hc_head` only             | author-stated                         | Sec. 2.1               | 多层 feature 偏离最终 target state、额外 capture overhead  | 保留完整 path 结构且取自最终 collapse 前               | multi-layer capture 适配更通用；folded state 更省宽度但丢 path 信息               | paper prose、Figure 2；无发布消融        | plausible                       |
+| inherited sigmoid path reducer | author-stated                         | Sec. 2.2、Eq. 1、Table 1 | dense fc 静态、参数重、与 target aggregation 不一致          | 对每 token 自适应给 path 加权，初始化继承 target         | dense fc 在 hidden width 不匹配时可 fallback；继承 reducer 要求相同 width/source | 参数直接验证；target code；quality 未隔离    | partially-supported             |
+| per-path drafter RMSNorm       | author-stated but minimally motivated | Sec. 2.2               | reducer 输入尺度适配                                    | 在 gating 前稳定路径尺度                           | 复用 target exact norm；或不额外 norm                                      | 无消融、无代码                           | unverified                      |
+| first-two-position KL          | author-stated                         | Sec. 2.3、Eq. 2–3       | CE 丢失完整 target distribution；后位 teacher context 错配 | 前位 soft labels 提供更丰富概率监督，限制 $P=2$ 减少冲突     | $P=1$ 更严格对齐；全位置 KL 信号更多但偏差更大                                        | 理论性信息集分析；无独立 ablation             | plausible                       |
+| KL weight 0.1–0.2              | author-stated                         | Sec. 2.3               | teacher 仍 mean-pool HC paths，可能有偏                 | 低权重限制错误 teacher 的梯度影响                      | gated teacher 或温度/权重 sweep                                          | 无 sensitivity                     | unverified                      |
+| two-stage 300K→150K training   | author-stated                         | Sec. 3.1               | 通用能力与任务域适配需兼顾                                     | 先通用后任务导向 adaptation                        | 混合单阶段、更多公开数据、不同 epoch                                               | 无 data/training ablation          | unverified                      |
+| six-step draft budget          | author-stated                         | Sec. 3.3               | acceptance 与 draft cost 权衡                        | 用 MTP(6) 和 DFlash(6) 对齐预算                  | 动态 block length 可能更优                                                | matched-budget main tables        | supported as evaluation control |
+| vLLM serving                   | author-stated                         | Sec. 3.2               | 需要测吞吐而非只测 acceptance                              | 在同 stack 计算 target-only 相对 speedup         | SGLang/custom runtime；生产调度                                          | 仅 aggregate speedup，无实现/分解        | partially-supported             |
 
 ### 4.3 模型/系统架构
 
