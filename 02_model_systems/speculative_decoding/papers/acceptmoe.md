@@ -21,14 +21,15 @@ tags:
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-acceptmoe-initial-20260901`
-- 当前修订时间：`2026-09-01T12:00:00+08:00`
-- 替代版本：无
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-acceptmoe-visual-completeness-20260901`
+- 当前修订时间：`2026-09-01T21:10:00+08:00`
+- 替代版本：`rev-acceptmoe-initial-20260901` / `1.0.0`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 替代修订 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|
 | `rev-acceptmoe-initial-20260901` | `1.0.0` | `2026-09-01T12:00:00+08:00` | `initial` | 无 | 建立单篇因果闭环、公式卡、图表证据、基础设施分析和发布链路 | arXiv v1 PDF/TeX；结构与语义校验 | none |
+| `rev-acceptmoe-visual-completeness-20260901` | `1.1.0` | `2026-09-01T21:10:00+08:00` | `evidence-update` | `rev-acceptmoe-initial-20260901` / `1.0.0` | 将 Figure 2–5 嵌入正文并固化示意图完整性要求 | 用户反馈；Figure inventory；发布器校验 | minor |
 
 ## 0. 资料与配图索引
 
@@ -129,6 +130,10 @@ tags:
 ### 4.1 方法流程
 
 EAGLE-3 先生成 5-step、最多 64 节点的 draft tree。对每个 MoE layer，target router 输出 logits；AcceptMoE 根据节点位置 commitment 估计加权，保留 root natural top-k anchor，再按 utility 排名和 effective rank 选择非 anchor 专家。验证时所有 token 的 top-k 被限制在 S 内。offload 时读取当前 LRU resident set，按低 utility 顺序删除可删除的 nonresident 专家，得到 $S'$。
+
+![AcceptMoE Figure 2](../assets/papers/acceptmoe/algo2.png)
+
+> 图注：原论文 Figure 2，展示驻留感知剪枝如何按需求排序删除非驻留专家，并通过 rerouting 更新 GPU expert pool。
 
 ### 4.2 关键公式与解释卡
 
@@ -236,9 +241,21 @@ $$m^\star=\max\{m:\sum_{j=1}^{m}v_{\pi(j)}\le a(S),\ |S|-m\ge k\},\quad D^\star=
 
 12 个 model-task pair（Qwen3-Instruct/Coder、GPT-OSS-120B × GSM8K/MATH500/HumanEval/MBPP）中，AcceptMoE 平均准确率 90.63%，Standard SD 90.90%，差 -0.27pp；最大单对下降 1.22pp。全驻留 RTX PRO 6000 Blackwell、SGLang 0.5.12.post1、batch=1 下平均吞吐 1.290×，范围 1.217–1.339×，accepted length 均约 4.39，故收益主要归因于专家计算/访存减少而非接受长度增加。RTX 5090、48 slots offload 下平均 2.06×；H2D bytes/token 相对 Standard SD 降 73.6%–77.1%，cache hit 提升 10.8–14.2pp（Table 2）。
 
+![AcceptMoE Figure 3](../assets/papers/acceptmoe/hbm_throughput.png)
+
+> 图注：原论文 Figure 3，全专家驻留于 GPU 时的端到端吞吐；测试硬件为 RTX PRO 6000 Blackwell。
+
+![AcceptMoE Figure 4](../assets/papers/acceptmoe/offload_throughput.png)
+
+> 图注：原论文 Figure 4，物理专家 offloading 下的端到端吞吐；测试硬件为 RTX 5090、每层 48 个 expert slots。
+
 ### 5.2 归因边界
 
 直接证据支持“集合限制减少 union/传输”与“commitment weighting 优于等预算 MoE-Spec”。但吞吐还受 SGLang kernel、CUDA Graph（全驻留开、offload 关）、模型路由 fan-out、BF16 vs packed MXFP4 影响；论文没有跨 backend 或 batch sweep，因此不能把 1.290×/2.06× 外推为通用系统收益。约束 router 改变 target 分布，论文只测准确率，未报告 KL、perplexity、router load balance、长尾任务或安全拒答。
+
+![AcceptMoE Figure 5](../assets/papers/acceptmoe/ablations.png)
+
+> 图注：原论文 Figure 5，包含 fetch-wait、固定预算准确率 sweep、expert-weight traffic 和 cache hit 的消融与机制结果。
 
 ## 6. 相关工作比较
 

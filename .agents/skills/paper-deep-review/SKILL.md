@@ -170,6 +170,7 @@ Treat this skill as a required workflow rather than optional guidance.
    - Include the design-rationale matrix in the method section. A component description without its stated/inferred rationale, concrete target problem, causal mechanism, and evidence status is incomplete.
    - Include one centralized terminology-and-symbol chapter near the top before the method section. Put both the term table and symbol table inside it, and make every manifest entry traceable to this chapter and its paper/code source or explicit reviewer derivation.
    - Include images inline near the discussion they support.
+   - Any paper Figure or Table that carries key methodological, rationale, algorithmic, ablation, mechanism, or primary experimental evidence must appear in the delivered `analysis.md` near the relevant discussion. Extraction into an asset directory or inventory alone is insufficient. If a table is not embedded as an image, reproduce its complete decision-relevant contents as a readable Markdown table and link its source/inventory entry. Do not omit a paper visual merely because another overview figure exists; omission requires an explicit inventory reason that the object is redundant and carries no additional evidence.
    - End with practical limitations, research inspirations, and unresolved reading questions.
 
 11. **Provide and insert a reader-usable algorithm overview diagram.**

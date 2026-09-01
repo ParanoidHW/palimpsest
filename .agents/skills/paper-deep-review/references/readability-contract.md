@@ -96,6 +96,10 @@ Prefer a clear original-paper overview. Otherwise generate an explanatory diagra
 
 Use the completed analysis as document input when supported. Otherwise create a short evidence-bound visual brief from cited content. Generated diagrams must be labeled as explanatory, visually inspected at full resolution, and never treated as experimental evidence.
 
+## 4.1 Evidence-visual completeness
+
+The final review must place every paper Figure/Table that carries method rationale, algorithm detail, ablation, mechanism evidence, or a primary result in the Markdown reading path near the claim it supports. A crop or asset that is only listed in an inventory does not count as delivery. For tables, use the complete readable figure/table or reproduce all decision-relevant rows and columns in Markdown with a source link. Mark genuinely redundant visuals explicitly in the inventory; do not silently omit them.
+
 ## 5. Final one-glance test
 
 Before completion, reread only these four parts as if unfamiliar with the paper:

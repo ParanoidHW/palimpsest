@@ -90,6 +90,7 @@ Completion requires:
 - canonical ownership and promotion actions are explicit;
 - formal Markdown and assets are in their owned locations;
 - README, Survey, Paper, Topic, Evidence, and Asset links satisfy repository policy;
+- Every promoted Paper embeds or fully reconstructs each key method, rationale, algorithm, ablation, mechanism, and primary-result Figure/Table near the supported claim; inventory-only assets do not count, and omissions require an explicit redundancy reason.
 - no formal document references the resolved process root, absolute local paths, page renders, or untracked assets;
 - process artifacts remain outside the formal knowledge tree;
 - the promotion plan, resolved-organization provenance, and validation result remain under the process root.
