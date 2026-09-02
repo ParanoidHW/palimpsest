@@ -30,6 +30,7 @@ tags:
 |---|---|---|---|---|---|---|---|
 | `rev-acceptmoe-initial-20260901` | `1.0.0` | `2026-09-01T12:00:00+08:00` | `initial` | 无 | 建立单篇因果闭环、公式卡、图表证据、基础设施分析和发布链路 | arXiv v1 PDF/TeX；结构与语义校验 | none |
 | `rev-acceptmoe-visual-completeness-20260901` | `1.1.0` | `2026-09-01T21:10:00+08:00` | `evidence-update` | `rev-acceptmoe-initial-20260901` / `1.0.0` | 将 Figure 2–5 嵌入正文并固化示意图完整性要求 | 用户反馈；Figure inventory；发布器校验 | minor |
+| `rev-acceptmoe-zh-method-flow-20260902` | `1.2.0` | `2026-09-02T10:00:00+08:00` | `content-update` | `rev-acceptmoe-visual-completeness-20260901` / `1.1.0` | 将 4.1 的系统黑话改为中文解释，保留必要专名与数学术语 | 用户反馈；readability audit | minor |
 
 ## 0. 资料与配图索引
 
@@ -129,11 +130,13 @@ tags:
 
 ### 4.1 方法流程
 
-EAGLE-3 先生成 5-step、最多 64 节点的 draft tree。对每个 MoE layer，target router 输出 logits；AcceptMoE 根据节点位置 commitment 估计加权，保留 root natural top-k anchor，再按 utility 排名和 effective rank 选择非 anchor 专家。验证时所有 token 的 top-k 被限制在 S 内。offload 时读取当前 LRU resident set，按低 utility 顺序删除可删除的 nonresident 专家，得到 $S'$。
+EAGLE-3 先生成一棵最多 5 步、64 个节点的候选 token 树。随后，对每个 MoE 层（混合专家层），目标模型的路由器输出每个专家的分数（logit）；AcceptMoE 用“该节点最终会被提交的概率”给这些分数加权。它先保留根节点按原始规则选出的 top-k 专家作为锚点，再按加权需求从高到低排序，并用需求分布的有效秩自动决定还要保留多少个非锚点专家。验证时，每个 token 只能在这个允许集合 $S$ 中选择 top-k 专家。
+
+在专家权重不能全部放入显存的场景，AcceptMoE 还会读取当前的 LRU（最近最少使用）显存缓存。它按加权需求从低到高检查不在缓存中的专家，在不超过额外重路由预算且不低于 $k$ 个专家的条件下删除尽可能长的前缀，得到最终集合 $S'$。这里的“重路由”是指原本会发送给被删除专家的 token 改派给保留专家；被保留但仍不在显存中的专家，第一次收到 token 时仍需从主机内存加载。
 
 ![AcceptMoE Figure 2](../assets/papers/acceptmoe/algo2.png)
 
-> 图注：原论文 Figure 2，展示驻留感知剪枝如何按需求排序删除非驻留专家，并通过 rerouting 更新 GPU expert pool。
+> 图注：原论文 Figure 2，展示驻留感知剪枝如何按需求排序删除未驻留专家，并通过重路由更新 GPU 中可容纳的专家槽位。
 
 ### 4.2 关键公式与解释卡
 
@@ -219,13 +222,13 @@ $$m^\star=\max\{m:\sum_{j=1}^{m}v_{\pi(j)}\le a(S),\ |S|-m\ge k\},\quad D^\star=
 
 ### 4.3 组件级设计动机矩阵
 
-| 设计项 | why 状态 | 目标问题 | 因果机制 | 替代/权衡 | 验证 |
+| 设计项 | 论文是否说明原因 | 目标问题 | 因果机制 | 替代/权衡 | 验证 |
 |---|---|---|---|---|---|
-| commitment weight | author-stated (§3.2) | 拒绝 sibling 等权污染 | 早期/高提交概率节点支配 utility | 直接 router mass 更简单但失真 | matched B 消融，direct |
-| root anchor | author-stated (§3.3) | 保证必提交根节点覆盖 | 固定加入 root natural top-k | 不加 anchor 可能更小但伤首 token | 组件未单独 ablate，partial |
-| effective rank | author-stated (§3.3) | 去掉人工 B | 熵映射集合 cardinality | 固定 B 可调到更高点但需 sweep | 五组 sweep，partial |
-| residency pruning | author-stated (§3.4) | nonresident fetch stall | cache 条件化 eligibility | route prediction+prefetch 保持分布但 union 不减 | traffic/cache/throughput ablation，direct |
-| rerouting budget | author-stated (§3.4) | 防止过度改变路由 | 约束额外 displacement | 可用字节成本更精确但需运行时模型 | 未单独敏感性，partial |
+| commitment weight（提交概率加权） | 论文明确说明（§3.2） | 被拒绝的兄弟分支等权污染 | 让更可能提交的位置主导专家需求 | 直接累加路由概率更简单但会高估分支需求 | 同预算消融，直接证据 |
+| root anchor（根节点锚点） | 论文明确说明（§3.3） | 保证必提交根节点覆盖 | 固定加入根节点原始 top-k 专家 | 不加锚点可能更小但会伤害首 token | 未单独消融，部分支持 |
+| effective rank（有效秩） | 论文明确说明（§3.3） | 去掉人工指定专家数 | 用需求熵映射集合大小 | 固定数量可调到更高点但需要逐任务试验 | 五组预算试验，部分支持 |
+| residency pruning（驻留感知剪枝） | 论文明确说明（§3.4） | 未驻留专家造成加载等待 | 根据缓存状态限制允许集合 | 预测原始路由并预取可保持分布，但不能缩小专家并集 | 流量/缓存/吞吐消融，直接证据 |
+| rerouting budget（重路由预算） | 论文明确说明（§3.4） | 防止过度改变路由 | 约束额外 token 改派数量 | 按字节计价更精确但需要运行时成本模型 | 未做单独敏感性，部分支持 |
 
 ## 5. 关键结论与技术 claim 证据矩阵
 
