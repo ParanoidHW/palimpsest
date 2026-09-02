@@ -101,6 +101,9 @@ tags:
 | 显式 CoT/生成式检索 | 细粒度可能提升但线上需生成/多轮计算 | 十亿级文档库为每个 query 生成长推理链 | author-stated 对比 | 生成成本破坏标准 ANN 接口 | 缩短文本仍改变服务路径，难保固定延迟 | §1、Fig.2 |
 | 仅加证据定位 | 找到证据却丢失对侧语义 | OCR 只有一行价格或视频只有关键帧能区分正负 | inferred from §4 | pooling 后的信息瓶颈仍未受 token-level 约束 | 定位和保存语义是两个目标，需要跨条件重建 | §4.2-4.3 |
 
+![Comparison with prior multimodal retrieval designs](../assets/papers/douyin-multimodal-embedding/fig-compare.png)
+> Figure 2 caption（源码 §1）：Comparison with prior works. (a) Contrastive MLLM embedders encode each side in a single pass, yielding low latency but coarse-grained representations. (b) CoT-based embedders prepend explicit reasoning before the embedding, improving fine-grained discrimination at the cost of high latency. (c) DME performs latent reasoning together with cross-conditional generative supervision, achieving fine-grained representations while retaining the low latency of a bi-encoder.
+
 ### 2.3 论文计划解决的问题与成功标准
 - 核心问题：不引入线上生成/重排，能否让 embedding 由检索证据形成并保留对侧语义？
 - 场景：文本、图像、视频、视觉文档及混合输入的 ANN 与 Douyin 搜索。
@@ -161,6 +164,11 @@ readout 是从 latent 状态到最终 embedding 之间的汇合点：它把轨�
 LoRA 减少需要更新的参数，BF16 降低单元素存储，checkpointing 用额外重算换激活显存，ZeRO 分摊优化器/梯度状态。它们解决的是“模型和视觉 token 太长导致显存不够”，不是新的检索机制。论文 §5.1 明确列出这些选择，但只给出文字说明，没有公开硬件、峰值显存或通信量，所以对具体节省多少只能保持谨慎。
 
 **设计项汇总（用于快速对照，详细解释以上文为准）：**
+下面的 Figure 4 把上述文字中的“找证据—分角色—形成 readout—训练期重建”画在同一条 Stage 2 路径上；它是机制总览，不是独立效果证明。
+
+![DME Stage 2 detailed mechanism](../assets/papers/douyin-multimodal-embedding/fig-pipeline-stage2.png)
+> Figure 4 caption（源码 §3）：Detailed illustration of Stage 2. The model uses anchor tokens to find retrieval-relevant evidence, typed latent tokens to organize evidence, and a readout representation for retrieval and cross-conditional reconstruction.
+
 | 设计项 | why 状态 | 针对问题 | 因果机制 | 替代/权衡 | 验证 | 判断 |
 |---|---|---|---|---|---|---|
 | 25M Stage 1 对比预训练 | author-stated §4.1 | 异构覆盖与稳定空间 | 更多跨模态正负关系 | 直接 Stage 2；Table 3 较差 | Table 3 | supported |
@@ -249,6 +257,18 @@ Table 3 是累计加法：Stage 1 overall +1.6，Stage 2-A +1.3，Stage 2-B +1.0
 | batch/mixed/visual budget | Figure 5、Tables 4-6 | 直接敏感性 |
 | 线上效率 | Table 8 | 直接 query p50，端到端不完整 |
 | 工业 +2.92%/+0.1% | Table 2/A-B | 相关性，不能归因单模块 |
+
+### 5.5 信息完整性可视化
+附录 Figures 6–8 给出“只把单个 embedding 作为 prefix、不给原始文本或视觉 token”时的重建样例。它们能直观看到 embedding 保留了哪些对象、动作和文档文字，但属于定性机制证据；不能替代 Table 7 的 Top-K 统计，也不能证明所有细节都被恢复。
+
+![Reconstruction visualization on image and visual-document inputs](../assets/papers/douyin-multimodal-embedding/fig-generate_1.png)
+> Figure 6 caption（源码 Appendix）：Reconstruction visualization on image and visual-document inputs.
+
+![Reconstruction visualization on video inputs](../assets/papers/douyin-multimodal-embedding/fig-generate_2.png)
+> Figure 7 caption（源码 Appendix）：Reconstruction visualization on video inputs.
+
+![Reconstruction visualization on video moment-retrieval inputs](../assets/papers/douyin-multimodal-embedding/fig-generate_3.png)
+> Figure 8 caption（源码 Appendix）：Reconstruction visualization on video moment-retrieval inputs.
 
 ## 6. Related Work 对比
 | 方法族 | 机制 | 优点 | 局限 | DME 差异/公平性 |
