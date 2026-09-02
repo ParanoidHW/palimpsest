@@ -26,6 +26,16 @@
 2. **结构对照**：正式冻结前，至少将交付件与一个已通过验证的同类型 canonical 文档（优先同域 Paper）逐项对照章节顺序、标题层级、关系区块、术语/符号、图表、修订信息、证据矩阵和缺口章节。发现格式漂移时，先统一结构，再继续发布。
 3. **状态不得手写**：`deliverable_manifest.json`、`knowledge-validation.json`、checklist 和 promotion plan 中的 `passed`/`complete` 只能来自实际验证器或明确的人工检查记录。禁止先写 `passed` 再补验证；验证失败、未运行、字段不完整或结果过期时，必须写 `failed` 或 `blocked`，不得用正文已完成替代机器校验。
 4. **版本必须锁定**：生成 manifest 前必须读取实际使用的 schema 文件并记录其版本；组织配置版本、deliverable schema 版本和 promotion-plan schema 版本不得混用。禁止凭记忆或沿用旧 manifest 写入版本号。
+
+当前仓库/skill 的版本登记（以实际文件为准）：
+
+- 组织 schema：`.agents/skills/research-knowledge-publisher/references/organization-schema.json`，`1.0.0`。
+- 默认组织 profile：`.agents/skills/research-knowledge-publisher/references/default-profile.json`，`1.0.0`。
+- 仓库 profile：`research-knowledge.profile.json`，`profile_version=1.0.0`，兼容组织 schema major `1`。
+- Promotion plan schema：`.agents/skills/research-knowledge-publisher/references/promotion-plan-schema.json`，`1.1.0`。
+- Paper deliverable schema：`.agents/skills/paper-deep-review/references/deliverable-schema.json`，`1.7.0`。
+
+“default profile/organization schema 1.0.0”不等于“Paper deliverable schema 1.7.0”；没有在文件中找到更新版本时，不得擅自改写版本号或声称存在“最新 default scheme”。
 5. **冻结顺序**：先完成正文、图表 inventory、逐图 QA、checklist、promotion plan 和 manifest，再运行 review validator 与 publisher validator；两者均通过且错误列表为空后才能将交付标为 `complete`。之后任何正式文件、资产、哈希或链接变化都必须新增 revision 并重新执行全流程。
 6. **发布门禁**：publisher validator、promotion-plan schema、正式资产 Git-tracked 检查、相对链接/孤立项/禁用引用检查任一失败，canonical 发布状态必须保持 `blocked`。不得以“主验证器通过”“正文可读”或“稍后再修”宣称 publisher 通过。
 7. **图表约束不可弱化**：原论文图必须在保留完整 caption、单一编号对象、legend/axis/注释的前提下紧裁剪；默认安全边距为 8–32 像素，必须记录原始尺寸、精确 bbox、contact-sheet 初筛和逐图原分辨率 QA。直接转存整页或带大块画布留白的源码图不得标为 QA 通过。
