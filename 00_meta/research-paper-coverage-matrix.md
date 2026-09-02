@@ -167,6 +167,12 @@
 | Transfusion                                                                                                               | 深度精读                 | [transfusion](../02_model_systems/multimodal_generation/papers/transfusion.md)           |
 | Vega                                                                                                                      | 深度精读                 | [vega](../02_model_systems/multimodal_generation/papers/vega.md)                         |
 
+### Multimodal understanding（1）
+
+| Paper | 状态 | Canonical |
+|---|---|---|
+| Douyin Multimodal Embedding Model Technical Report（DME；arXiv:2608.02148v3） | 深度精读；证据定位与跨条件重建 | [douyin-multimodal-embedding](../02_model_systems/multimodal_understanding/papers/douyin-multimodal-embedding.md) |
+
 ### Speculative decoding（7）
 
 | Paper | 状态 | Canonical |
