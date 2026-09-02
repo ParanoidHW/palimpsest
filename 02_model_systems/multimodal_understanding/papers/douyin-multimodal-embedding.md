@@ -18,8 +18,8 @@ tags:
 
 ## 修订信息
 
-- 当前版本：1.0；修订 ID：`dme-v1`
-- 记录：`initial`（2026-09-02，基于 arXiv:2608.02148v3，未发现既有 canonical 文档）
+- 当前版本：1.0.0；修订 ID：`rev-dme-v1`
+- 记录：`initial`（2026-09-02，基于 arXiv:2608.02148v3，首次有效冻结；此前过程 manifest 不作为 predecessor）
 
 ## 基本信息与证据边界
 
