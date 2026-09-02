@@ -160,6 +160,9 @@ readout 是从 latent 状态到最终 embedding 之间的汇合点：它把轨�
 **7. 选择 1280 个图像 token 和 32 帧视频。**  
 这是质量和成本的工程折中：预算太小会漏掉细粒度视觉信息，预算太大则增加显存和计算。论文 §5.4 的敏感性表显示，增加图像 token 和视频帧通常提高相应指标，超过 32 帧后的收益变小，因此最终采用 1280/32。这个结论有直接敏感性证据，但最优点仍依赖数据分布和硬件。
 
+**部署边界：anchor pool 是否固化会改变整体负载。**  
+标准 DME 描述只把最终的 document embedding 放进 ANN 索引；anchor hidden states、注意力权重和 `e_{s,pool}` 是编码过程中的临时中间量，计算结束后可以释放。因此论文的低延迟结论不能解读为“额外保存了证据池仍然没有成本”。如果为了解释性、二阶段重排或后续任务把 anchor pool 固化到索引中，就需要为每个 document 增加一组向量或证据元数据，带来额外存储容量、索引写入/更新、读取带宽、缓存占用和 ANN/重排阶段的访问负载；这些成本可能超过 Table 8 测到的单次 query encoder 增量。论文没有测量这种固化方案，也没有给出 anchor 数量和 pool 维度，因此这里只能作为明确的工程边界，而不是 DME 已验证的系统收益。
+
 **8. 用 LoRA、BF16、gradient checkpointing 和 ZeRO 承受长多模态输入。**  
 LoRA 减少需要更新的参数，BF16 降低单元素存储，checkpointing 用额外重算换激活显存，ZeRO 分摊优化器/梯度状态。它们解决的是“模型和视觉 token 太长导致显存不够”，不是新的检索机制。论文 §5.1 明确列出这些选择，但只给出文字说明，没有公开硬件、峰值显存或通信量，所以对具体节省多少只能保持谨慎。
 
@@ -292,7 +295,7 @@ OpenReview 状态为 `not-applicable`，不影响 PDF/TeX 解读，但降低外�
 ### 8.1 算力
 2B/9B MLLM、25M Stage 1 和长视频输入需要大规模 GPU 训练；论文只报告 LoRA、BF16、checkpointing、ZeRO，未给 GPU 数量或训练时长。8 张高性能 GPU、batch 4 仅用于 Table 8 延迟测量。
 ### 8.2 显存与存储
-显存压力来自视觉 token、视频 32 帧、激活和优化器状态；训练技巧降低占用。离线检索还需存储 document embedding 与 ANN 索引；向量维度和库规模未公开。
+显存压力来自视觉 token、视频 32 帧、激活和优化器状态；训练技巧降低占用。标准部署只需存储最终 document embedding 与 ANN 索引，anchor hidden states、注意力权重和 evidence pool 不必持久化。若工程上固化这些中间表示，则每个 document 会增加多向量/元数据字段，进一步放大存储、索引更新、缓存和读取带宽负载；论文未给出该方案的容量或吞吐测量。向量维度和库规模本身也未公开。
 ### 8.3 Data Types / 数值格式
 训练使用 BF16；未报告 FP8、量化、推理精度或索引压缩。
 ### 8.4 带宽、互联与高效利用
@@ -300,7 +303,7 @@ OpenReview 状态为 `not-applicable`，不影响 PDF/TeX 解读，但降低外�
 ### 8.5 CPU/GPU/NPU 异构执行
 未报告 CPU preprocessing、OCR/帧采样、GPU/NPU 分工或自定义 kernel，均标为未知。
 ### 8.6 调度/Serving/自定义算子
-部署路径是 query 编码、document 向量缓存、ANN Top-K，再交给后续排名/生成搜索；Stage 2-B decoder 不部署。调度、batching、尾延迟和索引服务实现未提供。
+部署路径是 query 编码、document 向量缓存、ANN Top-K，再交给后续排名/生成搜索；Stage 2-B decoder 不部署。默认路径也不固化 anchor/evidence pool；若固化，则需要额外的多向量读取或重排阶段，整体负载和尾延迟会改变。调度、batching、尾延迟和索引服务实现未提供。
 
 ## 9. 开源代码对照
 ### 9.1 开源权重/配置对照
