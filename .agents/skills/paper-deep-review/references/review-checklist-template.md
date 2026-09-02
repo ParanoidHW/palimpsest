@@ -65,6 +65,8 @@ Allowed statuses: `pending`, `done`, `blocked`, `skipped-with-reason`. Replace e
 - [pending] Q22 The first paragraph, prior-solution section, algorithm overview, and formula cards pass the one-glance comprehension test in `references/readability-contract.md`.
 - [pending] Q23 Authorship and affiliation metadata in `analysis.md` and `deliverable_manifest.json` agree: person-authored work has explicit first/co-first and corresponding-author affiliation mappings plus a deduplicated remaining-author institution list; institution-authored work records only institutional authors and marks personal roles not applicable; source evidence is explicit and no identity or affiliation is inferred.
 - [pending] Q24 Paper tags are present in leading YAML, contain exactly the six required dimensions with no duplicates or extras, use evidenced topic/method values and resolved/proposed canonical ownership, and match the manifest exactly.
+- [pending] Q25 Every extracted crop under `figures/crops/` has exactly one figure-inventory row and an actual Markdown image reference with nearby explanatory text; unused crops or inventory-only assets are rejected.
+- [pending] Q26 The method component-rationale subsection contains reader-facing plain-language prose for each core design; a summary table alone is insufficient.
 
 ## Final Classification
 

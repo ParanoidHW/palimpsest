@@ -100,6 +100,12 @@ Use the completed analysis as document input when supported. Otherwise create a 
 
 The final review must place every paper Figure/Table that carries method rationale, algorithm detail, ablation, mechanism evidence, or a primary result in the Markdown reading path near the claim it supports. A crop or asset that is only listed in an inventory does not count as delivery. For tables, use the complete readable figure/table or reproduce all decision-relevant rows and columns in Markdown with a source link. Mark genuinely redundant visuals explicitly in the inventory; do not silently omit them.
 
+### Asset completeness and method prose
+
+Every extracted crop is part of the delivery contract. The review is incomplete when a crop exists under `figures/crops/` or the formal asset owner but has no Markdown image reference and no nearby explanatory claim. Freeze only after the crop directory, figure inventory, and `analysis.md` form a one-to-one usage mapping; the validator must reject unused crops.
+
+For the method section, a design-rationale table is an index for scanning, not a substitute for explanation. The component-rationale subsection must contain one or more plain-language paragraphs per core design (or an explicitly grouped explanation when the paper defines a coupled block). Each paragraph should answer: what would go wrong without it, what changes in the computation or system, why that could fix the concrete failure, what it costs, and what evidence supports or leaves the explanation uncertain. A table-only or label-only method discussion fails the readability gate.
+
 ## 5. Final one-glance test
 
 Before completion, reread only these four parts as if unfamiliar with the paper:

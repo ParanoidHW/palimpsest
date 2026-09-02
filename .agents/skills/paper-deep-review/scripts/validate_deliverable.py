@@ -228,6 +228,39 @@ def main() -> int:
     add(errors, expected_total == visual.get("counted_total"),
         "visual_evidence: counted_total does not equal category sum")
 
+    # Every extracted crop is a delivery object, not merely a process artifact:
+    # it must have an inventory row and an actual image reference in analysis.md.
+    inventory_artifact = artifacts.get("figure_inventory")
+    if isinstance(inventory_artifact, dict) and inventory_artifact.get("status") == "present":
+        inventory_path = root / inventory_artifact["path"]
+        inventory_text = inventory_path.read_text(encoding="utf-8") if inventory_path.is_file() else ""
+        crop_root = root / "figures" / "crops"
+        crop_files = sorted(p for p in crop_root.glob("*") if p.is_file()) if crop_root.is_dir() else []
+        image_links = set(re.findall(r"!\[[^\]]*\]\(([^)]+)\)", analysis))
+        for crop in crop_files:
+            add(errors, crop.name in inventory_text,
+                f"visual_evidence: crop {crop.name} has no figure_inventory row")
+            add(errors, crop.name in analysis,
+                f"visual_evidence: extracted crop {crop.name} is not used in analysis.md")
+        inventory_assets = set(re.findall(r"fig-[A-Za-z0-9_.-]+\.png", inventory_text))
+        for asset_name in inventory_assets:
+            add(errors, asset_name in analysis,
+                f"visual_evidence: inventory asset {asset_name} is not linked in analysis.md")
+
+    # A design-rationale table is only a summary. Require reader-facing prose
+    # in §4.2 so a mechanically complete table cannot pass as explanation.
+    method_match = re.search(r"(?ms)^### 4\.2 .*?\n(.*?)(?=^### 4\.3 |\Z)", analysis)
+    if method_match:
+        method_text = method_match.group(1)
+        prose_blocks = re.findall(r"(?m)^\*\*[^\n]+\n", method_text)
+        first_content = next((line.strip() for line in method_text.splitlines() if line.strip()), "")
+        add(errors, len(prose_blocks) >= 3,
+            "method_explanation: §4.2 requires at least three reader-facing design explanations")
+        add(errors, not first_content.startswith("|"),
+            "method_explanation: §4.2 cannot begin with a summary table")
+    else:
+        errors.append("method_explanation: missing ### 4.2 component rationale section")
+
     checklist_artifact = artifacts.get("review_checklist")
     if isinstance(checklist_artifact, dict) and checklist_artifact.get("status") == "present":
         checklist_path = root / checklist_artifact["path"]
