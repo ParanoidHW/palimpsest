@@ -72,6 +72,8 @@ README -> Survey -> Paper -> Asset
 
 ### 5. Validate and Freeze
 
+Before validation, perform a publication-side plain-language audit of every candidate canonical document. Review the full Markdown, including headings, prose, tables, figure/table captions, formula explanations, diagram labels, metadata, and status fields. Retain English only for necessary abbreviations, proper names, paper-defined symbols, or genuinely standard technical terms; explain each retained term in Chinese at first use and translate ordinary concepts. Check that review-internal labels (for example `confounded`, `plausible`, `frontier`, `proxy`, `telemetry`, `lifecycle`, `baseline`, `pipeline`, and `overhead`) are not left as unexplained black-box wording. A glossary or process-side audit does not satisfy this gate unless the canonical document itself is readable in context. Record the audit result and any fixes in the promotion plan or validation artifact; reject or return the promotion when unexplained nonessential jargon remains.
+
 Run the bundled scripts from the selected skill directory:
 
 ```bash
@@ -91,6 +93,7 @@ Completion requires:
 - formal Markdown and assets are in their owned locations;
 - README, Survey, Paper, Topic, Evidence, and Asset links satisfy repository policy;
 - Every promoted Paper embeds or fully reconstructs each key method, rationale, algorithm, ablation, mechanism, and primary-result Figure/Table near the supported claim; inventory-only assets do not count, and omissions require an explicit redundancy reason.
+- Every promoted document passes the publication-side plain-language audit: nonessential jargon is translated or explained at first use throughout the canonical Markdown, including captions, tables, diagrams, headings, and metadata. Publisher review must independently check this condition rather than trusting the paper-reviewer's glossary or checklist.
 - no formal document references the resolved process root, absolute local paths, page renders, or untracked assets;
 - process artifacts remain outside the formal knowledge tree;
 - the promotion plan, resolved-organization provenance, and validation result remain under the process root.
