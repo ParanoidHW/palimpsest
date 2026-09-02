@@ -25,7 +25,9 @@
 
 ## 精读证据入口
 
-[P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵) · [D²SD](../papers/d2sd.md#5-关键结论) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵) · [DeLS-Spec](../papers/dels-spec.md) · [AngelSpec](../papers/angelspec.md) · [TorchSpec](../papers/torchspec.md) · [AcceptMoE](../papers/acceptmoe.md)
+[P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵) · [D²SD](../papers/d2sd.md#5-关键结论) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵) · [DeLS-Spec](../papers/dels-spec.md) · [AngelSpec](../papers/angelspec.md) · [TorchSpec](../papers/torchspec.md) · [AcceptMoE](../papers/acceptmoe.md) · [LibraSpec](../papers/libraspec.md)
+
+LibraSpec 将扩散式草稿器的动态长度选择改写为“新增接受收益是否值得验证成本”的边际判断；它用 drafter 置信度近似 target 接受概率，在六个 target、三种 diffusion drafter 上报告了更高的端到端加速，但理论最优性仍受概率校准与近似常数成本假设约束。详见 [LibraSpec 精读](../papers/libraspec.md)。
 
 2026 年新增的两个系统锚点是 [AngelSpec](../papers/angelspec.md) 和 [TorchSpec](../papers/torchspec.md)：前者把 workload 分工、DFly 并行草稿和 D-cut 全局验证预算组合起来；后者把 target hidden-state 生成与 drafter 训练解耦。两者的吞吐数字都属于完整系统结果，不能脱离 serving、网络和训练配方独立归因。
 
