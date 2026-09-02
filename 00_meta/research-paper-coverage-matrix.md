@@ -187,6 +187,7 @@
 | AngelSpec / arXiv:2607.25852 | 深度精读 | [angelspec](../02_model_systems/speculative_decoding/papers/angelspec.md) |
 | TorchSpec / PyTorch Blog 2026-03-19 | 深度精读；技术博客与代码系统 | [torchspec](../02_model_systems/speculative_decoding/papers/torchspec.md) |
 | AcceptMoE: Commitment-Weighted Self-Sizing Verifier Expert Sets for Efficient MoE Speculative Decoding（arXiv:2608.02989） | 深度精读；约束路由与 offload cache 剪枝 | [acceptmoe](../02_model_systems/speculative_decoding/papers/acceptmoe.md) |
+| LibraSpec: Dynamic Diffusion-Based Speculative Decoding via Marginal-Gain-Driven Optimization（arXiv:2608.08721） | 深度精读；边际收益驱动的扩散式动态 speculative length | [libraspec](../02_model_systems/speculative_decoding/papers/libraspec.md) |
 
 ### Kernel agents（4）
 
