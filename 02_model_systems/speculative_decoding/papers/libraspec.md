@@ -95,7 +95,8 @@ LibraSpec 解决的不是“怎样造出更准的草稿”，而是扩散式 dra
 |---|---|---|---|
 | Zexun Lin | 论文首位作者；无共同一作标记 | Suzhou Institute for Advanced Research, University of Science and Technology of China | `main.tex` author block |
 
-- 通讯作者及机构（role basis: `\correspondingauthor` marker in title block；evidence: PDF title block corresponding-author marker）。role basis: \correspondingauthor marker in title block。
+- 通讯作者及机构（role basis: `\correspondingauthor` marker in title block；evidence: PDF title block corresponding-author marker）。
+通讯作者 role basis: \correspondingauthor marker in title block。
 
 | 作者 | 身份依据 | 所属机构 | 对应依据 |
 |---|---|---|---|
@@ -215,8 +216,8 @@ LibraSpec 不是新神经网络，而是夹在 diffusion drafter 和 target veri
 ### 4.4 关键公式
 
 公式 F1 的 purpose：计算验证长度 d 的接受收益与草稿、验证耗时合并成端到端加速比。
-本卡使用的变量名也可写作 `tau_d`（接受 token 数）、`T_d^draft`（草稿耗时）、`T_d^verify`（验证耗时）和 `L_d^target`（target 单 token 延迟）。
-符号索引：tau_d、T_d^draft、T_d^verify、L_d^target。
+本卡使用的变量名也可写作 $\tau_d$（接受 token 数）、$T_d^{\mathrm{draft}}$（草稿耗时）、$T_d^{\mathrm{verify}}$（验证耗时）和 $L_d^{\mathrm{target}}$（target 单 token 延迟）。
+符号索引：$\tau_d$、$T_d^{\mathrm{draft}}$、$T_d^{\mathrm{verify}}$、$L_d^{\mathrm{target}}$。
 
 $$
 \eta_d=\frac{\tau_d L_d^{\mathrm{target}}}{T_d^{\mathrm{draft}}+T_d^{\mathrm{verify}}}.
