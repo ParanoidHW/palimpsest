@@ -15,14 +15,15 @@ tags:
 关系：父级 [multimodal understanding README](../README.md) · [Survey](../surveys/multimodal-embedding.md) · [figure inventory](../evidence/figure-inventory.md) · [Paper assets](../assets/papers/douyin-multimodal-embedding/)
 
 ## 修订信息
-- 当前文档版本：`2.0.0`
-- 当前修订 ID：`rev-dme-source-rerun-20260902`
-- 当前修订时间：`2026-09-02T11:40:00+08:00`
+- 当前文档版本：`2.1.0`
+- 当前修订 ID：`rev-dme-rationale-prose-20260902`
+- 当前修订时间：`2026-09-02T12:05:00+08:00`
 - 替代版本：前一 process manifest 的 SHA-256 记录在本次 manifest；本次正文不依赖前一 Markdown。
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 替代修订 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|
 | `rev-dme-source-rerun-20260902` | `2.0.0` | `2026-09-02` | `content-update` | 前一 manifest SHA-256 | 从 PDF/TeX 源码重建全文、图表与证据矩阵；补齐模板章节和发布链路 | arXiv v3 PDF/TeX；validators | 实质更新 |
+| `rev-dme-rationale-prose-20260902` | `2.1.0` | `2026-09-02` | `content-update` | `rev-dme-source-rerun-20260902` | 将 4.2 设计项改为逐项通俗解释并保留汇总表 | 用户反馈；LaTeX §4.2、§5 | 无 |
 
 ## 0. 资料与配图索引
 - 论文：process package 中的 arXiv v3 PDF（arXiv:2608.02148v3）
@@ -133,6 +134,33 @@ Stage 1 先把 25M 异构样本放入统一向量空间；Stage 2-A 改变“向
 > Figure 3 caption（源码 §3）：Overview of DME. Stage 1 performs large-scale contrastive pre-training to establish a unified multimodal embedding space. Stage 2 introduces semantic sufficiency learning through Evidence-Grounded Typed Latent Reasoning and Cross-Conditional Reconstruction.
 
 ### 4.2 组件级设计动机与具体问题映射
+这一节先用通俗语言解释每个设计项，再用表格压缩汇总。论文明确解释了大多数设计的目标，但并没有为每个子模块提供独立的替换实验；因此下面把“作者明确说的”和“根据公式推断的”分开标注。
+
+**1. 先做 25M 样本的 Stage 1 对比预训练。**  
+如果直接拿约 5M 的高质量 Stage 2 数据训练，模型会学到少量任务的匹配规则，却未必能把文本、图像、视频和视觉文档放进同一个稳定空间。Stage 1 用约 25M 异构 query-document 对，先让正样本靠近、负样本分开，解决的是“覆盖面和初始几何结构”问题。作者在 §4.1 明确把它定位为 Stage 2 的基础。Table 3 中从 baseline 的 70.9 提升到 72.5，说明这一步有用；但这是累计配方对照，不是把同一个最终模型只删除 Stage 1 的严格实验。
+
+**2. 用 anchor 找到真正相关的局部证据。**  
+多模态输入很长：一段视频可能只有一个关键帧，一张视觉文档可能只有一行 OCR 文本与查询有关。若把所有 token 平均，关键细节会被大量无关内容稀释。DME 放入少量 anchor token，让它们对每个输入位置分配权重，再把高权重位置汇成 evidence pool。这里改变的是“哪些局部 token 对最终向量贡献更大”，预期改善视频和视觉文档检索。论文 §4.2 的公式和 Table 3/7 支持这个方向，但没有直接标注框或关键帧的准确率，因此只能说部分验证，而不是证明每次都找对了证据。
+
+**3. 给 latent 状态分配不同角色，而不是让一个隐藏状态什么都做。**  
+Stage 2-A 的 typed latent token 分成语义定位、正向对齐和负例拒绝等角色。可以把它理解成三位分工不同的“检查员”：一位确认看到了什么，一位确认它是否与正样本匹配，另一位专门检查为什么相似的负样本其实不该被选中。三类损失的加权和见 Eq.6。作者明确说明了这些角色的训练目标，但没有逐项移除或替换实验；Table 3 只说明加入整个 Stage 2-A 后总体分数从 72.5 到 73.8，尤其 Video 从 59.3 到 63.7，因此角色分工的独立贡献仍未完全隔离。
+
+**4. readout 中加入证据，但用 stop-gradient 控制训练路径。**  
+readout 是从 latent 状态到最终 embedding 之间的汇合点：它把轨迹状态提供的整体语义，与 anchor 汇总的局部证据相加，再经过投影和归一化。论文在 Eq.7 使用 stop-gradient，前向计算保留证据，反向传播时不让这条证据残差更新其来源分支。论文没有单独解释为什么必须这样做；“为了避免证据池分支扰乱 readout 的训练稳定性”是依据公式的推断，不应写成作者已验证的结论。代价是证据分支适应性可能降低，且没有专门消融。
+
+**5. 用 NTP/MTP 迫使向量保存对侧文本细节。**  
+仅把正 query 和正 document 拉近，并不保证向量还记得价格、动作顺序或局部属性。Stage 2-B 让 query 的未归一化向量逐 token 重建 document 文本，同时反向重建 query 文本；MTP 再要求它预测多个未来 token。这样，向量不只是“知道两边相关”，还必须携带足够信息回答“对方具体说了什么”。作者在 §4.3 明确给出这一动机，Table 7 的 teacher-forced recovery 提供机制证据；但 NTP 和 MTP 没有分开实验，所以只能归因到整个 CCR 组合。
+
+**6. 把重建 decoder 限定在训练期。**  
+如果线上也运行重建，就会把一次向量编码变成生成或多轮计算，无法继续使用离线 document 向量和 ANN。DME 只在训练时用 decoder 回传 token-level 梯度，部署前丢弃 decoder，线上仍是一次 encoder pass 加向量内积。这个边界是作者明确声明的；Table 8 测到文本和视频 query 的额外开销低于 1 ms，支持“接近原双编码器”的结论，但没有覆盖 document 编码吞吐和尾延迟。
+
+**7. 选择 1280 个图像 token 和 32 帧视频。**  
+这是质量和成本的工程折中：预算太小会漏掉细粒度视觉信息，预算太大则增加显存和计算。论文 §5.4 的敏感性表显示，增加图像 token 和视频帧通常提高相应指标，超过 32 帧后的收益变小，因此最终采用 1280/32。这个结论有直接敏感性证据，但最优点仍依赖数据分布和硬件。
+
+**8. 用 LoRA、BF16、gradient checkpointing 和 ZeRO 承受长多模态输入。**  
+LoRA 减少需要更新的参数，BF16 降低单元素存储，checkpointing 用额外重算换激活显存，ZeRO 分摊优化器/梯度状态。它们解决的是“模型和视觉 token 太长导致显存不够”，不是新的检索机制。论文 §5.1 明确列出这些选择，但只给出文字说明，没有公开硬件、峰值显存或通信量，所以对具体节省多少只能保持谨慎。
+
+**设计项汇总（用于快速对照，详细解释以上文为准）：**
 | 设计项 | why 状态 | 针对问题 | 因果机制 | 替代/权衡 | 验证 | 判断 |
 |---|---|---|---|---|---|---|
 | 25M Stage 1 对比预训练 | author-stated §4.1 | 异构覆盖与稳定空间 | 更多跨模态正负关系 | 直接 Stage 2；Table 3 较差 | Table 3 | supported |
