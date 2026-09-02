@@ -172,16 +172,16 @@ LoRA 减少需要更新的参数，BF16 降低单元素存储，checkpointing �
 ![DME Stage 2 detailed mechanism](../assets/papers/douyin-multimodal-embedding/fig-pipeline-stage2.png)
 > Figure 4 caption（源码 §3）：Detailed illustration of Stage 2. The model uses anchor tokens to find retrieval-relevant evidence, typed latent tokens to organize evidence, and a readout representation for retrieval and cross-conditional reconstruction.
 
-| 设计项 | why 状态 | 针对问题 | 因果机制 | 替代/权衡 | 验证 | 判断 |
-|---|---|---|---|---|---|---|
-| 25M Stage 1 对比预训练 | author-stated §4.1 | 异构覆盖与稳定空间 | 更多跨模态正负关系 | 直接 Stage 2；Table 3 较差 | Table 3 | supported |
-| anchor evidence pool | author-stated §4.2 | 局部证据稀释 | attention 加权池化 | region proposal 更重 | Table 3/7 | plausible-partial |
-| typed semantic/alignment/reject | author-stated §4.2 | 角色混杂 | 三类 latent loss | 单一 latent；未替换 | Table 3 cumulative | partial |
-| stop-gradient evidence residual | inferred from Eq.7 | 训练稳定性 | 前向保留、反向阻断 | 可学习残差更灵活 | 无专门 ablation | plausible |
-| NTP + MTP | author-stated §4.3 | 对侧细节丢失 | token-level 梯度 | 仅 NTP；未拆分 | Table 3/7 | partial |
-| training-only reconstruction | author-stated §4.3 | 线上生成代价 | 丢弃 decoder | 在线生成更慢 | Table 8 | supported |
-| 1280 image tokens / 32 frames | author-stated §5.4 | 视觉细节-成本 | 增加输入覆盖 | 更小预算损失质量 | Tables 5-6 | supported |
-| BF16/checkpointing/ZeRO/LoRA | author-stated §5.1 | 显存压力 | 降低激活/优化器状态 | 全参训练更贵 | prose only | plausible |
+| 设计项                             | why 状态             | 针对问题      | 因果机制           | 替代/权衡                 | 验证                 | 判断                |
+| ------------------------------- | ------------------ | --------- | -------------- | --------------------- | ------------------ | ----------------- |
+| 25M Stage 1 对比预训练               | author-stated §4.1 | 异构覆盖与稳定空间 | 更多跨模态正负关系      | 直接 Stage 2；Table 3 较差 | Table 3            | supported         |
+| anchor evidence pool            | author-stated §4.2 | 局部证据稀释    | attention 加权池化 | region proposal 更重    | Table 3/7          | plausible-partial |
+| typed semantic/alignment/reject | author-stated §4.2 | 角色混杂      | 三类 latent loss | 单一 latent；未替换         | Table 3 cumulative | partial           |
+| stop-gradient evidence residual | inferred from Eq.7 | 训练稳定性     | 前向保留、反向阻断      | 可学习残差更灵活              | 无专门 ablation       | plausible         |
+| NTP + MTP                       | author-stated §4.3 | 对侧细节丢失    | token-level 梯度 | 仅 NTP；未拆分             | Table 3/7          | partial           |
+| training-only reconstruction    | author-stated §4.3 | 线上生成代价    | 丢弃 decoder     | 在线生成更慢                | Table 8            | supported         |
+| 1280 image tokens / 32 frames   | author-stated §5.4 | 视觉细节-成本   | 增加输入覆盖         | 更小预算损失质量              | Tables 5-6         | supported         |
+| BF16/checkpointing/ZeRO/LoRA    | author-stated §5.1 | 显存压力      | 降低激活/优化器状态     | 全参训练更贵                | prose only         | plausible         |
 
 ### 4.3 模型/系统架构
 检索计算为
