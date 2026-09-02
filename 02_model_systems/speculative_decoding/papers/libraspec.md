@@ -28,14 +28,15 @@ LibraSpec 解决的不是“怎样造出更准的草稿”，而是扩散式 dra
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-libraspec-initial-20260902`
-- 当前修订时间：`2026-09-02T18:00:00+08:00`
-- 替代版本：无（initial）
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-libraspec-decode-graph-boundary-20260902`
+- 当前修订时间：`2026-09-02T19:00:00+08:00`
+- 替代版本：`rev-libraspec-initial-20260902`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-libraspec-initial-20260902` | `1.0.0` | `2026-09-02T18:00:00+08:00` | `/root` | initial | 无 | 无 | 建立完整精读、五张视觉证据、发布链路与证据边界 | 用户要求按标准交付 | 全文、figure inventory、manifest | arXiv v1 PDF/source、逐图 QA | material |
+| `rev-libraspec-decode-graph-boundary-20260902` | `1.1.0` | `2026-09-02T19:00:00+08:00` | `/root` | content-update | `rev-libraspec-initial-20260902` | 无 | 补充动态 verification 与 decode graph 静态 shape 的部署矛盾、分桶/padding、graph cache 与 serving 目标函数推论 | 用户追问动态 decode graph 处理 | §8.6、limitations | CUDA Graph 静态 shape 约束；论文未提供代码 | minor |
 
 ## 0. 资料与配图索引
 
@@ -408,6 +409,26 @@ LibraSpec 无新权重和持久化表。额外状态是 $q_{1:d}$、候选 token
 Figure 3 在 1K context、length 16 上：DFlash draft 为 5.79/6.03 ms，而 EAGLE-3 为 19.80/21.38 ms；两者 target verify 相同为 32.85/36.31 ms。它支持把优化重点移到 verification，但 DFlash draft 仍约占总时延 14%–16%，不能完全忽略。
 
 ### 8.5 CPU/GPU/NPU 异构
+
+### 8.6 动态验证长度与 Decode Graph 的矛盾：无代码条件下的工程推论
+
+论文只证明了“每轮的 $d$ 应该变化”，没有说明 target 后端如何执行不同长度的 verification。若服务端把每个解码步录成固定输入形状的 CUDA Graph，那么 $d=8$、$d=16$、$d=24$ 通常对应不同的静态 shape；直接把 LibraSpec 的任意 $epsilon^*$ 塞进同一张 graph 既会 shape 不匹配，也可能让 batch 内请求互相等待。因此，论文的单请求 latency 结果不能自动推出 graph-enabled serving 下仍有同样收益。
+
+在没有实现代码时，最合理的实现假设是下面三种之一，优先级从稳妥到激进：
+
+1. **长度分桶 + padding/mask（最可能）**：预先为少量长度录制 graph，例如 4、8、16、24、32、48、60。策略仍计算连续的 $epsilon^*$，但把它向上取整到最近桶；多出的槽位用 attention mask 屏蔽，最终只提交真实 accepted prefix。这样避免每轮重新 capture graph，代价是 padding 让实际验证 token 数高于策略选择的 $d$，所以边际收益公式中的 $T_d^{\mathrm{verify}}$ 必须改成“桶化后的成本”。
+
+2. **固定最大 graph + 有效长度参数**：录制 $d_{\max}$ 的一张 graph，通过传入有效长度、mask 或写入位置索引，让 kernel 只对前 $d$ 个位置产生有效结果。只有在 target kernel 真正支持动态 mask 且没有按最大长度付出完整 FLOPs 时才划算；否则它只是把动态决策变成 padding，速度收益可能被抵消。
+
+3. **多 graph cache / eager fallback（最灵活）**：首次遇到新长度时 capture 一张 graph 并缓存，缓存满后淘汰低频 shape；未命中时暂时用 eager kernel。它能更贴近 $epsilon^*$，但 capture 开销、显存占用和并发请求的 shape 碎片会直接进入 $T_d^{\mathrm{verify}}$，论文没有测这些量。
+
+对高并发服务，通常还要把不同请求按桶合批；这会把“单请求最优 $d$”改成“批次共同桶大小”，并可能引入等待时间。因而部署时应重新定义控制目标：
+
+$$
+\eta_{\mathrm{serve}}(b)=\frac{\text{batch 内提交的 accepted tokens}}{T_{\mathrm{queue}}(b)+T_{\mathrm{capture}}(b)+T_{\mathrm{draft}}(b)+T_{\mathrm{verify}}(b)},
+$$
+
+其中 $b$ 是长度桶而非单请求的原始 $epsilon^*$。这意味着 LibraSpec 的 $alpha$ 不能直接照搬论文值；它至少要吸收 padding、graph 命中率、capture/回收和 batch 等待成本。以上均是基于 CUDA Graph 静态 shape 约束的工程推论，不是论文已验证的实现事实；正式结论应保留为“动态长度策略与 decode graph 存在未解决的 serving 接口缺口”。
 
 控制器可在 CPU 做，但若每轮把 $q_i$ 从 GPU 同步回 CPU，会造成同步泡；更合理的是 GPU 上计算或异步小张量路径。论文没有报告放置位置、kernel fusion 或 NPU 适配，故不能断言控制开销为零。
 
