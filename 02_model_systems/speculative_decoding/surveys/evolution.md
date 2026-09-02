@@ -6,20 +6,21 @@
 > - 证据资产：`../assets/surveys/evolution/`
 > - 相关文档：[Foundations and trends](foundations-and-trends.md)
 
-> 调研日期：2026-07-02  
+> 调研日期：2026-09-02
 > 说明：本文参考本领域精读材料与 [Foundations and trends](foundations-and-trends.md) 的问题线索，并按新的论文检索、arXiv 元数据和 deep-research 六阶段结果重新组织。
 
 ## 修订信息
 
-- 当前文档版本：`1.2.0`
-- 当前修订 ID：`rev-spec-evolution-dels-spec-20260728`
-- 当前修订时间：`2026-07-28T18:30:00+08:00`
-- 替代版本：`rev-spec-evolution-delivery-remediation-20260725` / `1.1.0` / canonical Markdown SHA-256 `8d1f48545cb7840bccca216ee510ee871fbbaec50f2a844b453f82fe00f6b1ec`
+- 当前文档版本：`1.3.0`
+- 当前修订 ID：`rev-spec-evolution-dynamic-verify-runtimes-20260902`
+- 当前修订时间：`2026-09-02T20:00:00+08:00`
+- 替代版本：`rev-spec-evolution-dels-spec-20260728` / `1.2.0`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|
 | `rev-spec-evolution-delivery-remediation-20260725` | `1.1.0` | `2026-07-25T23:30:00+08:00` | evidence-and-link remediation | 更新六篇 canonical Paper 的精确证据入口、时间线边界与跨论文结论限制 | canonical Paper reviews、Figure inventory 与发布器校验 | minor；不新增 backlog Paper |
 | `rev-spec-evolution-dels-spec-20260728` | `1.2.0` | `2026-07-28T18:30:00+08:00` | evidence update | 增补 DeLS-Spec：冻结 DFlash、独立训练短上下文专家，并严格限定其与 DSpark 的直接证据关系 | DeLS-Spec arXiv/source/code、Table 2、canonical Paper | material：新增一个 DSpark 发布后的算法演进节点 |
+| `rev-spec-evolution-dynamic-verify-runtimes-20260902` | `1.3.0` | `2026-09-02T20:00:00+08:00` | implementation evidence update | 固定 vLLM/SGLang commit，补充动态 verification 与 CUDA Graph 的实际分桶、ragged packing、回退及数据并行约束 | vLLM `b205750`、SGLang `ebfd8c6` 官方源码 | material：收紧 LibraSpec 的 serving 可落地边界 |
 
 本文是 canonical timeline；lossless acceptance/correction 公式、accepted-length 上限、draft/verify 成本和 KV/serving 合同只在 [Foundations and trends](foundations-and-trends.md#1-lossless-correctness-contract) 维护，避免两篇 Survey 重复。
 
@@ -372,6 +373,41 @@ JetSpec、D2SD、BlockPilot、Teaching Diffusion to Speculate Left-to-Right 都�
 - KV-cache memory bandwidth；
 - verifier node/token budget；
 - kernel 和 scheduler 配置。
+
+#### 8.4.1 vLLM：动态的是“整批统一 K”，并为有限 K 集合预录 graph
+
+截至 2026-09-02 的 vLLM commit [`b205750`](https://github.com/vllm-project/vllm/tree/b205750fe0ace51bdfda25a857386161471ef19b) 已有正式的 Dynamic Speculative Decoding（动态投机解码）配置 `num_speculative_tokens_per_batch_size`。它不是按每条请求的置信度分别选长度，而是把运行时 batch size 区间映射到一个**全批统一**的候选数 $K$：并发小时可取更大的 $K$，并发变大时降低 $K$，甚至设为 0 关闭本轮投机。[官方说明](https://github.com/vllm-project/vllm/blob/b205750fe0ace51bdfda25a857386161471ef19b/docs/features/speculative_decoding/dynamic_speculative_decoding.md)明确把目标写成避免 $B\times K$ 验证负载超过合适范围。
+
+实现链路也印证了这一点：`SpeculativeConfig` 保存 batch-size schedule；`build_dynamic_sd_schedule_lookup` 在启动时展开稠密查找表；scheduler 每轮用已调度请求数查出单个 $K$；CUDA Graph manager 再枚举 schedule 中所有可能的 query length，预先建立相应 graph 候选。uniform decode 路径把 token 数按 query length 向上取整，变长 decode 路径则用 token-count graph 承接不同请求组合。也就是说，vLLM 没有让一张 graph 接受任意新 shape，而是**把动态选择限制在启动时可枚举的离散 $K$ 集合内**。
+
+这条路径对 LibraSpec 有两层差异。第一，LibraSpec 原算法按上下文/置信度逐请求给出 $d_i$，vLLM 公开的 Dynamic SD 只给整批一个 $K$；若直接接入，就必须把 $\{d_i\}$ 压成一个共同值，或另做 ragged/varlen packing。第二，vLLM 官方当前明确说该动态 schedule 不兼容数据并行：各 rank 独立选择不同 $K$ 会使 collective 调用形状或次数分歧并可能死锁，因此启用 DP 时自动回退静态 `num_speculative_tokens`。这不是普通性能损失，而是执行正确性约束。
+
+#### 8.4.2 SGLang：普通路径仍需统一宽度，DSpark 已实现逐请求 ragged verify
+
+截至同日的 SGLang commit [`ebfd8c6`](https://github.com/sgl-project/sglang/tree/ebfd8c60e53e77d67fc79f171d230dd521d9ff73) 同时保留两种合同。普通 EAGLE/DFlash/NG2 等 target verification 仍按固定的 `num_tokens_per_req` 捕获 graph；运行时宽度若与 capture 宽度不同，`DecodeCudaGraphRunner.can_run_graph` 返回 false，转入 eager（非 graph）执行。
+
+更值得注意的是 DSpark 的 compact ragged verify（压紧式不等长验证）。`RaggedVerifyLayout` 保存每条请求的 `verify_lens`，把不同长度的 query 行连续打包；全批真实验证量
+
+$$
+N=\sum_{i=1}^{B} d_i
+$$
+
+公式解释：$B$ 是请求数，$d_i$ 是第 $i$ 条请求本轮实际验证长度，$N$ 是压紧后的真实 token 总数。运行时不按最大 $d_i$ 给每条请求补齐，而是把 $N$ 向上取整到预录的 token grid，选择对应 CUDA Graph；回放前把本轮 `verify_lens` 和 query 起点索引写进 capture 时分配的固定地址缓冲。
+
+例如三条请求分别需要验证 `[2, 5, 3]`，真实工作是 10 token。若 graph grid 为 `[8, 16, 32]`，它选择 16-token graph，而不是按最大长度 5 形成 15-token 的等宽矩阵。剩余槽位仍有桶内 padding，但通常比所有请求补到最大宽度更少。数据并行时，DSpark planner 还使用全局请求数和协商后的 token tier，让各 rank 选择同一个 graph 桶，避免 vLLM 文档所警告的 collective 分歧。
+
+不过这不是 SGLang 所有投机算法的通用能力。源码中的 `supports_ragged_verify()` 当前只对 DSpark 返回 true；compact 模式还明确不兼容 two-batch overlap（双批重叠调度）、LoRA 和关闭 CUDA Graph padding，并依赖 attention backend 声明支持 ragged verify graph。超出最大 grid、backend 不支持或宽度不符合普通 capture 合同时，仍需回退 eager。因此“框架支持动态 verify”不能简写成“任意 drafter 都能免费使用逐请求动态长度”。
+
+#### 8.4.3 对 LibraSpec 的落地判断
+
+综合两套固定版本源码，前述 [LibraSpec](../papers/libraspec.md#86-动态验证长度与-decode-graph-的矛盾无代码条件下的工程推论) 的“多 graph + 分桶”推论得到确认，但需要修正粒度：
+
+- vLLM 已实现的是**按 batch size 选整批统一 K，再为所有 K 预录 graph**；它更像 workload-aware policy，不等价于 LibraSpec 的逐请求 marginal-gain policy。
+- SGLang DSpark 已实现更接近 LibraSpec 的**逐请求长度 + packed token rows + 总 token 数分桶**；但该能力尚未对 DFlash/普通 EAGLE 泛化。
+- 真正接入 LibraSpec 时，速度目标不能继续使用连续长度的 $T_d^{\mathrm{verify}}$，而应使用分桶后的 $T_{G(N)}^{\mathrm{verify}}$，并加入 padding、graph miss/eager fallback、graph 常驻显存和 DP tier 同步成本。
+- 两个仓库都没有发现 LibraSpec 控制器或逐请求 marginal-gain 接口；因此这里只能确认可复用的 runtime 机制，不能声称 LibraSpec 已经被框架支持。
+
+证据边界：上述结论来自 pinned source code 与 vLLM 官方文档，没有在本地 GPU 上运行吞吐、尾延迟或 graph memory 测量；框架行为只绑定到所列 commit。
 
 ## 9. 开放问题
 
