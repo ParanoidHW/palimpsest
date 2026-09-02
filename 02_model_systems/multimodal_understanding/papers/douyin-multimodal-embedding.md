@@ -48,6 +48,7 @@ tags:
 | NTP / MTP | 下一 token / 多 token 预测 | next-/multi-token prediction | 不改变线上编码接口 | §4.3 |
 | 信息完整性 | 用 teacher-forced Top-K token recovery 衡量从向量恢复文本的程度 | representation completeness | 不是端到端检索指标 | §5.5 |
 | MMEB-v2 | 文本、图像、视频、视觉文档和混合输入的多模态嵌入基准 | 78-task setting | TTE-v2 行为 76-task 特例 | §5.1 |
+| readout 表示（读出表示） | 从检索专用 latent token/隐藏状态中选出的中间向量；它先融合轨迹状态与证据池，再经 $W_{emb}$ 投影并归一化为最终 embedding | retrieval readout | 不是单个原始 token，也不是训练期 decoder 的输出文本 | §3、§4.2 Eq.7 |
 
 ### 0.1.2 符号表
 | 符号 | 含义 | 性质 | 作用域/索引 | 单位/取值 | 来源 | 易混点 |
@@ -92,6 +93,7 @@ tags:
 
 ### 2.2 现有方案为何不够
 说明例：两段厨房视频都包含做饭场景，但只有一段先切洋葱再加热锅，局部动作差异导致旧方法排序错误；只增加更多全局负例仍不能指出查询和候选在何处不同。
+
 | 现有方案/做法 | 可观察的失败 | 具体场景或例子 | 例子来源 | 根因 | 为什么简单修补仍不够 | 证据 |
 |---|---|---|---|---|---|---|
 | 纯对比式 MLLM 嵌入 | hard negative 得分接近 | 两段都含“厨房做饭”，但只有一段“先切洋葱再加热锅” | §1 场景重建 | pair-level 标签没有局部证据和反事实细节监督 | 加大 batch 增加负样本数量，却不指定应保留哪个局部条件 | §1、Table 3 |
@@ -107,12 +109,12 @@ tags:
 ### 2.4 核心方案如何解决并优化问题
 Stage 1 先把 25M 异构样本放入统一向量空间；Stage 2-A 改变“向量如何形成”，用 anchor 找证据、typed latent 状态组织角色，并把证据残差并入 readout；Stage 2-B 改变“向量必须保存什么”，让 query 向量重建 document 文本、document 向量重建 query 文本。线上仍只保留一次编码和内积检索，因此预期质量上升而查询路径不变。
 
-| 原始问题 | 方案设计 | 改变的变量/行为 | 机制 | 预期指标 | 证据 | 判断 |
-|---|---|---|---|---|---|---|
-| 局部证据被 pooling 淹没 | anchor evidence pool | $p_{s,r}(j)$ | 加权汇聚局部 token/帧 | Video/VisDoc | Eq.4-5、Table 3 | partial |
-| 证据角色混杂 | typed latent reasoning | latent state 角色与损失 | 分离定位、对齐、拒绝 | hard-negative discrimination | Eq.6、§4.2 | partial |
-| 向量丢失对侧细节 | NTP/MTP | readout 承载的 token 信息 | 跨方向 token 梯度 | Overall、recovery | Eq.8-11、Table 7 | supported but cumulative |
-| 线上延迟不可接受 | training-only decoder | inference graph | 丢弃 decoder、保留 readout | <1 ms/query extra | §4.3、Table 8 | supported |
+| 原始问题             | 方案设计                   | 改变的变量/行为             | 机制                    | 预期指标                         | 证据              | 判断                       |
+| ---------------- | ---------------------- | -------------------- | --------------------- | ---------------------------- | --------------- | ------------------------ |
+| 局部证据被 pooling 淹没 | anchor evidence pool   | $p_{s,r}(j)$         | 加权汇聚局部 token/帧        | Video/VisDoc                 | Eq.4-5、Table 3  | partial                  |
+| 证据角色混杂           | typed latent reasoning | latent state 角色与损失   | 分离定位、对齐、拒绝            | hard-negative discrimination | Eq.6、§4.2       | partial                  |
+| 向量丢失对侧细节         | NTP/MTP                | readout 承载的 token 信息 | 跨方向 token 梯度          | Overall、recovery             | Eq.8-11、Table 7 | supported but cumulative |
+| 线上延迟不可接受         | training-only decoder  | inference graph      | 丢弃 decoder、保留 readout | <1 ms/query extra            | §4.3、Table 8    | supported                |
 
 ### 2.5 完整因果链与证据闭环
 背景触发是大规模异构检索同时需要低延迟和细粒度匹配；痛点是对比 embedding 对 hard negative 的局部/对侧信息不敏感，而显式推理增加服务成本。论文把根因解释为 pair-level 监督和向量信息瓶颈，目标是语义充分性。Stage 1 扩大覆盖面，Stage 2-A 改变证据形成，Stage 2-B 用跨方向 token 重建约束保存的信息，最后以 MMEB-v2、恢复率、p50 延迟和工业 A/B 测量。Table 3 支持逐步加入配方有效，但它是 cumulative recipe，不能把每项增益视为完全孤立的因果效应；Table 8 支持 latent token 额外成本小；在线 +0.1% 支持部署价值，但多项技术共同迁移，归因仍混杂。
@@ -126,7 +128,7 @@ Stage 1 先把 25M 异构样本放入统一向量空间；Stage 2-A 改变“向
 
 ## 4. 研究方法
 ### 4.1 方法总览
-样本先经过指令化 query/document 编码器；Stage 1 用对比学习塑造统一空间。Stage 2 继续对比学习，同时 Stage 2-A 在隐藏状态中定位和组织证据，Stage 2-B 让两侧 readout 互相重建文本。训练完成后丢弃解码器，线上每侧只保留一个向量，ANN 用内积排序。
+样本先经过指令化 query/document 编码器；Stage 1 用对比学习塑造统一空间。Stage 2 继续对比学习，同时 Stage 2-A 在隐藏状态中定位和组织证据，形成 **readout（读出表示）**：它是把检索专用 latent 状态和证据池汇合后的中间向量，不是最终文本输出；再经投影和归一化得到 embedding。Stage 2-B 让两侧 readout 互相重建文本。训练完成后丢弃解码器，线上每侧只保留一个向量，ANN 用内积排序。
 ![DME two-stage pipeline](../assets/papers/douyin-multimodal-embedding/fig-pipeline.png)
 > Figure 3 caption（源码 §3）：Overview of DME. Stage 1 performs large-scale contrastive pre-training to establish a unified multimodal embedding space. Stage 2 introduces semantic sufficiency learning through Evidence-Grounded Typed Latent Reasoning and Cross-Conditional Reconstruction.
 
@@ -167,7 +169,7 @@ $$\mathcal L_{typed}=\lambda_{sem}\mathcal L_{sem}+\lambda_{align}\mathcal L_{al
 
 Readout：
 $$r_q=h_{q,R}^{traj}+\alpha\,\mathrm{sg}(W_e e_{q,pool}),\quad z_q=\mathrm{norm}(W_{emb}r_q).$$
-**这条公式在算什么？** 合并轨迹 latent 状态与证据池。 **怎么读？** 前向加入证据，`sg` 阻断该残差反向梯度。 **输入与输出。** 输入状态、证据池和投影矩阵，输出 embedding。 **变量。** $h$ 是轨迹读出，$W_e$ 投影证据，$\alpha$ 缩放，$W_{emb}$ 读出。 **直觉。** 轨迹给整体语义，证据补细节。 **边界。** 稳定性解释是推断，$\alpha$ 未报告。 **小例子。** 轨迹表达“商品”，证据补 OCR 价格。
+**这条公式在算什么？** 计算 readout（读出表示），再把它投影成最终 embedding。 **怎么读？** 前向加入证据，`sg` 阻断该残差反向梯度。 **输入与输出。** 输入轨迹状态、证据池和投影矩阵；中间输出是 readout $r_q$，最终输出是归一化 embedding $z_q$。 **变量。** $h$ 是轨迹读出状态，$W_e$ 投影证据，$\alpha$ 缩放，$W_{emb}$ 把 readout 映射到 embedding 空间。 **直觉。** readout 是“检索前的汇合点”：轨迹给整体语义，证据补细节，归一化后才成为线上向量。 **边界。** readout 不是 decoder 生成的文本；稳定性解释是推断，$\alpha$ 未报告。 **小例子。** readout 可同时含“商品”这一整体语义和 OCR 价格这一局部证据，随后被压成一个可检索向量。
 
 跨条件重建：
 $$\mathcal L_{NTP}^{q\to d}=-\frac1T\sum_{t=1}^{T}\log P(x_d^t\mid \tilde z_q,x_d^{<t}),\quad \mathcal L_{NTP}=\mathcal L_{NTP}^{q\to d}+\mathcal L_{NTP}^{d\to q}.$$ 
