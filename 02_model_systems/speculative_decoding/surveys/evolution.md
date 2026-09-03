@@ -11,10 +11,10 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.4.1`
-- 当前修订 ID：`rev-spec-evolution-token-recycling-readout-20260903`
-- 当前修订时间：`2026-09-03T22:30:00+08:00`
-- 替代版本：`rev-spec-evolution-rejection-feedback-20260903` / `1.4.0`
+- 当前文档版本：`1.4.2`
+- 当前修订 ID：`rev-spec-evolution-retrace-illustrated-20260903`
+- 当前修订时间：`2026-09-03T23:00:00+08:00`
+- 替代版本：`rev-spec-evolution-token-recycling-readout-20260903` / `1.4.1`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|
@@ -23,6 +23,7 @@
 | `rev-spec-evolution-dynamic-verify-runtimes-20260902` | `1.3.0` | `2026-09-02T20:00:00+08:00` | implementation evidence update | 固定 vLLM/SGLang commit，补充动态 verification 与 CUDA Graph 的实际分桶、ragged packing、回退及数据并行约束 | vLLM `b205750`、SGLang `ebfd8c6` 官方源码 | material：收紧 LibraSpec 的 serving 可落地边界 |
 | `rev-spec-evolution-rejection-feedback-20260903` | `1.4.0` | `2026-09-03T22:00:00+08:00` | mechanism/evidence update | 补充拒绝采样的 lossless 概率守恒、reject error signal 的已有路线，以及 rejected-suffix 跨轮条件化 | Leviathan/DeepMind speculative sampling、OSD、Token Recycling、OnlineSPEC、ReTrace 原文 | material：把 verification feedback 从“裁决结果”扩展为可复用的 draft adaptation 信号 |
 | `rev-spec-evolution-token-recycling-readout-20260903` | `1.4.1` | `2026-09-03T22:30:00+08:00` | explanation clarification | 展开 Token Recycling adjacency matrix 的存储语义、逐层构树、并行更新与上下文丢失边界 | Token Recycling Sections 3.1-3.3、5.2 与 Appendix A.3-A.5 | minor：不改变路线判断，补足机制可读性 |
+| `rev-spec-evolution-retrace-illustrated-20260903` | `1.4.2` | `2026-09-03T23:00:00+08:00` | explanation clarification | 用流程图、位置映射和门控残差公式解释 ReTrace 如何复用 rejected suffix | ReTrace arXiv `2608.29748` 摘要与机制描述 | minor：不改变证据边界，提升可读性 |
 
 本文是 canonical timeline；[Foundations and trends](foundations-and-trends.md#1-lossless-correctness-contract) 维护完整的 lossless correctness、accepted-length、draft/verify 成本与 KV/serving 基础合同。本文只在拒绝反馈成为独立演进路线的位置重述必要的概率守恒，以说明哪些反馈复用仍然 lossless。
 
@@ -383,6 +384,64 @@ $$
 这个结构快的原因也是它的主要限制：$\mathcal M[x]$ 只按单个 token $x$ 寻址，把不同上下文中出现的同一个 $x$ 压进同一行。因此它擅长标点、固定搭配、词内 token 延续等局部规律，却不能表达“同一个 token 在不同主题或长程依赖下应接什么”。同一 token 在树的多个分支出现时，还会有多组不同的 target top-k 争写同一行；论文实现选择不额外排序或加锁，允许并行 CUDA 写入产生混合结果，因为严格挑选首次或末次出现虽会轻微改变 MAT，却增加了足以影响吞吐的管理开销。错误或陈旧候选仍需 target 验证，主要损失是树预算和速度，而不是直接把它们提交为输出。
 
 ReTrace 是目前与“上一轮拒绝信息帮助下一轮 draft”最接近的机制。它不复用第一个 rejected token，因为该位置已经被 target correction 解决；它复用的是首个拒绝之后的 rejected suffix 表示。论文的直觉是：block drafter 的后缀虽然不能提交，但并不一定完全失去方向，可能仍保留格式、局部结构和语义轨迹。下一轮以 bonus token 作为新 anchor 后，将这些表示向前对齐，并与 target verification 已经产生的 hidden state 融合。这样复用的是**轨迹表示**，而不是把旧 token 当作下一轮同一位置的标签。
+
+可以把一轮 ReTrace 画成下面这样（这是帮助理解的抽象图，变量名不等同于论文原式）：
+
+```mermaid
+flowchart LR
+    A[上一轮 draft block\nx1 x2 x3 x4 x5 x6] --> B[target verify]
+    B --> C[x1 x2 x3 accepted]
+    B --> D[x4 first rejection\n由 target correction/bonus 处理]
+    B --> E[x5 x6 rejected suffix\n保留 hidden states]
+    E --> F[左移/位置对齐\n到下一轮 block]
+    G[新 anchor = bonus token] --> H[target-aware refinement]
+    F --> H
+    H --> I[gated residual fusion]
+    I --> J[下一轮 DFlash draft block]
+```
+
+用一个具体序列看位置变化。假设上一轮草稿为
+
+$$
+\underbrace{x_1\;x_2\;x_3}_{\text{accepted}}
+\;\underbrace{x_4}_{\text{first rejection}}
+\;\underbrace{x_5\;x_6}_{\text{rejected suffix}}。
+$$
+
+target 最终提交 $x_1,x_2,x_3$，并在拒绝位置返回 correction/bonus $b$。标准做法的下一轮输入是 $[x_1,x_2,x_3,b]$ 加若干 mask；ReTrace 额外保留 $x_5,x_6$ 产生的隐藏表示 $r_5,r_6$。它们不会作为已确认 token 拼回序列，而是通过位置映射 $A$ 对齐到新 block 的条件槽位：
+
+$$
+\tilde r_{u}=r_{A(u)}。
+$$
+
+这里 $A$ 表示“旧 suffix 的第几个位置对应新 block 的第几个位置”。例如旧 suffix 有两个位置，而 bonus 后的新 block 也有两个注入槽位时，可以直观地写成 $A(1)=5,A(2)=6$；实际实现还要处理 block 长度、截断和 padding，这里只表达左移对齐的含义。
+
+target 在同一次验证中已经计算出对应的 target-side 表示 $t_u$ 以及拒绝边界信号。于是可将 target-aware refinement 抽象写成：
+
+$$
+\hat r_u=\operatorname{Refine}(\tilde r_u,t_u,\Delta_u)，
+$$
+
+其中 $\Delta_u$ 表示 correction、logit 差异或其他验证信号。论文摘要确认了用同次 verify 的 target-aware correction signals 修正 rejected suffix，但没有给出可直接复述的统一标量公式，因此这里的 $\operatorname{Refine}$ 是解释性记号，不是论文声称的原式。
+
+最后，修正后的表示不是强制覆盖当前输入，而是通过门控残差注入：
+
+$$
+e'_u=e_u+g_u\odot W_r\hat r_u,
+\qquad g_u=\sigma\!\left(W_g[e_u;\hat r_u]+b_g\right)。
+$$
+
+其中 $e_u$ 是下一轮原始 mask/anchor embedding，$W_r$ 将 suffix 表示投影到 drafter 输入宽度，$g_u$ 是逐位置门控，$\odot$ 表示逐元素相乘。这个公式是机制示意：它表达“保留多少旧轨迹由 gate 决定”，不声称 ReTrace 的具体参数化必然正好采用这组矩阵。门控很重要，因为 rejected suffix 可能只在局部结构上有用，也可能与新 bonus 上下文冲突；全量相加会把旧错误硬塞回下一轮。
+
+因此，ReTrace 的复用对象和作用边界可以压缩成：
+
+| 对象 | 是否提交为输出 | 下一轮如何使用 |
+|---|---|---|
+| 首个 rejected token $x_4$ | 否 | 由 target correction/bonus 替代，不直接复用 |
+| rejected suffix token $x_5,x_6$ | 否 | 只保留 hidden representations，经过对齐、target 修正和 gate 后作为 drafter 条件 |
+| accepted prefix $x_1,x_2,x_3$ | 是 | 进入新的已确认上下文和 KV cache |
+
+这也是它仍可保持 lossless 的原因：ReTrace 只改变下一轮 drafter 的 proposal 条件，rejected token 从未绕过 target verifier 变成输出，target 的接受规则和 correction 路径保持不变。[ReTrace 原论文摘要](https://arxiv.org/abs/2608.29748)
 
 这条路线还解释了为什么 DFlash 比普通 EAGLE 更适合做跨轮 rejected-suffix reuse：DFlash 产生一条较深的 block，首个 mismatch 之后仍有位置对齐的 hidden-state 序列；EAGLE 的候选往往是多分支树，剩余节点对应不同祖先路径，直接按位置复用会混淆条件上下文。Token Recycling 则采取更轻的离散版本：论文消融显示，更新所有 draft 节点（包括 rejected 节点）比只更新 accepted 节点的 MAT（Mean Accepted Token，平均每轮 target 验证接受的 token 数）更高，但它保存的是后继候选，不是连续 hidden trajectory。[Token Recycling 原文消融](https://arxiv.org/html/2408.08696v3#S5.SS2)
 
