@@ -11,10 +11,10 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.4.0`
-- 当前修订 ID：`rev-spec-evolution-rejection-feedback-20260903`
-- 当前修订时间：`2026-09-03T22:00:00+08:00`
-- 替代版本：`rev-spec-evolution-dynamic-verify-runtimes-20260902` / `1.3.0`
+- 当前文档版本：`1.4.1`
+- 当前修订 ID：`rev-spec-evolution-token-recycling-readout-20260903`
+- 当前修订时间：`2026-09-03T22:30:00+08:00`
+- 替代版本：`rev-spec-evolution-rejection-feedback-20260903` / `1.4.0`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|
@@ -22,6 +22,7 @@
 | `rev-spec-evolution-dels-spec-20260728` | `1.2.0` | `2026-07-28T18:30:00+08:00` | evidence update | 增补 DeLS-Spec：冻结 DFlash、独立训练短上下文专家，并严格限定其与 DSpark 的直接证据关系 | DeLS-Spec arXiv/source/code、Table 2、canonical Paper | material：新增一个 DSpark 发布后的算法演进节点 |
 | `rev-spec-evolution-dynamic-verify-runtimes-20260902` | `1.3.0` | `2026-09-02T20:00:00+08:00` | implementation evidence update | 固定 vLLM/SGLang commit，补充动态 verification 与 CUDA Graph 的实际分桶、ragged packing、回退及数据并行约束 | vLLM `b205750`、SGLang `ebfd8c6` 官方源码 | material：收紧 LibraSpec 的 serving 可落地边界 |
 | `rev-spec-evolution-rejection-feedback-20260903` | `1.4.0` | `2026-09-03T22:00:00+08:00` | mechanism/evidence update | 补充拒绝采样的 lossless 概率守恒、reject error signal 的已有路线，以及 rejected-suffix 跨轮条件化 | Leviathan/DeepMind speculative sampling、OSD、Token Recycling、OnlineSPEC、ReTrace 原文 | material：把 verification feedback 从“裁决结果”扩展为可复用的 draft adaptation 信号 |
+| `rev-spec-evolution-token-recycling-readout-20260903` | `1.4.1` | `2026-09-03T22:30:00+08:00` | explanation clarification | 展开 Token Recycling adjacency matrix 的存储语义、逐层构树、并行更新与上下文丢失边界 | Token Recycling Sections 3.1-3.3、5.2 与 Appendix A.3-A.5 | minor：不改变路线判断，补足机制可读性 |
 
 本文是 canonical timeline；[Foundations and trends](foundations-and-trends.md#1-lossless-correctness-contract) 维护完整的 lossless correctness、accepted-length、draft/verify 成本与 KV/serving 基础合同。本文只在拒绝反馈成为独立演进路线的位置重述必要的概率守恒，以说明哪些反馈复用仍然 lossless。
 
@@ -355,9 +356,35 @@ $$
 | candidate recycling | [Token Recycling](https://arxiv.org/abs/2408.08696) | 把 accepted 与 rejected draft 节点处的 target top-k 后继写入 adjacency matrix | 是；后续构树会读取这些候选 | ACL 2025；使用 token transition，不是硬负样本 |
 | rejected-trajectory conditioning | [ReTrace](https://arxiv.org/abs/2608.29748) | 对 rejected suffix hidden states 左移对齐，用同次 verify 的 target states 修正，再门控注入下一 block | 是；保留一轮 conditioning signal | 2026-08-30 v1 预印本，当前主要验证 DFlash/Qwen3 |
 
+#### Token Recycling 的 adjacency matrix 怎么用
+
+这里的 adjacency matrix（邻接矩阵）容易让人误以为它保存了一个 $|\mathcal V|\times|\mathcal V|$ 的稠密转移概率表。实际结构更像一张放在 GPU 上、可批量索引的**定长邻接表**：
+
+$$
+\mathcal M\in\mathcal V^{|\mathcal V|\times k},\qquad
+\mathcal M[x]=[y_1,y_2,\ldots,y_k]。
+$$
+
+每一行由一个 token ID $x$ 索引，行内只保存 target 模型过去在 $x$ 后面给出的 $k$ 个最高概率候选 token ID，且按当时概率从高到低排列；它不保存完整概率，也不保存产生这次预测的长上下文。论文设置 $k=8$，报告额外显存约 1.95 MB。矩阵可全零冷启动，也可沿用先前请求更新过的矩阵进行 hot start；后一种做法用少量常驻状态换取首轮就有可用候选。
+
+一次解码循环可拆成四步：
+
+1. **从当前 token 读一行。** 以已提交前缀的最后一个 token 为根节点，例如 `guest`，读取 $\mathcal M[\texttt{guest}]$，得到按优先级排列的 `speaker`、`speak`、`Spe` 等候选。
+2. **逐层查表形成树。** 对第一层候选再次批量索引矩阵，例如 $\mathcal M[\texttt{speaker}]$ 给出 `at`、`for`，$\mathcal M[\texttt{speak}]$ 给出 `ings` 等。论文不是无约束地做完整广度优先搜索，而是套用一个预先确定形状的静态、不平衡树模板：排名靠前的节点分到更多子节点、也能继续得更深。这样树形和 attention mask 可以预处理，运行时主要是按层 gather，而不是逐节点搜索。
+3. **由 target 一次并行验证整棵树。** 所有节点按层摊平成 merged sequence，再用 tree attention 保证每个节点只看见自己所在分支的祖先。target 选择与自回归结果一致的最长路径提交；矩阵只负责提出候选，不负责决定最终输出。
+4. **把本轮 target 结果写回。** target 已经为树中每个 draft 节点 $\tilde x_i$ 算出了“沿该节点所在路径，下一个 token 是什么”的分布 $\tilde p_{i+1}$，于是直接覆盖对应行：
+
+$$
+\mathcal M[\tilde x_i]\leftarrow\operatorname{argtopk}(\tilde p_{i+1})。
+$$
+
+关键在于第 4 步会更新**所有** draft 节点，而不只是最终被接受路径上的节点。某个节点这轮被拒绝，通常只说明它不适合当前完整上下文；target 在它后面给出的 top-k 仍可能包含通用的局部组合，之后换一个上下文就能命中。论文案例中，`be` 所在分支第一轮没有提交，但其后继候选仍被写入矩阵；下一轮前缀走到 `could` 时，矩阵提出 `could -> be -> a -> great`，其中 `be -> a` 正是来自先前 rejected 节点的信息。这也解释了消融中更新所有 draft 节点的 MAT 高于只更新 accepted 节点。
+
+这个结构快的原因也是它的主要限制：$\mathcal M[x]$ 只按单个 token $x$ 寻址，把不同上下文中出现的同一个 $x$ 压进同一行。因此它擅长标点、固定搭配、词内 token 延续等局部规律，却不能表达“同一个 token 在不同主题或长程依赖下应接什么”。同一 token 在树的多个分支出现时，还会有多组不同的 target top-k 争写同一行；论文实现选择不额外排序或加锁，允许并行 CUDA 写入产生混合结果，因为严格挑选首次或末次出现虽会轻微改变 MAT，却增加了足以影响吞吐的管理开销。错误或陈旧候选仍需 target 验证，主要损失是树预算和速度，而不是直接把它们提交为输出。
+
 ReTrace 是目前与“上一轮拒绝信息帮助下一轮 draft”最接近的机制。它不复用第一个 rejected token，因为该位置已经被 target correction 解决；它复用的是首个拒绝之后的 rejected suffix 表示。论文的直觉是：block drafter 的后缀虽然不能提交，但并不一定完全失去方向，可能仍保留格式、局部结构和语义轨迹。下一轮以 bonus token 作为新 anchor 后，将这些表示向前对齐，并与 target verification 已经产生的 hidden state 融合。这样复用的是**轨迹表示**，而不是把旧 token 当作下一轮同一位置的标签。
 
-这条路线还解释了为什么 DFlash 比普通 EAGLE 更适合做跨轮 rejected-suffix reuse：DFlash 产生一条较深的 block，首个 mismatch 之后仍有位置对齐的 hidden-state 序列；EAGLE 的候选往往是多分支树，剩余节点对应不同祖先路径，直接按位置复用会混淆条件上下文。Token Recycling 则采取更轻的离散版本：论文消融显示，更新所有 draft 节点（包括 rejected 节点）比只更新 accepted 节点的 MAT 更高，但它保存的是后继候选，不是连续 hidden trajectory。[Token Recycling 原文消融](https://arxiv.org/html/2408.08696v3#S5.SS2)
+这条路线还解释了为什么 DFlash 比普通 EAGLE 更适合做跨轮 rejected-suffix reuse：DFlash 产生一条较深的 block，首个 mismatch 之后仍有位置对齐的 hidden-state 序列；EAGLE 的候选往往是多分支树，剩余节点对应不同祖先路径，直接按位置复用会混淆条件上下文。Token Recycling 则采取更轻的离散版本：论文消融显示，更新所有 draft 节点（包括 rejected 节点）比只更新 accepted 节点的 MAT（Mean Accepted Token，平均每轮 target 验证接受的 token 数）更高，但它保存的是后继候选，不是连续 hidden trajectory。[Token Recycling 原文消融](https://arxiv.org/html/2408.08696v3#S5.SS2)
 
 如果把这个方向抽象成新的 drafter，可把每轮反馈写成
 
