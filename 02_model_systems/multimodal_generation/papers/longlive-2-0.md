@@ -18,14 +18,15 @@ tags:
 > - 相关文档：[Figure inventory](../evidence/longlive-2-0-figure-inventory.md)
 
 ## 修订信息
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-longlive20-initial-20260903`
-- 当前修订时间：`2026-09-03T17:10:00+08:00`
-- 替代版本：无
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-longlive20-figures-tables-20260903`
+- 当前修订时间：`2026-09-03T20:00:00+08:00`
+- 替代版本：`rev-longlive20-initial-20260903`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|
 | rev-longlive20-initial-20260903 | 1.0.0 | 2026-09-03 | /root | initial | 无 | 首次精读与发布候选 | 用户请求 | arXiv:2605.18739v2 PDF、TeX、NVlabs/LongLive commit 7860ad9 | none |
+| rev-longlive20-figures-tables-20260903 | 1.1.0 | 2026-09-03 | /root | evidence-update | rev-longlive20-initial-20260903 | 修复表格渲染、紧裁剪并补齐 Figure 1–12 与 Table 1–7 | 用户反馈 | LaTeX 源码、逐图原分辨率检查 | none |
 
 ## 0. 资料与配图索引
 - 论文：`paper.pdf`（arXiv:2605.18739v2，20 页）
@@ -51,7 +52,6 @@ tags:
 |---|---|---|---|---|---|---|
 | $P$ | 序列并行组大小 | author-defined | SP group | 正整数 | Eq. (1) | 不是参数并行度 |
 | $L$ | 干净与带噪 token 总长度 | author-defined | 每次训练样本 | token 数 | Eq. (1) | 不是视频秒数 |
-| $H$ | 注意力头数 | author-defined | DiT 层 | count | Eq. (1) | 与 halo 无关 |
 | $d$ | 每个头的维度 | author-defined | DiT 层 | hidden dim | Eq. (1) | 不是 NVFP4 位宽 |
 | $H$ | 注意力头数量 | author-defined | DiT 层 | count | Eq. (1) | 不等于 halo |
 | $F$ | VAE latent 帧数 | author-defined | 视频样本 | frame count | §2.1 | 不等于原始帧数 |
@@ -60,8 +60,10 @@ tags:
 | $\mathcal A_g,\mathcal A_s$ | 全局/镜头级 attention sink 集合 | author-defined | 推理 | token sets | Eq. in §4.2 | 不是训练 mask |
 
 ## 0.2 算法总览
-![LongLive-2.0 overall](../assets/papers/longlive-2-0/fig1-overall.png)
-> 图 1：原论文 Figure 1，展示 BF16/NVFP4 生成质量与 2.15× 训练、1.84× 推理加速；正式资产为源码矢量图转 PNG。
+![LongLive-2.0 teaser](../assets/papers/longlive-2-0/fig1-teaser.png)
+> 图 1：原论文 Figure 1，展示多镜头长视频质量及 BF16/NVFP4 的速度、显存对比。
+![LongLive-2.0 framework](../assets/papers/longlive-2-0/fig2-overview.png)
+> 图 2：原论文 Figure 2，展示训练基础设施、DMD LoRA 和推理基础设施的完整边界。
 
 ## 1. 论文基本信息
 - 署名类型：个人作者；机构：NVIDIA。
@@ -109,8 +111,10 @@ tags:
 ## 4. 研究方法
 ### 4.1 方法总览
 训练时视频先由 VAE 编成 latent；每个 rank 取得本地 chunk 和左 halo，形成 clean/noisy 配对，经过 Ulysses All-to-All 后直接使用通信原生的 AR mask。推理时模型以 W4A4 NVFP4 运行，历史 KV 以 NVFP4 保存，滑窗外保留全局和镜头锚点，VAE 在另一 GPU 异步解码。
-![Training infrastructure](../assets/papers/longlive-2-0/fig3-training-pipeline.png)
+![Training infrastructure](../assets/papers/longlive-2-0/fig3-training-infra.png)
 > 图 3：原论文 Figure 3，Balanced SP 复用同一时间分片到 VAE、DiT、注意力和 loss。
+![Clean training pipeline](../assets/papers/longlive-2-0/fig4-clean-pipeline.png)
+> 图 4：原论文 Figure 4，直接长视频 AR 微调并注入独立 LoRA，跳过复杂多阶段初始化。
 
 ### 4.2 组件级设计动机与具体问题映射
 以下逐项说明设计选择解决的可观察问题、改变的状态、可能机制、替代方案及证据；表格是索引，不替代这些解释。Balanced SP 针对传统 SP 将 clean/noisy 切成不同 rank 的失衡，配对布局让每卡都有监督目标；NVFP4-aware training 针对 PTQ 的训推错配，在训练时暴露量化误差；KV 压缩针对长历史显存和通信，异步解码针对 VAE 造成的空转；双层 sink 针对单一锚点无法兼顾全局身份与镜头内连续性。前两项有受控或替换对照，halo 和 sink 的独立边际收益仍是部分验证。
@@ -156,8 +160,85 @@ $$
 ## 5. 关键结论与证据
 ### 5.1 主结果
 Table 1：64 秒从 BF16+SP 的 1372.9 s/iter 降到 NVFP4+Balanced SP 的 639.5 s/iter，约 2.15×；16/32 秒为 1.3×/1.4×。Table 3：2 步、64 秒端到端 36.3 s，45.7 FPS，峰值总显存 19.4 GB。Table 4 在 720p、5B、2 步下吞吐 45.7 FPS；Table 5 的 60 秒 VBench-Long 平均排名 3.67，为比较组最佳。
+
+#### Table 1：AR 训练迭代时间（秒）
+| 视频长度 | BF16 无 SP | BF16+SP | BF16+Balanced SP | NVFP4+Balanced SP |
+|---:|---:|---:|---:|---:|
+| 16 s | 75.3 | 52.2 | 45.8 | 40.1 |
+| 32 s | 202.7 | 162.7 | 136.8 | 119.3 |
+| 64 s | OOM | 1372.9 | 1196.5 | 639.5 |
+
+#### Table 2：DMD 逐步量化的峰值显存（每 GPU）
+| Generator | Real-score | Fake-score | 峰值显存 | 相对 BF16 |
+|---|---|---|---:|---:|
+| BF16 | BF16 | BF16 | 70.5 GB | - |
+| NVFP4 | BF16 | BF16 | 63.3 GB | 0.90× |
+| NVFP4+LoRA | NVFP4 | BF16 | 57.2 GB | 0.81× |
+| NVFP4+LoRA | NVFP4 | NVFP4+LoRA | 49.0 GB | 0.69× |
+
+#### Table 3：GB200 端到端推理效率
+| 设置 | FPS | 16 s 延迟/显存 | 32 s 延迟/显存 | 64 s 延迟/显存 |
+|---|---:|---|---|---|
+| BF16 | 24.8 | 26.6 s / 36.4 GB | 53.2 s / 36.4 GB | 112.9 s / 36.4 GB |
+| NVFP4 | 32.0 | 22.9 s / 29.7 GB | 46.6 s / 29.7 GB | 96.0 s / 29.7 GB |
+| + NVFP4 KV | 29.7 | 23.8 s / 19.4 GB | 48.9 s / 19.4 GB | 99.5 s / 19.4 GB |
+| + 异步解码 | 29.7 | 15.9 s / 19.4 GB | 29.1 s / 19.4 GB | 57.6 s / 19.4 GB |
+| 3 步 | 35.2 | 12.7 s / 19.4 GB | 23.2 s / 19.4 GB | 46.0 s / 19.4 GB |
+| 2 步 | 45.7 | 11.2 s / 19.4 GB | 19.2 s / 19.4 GB | 36.3 s / 19.4 GB |
+
+#### Table 4：VBench（完整决策字段）
+| 模型 | 精度 | 步数 | 参数 | 分辨率 | FPS | Total | Quality | Semantic |
+|---|---|---:|---:|---|---:|---:|---:|---:|
+| Self-Forcing | BF16 | 4 | 1.3B | 832×480 | 21.2 | 84.31 | 85.07 | 81.28 |
+| Causal-Forcing | BF16 | 4 | 1.3B | 832×480 | 21.0 | 84.04 | 84.59 | 81.84 |
+| Rolling-Forcing | BF16 | 4 | 1.3B | 832×480 | 19.5 | 81.22 | 84.08 | 86.43 |
+| LongLive-2.0 | NVFP4 | 2 | 5B | 1280×720 | 45.7 | 83.14 | 85.40 | 74.12 |
+
+#### Table 5：VBench-Long（60 秒）
+| 方法 | 平均排名↓ | 主体一致性↑ | 背景一致性↑ | 运动平滑↑ | 动态程度↑ | 美学质量↑ | 成像质量↑ |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| NOVA | 8.50 | 77.50 | 88.06 | 98.94 | 12.00 | 47.53 | 44.97 |
+| MAGI-1 | 6.67 | 79.46 | 87.76 | 99.26 | 56.00 | 52.10 | 54.54 |
+| Causal-Forcing | 6.50 | 93.52 | 94.12 | 95.74 | 72.32 | 51.24 | 62.30 |
+| SkyReels-V2 | 6.00 | 84.99 | 89.95 | 98.67 | 44.00 | 57.64 | 66.67 |
+| Self-Forcing | 5.83 | 95.84 | 95.27 | 98.20 | 51.72 | 56.05 | 62.22 |
+| CausVid | 5.33 | 86.75 | 89.85 | 98.47 | 52.00 | 62.88 | 67.47 |
+| Rolling-Forcing | 4.50 | 94.09 | 94.47 | 98.65 | 36.00 | 63.50 | 72.42 |
+| LongLive | 4.17 | 97.13 | 95.89 | 98.61 | 44.56 | 58.17 | 67.56 |
+| LongLive-2.0 | 3.67 | 97.48 | 97.00 | 98.86 | 60.62 | 53.68 | 65.51 |
+| LongLive-2.0 → NVFP4 | 3.83 | 97.62 | 96.97 | 98.94 | 45.88 | 53.72 | 66.24 |
 ![Inference infrastructure](../assets/papers/longlive-2-0/fig6-inference.png)
 > 图 6：原论文 Figure 6，展示 NVFP4 W4A4、KV 压缩与推理路径。
+![Multi-shot attention sink](../assets/papers/longlive-2-0/fig7-sink.png)
+> 图 7：原论文 Figure 7，全局 sink 与镜头级 sink 的双锚点机制。
+
+### 5.3 附录系统与机制证据
+![SP scaling](../assets/papers/longlive-2-0/fig8-sp-scaling.png)
+> 图 8：原论文 Figure 8，比较 SP、TP、DP 在交互式 AR 训练中的迭代速度和峰值显存。
+![SP inference](../assets/papers/longlive-2-0/fig9-sp-inference.png)
+> 图 9：原论文 Figure 9，展示非 Blackwell GPU 上的 SP 推理和低位宽通信。
+
+#### Table 6：H100 上 SP 推理延迟与通信时间
+| SP 组大小 | KV 精度 | 16 s：E2E / 通信 | 32 s：E2E / 通信 | 64 s：E2E / 通信 |
+|---:|---|---|---|---|
+| 1 | BF16 | 31.0 s / - | 50.2 s / - | 85.0 s / - |
+| 2 | BF16 | 19.3 s / 1.8 s | 38.1 s / 3.2 s | 62.5 s / 5.4 s |
+| 2 | 4-bit KV | 18.3 s / 1.1 s | 36.0 s / 2.3 s | 53.3 s / 3.6 s |
+| 4 | BF16 | 26.2 s / 12.8 s | 38.6 s / 12.2 s | 65.4 s / 20.6 s |
+| 4 | 4-bit KV | 21.1 s / 7.8 s | 32.3 s / 9.7 s | 54.8 s / 16.4 s |
+![Sink ablation](../assets/papers/longlive-2-0/fig10-sink-ablation.png)
+> 图 10：原论文 Figure 10，无双层 sink 时后续镜头漂移，加入后镜头外观更稳定。
+![PTQ comparison](../assets/papers/longlive-2-0/fig11-ptq.png)
+> 图 11：原论文 Figure 11，比较部署后量化与训练期 NVFP4；后者保留更清晰的面部细节。
+
+#### Table 7：相同 5B、1280×720 配置下的精度消融
+| 精度 | 量化方式 | 步数 | Total↑ | Quality↑ | Semantic↑ |
+|---|---|---:|---:|---:|---:|
+| BF16 | - | 4 | 85.06 | 86.67 | 78.63 |
+| NVFP4 | PTQ | 4 | 84.04 | 85.76 | 77.15 |
+| NVFP4 | 训练期预量化 | 4 | 84.51 | 86.43 | 76.81 |
+![DMD strategy comparison](../assets/papers/longlive-2-0/fig12-dmd-comparison.png)
+> 图 12：原论文 Figure 12，比较直接在 AR 模型上 DMD 与独立 LoRA 注入策略。
 
 ### 5.2 技术主张证据矩阵
 | 技术点 | 直接证据 | 控制程度 | 判断 |
@@ -198,3 +279,5 @@ Self-Forcing/Causal-Forcing 依赖 ODE 初始化、DMD 和长调优，多阶段�
 
 ## 10. OpenReview 交叉核对
 未发现公开 OpenReview 页面，因此没有可交叉核对的评审、meta-review 或 rebuttal；结论仅基于论文、源码和官方代码。
+![NVFP4 DMD training](../assets/papers/longlive-2-0/fig5-dmd-training.png)
+> 图 5：原论文 Figure 5，generator、real-score 和 fake-score 在低精度 NVFP4 下协同训练。
