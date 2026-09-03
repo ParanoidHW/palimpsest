@@ -39,8 +39,21 @@ tags:
 - 开源代码：`<repo url>`, commit `<hash>`
 - OpenReview：`<url or unavailable>`；公开评审/decision/rebuttal：`<path or unavailable>`
 - 提取文本：`<path>`
-- 图表：列出 Figure/Table 与本地图片路径；标明截图是否包含完整 caption，边距是否已经裁成窄边界。
+- 图表：列出 Figure/Table、原始来源、本地图片路径、支持性 claim/章节与实际 Markdown 位置；标明截图是否包含完整 caption，边距是否已经裁成窄边界，并记录逐图原分辨率 QA。
 - AI 生成分析示意图：`<figures/generated/algorithm-analysis.png or unavailable>`
+
+## 0.3 发布前渲染与交付审计
+
+这部分是冻结前的硬性记录，不能用 schema、正则或“文件存在”替代实际检查。
+
+- Markdown 渲染器：`<CommonMark/markdown-it/Obsidian preview/other>`
+- 渲染命令或操作：`<command or UI path>`
+- 渲染结果：`<passed/blocked>`；表格、公式、图片、caption、标题、列表、锚点和溢出检查：`<summary>`
+- Figure/Table 邻近性审计：逐项确认每个对象紧邻其支持的 claim、机制、实验或局限；结果：`<passed/blocked>`；例外及理由：`<none or inventory references>`
+- 临时标记扫描：`<!-- ... -->`、`TODO`、`FIXME`、`pending`、debug 文本、validator 标记和 process-only 注释；结果：`<clean/blocked>`；发现及处理：`<none or paths>`
+- 审计证据：`<checklist/validation artifact path and date>`
+
+若渲染器不可用、任一 Figure/Table 无法定位到支持性论述，或存在未分类的临时标记，交付状态必须为 `blocked`，不得写成 `complete`。
 
 ## 0.1 术语与符号解释
 
