@@ -166,6 +166,7 @@
 | SwiftFusion                                                                                                               | 深度精读                 | [swiftfusion](../02_model_systems/multimodal_generation/papers/swiftfusion.md)           |
 | Transfusion                                                                                                               | 深度精读                 | [transfusion](../02_model_systems/multimodal_generation/papers/transfusion.md)           |
 | Vega                                                                                                                      | 深度精读                 | [vega](../02_model_systems/multimodal_generation/papers/vega.md)                         |
+| LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation（arXiv:2605.18739） | 深度精读；NVFP4/Balanced SP | [longlive-2-0](../02_model_systems/multimodal_generation/papers/longlive-2-0.md) |
 
 ### Multimodal understanding（1）
 

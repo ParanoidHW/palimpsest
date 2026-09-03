@@ -3,7 +3,7 @@
 > [!info] 文档关系
 > - 文档类型：Survey
 > - 领域入口：[README](../README.md)
-> - 深读论文：[Qwen-Image-2.0](../papers/qwen-image-2-0.md)、[BAGEL](../papers/bagel.md)、[SANA-Video 2.0](../papers/sana-video-2.md)、[Cosmos 3](../papers/cosmos-3.md)、[Helios](../papers/helios.md)、[Vega](../papers/vega.md)
+> - 深读论文：[Qwen-Image-2.0](../papers/qwen-image-2-0.md)、[BAGEL](../papers/bagel.md)、[SANA-Video 2.0](../papers/sana-video-2.md)、[Cosmos 3](../papers/cosmos-3.md)、[Helios](../papers/helios.md)、[Vega](../papers/vega.md)、[LongLive-2.0](../papers/longlive-2-0.md)
 > - 证据索引：[Figure inventory](../evidence/figure-inventory.md)
 
 ## 修订信息

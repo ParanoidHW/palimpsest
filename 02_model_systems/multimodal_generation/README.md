@@ -14,6 +14,7 @@
 8. [MAGI-1](papers/magi-1.md)：精读 chunkwise-AR、帧/chunk/token 核算、MagiAttention 与实时 serving。
 9. [Cosmos 3 Q&A](supplements/cosmos-3-q-and-a.md)：按 Q1--Q12 复读位置编码、模态编码、训练数据与系统问题。
 10. [Figure inventory](evidence/figure-inventory.md)：追溯正式资产的原编号、source/PDF 页码、caption、owner 与 QA。
+11. [LongLive-2.0](papers/longlive-2-0.md)：NVFP4、Balanced SP 与长视频端到端推理基础设施。
 
 ## 文档索引
 
@@ -22,10 +23,11 @@
 
 - Survey：[Diffusion evolution](surveys/diffusion-evolution.md)，[近半年多模态视觉生成模型全景](surveys/visual-generation-model-landscape.md)，[Diffusion 多模态生成与 AI Infra](surveys/multimodal-diffusion-infra.md)
 - Topics：[Model pipeline](topics/model-pipeline.md)，[Training data](topics/training-data.md)
-- Paper：[LDM](papers/ldm.md)，[DiT](papers/dit.md)，[Transfusion](papers/transfusion.md)，[Qwen-Image-2.0](papers/qwen-image-2-0.md)，[BAGEL](papers/bagel.md)，[PixelDiT](papers/pixeldit.md)，[DC-AE](papers/dcae.md)，[HunyuanVideo 1.5](papers/hunyuanvideo-1-5.md)，[SANA-Video 2.0](papers/sana-video-2.md)，[Helios](papers/helios.md)，[Vega](papers/vega.md)，[Sparse VideoGen](papers/sparse-videogen.md)，[FEB-Cache](papers/feb-cache.md)，[SwiftFusion](papers/swiftfusion.md)，[Causal-rCM](papers/causal-rcm.md)，[MAGI-1](papers/magi-1.md)，[Cosmos 3](papers/cosmos-3.md)
+- Paper：[LDM](papers/ldm.md)，[DiT](papers/dit.md)，[Transfusion](papers/transfusion.md)，[Qwen-Image-2.0](papers/qwen-image-2-0.md)，[BAGEL](papers/bagel.md)，[PixelDiT](papers/pixeldit.md)，[DC-AE](papers/dcae.md)，[HunyuanVideo 1.5](papers/hunyuanvideo-1-5.md)，[SANA-Video 2.0](papers/sana-video-2.md)，[Helios](papers/helios.md)，[Vega](papers/vega.md)，[LongLive-2.0](papers/longlive-2-0.md)，[Sparse VideoGen](papers/sparse-videogen.md)，[FEB-Cache](papers/feb-cache.md)，[SwiftFusion](papers/swiftfusion.md)，[Causal-rCM](papers/causal-rcm.md)，[MAGI-1](papers/magi-1.md)，[Cosmos 3](papers/cosmos-3.md)
 - Supplement：[Cosmos 3 Q&A](supplements/cosmos-3-q-and-a.md)
 - Word 交付：[Diffusion 多模态生成与 AI Infra](supplements/multimodal-diffusion-infra.docx)
 - Evidence：[Figure inventory](evidence/figure-inventory.md)
+- LongLive-2.0 Evidence：[Figure inventory](evidence/longlive-2-0-figure-inventory.md)
 
 ## Obsidian Properties
 
