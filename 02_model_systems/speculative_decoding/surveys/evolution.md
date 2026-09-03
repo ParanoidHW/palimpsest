@@ -14,7 +14,7 @@
 - 当前文档版本：`1.4.0`
 - 当前修订 ID：`rev-spec-evolution-rejection-feedback-20260903`
 - 当前修订时间：`2026-09-03T22:00:00+08:00`
-- 替代版本：`rev-spec-evolution-dels-spec-20260728` / `1.2.0`
+- 替代版本：`rev-spec-evolution-dynamic-verify-runtimes-20260902` / `1.3.0`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|
@@ -23,7 +23,7 @@
 | `rev-spec-evolution-dynamic-verify-runtimes-20260902` | `1.3.0` | `2026-09-02T20:00:00+08:00` | implementation evidence update | 固定 vLLM/SGLang commit，补充动态 verification 与 CUDA Graph 的实际分桶、ragged packing、回退及数据并行约束 | vLLM `b205750`、SGLang `ebfd8c6` 官方源码 | material：收紧 LibraSpec 的 serving 可落地边界 |
 | `rev-spec-evolution-rejection-feedback-20260903` | `1.4.0` | `2026-09-03T22:00:00+08:00` | mechanism/evidence update | 补充拒绝采样的 lossless 概率守恒、reject error signal 的已有路线，以及 rejected-suffix 跨轮条件化 | Leviathan/DeepMind speculative sampling、OSD、Token Recycling、OnlineSPEC、ReTrace 原文 | material：把 verification feedback 从“裁决结果”扩展为可复用的 draft adaptation 信号 |
 
-本文是 canonical timeline；lossless acceptance/correction 公式、accepted-length 上限、draft/verify 成本和 KV/serving 合同只在 [Foundations and trends](foundations-and-trends.md#1-lossless-correctness-contract) 维护，避免两篇 Survey 重复。
+本文是 canonical timeline；[Foundations and trends](foundations-and-trends.md#1-lossless-correctness-contract) 维护完整的 lossless correctness、accepted-length、draft/verify 成本与 KV/serving 基础合同。本文只在拒绝反馈成为独立演进路线的位置重述必要的概率守恒，以说明哪些反馈复用仍然 lossless。
 
 ## 精读证据入口
 
@@ -301,24 +301,24 @@ $$
 a(x)=\min\left(1,\frac{p(x\mid h)}{q(x\mid h)}\right)
 $$
 
-的概率接受它。因而通过“draft 提出并被接受”输出 $x$ 的概率质量是
+的概率接受它。因而通过“draft 提出并被接受”输出 $x$ 的概率质量是：
 
 $$
-q(x\mid h)a(x)=\min\{p(x\mid h),q(x\mid h)\}。
+q(x\mid h)a(x)=\min\{p(x\mid h),q(x\mid h)\}
 $$
 
 接受分支只拿走两分布的重叠部分。剩余的 target 质量是
 
 $$
-[p(x\mid h)-q(x\mid h)]_+，
+[p(x\mid h)-q(x\mid h)]_+
 $$
 
-并且其总量等于拒绝概率
+它的总量等于拒绝概率：
 
 $$
 1-\alpha=\sum_x[p(x\mid h)-q(x\mid h)]_+,
 \qquad
-\alpha=\sum_x\min(p,q)。
+\alpha=\sum_x\min(p,q)
 $$
 
 所以拒绝后不能再从完整的 $p$ 重新采样，否则会把已经在接受分支中出现的概率质量重复计算。正确做法是从 residual distribution 采 correction：
@@ -326,7 +326,7 @@ $$
 $$
 r(x\mid h)=
 \frac{[p(x\mid h)-q(x\mid h)]_+}
-{\sum_y[p(y\mid h)-q(y\mid h)]_+}。
+{\sum_y[p(y\mid h)-q(y\mid h)]_+}
 $$
 
 最终输出 $x$ 的概率为
@@ -337,7 +337,7 @@ $$
 \underbrace{(1-\alpha)r(x)}_{\text{拒绝后 correction}}
  =
 \min(p(x),q(x))+[p(x)-q(x)]_+
- =p(x)。
+ =p(x)
 $$
 
 这就是 lossless 的原因：每个 token 的 target 概率质量都恰好由“接受 draft”或“residual correction”两条互斥路径提供。多 token 草稿只是对每个已接受前缀位置重复这套单 token 证明；首个拒绝位置采 correction，后面的 token 因为条件在被拒 token 上而不能直接提交。若整段都接受，则从新的已确认上下文采一个 target bonus token，同样不改变 target 分布。该合同来自 [Leviathan et al., ICML 2023](https://proceedings.mlr.press/v202/leviathan23a.html) 和 [DeepMind speculative sampling](https://arxiv.org/abs/2302.01318)。
