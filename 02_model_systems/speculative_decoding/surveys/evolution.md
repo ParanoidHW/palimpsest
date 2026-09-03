@@ -11,9 +11,9 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.3.0`
-- 当前修订 ID：`rev-spec-evolution-dynamic-verify-runtimes-20260902`
-- 当前修订时间：`2026-09-02T20:00:00+08:00`
+- 当前文档版本：`1.4.0`
+- 当前修订 ID：`rev-spec-evolution-rejection-feedback-20260903`
+- 当前修订时间：`2026-09-03T22:00:00+08:00`
 - 替代版本：`rev-spec-evolution-dels-spec-20260728` / `1.2.0`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
@@ -21,6 +21,7 @@
 | `rev-spec-evolution-delivery-remediation-20260725` | `1.1.0` | `2026-07-25T23:30:00+08:00` | evidence-and-link remediation | 更新六篇 canonical Paper 的精确证据入口、时间线边界与跨论文结论限制 | canonical Paper reviews、Figure inventory 与发布器校验 | minor；不新增 backlog Paper |
 | `rev-spec-evolution-dels-spec-20260728` | `1.2.0` | `2026-07-28T18:30:00+08:00` | evidence update | 增补 DeLS-Spec：冻结 DFlash、独立训练短上下文专家，并严格限定其与 DSpark 的直接证据关系 | DeLS-Spec arXiv/source/code、Table 2、canonical Paper | material：新增一个 DSpark 发布后的算法演进节点 |
 | `rev-spec-evolution-dynamic-verify-runtimes-20260902` | `1.3.0` | `2026-09-02T20:00:00+08:00` | implementation evidence update | 固定 vLLM/SGLang commit，补充动态 verification 与 CUDA Graph 的实际分桶、ragged packing、回退及数据并行约束 | vLLM `b205750`、SGLang `ebfd8c6` 官方源码 | material：收紧 LibraSpec 的 serving 可落地边界 |
+| `rev-spec-evolution-rejection-feedback-20260903` | `1.4.0` | `2026-09-03T22:00:00+08:00` | mechanism/evidence update | 补充拒绝采样的 lossless 概率守恒、reject error signal 的已有路线，以及 rejected-suffix 跨轮条件化 | Leviathan/DeepMind speculative sampling、OSD、Token Recycling、OnlineSPEC、ReTrace 原文 | material：把 verification feedback 从“裁决结果”扩展为可复用的 draft adaptation 信号 |
 
 本文是 canonical timeline；lossless acceptance/correction 公式、accepted-length 上限、draft/verify 成本和 KV/serving 合同只在 [Foundations and trends](foundations-and-trends.md#1-lossless-correctness-contract) 维护，避免两篇 Survey 重复。
 
@@ -292,7 +293,95 @@ DSpark 则在 parallel block 与 autoregressive draft 之间插入 lightweight s
 
 BlockPilot、CaDDTree、EntMTP、WhiFlash 则显示另一个趋势：固定 speculation budget 正在被淘汰。系统需要根据当前样本、entropy、batch size、verification cost 和 drafter 类型选择策略。
 
-### 6.6 DeLS-Spec：从“联训因果修正”转向“可插拔短上下文专家”
+### 6.6 拒绝采样：为什么 lossless，以及为什么 rejection 本身是有价值的反馈
+
+早期 speculative decoding 的“接受/拒绝”不是一个质量打分器，而是一套保持 target 分布不变的抽样合同。给定已确认上下文 $h$，target 和 drafter 的 next-token 分布分别为 $p(x\mid h)$ 和 $q(x\mid h)$。drafter 先采样 $x\sim q$，再以
+
+$$
+a(x)=\min\left(1,\frac{p(x\mid h)}{q(x\mid h)}\right)
+$$
+
+的概率接受它。因而通过“draft 提出并被接受”输出 $x$ 的概率质量是
+
+$$
+q(x\mid h)a(x)=\min\{p(x\mid h),q(x\mid h)\}。
+$$
+
+接受分支只拿走两分布的重叠部分。剩余的 target 质量是
+
+$$
+[p(x\mid h)-q(x\mid h)]_+，
+$$
+
+并且其总量等于拒绝概率
+
+$$
+1-\alpha=\sum_x[p(x\mid h)-q(x\mid h)]_+,
+\qquad
+\alpha=\sum_x\min(p,q)。
+$$
+
+所以拒绝后不能再从完整的 $p$ 重新采样，否则会把已经在接受分支中出现的概率质量重复计算。正确做法是从 residual distribution 采 correction：
+
+$$
+r(x\mid h)=
+\frac{[p(x\mid h)-q(x\mid h)]_+}
+{\sum_y[p(y\mid h)-q(y\mid h)]_+}。
+$$
+
+最终输出 $x$ 的概率为
+
+$$
+\underbrace{\min(p(x),q(x))}_{\text{接受 draft}}
+ +
+\underbrace{(1-\alpha)r(x)}_{\text{拒绝后 correction}}
+ =
+\min(p(x),q(x))+[p(x)-q(x)]_+
+ =p(x)。
+$$
+
+这就是 lossless 的原因：每个 token 的 target 概率质量都恰好由“接受 draft”或“residual correction”两条互斥路径提供。多 token 草稿只是对每个已接受前缀位置重复这套单 token 证明；首个拒绝位置采 correction，后面的 token 因为条件在被拒 token 上而不能直接提交。若整段都接受，则从新的已确认上下文采一个 target bonus token，同样不改变 target 分布。该合同来自 [Leviathan et al., ICML 2023](https://proceedings.mlr.press/v202/leviathan23a.html) 和 [DeepMind speculative sampling](https://arxiv.org/abs/2302.01318)。
+
+因此，一次 rejection 不是“这个 token 永远错误”。如果 $p(x)=0.4,q(x)=0.5$，该 token 被提议时仍有 $0.4/0.5=0.8$ 的条件接受概率；被拒只表示这次抽样没有保留 drafter 对它多给出的那部分质量。尤其在 temperature sampling 下，不能把 rejected token 当成硬负标签，也不能在下一轮无条件把它加入 blacklist。
+
+### 6.7 Reject error signal：从丢弃结果到下一轮 draft 条件
+
+拒绝位置仍然暴露了有用信息：target 在哪里不同意 drafter、target correction/bonus 是什么、$p-q$ 的差异有多大，以及首个 mismatch 之后被丢弃的 suffix 是否仍保留语法或语义方向。现有工作可以分成四个强度层级：
+
+| 反馈用法 | 代表工作 | 反馈如何进入下一步 | 是否即时改变下一轮 token proposal | 证据边界 |
+|---|---|---|---|---|
+| target correction / residual | Leviathan、DeepMind | 只在当前拒绝位置补回 target 缺失概率质量 | 是，但仅是当前轮 correction | lossless 合同，不是跨轮学习 |
+| online distillation | [OSD](https://arxiv.org/abs/2310.07177) | 记录错误位置和 target logits，周期性更新 drafter 参数 | 间接；更新有缓冲和间隔 | ICML 2024；目标是 query 分布适应 |
+| candidate recycling | [Token Recycling](https://arxiv.org/abs/2408.08696) | 把 accepted 与 rejected draft 节点处的 target top-k 后继写入 adjacency matrix | 是；后续构树会读取这些候选 | ACL 2025；使用 token transition，不是硬负样本 |
+| rejected-trajectory conditioning | [ReTrace](https://arxiv.org/abs/2608.29748) | 对 rejected suffix hidden states 左移对齐，用同次 verify 的 target states 修正，再门控注入下一 block | 是；保留一轮 conditioning signal | 2026-08-30 v1 预印本，当前主要验证 DFlash/Qwen3 |
+
+ReTrace 是目前与“上一轮拒绝信息帮助下一轮 draft”最接近的机制。它不复用第一个 rejected token，因为该位置已经被 target correction 解决；它复用的是首个拒绝之后的 rejected suffix 表示。论文的直觉是：block drafter 的后缀虽然不能提交，但并不一定完全失去方向，可能仍保留格式、局部结构和语义轨迹。下一轮以 bonus token 作为新 anchor 后，将这些表示向前对齐，并与 target verification 已经产生的 hidden state 融合。这样复用的是**轨迹表示**，而不是把旧 token 当作下一轮同一位置的标签。
+
+这条路线还解释了为什么 DFlash 比普通 EAGLE 更适合做跨轮 rejected-suffix reuse：DFlash 产生一条较深的 block，首个 mismatch 之后仍有位置对齐的 hidden-state 序列；EAGLE 的候选往往是多分支树，剩余节点对应不同祖先路径，直接按位置复用会混淆条件上下文。Token Recycling 则采取更轻的离散版本：论文消融显示，更新所有 draft 节点（包括 rejected 节点）比只更新 accepted 节点的 MAT 更高，但它保存的是后继候选，不是连续 hidden trajectory。[Token Recycling 原文消融](https://arxiv.org/html/2408.08696v3#S5.SS2)
+
+如果把这个方向抽象成新的 drafter，可把每轮反馈写成
+
+$$
+m_t=\operatorname{Compress}(h_t^T,p_t,q_t,b_t,R_t)，
+$$
+
+其中 $b_t$ 是 target correction/bonus，$R_t$ 是 rejected token 或 rejected suffix，$h_t^T$ 是 target 在验证中已经算出的表示。下一轮 proposal 分布改为
+
+$$
+q_{t+1}(x\mid h_{t+1},m_t)。
+$$
+
+只要 verifier 用这个实际的 $q_{t+1}$ 重新计算 $p/q_{t+1}$ 接受率和 residual correction，lossless 合同仍然成立。反过来，如果 drafter 已被 rejection memory 改变，却仍使用旧的 $q$ 做 rejection test，概率守恒会失效。
+
+当前最值得验证的设计不是硬 blacklist，而是三种软反馈：
+
+1. 用 target/draft 的 logit 差或 residual mass 生成低秩 correction，作为下一轮前几个位置的输入偏置；
+2. 复用 rejected suffix hidden states，并以 gate 控制它们对 mask input 的残差注入；
+3. 在相似上下文中维护短期 error memory，用于调整 candidate ranking 或 tree breadth，而不是直接禁止某个 token。
+
+其中第 2 种已有 ReTrace 的直接先例；第 1、3 种仍有明显研究空间，尤其是普通 AR/EAGLE drafter、temperature sampling 和 batch serving 下的上下文键控与额外存储成本。reject error signal 还可以和 DSpark/LibraSpec 的动态长度控制结合：反馈不仅告诉系统“哪个 token 可能错”，也可以估计本轮继续验证后缀的边际收益。
+
+### 6.8 DeLS-Spec：从“联训因果修正”转向“可插拔短上下文专家”
 
 DeLS-Spec 是 DSpark 发布后的直接算法增量。它不改 verifier 或 scheduler，也不重训 DFlash：把冻结的 DFlash 视为 long-context expert，独立训练 RNN/Markov local head 作为 short-context expert，推理时用
 
@@ -321,6 +410,8 @@ $$
 | 2026 | Causal parallel tree | JetSpec | 高 budget 下路径不一致 | 训练代码与 kernel 复杂度 |
 | 2026 | Decoupled local correction | DeLS-Spec | 已有 parallel checkpoint 的块内因果增强成本 | residual 上限、动态融合与非 DFlash 泛化 |
 | 2026 | Adaptive scheduling | BlockPilot, CaDDTree, EntMTP, WhiFlash | 静态 budget 不适配负载 | policy 泛化和在线稳定性 |
+| 2024-2026 | Reject error signal / draft adaptation | OSD, Token Recycling, OnlineSPEC | verification 产生的错误信息未被下一轮充分利用 | 在线更新成本、上下文错配、lossless proposal accounting |
+| 2026 | Rejected-trajectory conditioning | ReTrace | 首个 mismatch 后 rejected suffix 被整体丢弃 | 只验证 DFlash/Qwen3；跨 drafter 和 serving 泛化待证 |
 
 ## 8. 未来趋势判断
 
@@ -418,6 +509,7 @@ $$
 5. **adaptive policy 泛化**：block size / tree budget / drafter 类型选择必须跨任务、温度、模型和负载稳定。
 6. **复现性**：许多 2026 方法的训练代码、serving patch 和 kernel 还不完整公开，系统结论需要谨慎解读。
 7. **step-level 伪命题风险**：如果没有 target 或经 target 校准的 verifier/controller 做最终裁决，所谓 step-level speculation 会退化成小模型独立推理；如果有裁决，它也更像 lossy proposal-and-verification，而不是 lossless speculative decoding。
+8. **reject error signal 的时序与归因**：被拒 token、target correction、rejected suffix hidden state 分别对应不同上下文；直接把旧 token 当下一轮负样本会错位。需要区分即时条件化、候选缓存和后台在线蒸馏，并测量额外 memory、copy/fusion kernel、graph shape 与 proposal accounting 成本。
 
 ## 10. 简短结论
 
