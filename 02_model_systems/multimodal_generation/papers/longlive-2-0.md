@@ -82,6 +82,7 @@ tags:
 
 ### 2.2 现有方案为何不够
 场景：4 卡切分 clean/noisy 拼接序列。简单修补：增加 GPU 不能消除切分和 VAE 重复。
+
 | 现有做法 | 可观察失败 | 具体场景 | 根因 | 为什么简单修补不够 | 证据 |
 |---|---|---|---|---|---|
 | 传统 SP 直接切分 `[clean; noisy]` | 某些 rank 几乎只有 clean token，loss 工作量失衡 | 4 卡、4 个 chunk 时，按拼接序列切片会出现 clean-heavy/noisy-heavy rank | loss-bearing noisy token 与序列切片边界不对齐 | 只增加 GPU 仍保留不均衡和 VAE 重复编码 | §2.1、Figure 3 |
@@ -121,6 +122,7 @@ tags:
 **Balanced SP 的读者解释。** 传统 SP 把 clean/noisy 拼接后切片，可能让某个 rank 几乎没有带损失的 noisy token；Balanced SP 改为同一时间块配对，使每卡都承担相近监督量，代价是需要专门的 mask 和 halo。证据是 Figure 3 与 Table 1，属于直接对照。
 **NVFP4-aware training 的读者解释。** 只在部署阶段做 PTQ 会让训练时的数值分布与推理不同；本文训练期间就使用 NVFP4 W4A4，使 GEMM 和量化误差与部署一致，代价是依赖 Blackwell 和专用 kernel。Figure 11/Table 7 支持质量边界，但没有完全拆出 kernel 贡献。
 **KV 压缩、异步解码与双层 sink 的读者解释。** KV 压缩减少长历史的字节和跨卡通信，异步解码把 VAE 工作与下一次去噪重叠；双层 sink 同时保留全局身份和当前镜头锚点。Table 3/6 与 Figure 10 支持这些方向，但镜头切换检测和组合收益仍需更多受控实验。
+
 | 设计项 | why 状态 | 具体问题 | 因果机制 | 权衡 | 验证 |
 |---|---|---|---|---|---|
 | clean/noisy 同 chunk 配对 | author-stated §2.1 | noisy loss 在 rank 间失衡 | 每 rank 获得近似相同 loss-bearing token | 需要自然 mask 和重排 | Table 1，supported |
@@ -134,7 +136,6 @@ tags:
 $$
 z^{(p)}=[z^{(p)}_{clean},z^{(p)}_{noisy}]\in\mathbb{R}^{L/P\times H\times d}.
 $$
-<!-- 这条公式在算什么？描述每个 rank 的配对 token 张量形状。 -->
 **这条公式在算什么？**描述每个 rank 的配对 token 张量形状。描述每个 rank 的配对 token 张量。
 **怎么读？** 每个 rank 只保留总长度的 $1/P$，但同时包含 clean 与 noisy。
 **输入与输出。** 输入是 $L,P,H,d$ 和两类 latent；输出是本地张量。
@@ -156,6 +157,16 @@ $$
 
 ### 4.4 训练、实验与部署
 训练以 16/32/64 秒视频比较 BF16、SP、Balanced SP、NVFP4；DMD 分支逐步量化 generator、real-score、fake-score。推理在 GB200 180GB 测试 BF16、NVFP4、NVFP4 KV、异步解码和 2/3 步去噪；非 Blackwell 的 SP 结果见 Appendix D。代码配置位于 `configs/train_ar.yaml`、`configs/inference.yaml`、`inference_sp.py`、`utils/nvfp4_kernel.py`（commit `7860ad9`）。
+
+推理阶段先以 W4A4 NVFP4 执行 DiT，将按 chunk 保存的 KV 缓存压缩为 NVFP4；在需要注意力时由并行反量化 kernel 恢复当前窗口。随后独立 VAE GPU 与下一次 DiT 去噪重叠解码。这正是 Figure 6 的三条流水线，不能把它误读成训练路径。
+
+![Inference infrastructure](../assets/papers/longlive-2-0/fig6-inference.png)
+> 图 6：原论文 Figure 6，展示 W4A4 推理、KV 压缩/并行反量化和异步 VAE 解码。
+
+多镜头推理时，滑动窗口保留最近 chunk；窗口之外用全局锚点 $mathcal A_g$ 保存视频身份、用镜头锚点 $mathcal A_s$ 保存当前镜头连续性。prompt 切换触发 $mathcal A_s$ 重绑定，而 $mathcal A_g$ 不动，因此 Figure 7 应与这段状态更新一起阅读。
+
+![Multi-shot attention sink](../assets/papers/longlive-2-0/fig7-sink.png)
+> 图 7：原论文 Figure 7，显示全局 sink、镜头级 sink 与滑动窗口的 key/query 关系。
 
 ## 5. 关键结论与证据
 ### 5.1 主结果
@@ -207,10 +218,6 @@ Table 1：64 秒从 BF16+SP 的 1372.9 s/iter 降到 NVFP4+Balanced SP 的 639.5
 | LongLive | 4.17 | 97.13 | 95.89 | 98.61 | 44.56 | 58.17 | 67.56 |
 | LongLive-2.0 | 3.67 | 97.48 | 97.00 | 98.86 | 60.62 | 53.68 | 65.51 |
 | LongLive-2.0 → NVFP4 | 3.83 | 97.62 | 96.97 | 98.94 | 45.88 | 53.72 | 66.24 |
-![Inference infrastructure](../assets/papers/longlive-2-0/fig6-inference.png)
-> 图 6：原论文 Figure 6，展示 NVFP4 W4A4、KV 压缩与推理路径。
-![Multi-shot attention sink](../assets/papers/longlive-2-0/fig7-sink.png)
-> 图 7：原论文 Figure 7，全局 sink 与镜头级 sink 的双锚点机制。
 
 ### 5.3 附录系统与机制证据
 ![SP scaling](../assets/papers/longlive-2-0/fig8-sp-scaling.png)
