@@ -18,15 +18,16 @@ tags:
 > - 相关文档：[Figure inventory](../evidence/longlive-2-0-figure-inventory.md)
 
 ## 修订信息
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-longlive20-figures-tables-20260903`
-- 当前修订时间：`2026-09-03T20:00:00+08:00`
-- 替代版本：`rev-longlive20-initial-20260903`
+- 当前文档版本：`1.2.0`
+- 当前修订 ID：`rev-longlive20-figure-placement-20260903`
+- 当前修订时间：`2026-09-03T21:00:00+08:00`
+- 替代版本：`rev-longlive20-figures-tables-20260903`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|
 | rev-longlive20-initial-20260903 | 1.0.0 | 2026-09-03 | /root | initial | 无 | 首次精读与发布候选 | 用户请求 | arXiv:2605.18739v2 PDF、TeX、NVlabs/LongLive commit 7860ad9 | none |
 | rev-longlive20-figures-tables-20260903 | 1.1.0 | 2026-09-03 | /root | evidence-update | rev-longlive20-initial-20260903 | 修复表格渲染、紧裁剪并补齐 Figure 1–12 与 Table 1–7 | 用户反馈 | LaTeX 源码、逐图原分辨率检查 | none |
+| rev-longlive20-figure-placement-20260903 | 1.2.0 | 2026-09-03 | /root | evidence-update | rev-longlive20-figures-tables-20260903 | 全量修正 Figure 5、8–12 的论述邻近位置并修复章节编号漂移 | 用户反馈与全量图位审计 | Figure inventory、正文顺序复核 | none |
 
 ## 0. 资料与配图索引
 - 论文：`paper.pdf`（arXiv:2605.18739v2，20 页）
@@ -117,11 +118,26 @@ tags:
 ![Clean training pipeline](../assets/papers/longlive-2-0/fig4-clean-pipeline.png)
 > 图 4：原论文 Figure 4，直接长视频 AR 微调并注入独立 LoRA，跳过复杂多阶段初始化。
 
+Figure 4 中的独立 LoRA 也决定 DMD 微调的组织方式：generator、real-score、fake-score 分别保留自己的低秩适配分支，再逐步切换到 NVFP4。Figure 5 描述这一训练时的数值路径，Figure 12 则直接比较该路径与把 DMD 直接施加到 AR 模型上的策略；后者在论文的对比中更难稳定训练。
+
+![NVFP4 DMD training](../assets/papers/longlive-2-0/fig5-dmd-training.png)
+> 图 5：原论文 Figure 5，generator、real-score 和 fake-score 在低精度 NVFP4 下协同训练。
+
+![DMD strategy comparison](../assets/papers/longlive-2-0/fig12-dmd-comparison.png)
+> 图 12：原论文 Figure 12，比较直接在 AR 模型上 DMD 与独立 LoRA 注入策略。
+
 ### 4.2 组件级设计动机与具体问题映射
 以下逐项说明设计选择解决的可观察问题、改变的状态、可能机制、替代方案及证据；表格是索引，不替代这些解释。Balanced SP 针对传统 SP 将 clean/noisy 切成不同 rank 的失衡，配对布局让每卡都有监督目标；NVFP4-aware training 针对 PTQ 的训推错配，在训练时暴露量化误差；KV 压缩针对长历史显存和通信，异步解码针对 VAE 造成的空转；双层 sink 针对单一锚点无法兼顾全局身份与镜头内连续性。前两项有受控或替换对照，halo 和 sink 的独立边际收益仍是部分验证。
 **Balanced SP 的读者解释。** 传统 SP 把 clean/noisy 拼接后切片，可能让某个 rank 几乎没有带损失的 noisy token；Balanced SP 改为同一时间块配对，使每卡都承担相近监督量，代价是需要专门的 mask 和 halo。证据是 Figure 3 与 Table 1，属于直接对照。
 **NVFP4-aware training 的读者解释。** 只在部署阶段做 PTQ 会让训练时的数值分布与推理不同；本文训练期间就使用 NVFP4 W4A4，使 GEMM 和量化误差与部署一致，代价是依赖 Blackwell 和专用 kernel。Figure 11/Table 7 支持质量边界，但没有完全拆出 kernel 贡献。
+
+![PTQ comparison](../assets/papers/longlive-2-0/fig11-ptq.png)
+> 图 11：原论文 Figure 11，比较部署后量化与训练期 NVFP4；后者保留更清晰的面部细节。
+
 **KV 压缩、异步解码与双层 sink 的读者解释。** KV 压缩减少长历史的字节和跨卡通信，异步解码把 VAE 工作与下一次去噪重叠；双层 sink 同时保留全局身份和当前镜头锚点。Table 3/6 与 Figure 10 支持这些方向，但镜头切换检测和组合收益仍需更多受控实验。
+
+![Sink ablation](../assets/papers/longlive-2-0/fig10-sink-ablation.png)
+> 图 10：原论文 Figure 10，无双层 sink 时后续镜头漂移，加入后镜头外观更稳定。
 
 | 设计项 | why 状态 | 具体问题 | 因果机制 | 权衡 | 验证 |
 |---|---|---|---|---|---|
@@ -219,12 +235,7 @@ Table 1：64 秒从 BF16+SP 的 1372.9 s/iter 降到 NVFP4+Balanced SP 的 639.5
 | LongLive-2.0 | 3.67 | 97.48 | 97.00 | 98.86 | 60.62 | 53.68 | 65.51 |
 | LongLive-2.0 → NVFP4 | 3.83 | 97.62 | 96.97 | 98.94 | 45.88 | 53.72 | 66.24 |
 
-### 5.3 附录系统与机制证据
-![SP scaling](../assets/papers/longlive-2-0/fig8-sp-scaling.png)
-> 图 8：原论文 Figure 8，比较 SP、TP、DP 在交互式 AR 训练中的迭代速度和峰值显存。
-![SP inference](../assets/papers/longlive-2-0/fig9-sp-inference.png)
-> 图 9：原论文 Figure 9，展示非 Blackwell GPU 上的 SP 推理和低位宽通信。
-
+### 5.2 附录系统与机制证据
 #### Table 6：H100 上 SP 推理延迟与通信时间
 | SP 组大小 | KV 精度 | 16 s：E2E / 通信 | 32 s：E2E / 通信 | 64 s：E2E / 通信 |
 |---:|---|---|---|---|
@@ -233,10 +244,6 @@ Table 1：64 秒从 BF16+SP 的 1372.9 s/iter 降到 NVFP4+Balanced SP 的 639.5
 | 2 | 4-bit KV | 18.3 s / 1.1 s | 36.0 s / 2.3 s | 53.3 s / 3.6 s |
 | 4 | BF16 | 26.2 s / 12.8 s | 38.6 s / 12.2 s | 65.4 s / 20.6 s |
 | 4 | 4-bit KV | 21.1 s / 7.8 s | 32.3 s / 9.7 s | 54.8 s / 16.4 s |
-![Sink ablation](../assets/papers/longlive-2-0/fig10-sink-ablation.png)
-> 图 10：原论文 Figure 10，无双层 sink 时后续镜头漂移，加入后镜头外观更稳定。
-![PTQ comparison](../assets/papers/longlive-2-0/fig11-ptq.png)
-> 图 11：原论文 Figure 11，比较部署后量化与训练期 NVFP4；后者保留更清晰的面部细节。
 
 #### Table 7：相同 5B、1280×720 配置下的精度消融
 | 精度 | 量化方式 | 步数 | Total↑ | Quality↑ | Semantic↑ |
@@ -244,10 +251,8 @@ Table 1：64 秒从 BF16+SP 的 1372.9 s/iter 降到 NVFP4+Balanced SP 的 639.5
 | BF16 | - | 4 | 85.06 | 86.67 | 78.63 |
 | NVFP4 | PTQ | 4 | 84.04 | 85.76 | 77.15 |
 | NVFP4 | 训练期预量化 | 4 | 84.51 | 86.43 | 76.81 |
-![DMD strategy comparison](../assets/papers/longlive-2-0/fig12-dmd-comparison.png)
-> 图 12：原论文 Figure 12，比较直接在 AR 模型上 DMD 与独立 LoRA 注入策略。
 
-### 5.2 技术主张证据矩阵
+### 5.3 技术主张证据矩阵
 | 技术点 | 直接证据 | 控制程度 | 判断 |
 |---|---|---|---|
 | Balanced SP 提速 | Table 1 BF16 SP vs Balanced SP | 同长度但布局改变，较直接 | supported |
@@ -257,7 +262,7 @@ Table 1：64 秒从 BF16+SP 的 1372.9 s/iter 降到 NVFP4+Balanced SP 的 639.5
 | 双层 sink 保一致性 | Figure 10、Table 5 | 视觉消融但指标有限 | partially supported |
 | PTQ 质量下降 | Figure 11、Table 7 | 同模型量化路径对比 | supported |
 
-### 5.3 收益归因
+### 5.4 收益归因
 训练收益主要由 Balanced SP 的负载/ VAE 分片和 NVFP4 GEMM 共同产生；64 秒的 2.15× 是组合收益，不应归因给单一模块。推理收益可较清晰分解为 NVFP4、KV 压缩（显存/通信）和异步解码（E2E 空转）；2 步 LoRA 还改变了算法工作量。论文没有把 kernel、通信和调度开销做完全正交的方差分解，以下归因应视为桥接式近似。
 
 ## 6. Related Work 对比
@@ -267,6 +272,17 @@ Self-Forcing/Causal-Forcing 依赖 ODE 初始化、DMD 和长调优，多阶段�
 - 计算：NVFP4 W4A4 减少 GEMM 访存和计算；收益随视频长度上升，因为 DiT GEMM 占比增加。
 - 显存：DMD 峰值从 70.5 GB 降至 49.0 GB（0.69×）；推理 KV 后为 19.4 GB。
 - 通信：SP 在 All-to-All 前将 Q/K/V 转为 NVFP4，论文报告通信量约降 3.6×（Appendix D）。
+
+Figure 8 对应训练端的扩展性证据：它把 SP、TP、DP 的迭代时间和峰值显存并列比较，支撑“序列并行更适合交互式长视频 AR 训练”的范围性结论，而不是证明所有并行策略都更快。
+
+![SP scaling](../assets/papers/longlive-2-0/fig8-sp-scaling.png)
+> 图 8：原论文 Figure 8，比较 SP、TP、DP 在交互式 AR 训练中的迭代速度和峰值显存。
+
+Figure 9 与 Table 6 共同对应非 Blackwell GPU 的推理路径：低位宽 KV 通信降低了 SP 的通信时间，但 SP 组大小增加也会带来 collective 开销，因此不能从 Blackwell 单卡结果直接外推到 H100。
+
+![SP inference](../assets/papers/longlive-2-0/fig9-sp-inference.png)
+> 图 9：原论文 Figure 9，展示非 Blackwell GPU 上的 SP 推理和低位宽通信。
+
 - 异构硬件：Blackwell 使用原生 NVFP4；H100 等非 Blackwell 采用 SP 推理，依赖跨 GPU 互联和低位宽 collective。
 - 数据类型：训练/推理涉及 BF16、NVFP4 W4A4、FP32 scale、FP8 E4M3 block scale；梯度路径仍保留较高精度。
 - 端到端指标：论文明确把 VAE 解码纳入 E2E latency；异步流式解码需要额外设备和 stream synchronization。
@@ -286,5 +302,3 @@ Self-Forcing/Causal-Forcing 依赖 ODE 初始化、DMD 和长调优，多阶段�
 
 ## 10. OpenReview 交叉核对
 未发现公开 OpenReview 页面，因此没有可交叉核对的评审、meta-review 或 rebuttal；结论仅基于论文、源码和官方代码。
-![NVFP4 DMD training](../assets/papers/longlive-2-0/fig5-dmd-training.png)
-> 图 5：原论文 Figure 5，generator、real-score 和 fake-score 在低精度 NVFP4 下协同训练。
