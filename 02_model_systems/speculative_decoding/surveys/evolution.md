@@ -350,12 +350,12 @@ $$
 
 拒绝位置仍然暴露了有用信息：target 在哪里不同意 drafter、target correction/bonus 是什么、$p-q$ 的差异有多大，以及首个 mismatch 之后被丢弃的 suffix 是否仍保留语法或语义方向。现有工作可以分成四个强度层级：
 
-| 反馈用法 | 代表工作 | 反馈如何进入下一步 | 是否即时改变下一轮 token proposal | 证据边界 |
-|---|---|---|---|---|
-| target correction / residual | Leviathan、DeepMind | 只在当前拒绝位置补回 target 缺失概率质量 | 是，但仅是当前轮 correction | lossless 合同，不是跨轮学习 |
-| online distillation | [OSD](https://arxiv.org/abs/2310.07177) | 记录错误位置和 target logits，周期性更新 drafter 参数 | 间接；更新有缓冲和间隔 | ICML 2024；目标是 query 分布适应 |
-| candidate recycling | [Token Recycling](https://arxiv.org/abs/2408.08696) | 把 accepted 与 rejected draft 节点处的 target top-k 后继写入 adjacency matrix | 是；后续构树会读取这些候选 | ACL 2025；使用 token transition，不是硬负样本 |
-| rejected-trajectory conditioning | [ReTrace](https://arxiv.org/abs/2608.29748) | 对 rejected suffix hidden states 左移对齐，用同次 verify 的 target states 修正，再门控注入下一 block | 是；保留一轮 conditioning signal | 2026-08-30 v1 预印本，当前主要验证 DFlash/Qwen3 |
+| 反馈用法                             | 代表工作                                                | 反馈如何进入下一步                                                                        | 是否即时改变下一轮 token proposal   | 证据边界                                  |
+| -------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------- | ------------------------------------- |
+| target correction / residual     | Leviathan、DeepMind                                  | 只在当前拒绝位置补回 target 缺失概率质量                                                         | 是，但仅是当前轮 correction        | lossless 合同，不是跨轮学习                    |
+| online distillation              | [OSD](https://arxiv.org/abs/2310.07177)             | 记录错误位置和 target logits，周期性更新 drafter 参数                                           | 间接；更新有缓冲和间隔                | ICML 2024；目标是 query 分布适应              |
+| candidate recycling              | [Token Recycling](https://arxiv.org/abs/2408.08696) | 把 accepted 与 rejected draft 节点处的 target top-k 后继写入 adjacency matrix              | 是；后续构树会读取这些候选              | ACL 2025；使用 token transition，不是硬负样本   |
+| rejected-trajectory conditioning | [ReTrace](https://arxiv.org/abs/2608.29748)         | 对 rejected suffix hidden states 左移对齐，用同次 verify 的 target states 修正，再门控注入下一 block | 是；保留一轮 conditioning signal | 2026-08-30 v1 预印本，当前主要验证 DFlash/Qwen3 |
 
 #### Token Recycling 的 adjacency matrix 怎么用
 
