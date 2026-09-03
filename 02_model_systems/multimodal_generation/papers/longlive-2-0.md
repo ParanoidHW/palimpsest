@@ -18,16 +18,17 @@ tags:
 > - 相关文档：[Figure inventory](../evidence/longlive-2-0-figure-inventory.md)
 
 ## 修订信息
-- 当前文档版本：`1.2.0`
-- 当前修订 ID：`rev-longlive20-figure-placement-20260903`
-- 当前修订时间：`2026-09-03T21:00:00+08:00`
-- 替代版本：`rev-longlive20-figures-tables-20260903`
+- 当前文档版本：`1.3.0`
+- 当前修订 ID：`rev-longlive20-latex-symbol-fix-20260903`
+- 当前修订时间：`2026-09-03T21:30:00+08:00`
+- 替代版本：`rev-longlive20-figure-placement-20260903`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|
 | rev-longlive20-initial-20260903 | 1.0.0 | 2026-09-03 | /root | initial | 无 | 首次精读与发布候选 | 用户请求 | arXiv:2605.18739v2 PDF、TeX、NVlabs/LongLive commit 7860ad9 | none |
 | rev-longlive20-figures-tables-20260903 | 1.1.0 | 2026-09-03 | /root | evidence-update | rev-longlive20-initial-20260903 | 修复表格渲染、紧裁剪并补齐 Figure 1–12 与 Table 1–7 | 用户反馈 | LaTeX 源码、逐图原分辨率检查 | none |
 | rev-longlive20-figure-placement-20260903 | 1.2.0 | 2026-09-03 | /root | evidence-update | rev-longlive20-figures-tables-20260903 | 全量修正 Figure 5、8–12 的论述邻近位置并修复章节编号漂移 | 用户反馈与全量图位审计 | Figure inventory、正文顺序复核 | none |
+| rev-longlive20-latex-symbol-fix-20260903 | 1.3.0 | 2026-09-03 | /root | content-fix | rev-longlive20-figure-placement-20260903 | 修正 Figure 7 说明中的 LaTeX 集合符号转义 | 用户反馈 | §4.4 正文渲染复核 | none |
 
 ## 0. 资料与配图索引
 - 论文：`paper.pdf`（arXiv:2605.18739v2，20 页）
@@ -179,7 +180,7 @@ $$
 ![Inference infrastructure](../assets/papers/longlive-2-0/fig6-inference.png)
 > 图 6：原论文 Figure 6，展示 W4A4 推理、KV 压缩/并行反量化和异步 VAE 解码。
 
-多镜头推理时，滑动窗口保留最近 chunk；窗口之外用全局锚点 $mathcal A_g$ 保存视频身份、用镜头锚点 $mathcal A_s$ 保存当前镜头连续性。prompt 切换触发 $mathcal A_s$ 重绑定，而 $mathcal A_g$ 不动，因此 Figure 7 应与这段状态更新一起阅读。
+多镜头推理时，滑动窗口保留最近 chunk；窗口之外用全局锚点 $\mathcal A_g$ 保存视频身份、用镜头锚点 $\mathcal A_s$ 保存当前镜头连续性。prompt 切换触发 $\mathcal A_s$ 重绑定，而 $\mathcal A_g$ 不动，因此 Figure 7 应与这段状态更新一起阅读。
 
 ![Multi-shot attention sink](../assets/papers/longlive-2-0/fig7-sink.png)
 > 图 7：原论文 Figure 7，显示全局 sink、镜头级 sink 与滑动窗口的 key/query 关系。
