@@ -175,17 +175,17 @@ CalibAtt 的关键观察分两层：某些 attention block 在不同 prompt 与�
 
 ### 4.2 组件级设计动机与具体问题映射
 
-| 设计项 | why 状态 | 原文证据 | 针对的具体问题 | 因果机制 | 替代方案/权衡 | 验证证据 | 判断 |
-|---|---|---|---|---|---|---|---|
-| per-prompt energy top-mass selection | author-stated | §3.2 Eq. 5–7 | 低 attention-mass blocks 贡献小 | 以质量阈值而非固定 block 数分配预算 | 固定 top-k 更易负载均衡但不适应 mass 集中度 | block-size study；总体质量 | partially-supported |
-| timestep-dependent \(\epsilon(t)\) | author-stated | PDF §3.2 Eq. 6–7；Appendix A.1 | 高噪声早期更怕激进 sparsity | 早期保留更多 mass | 常数阈值简单；layer/head schedule 更灵活但搜索更重 | schedule search，未见独立 matched ablation | 机制上说得通，只有部分证据 |
-| per-\(t,l,h\) masks | author-stated | Observation 2；Fig. 2 | 不同内部位置模式差异大 | 细粒度匹配局部模式 | shared mask 更省内存 | Fig. 2；timestep-sharing appendix | mechanism evidence；收益未隔离 |
-| cross-prompt agreement | author-stated | Observation 3；Fig. 3；Eq. 8–9 | 单 prompt mask 过拟合 | 以出现频率筛出稳定连接 | online routing 更自适应但有 overhead | Fig. 7 calibration-size/threshold sensitivity | supported in sampled range |
-| spatial repetition branch | author-stated | Observation 4；§3.3；Fig. 6 | 一些低 block-sparsity heads 仍有 query redundancy | anchor row 计算后广播 | 只做 block mask 无法利用 query repetition；广播引入近似误差 | Fig. S12 sensitivity | partially-supported |
-| custom calibration CUDA | author-stated | §3.4 | 不应 materialize full attention matrix 只为统计 | block-level accumulation | PyTorch reference 更易复现但慢/耗内存 | 无代码、无独立 profiling | unverified implementation |
-| contiguous skip-list CUDA | author-stated | §3.4；Appendix §0.A.2 | 稀疏 mask 若只乘零不会提速 | kernel launch 直接按区间省略 QK/PV blocks | FlexAttention/FlashInfer；不规则布局与显存权衡 | E2E results；无 kernel-only decomposition | confounded |
-| conditional-only CFG calibration | author-stated | Appendix opening | 避免双分支校准成本 | 同一 mask 同时应用 conditional/unconditional | 分别校准可能更忠实但成本/内存更高 | 未见 CFG branch ablation | unverified |
-| timestep mask sharing | author-stated | PDF Appendix A.3；Fig. S4 | per-step mask 显存大 | 对后期高-IoU masks 做 clique grouping，keep-mask OR 保守合并 | 不共享速度/稀疏更高，memory 更大 | Table S1 给出 21.5→3.6 GB 等受控配置 | 有直接表格证据，但只覆盖 Wan 720p |
+| 设计项                                  | why 状态        | 原文证据                          | 针对的具体问题                                      | 因果机制                                               | 替代方案/权衡                                      | 验证证据                                          | 判断                         |
+| ------------------------------------ | ------------- | ----------------------------- | -------------------------------------------- | -------------------------------------------------- | -------------------------------------------- | --------------------------------------------- | -------------------------- |
+| per-prompt energy top-mass selection | author-stated | §3.2 Eq. 5–7                  | 低 attention-mass blocks 贡献小                  | 以质量阈值而非固定 block 数分配预算                              | 固定 top-k 更易负载均衡但不适应 mass 集中度                 | block-size study；总体质量                         | partially-supported        |
+| timestep-dependent \(\epsilon(t)\)   | author-stated | PDF §3.2 Eq. 6–7；Appendix A.1 | 高噪声早期更怕激进 sparsity                           | 早期保留更多 mass                                        | 常数阈值简单；layer/head schedule 更灵活但搜索更重          | schedule search，未见独立 matched ablation         | 机制上说得通，只有部分证据              |
+| per-\(t,l,h\) masks                  | author-stated | Observation 2；Fig. 2          | 不同内部位置模式差异大                                  | 细粒度匹配局部模式                                          | shared mask 更省内存                             | Fig. 2；timestep-sharing appendix              | mechanism evidence；收益未隔离   |
+| cross-prompt agreement               | author-stated | Observation 3；Fig. 3；Eq. 8–9  | 单 prompt mask 过拟合                            | 以出现频率筛出稳定连接                                        | online routing 更自适应但有 overhead               | Fig. 7 calibration-size/threshold sensitivity | supported in sampled range |
+| spatial repetition branch            | author-stated | Observation 4；§3.3；Fig. 6     | 一些低 block-sparsity heads 仍有 query redundancy | anchor row 计算后广播                                   | 只做 block mask 无法利用 query repetition；广播引入近似误差 | Fig. S12 sensitivity                          | partially-supported        |
+| custom calibration CUDA              | author-stated | §3.4                          | 不应 materialize full attention matrix 只为统计    | block-level accumulation                           | PyTorch reference 更易复现但慢/耗内存                 | 无代码、无独立 profiling                             | unverified implementation  |
+| contiguous skip-list CUDA            | author-stated | §3.4；Appendix §0.A.2          | 稀疏 mask 若只乘零不会提速                             | kernel launch 直接按区间省略 QK/PV blocks                 | FlexAttention/FlashInfer；不规则布局与显存权衡          | E2E results；无 kernel-only decomposition       | confounded                 |
+| conditional-only CFG calibration     | author-stated | Appendix opening              | 避免双分支校准成本                                    | 同一 mask 同时应用 conditional/unconditional             | 分别校准可能更忠实但成本/内存更高                            | 未见 CFG branch ablation                        | unverified                 |
+| timestep mask sharing                | author-stated | PDF Appendix A.3；Fig. S4      | per-step mask 显存大                            | 对后期高-IoU masks 做 clique grouping，keep-mask OR 保守合并 | 不共享速度/稀疏更高，memory 更大                         | Table S1 给出 21.5→3.6 GB 等受控配置                 | 有直接表格证据，但只覆盖 Wan 720p      |
 
 ### 4.3 模型/系统架构
 
