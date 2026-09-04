@@ -501,6 +501,10 @@ Decode 节点
 
 真实部署通常将 Prefill（生成上下文和 KV Cache）与 Decode（逐 token 消费 KV Cache）拆成独立服务。两侧可以分别配置 Tensor Parallel（TP，张量并行）、Data Parallel（DP，数据并行）或 Expert Parallel（EP，专家并行）规模；Mooncake Transfer Engine 负责跨实例搬运已注册的 buffer，但不会自动理解 attention head 的归属，也不会自动把任意 TP 布局重分片。
 
+![P/D 分离下端口通信和 KV 数据收发时序图](../assets/topics/one-sided-communication-mooncake-ascend/pd-port-sequence.svg)
+
+图 1：P/D 分离下端口通信和 KV 数据收发时序（整理图，analysis-derived）。模型服务端口承载请求，bootstrap 端口交换请求级元数据；Prefill 和 Decode 各自的 Transfer Engine 通过 RPC 建立 Segment/endpoint，KV payload 则经 RDMA/HCCS 等数据面直接搬运，不经过 Router 或模型 HTTP 端口。图中端口号仅为部署示例。
+
 ### 11.1 P/D 异构的边界
 
 如果 Prefill 和 Decode 的 TP 规模及 KV Cache 分片规则一致，可以直接执行 shard-to-shard 传输：Prefill rank `i` 的 KV buffer 对应 Decode rank `i` 的目标 buffer。如果两侧 TP 不同，连接器或 KV Cache 管理器必须先计算源分片到目标分片的映射，并在必要时完成拼接、转置或重新打包；Mooncake 只执行这些 buffer 之间的一组 `READ`/`WRITE`。
