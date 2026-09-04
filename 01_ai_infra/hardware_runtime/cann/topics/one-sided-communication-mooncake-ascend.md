@@ -497,7 +497,113 @@ Decode 节点
 
 控制面回答“写到哪里、写多少、属于哪个请求”；单边数据面回答“如何搬运实际字节”；Mooncake Store 还可以在更高层负责对象放置、复制、淘汰和命中。Decode 不需要为每一次 KV Cache 写入执行匹配接收调用。
 
-## 11. 成本、限制和排障边界
+## 11. P/D 分离中的并行异构与请求并发
+
+真实部署通常将 Prefill（生成上下文和 KV Cache）与 Decode（逐 token 消费 KV Cache）拆成独立服务。两侧可以分别配置 Tensor Parallel（TP，张量并行）、Data Parallel（DP，数据并行）或 Expert Parallel（EP，专家并行）规模；Mooncake Transfer Engine 负责跨实例搬运已注册的 buffer，但不会自动理解 attention head 的归属，也不会自动把任意 TP 布局重分片。
+
+### 11.1 P/D 异构的边界
+
+如果 Prefill 和 Decode 的 TP 规模及 KV Cache 分片规则一致，可以直接执行 shard-to-shard 传输：Prefill rank `i` 的 KV buffer 对应 Decode rank `i` 的目标 buffer。如果两侧 TP 不同，连接器或 KV Cache 管理器必须先计算源分片到目标分片的映射，并在必要时完成拼接、转置或重新打包；Mooncake 只执行这些 buffer 之间的一组 `READ`/`WRITE`。
+
+例如 Prefill 为 TP=8、Decode 为 TP=4 时，一个 Decode rank 可能需要读取两个 Prefill rank 的 head 分片：
+
+```text
+P0 ─┐                 ┌──> D0
+P1 ─┘                 │
+P2 ─┐                 ├──> D1
+P3 ─┘                 │
+P4 ─┐                 ├──> D2
+P5 ─┘                 │
+P6 ─┐                 └──> D3
+P7 ─┘
+```
+
+这不是 Transfer Engine 自动完成的集合通信，而是上层根据 tensor layout 生成多个点对点传输项。DP 的处理方式通常不同：一次请求先由路由器选择一个 Prefill 副本和一个 Decode 副本，KV Cache 只在这两个 owner 之间传输，而不是在所有 DP 副本之间复制。Mooncake Conductor 可以维护实例和 KV Cache 前缀索引，供路由器查询缓存命中位置和实例归属。[Mooncake Conductor](https://kvcache-ai.github.io/Mooncake/design/conductor/conductor-architecture-design.html)
+
+### 11.2 通信链路建立
+
+P/D 建链分为控制面和数据面。控制面可以由推理框架的 bootstrap 服务、Mooncake Store/Master、P2P handshake 或独立元数据服务承担，负责交换 `request_id`、P/D 实例、bootstrap 地址、Segment 名称、远端 buffer、长度、shape、dtype 和 block 映射。数据面再由 Transfer Engine 建立真正的传输路径。
+
+```mermaid
+sequenceDiagram
+    participant R as Router
+    participant P as Prefill Worker
+    participant PT as Prefill TransferEngine
+    participant D as Decode Worker
+    participant DT as Decode TransferEngine
+
+    R->>P: request_id 与输入
+    P->>P: Prefill 计算并生成 KV
+    P->>PT: 注册或查找 KV buffers
+    P->>D: bootstrap 元数据
+    D->>DT: 分配并注册本地目标 buffers
+    DT->>PT: openSegment / P2P handshake
+    DT->>PT: 提交批量 READ（或由 P 提交 WRITE）
+    PT-->>DT: 异步完成状态
+    DT-->>D: KV ready(version, block_list)
+    D->>D: Decode 读取本地 KV
+    D-->>R: 返回 token 流
+```
+
+Transfer Engine 的典型调用顺序是 `initialize`、`register local memory`、`open target segment`、`submit transfer`、`get status`，最后释放 batch、segment 和注册内存。[Transfer Engine C++ API](https://github.com/kvcache-ai/Mooncake/blob/main/docs/source/api-reference/cpp/transfer-engine.md)。在 RBG 的 P/D 部署示例中，`MOONCAKE_TE_META_DATA_SERVER=P2PHANDSHAKE` 让 Prefill 与 Decode 通过 Transfer Engine 侧信道直接协调，不需要独立 HTTP metadata server；这不影响 Prefill 作为 Store/HiCache client 使用 Mooncake Master 的控制面。[RBG 集成](https://kvcache-ai.github.io/Mooncake/deployment/kubernetes-deployment-guide/rbg-integration.html)
+
+数据面建立后，Transfer Engine 根据内存所在 GPU/NUMA 和 NIC 拓扑选择路径，并按需建立或复用 endpoint。多网卡环境下，大请求还可能被切成多个 slice，以并行利用多个 NIC；endpoint pool 用于限制活跃连接数量并处理失败重建。[Transfer Engine 拓扑和 endpoint 管理](https://github.com/kvcache-ai/Mooncake/blob/main/docs/source/design/transfer-engine/index.md)
+
+### 11.3 请求并发的三个层次
+
+请求并发不能只理解为“同时调用多个 `READ`”。生产系统至少有三层并发：
+
+| 层次 | Mooncake 提供的能力 | 上层仍需负责的内容 |
+| --- | --- | --- |
+| 请求级 | Transfer Engine 可同时维护多个异步 batch | 排队、路由、限流、取消、超时、KV lease |
+| 传输级 | `BatchTransfer` 批量提交不连续 buffer，支持多线程和多网卡 | 每个请求的 block 列表、优先级和背压 |
+| 连接级 | endpoint 按需建立、复用和淘汰，失败可换路径重试 | 连接配额、租户隔离和慢请求治理 |
+
+推荐把一次请求的多个 KV block 合并为一个 batch，而不是为每个 tensor 单独建连接：
+
+```text
+batch(request_id)
+  ├── READ layer-0 block list
+  ├── READ layer-1 block list
+  ├── READ ...
+  └── READ layer-N block list
+```
+
+请求完成条件也要分层：Transfer Engine 返回 `COMPLETED` 只表示字节搬运结束；Decode 还应校验版本和 block 列表，并在计算 stream 上等待传输完成后再读 KV。多个请求同时访问同一远端范围时，必须由上层提供版本、租约、互斥或 copy-on-write 规则，裸 `READ`/`WRITE` 不会自动提供对象级一致性。
+
+### 11.4 预注册内存池：Mooncake 的能力边界
+
+“预注册内存池”需要拆成两个概念：
+
+1. **内存注册**是 Transfer Engine 的能力。基础 API 接受调用方已经分配好的地址和长度，通过 `registerLocalMemory` 注册；Python API 还提供 `batch_register_memory`，可一次注册多个区域。Transfer 请求的本地源 buffer 必须预先注册，完成后才能安全解注册。[Transfer Engine C++ API](https://github.com/kvcache-ai/Mooncake/blob/main/docs/source/api-reference/cpp/transfer-engine.md)；[Transfer Engine Python API](https://github.com/kvcache-ai/Mooncake/blob/main/docs/source/api-reference/python/transfer-engine.md)
+2. **池化分配、block 空闲队列和请求租约**通常是 KV Cache 管理器或 serving framework 的能力。应用预先分配一大片 Device/Host 内存，按 block 切分并一次注册，之后每个请求只借用空闲 block 并提交传输，可以避免每个请求反复注册和解注册。
+
+因此，预注册内存池是“Mooncake 注册能力 + 上层 allocator”的组合，而不是基础 Transfer Engine 自动替应用管理的 KV Cache 对象池。Mooncake Store 内部确实有本地 client buffer allocator，并会把该区域注册为本地传输空间；较新的 TENT Transfer Engine 还提供 `allocateLocalMemory`/`freeLocalMemory`，把分配和注册合并为一个接口，但这仍不等于完整的请求级 KV block 调度器。[Mooncake Store 实现](https://github.com/kvcache-ai/Mooncake/blob/main/mooncake-store/src/real_client.cpp)；[TENT Transfer Engine API](https://github.com/kvcache-ai/Mooncake/blob/main/mooncake-transfer-engine/tent/include/tent/transfer_engine.h)
+
+生产实现可采用以下生命周期：
+
+```text
+进程启动
+  -> 分配 KV block pool
+  -> 一次注册大块或批量注册多个 block
+  -> 发布可访问的 segment/buffer 元数据
+
+请求到达
+  -> allocator.acquire(blocks)
+  -> 生成本请求的 READ/WRITE batch
+  -> 等待完成、版本确认和计算 stream wait
+  -> allocator.release(blocks)
+
+进程退出或扩缩容
+  -> 等待所有 batch 完成
+  -> 撤销远端可见状态
+  -> unregister memory
+  -> 释放 pool
+```
+
+内存池不能绕过生命周期约束：请求未完成前不能复用 block，server 未收到完成确认前不能撤销远端注册，淘汰或扩缩容时还要处理仍在飞行的 batch。
+
+## 12. 成本、限制和排障边界
 
 ### 成本
 
@@ -519,7 +625,7 @@ Decode 节点
 
 不能仅凭“支持 HIXL”推断所有 Ascend 型号都拥有相同的异步语义、Fabric Memory 路径、HCCS 对齐要求或带宽。也不能把 Mooncake Store 的对象原子性归因给裸 HIXL。目标环境仍需按具体 CANN、HDK、芯片、拓扑和传输协议实测。
 
-## 12. 证据与版本边界
+## 13. 证据与版本边界
 
 - Mooncake 的 Segment、Buffer、BatchTransfer、多网卡和路径选择： [Transfer Engine 官方设计](https://kvcache-ai.github.io/Mooncake/design/transfer-engine/)；
 - Mooncake 的 KV Cache-centric 架构和 Store/TE 分层： [Mooncake Architecture](https://kvcache-ai.github.io/Mooncake/design/architecture.html) 与 [论文](https://arxiv.org/abs/2407.00079)；
