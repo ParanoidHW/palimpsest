@@ -7,17 +7,18 @@
 1. [镜像](镜像.md)：CANN 基础镜像选择和容器启动参数。
 2. [硬件信息](硬件信息.md)：910B/C 资料入口。
 3. [单边通信、Mooncake 与 Ascend ADXL/HIXL](topics/one-sided-communication-mooncake-ascend.md)：单边通信语义、Mooncake Transfer Engine，以及 Ascend HIXL/ADXL 的接入关系。
-4. [DFlash 开源投机模型结构整理](DFlash%20开源投机模型结构整理.md)：DFlash draft 模型公开配置和源码结构核查。
+4. [DFlash 开源投机模型结构整理](DFlash 开源投机模型结构整理.md)：DFlash draft 模型公开配置和源码结构核查。
 
 ## 资产说明
 
-- [assets/Pasted image 20260516160956.png](assets/Pasted%20image%2020260516160956.png)：CANN 镜像选择说明截图，由 [镜像](镜像.md) 引用。
+- [assets/Pasted image 20260516160956.png](assets/Pasted image 20260516160956.png)：CANN 镜像选择说明截图，由 [镜像](镜像.md) 引用。
 
 ## 文档索引
 
 ### Topics
 
 - [单边通信、Mooncake 与 Ascend ADXL/HIXL](topics/one-sided-communication-mooncake-ascend.md)
+- [Mooncake Ascend 单边 Tensor 字典传输样例](topics/examples/mooncake_ascend_one_sided/README.md)
 
 ## 维护规则
 
