@@ -7,7 +7,8 @@
 1. [镜像](镜像.md)：CANN 基础镜像选择和容器启动参数。
 2. [硬件信息](硬件信息.md)：910B/C 资料入口。
 3. [单边通信、Mooncake 与 Ascend ADXL/HIXL](topics/one-sided-communication-mooncake-ascend.md)：单边通信语义、Mooncake Transfer Engine，以及 Ascend HIXL/ADXL 的接入关系。
-4. [DFlash 开源投机模型结构整理](DFlash 开源投机模型结构整理.md)：DFlash draft 模型公开配置和源码结构核查。
+4. [Mooncake 在投机训练与部署中的特征传输](topics/mooncake-speculator-feature-transfer.md)：关联 TorchSpec、AngelSpec、Speculators 与 vLLM Mooncake KV connector，区分 hidden-state 特征流和 serving KV 流。
+5. [DFlash 开源投机模型结构整理](DFlash 开源投机模型结构整理.md)：DFlash draft 模型公开配置和源码结构核查。
 
 ## 资产说明
 
@@ -18,6 +19,7 @@
 ### Topics
 
 - [单边通信、Mooncake 与 Ascend ADXL/HIXL](topics/one-sided-communication-mooncake-ascend.md)
+- [Mooncake 在投机训练与部署中的特征传输](topics/mooncake-speculator-feature-transfer.md)
 - [Mooncake Ascend 单边 Tensor 字典传输样例](topics/examples/mooncake_ascend_one_sided/README.md)
 
 ## 维护规则
