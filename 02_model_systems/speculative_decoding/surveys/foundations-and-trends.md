@@ -5,17 +5,18 @@
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[Evolution](evolution.md)
 > - 证据资产：无
-> - 相关文档：[P-EAGLE](../papers/p-eagle.md)，[DFlash](../papers/dflash.md)，[D2SD](../papers/d2sd.md)，[JetSpec](../papers/jetspec.md)，[HyperDFlash](../papers/hyperdflash.md)，[DSpark](../papers/dspark.md)
+> - 相关文档：[P-EAGLE](../papers/p-eagle.md)，[DFlash](../papers/dflash.md)，[D2SD](../papers/d2sd.md)，[JetSpec](../papers/jetspec.md)，[HyperDFlash](../papers/hyperdflash.md)，[DSpark](../papers/dspark.md)，[RL drafter co-training](../topics/rl-drafter-cotraining.md)
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-spec-foundations-delivery-remediation-20260725`
-- 当前修订时间：`2026-07-25T23:30:00+08:00`
-- 替代版本：初始 foundations/trends 交付
+- 当前文档版本：`1.2.0`
+- 当前修订 ID：`rev-spec-foundations-rl-drafter-20260907`
+- 当前修订时间：`2026-09-07T00:00:00+08:00`
+- 替代版本：`rev-spec-foundations-delivery-remediation-20260725`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|
+| `rev-spec-foundations-rl-drafter-20260907` | `1.2.0` | `2026-09-07T00:00:00+08:00` | cross-paper synthesis | 增加 RL 期间 drafter 联合适配的收益排序、hidden-state 漂移边界和证据标签 | 三篇 RL rollout 论文与独立 evidence 清单 | minor；扩展训练阶段，不改变 lossless 合同 |
 | `rev-spec-foundations-delivery-remediation-20260725` | `1.1.0` | `2026-07-25T23:30:00+08:00` | evidence-and-link remediation | 明确 correctness contract、accepted-length/成本模型、六篇 canonical Paper 证据入口与 lossy 边界 | canonical Paper reviews 与发布器校验 | minor；不改变 lossless 合同 |
 
 ## 资料边界与阅读分工
@@ -191,7 +192,18 @@ tree staging 近似再加 $2L n_{kv}d_hN_vb$，paged KV 可减少碎片但不消
 
 六篇本地证据提供了互补反例：D2SD 展示 accepted length 与 speedup 解耦；JetSpec 展示 tree budget/load 交互；DFlash 展示 serving 高并发收益下降；DSpark 展示 confidence policy 需要 runtime support；P-EAGLE 展示 draft latency 也可成为上限；HyperDFlash 展示 drafter/target architecture mismatch 会限制 proposal quality。
 
-## 7. 开放问题
+## 7. RL rollout 期间的 drafter 联合适配
+
+固定模型 serving 假设 target 权重不变；RL 后训练中的 target policy 却持续更新，固定 drafter 会逐渐失配。现有系统工作的直接证据更支持以下排序：**端到端 RL wall-clock 是主收益，acceptance/accepted length 是中间机制，主模型精度通常是保持不变的约束，而不是直接增益。**
+
+- **[论文实证]** TLT、NeMo-RL 集成和 EfficientRollout 都报告了 rollout 或端到端训练加速，并报告模型 accuracy/quality 保持不变；不同论文的实验协议不同，数字不可直接排序。
+- **[综合推论]** 若 drafter 依赖 target hidden states，RL 更新同时改变 token 分布和特征坐标系；跨 policy snapshot 混合 replay 可能使 drafter loss 与当前 policy acceptance 解耦。
+- **[综合推论]** draft loss 对 target 使用 stop-gradient 时，风险主要落在 drafter 收敛和系统加速；若 draft loss 进入共享 backbone，则还会引入 RL/draft 梯度冲突。
+- **[待验证]** 在线联合适配是否优于相同数据量和训练 FLOPs 的最终 checkpoint 离线蒸馏，以及固定 GPU-hours 下是否提高最终精度，当前来源没有给出统一因果结论。
+
+完整机制、公式、稳定化建议和公平评测设计见 [RL 期间的 drafter 联合适配](../topics/rl-drafter-cotraining.md)；来源版本、论文直接结果和讨论推论的逐条边界见 [证据清单](../evidence/rl-drafter-cotraining.md)。
+
+## 8. 开放问题
 
 ### Lossless correctness
 
@@ -217,7 +229,13 @@ tree staging 近似再加 $2L n_{kv}d_hN_vb$，paged KV 可减少碎片但不消
 - target 是否拥有最终裁决权，错误 step 能否恢复，是否报告 path divergence？
 - lossy reasoning speedup 应如何同时报告答案质量、token/call cost 和安全失败？
 
-## 8. 最小评测清单
+### RL rollout 与在线 drafter
+
+- hidden-state buffer 的版本跨度如何影响 acceptance length 和 wall-clock？
+- drafter 更新频率与 policy drift 速度之间是否存在稳定区间？
+- 相同 GPU-hours 下，在线适配、self-drafter 和最终 checkpoint 离线蒸馏如何比较？
+
+## 9. 最小评测清单
 
 1. 固定 target、sampling contract、backend、dtype、prompt/output 分布和 batch/load。
 2. 分开测 draft、tree/pack、verify、accept、KV/scheduler latency。
@@ -226,7 +244,7 @@ tree staging 近似再加 $2L n_{kv}d_hN_vb$，paged KV 可减少碎片但不消
 5. 逐级 bridge baseline：AR target -> sequential SD -> parallel/block drafter -> tree/confidence -> runtime optimizations。
 6. 对 budget 做 load sweep，不只报最佳离线点。
 
-## 9. 与 Evolution 的双向导航
+## 10. 与 Evolution 的双向导航
 
 - 需要时间线：读 [Evolution 的 2022--2023 lossless 奠基](evolution.md#2-2022-2023token-级-lossless-speculative-decoding-奠基) 和 [2026 parallel/tree/block 主线](evolution.md#6-2026drafter-自身并行化block-diffusion-和-parallel-tree-成为前沿)。
 - 需要合同/公式：留在本文 [lossless contract](#1-lossless-correctness-contract) 与 [speedup model](#2-acceptanceaccepted-length-与速度上限)。
