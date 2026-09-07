@@ -48,7 +48,13 @@
           "type": "array",
           "items": {"type": "string", "minLength": 1},
           "minItems": 1
-        }
+        },
+        "scope": {"enum": ["full", "delta"], "default": "full"},
+        "base_request_id": {"type": ["string", "null"]},
+        "change_class": {"enum": ["text", "crop", "geometry", "semantic"], "default": "text"},
+        "affected_regions": {"type": "array", "items": {"$ref": "#/$defs/region"}, "uniqueItems": true},
+        "neighbor_regions": {"type": "array", "items": {"$ref": "#/$defs/region"}, "uniqueItems": true},
+        "escalated_to_full": {"type": "boolean"}
       }
     },
     "review": {
@@ -95,9 +101,15 @@
           "type": "array",
           "items": {"$ref": "#/$defs/finding"}
         },
-        "summary": {"type": "string"}
+        "summary": {"type": "string"},
+        "review_scope": {"enum": ["full", "delta", null]},
+        "checked_regions": {"type": "array", "items": {"$ref": "#/$defs/region"}, "uniqueItems": true},
+        "escalated_to_full": {"type": "boolean"},
+        "lease_expires_at": {"type": ["string", "null"], "format": "date-time"},
+        "last_heartbeat_at": {"type": ["string", "null"], "format": "date-time"}
       }
-    }
+    },
+    "history": {"type": "array", "items": {"type": "object"}}
   },
   "$defs": {
     "artifact": {
@@ -128,6 +140,7 @@
         }
       }
     },
+    "region": {"enum": ["main-flow", "communication", "cross-rank-return", "ownership-time", "legend-footer", "other"]},
     "finding": {
       "type": "object",
       "additionalProperties": false,

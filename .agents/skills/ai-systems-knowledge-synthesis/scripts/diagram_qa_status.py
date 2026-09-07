@@ -39,6 +39,10 @@ CROP_REGIONS = {
     "other",
 }
 
+SCOPES = {"full", "delta"}
+CHANGE_CLASSES = {"text", "crop", "geometry", "semantic"}
+DEFAULT_LEASE_SECONDS = 10 * 60
+
 
 def now() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
@@ -68,6 +72,71 @@ def crop_artifact(value: str) -> dict[str, str]:
     item = artifact(path)
     item["region"] = region
     return item
+
+
+def parse_regions(values: list[str], option: str) -> list[str]:
+    regions: list[str] = []
+    for value in values:
+        for region in value.split(","):
+            region = region.strip()
+            if not region:
+                continue
+            if region not in CROP_REGIONS:
+                raise ValueError(f"invalid {option} region: {region}")
+            if region not in regions:
+                regions.append(region)
+    return regions
+
+
+def parse_time(value: str | None) -> dt.datetime | None:
+    if not value:
+        return None
+    return dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def lease_valid(review: dict[str, Any], at: dt.datetime | None = None) -> bool:
+    expires = parse_time(review.get("lease_expires_at"))
+    return expires is not None and expires > (at or dt.datetime.now(dt.timezone.utc))
+
+
+def expires_at(seconds: int) -> str:
+    return (dt.datetime.now(dt.timezone.utc) + dt.timedelta(seconds=seconds)).isoformat(
+        timespec="seconds"
+    )
+
+
+def effective_scope(request_data: dict[str, Any]) -> str:
+    return request_data.get("scope", "full")
+
+
+def state_history(state: dict[str, Any]) -> list[dict[str, Any]]:
+    history = state.get("history", [])
+    return history if isinstance(history, list) else []
+
+
+def baseline_candidates(state: dict[str, Any]) -> list[dict[str, Any]]:
+    candidates = [state, *reversed(state_history(state))]
+    return [
+        item
+        for item in candidates
+        if item.get("status") == "passed"
+        and effective_scope(item.get("request", {})) == "full"
+    ]
+
+
+def find_request(state: dict[str, Any], request_id: str) -> dict[str, Any] | None:
+    for item in [state, *state_history(state)]:
+        if item.get("request_id") == request_id:
+            return item
+    return None
+
+
+def review_regions(request_data: dict[str, Any]) -> list[str]:
+    affected = request_data.get("affected_regions", [])
+    neighbors = request_data.get("neighbor_regions", [])
+    if effective_scope(request_data) == "delta":
+        return list(dict.fromkeys([*affected, *neighbors]))
+    return [item.get("region", "other") for item in request_data.get("crops", [])]
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -120,6 +189,8 @@ def request(args: argparse.Namespace) -> int:
     render = artifact(args.render)
     source = artifact(args.source)
     crops = [crop_artifact(value) for value in args.crop]
+    affected_regions = parse_regions(args.affected_region, "affected")
+    neighbor_regions = parse_regions(args.neighbor_region, "neighbor")
     crop_paths = [item["path"] for item in crops]
     crop_hashes = [item["sha256"] for item in crops]
     if len(crop_paths) != len(set(crop_paths)):
@@ -128,6 +199,16 @@ def request(args: argparse.Namespace) -> int:
         raise ValueError("crop contents must be distinct")
     if any(item["sha256"] == render["sha256"] for item in crops):
         raise ValueError("a crop is byte-identical to the full render")
+    scope = args.scope
+    escalated = False
+    if args.change_class in {"geometry", "semantic"} and scope == "delta":
+        scope, escalated = "full", True
+    if scope == "delta" and not affected_regions:
+        raise ValueError("delta request requires at least one affected region")
+    declared = set(affected_regions) | set(neighbor_regions)
+    supplied = {item["region"] for item in crops}
+    if scope == "delta" and not declared.issubset(supplied):
+        raise ValueError(f"delta crops missing declared regions: {', '.join(sorted(declared - supplied))}")
     request_id = f"{args.round}-{render['sha256'][:12]}"
     timestamp = now()
     state = {
@@ -146,6 +227,12 @@ def request(args: argparse.Namespace) -> int:
             "crops": crops,
             "contract": artifact(args.contract) if args.contract else None,
             "checklist": CHECKLIST,
+            "scope": scope,
+            "base_request_id": args.base_request_id,
+            "change_class": args.change_class,
+            "affected_regions": affected_regions,
+            "neighbor_regions": neighbor_regions,
+            "escalated_to_full": escalated,
         },
         "review": {
             "reviewer": None,
@@ -158,7 +245,13 @@ def request(args: argparse.Namespace) -> int:
             "reviewed_crops": [],
             "findings": [],
             "summary": "",
+            "review_scope": None,
+            "checked_regions": [],
+            "escalated_to_full": escalated,
+            "lease_expires_at": None,
+            "last_heartbeat_at": None,
         },
+        "history": [],
     }
     with locked(status_path):
         if status_path.exists():
@@ -169,12 +262,37 @@ def request(args: argparse.Namespace) -> int:
                 raise ValueError(
                     f"round must increase beyond {previous['review_round']}"
                 )
+            if scope == "delta":
+                candidates = baseline_candidates(previous)
+                if not candidates:
+                    raise ValueError("delta request requires a passed full baseline")
+                selected = args.base_request_id or candidates[0]["request_id"]
+                baseline = find_request(previous, selected)
+                if not baseline or baseline.get("status") != "passed" or effective_scope(baseline.get("request", {})) != "full":
+                    raise ValueError("base request must be a passed full request")
+                base_request = baseline["request"]
+                base_contract = base_request.get("contract")
+                current_contract = state["request"].get("contract")
+                if (
+                    base_request.get("source", {}).get("sha256") != source["sha256"]
+                    or (base_contract or {}).get("sha256") != (current_contract or {}).get("sha256")
+                ):
+                    state["request"]["scope"] = "full"
+                    state["request"]["escalated_to_full"] = True
+                    state["review"]["escalated_to_full"] = True
+                    scope = "full"
+                state["request"]["base_request_id"] = selected
+            state["history"] = [*state_history(previous), {k: v for k, v in previous.items() if k != "history"}]
+        elif scope == "delta":
+            raise ValueError("first request must use full scope")
         atomic_write(status_path, state)
     print(request_id)
     return 0
 
 
 def claim(args: argparse.Namespace) -> int:
+    if args.lease_seconds <= 0:
+        raise ValueError("lease-seconds must be positive")
     status_path = Path(args.status_file)
     with locked(status_path):
         state = load(status_path)
@@ -182,13 +300,49 @@ def claim(args: argparse.Namespace) -> int:
         if state["status"] not in {"pending", "reviewing"}:
             raise ValueError(f"cannot claim status {state['status']}")
         existing = state["review"]["reviewer"]
-        if existing not in {None, args.reviewer}:
+        if existing not in {None, args.reviewer} and lease_valid(state["review"]):
             raise ValueError(f"already claimed by {existing}")
         state["status"] = "reviewing"
         state["updated_at"] = now()
         state["review"]["reviewer"] = args.reviewer
         state["review"]["reviewer_role"] = "independent-qa-subagent"
-        state["review"]["claimed_at"] = state["updated_at"]
+        if existing != args.reviewer or not state["review"].get("claimed_at"):
+            state["review"]["claimed_at"] = state["updated_at"]
+        state["review"]["last_heartbeat_at"] = state["updated_at"]
+        state["review"]["lease_expires_at"] = expires_at(args.lease_seconds)
+        atomic_write(status_path, state)
+    return 0
+
+
+def heartbeat(args: argparse.Namespace) -> int:
+    if args.lease_seconds <= 0:
+        raise ValueError("lease-seconds must be positive")
+    status_path = Path(args.status_file)
+    with locked(status_path):
+        state = load(status_path)
+        require_request(state, args.request_id)
+        if state["status"] != "reviewing" or state["review"]["reviewer"] != args.reviewer:
+            raise ValueError("reviewer does not own a reviewing request")
+        if not lease_valid(state["review"]):
+            raise ValueError("reviewer lease expired; reclaim the request")
+        state["updated_at"] = now()
+        state["review"]["last_heartbeat_at"] = state["updated_at"]
+        state["review"]["lease_expires_at"] = expires_at(args.lease_seconds)
+        atomic_write(status_path, state)
+    return 0
+
+
+def reclaim(args: argparse.Namespace) -> int:
+    status_path = Path(args.status_file)
+    with locked(status_path):
+        state = load(status_path)
+        require_request(state, args.request_id)
+        if state["status"] != "reviewing" or lease_valid(state["review"]):
+            raise ValueError("request has an active lease or is not reviewing")
+        state["status"] = "pending"
+        state["updated_at"] = now()
+        for key, value in (("reviewer", None), ("reviewer_role", None), ("claimed_at", None), ("lease_expires_at", None), ("last_heartbeat_at", None)):
+            state["review"][key] = value
         atomic_write(status_path, state)
     return 0
 
@@ -224,7 +378,11 @@ def current_artifacts_match(state: dict[str, Any]) -> tuple[bool, str]:
         path = Path(item["path"])
         if not path.is_file():
             return False, f"missing artifact: {item['path']}"
-        if sha256(path) != item["sha256"]:
+        # Legacy status files predate scoped QA and bound the updater hash.  Keep
+        # their source/render/crop integrity checks intact while allowing the
+        # coordinator itself to evolve without invalidating historical passes.
+        legacy_tool = item is state["request"].get("qa_tool") and "scope" not in state["request"]
+        if not legacy_tool and sha256(path) != item["sha256"]:
             return False, f"artifact changed after request: {item['path']}"
     return True, ""
 
@@ -239,6 +397,8 @@ def complete(args: argparse.Namespace) -> int:
             raise ValueError(f"cannot complete status {state['status']}")
         if state["review"]["reviewer"] != args.reviewer:
             raise ValueError("reviewer does not own this request")
+        if state["review"].get("lease_expires_at") and not lease_valid(state["review"]):
+            raise ValueError("reviewer lease expired; reclaim the request")
         matches, reason = current_artifacts_match(state)
         verdict = args.verdict if matches else "error"
         if verdict == "passed" and any(not item["resolved"] for item in findings):
@@ -251,6 +411,8 @@ def complete(args: argparse.Namespace) -> int:
         state["review"]["reviewed_request_id"] = args.request_id
         state["review"]["reviewed_render_sha256"] = state["request"]["render"]["sha256"]
         state["review"]["reviewed_crops"] = state["request"]["crops"]
+        state["review"]["review_scope"] = effective_scope(state["request"])
+        state["review"]["checked_regions"] = review_regions(state["request"])
         state["review"]["findings"] = findings
         state["review"]["summary"] = reason or args.summary
         atomic_write(status_path, state)
@@ -270,6 +432,7 @@ def verify(args: argparse.Namespace) -> int:
     checks = [
         (matches, reason),
         (state["status"] == "passed", f"status is {state['status']}"),
+        (args.required_scope == "delta" or effective_scope(state["request"]) == "full", "full scope is required"),
         (review["verdict"] == "passed", f"verdict is {review['verdict']}"),
         (
             review["reviewer_role"] == "independent-qa-subagent",
@@ -291,6 +454,8 @@ def verify(args: argparse.Namespace) -> int:
             not any(not item["resolved"] for item in review["findings"]),
             "unresolved findings remain",
         ),
+        (review.get("review_scope", effective_scope(state["request"])) == effective_scope(state["request"]), "review scope does not match request"),
+        (set(review.get("checked_regions", review_regions(state["request"]))) >= set(review_regions(state["request"])), "not all declared regions were checked"),
     ]
     failures = [message for passed, message in checks if not passed]
     if failures:
@@ -305,6 +470,7 @@ def verify(args: argparse.Namespace) -> int:
                 "render_sha256": state["request"]["render"]["sha256"],
                 "reviewer": review["reviewer"],
                 "completed_at": review["completed_at"],
+                "review_scope": effective_scope(state["request"]),
             },
             indent=2,
         )
@@ -313,7 +479,13 @@ def verify(args: argparse.Namespace) -> int:
 
 
 def show(args: argparse.Namespace) -> int:
-    print(json.dumps(load(Path(args.status_file)), ensure_ascii=False, indent=2))
+    state = load(Path(args.status_file))
+    expires = parse_time(state.get("review", {}).get("lease_expires_at"))
+    if expires is not None:
+        remaining = max(0, int((expires - dt.datetime.now(dt.timezone.utc)).total_seconds()))
+        state["review"]["lease_remaining_seconds"] = remaining
+        state["review"]["lease_state"] = "active" if remaining else "expired"
+    print(json.dumps(state, ensure_ascii=False, indent=2))
     return 0
 
 
@@ -335,13 +507,31 @@ def parser() -> argparse.ArgumentParser:
         help="tag each distinct original-pixel crop with its review region",
     )
     create.add_argument("--contract")
+    create.add_argument("--scope", choices=sorted(SCOPES), default="full")
+    create.add_argument("--base-request-id")
+    create.add_argument("--change-class", choices=sorted(CHANGE_CLASSES), default="text")
+    create.add_argument("--affected-region", action="append", default=[])
+    create.add_argument("--neighbor-region", action="append", default=[])
     create.set_defaults(run=request)
 
     take = commands.add_parser("claim")
     take.add_argument("--status-file", required=True)
     take.add_argument("--request-id", required=True)
     take.add_argument("--reviewer", required=True)
+    take.add_argument("--lease-seconds", type=int, default=DEFAULT_LEASE_SECONDS)
     take.set_defaults(run=claim)
+
+    renew = commands.add_parser("heartbeat", aliases=["renew"])
+    renew.add_argument("--status-file", required=True)
+    renew.add_argument("--request-id", required=True)
+    renew.add_argument("--reviewer", required=True)
+    renew.add_argument("--lease-seconds", type=int, default=DEFAULT_LEASE_SECONDS)
+    renew.set_defaults(run=heartbeat)
+
+    recover = commands.add_parser("reclaim")
+    recover.add_argument("--status-file", required=True)
+    recover.add_argument("--request-id", required=True)
+    recover.set_defaults(run=reclaim)
 
     finish = commands.add_parser("complete")
     finish.add_argument("--status-file", required=True)
@@ -357,6 +547,7 @@ def parser() -> argparse.ArgumentParser:
     check = commands.add_parser("verify")
     check.add_argument("--status-file", required=True)
     check.add_argument("--request-id", required=True)
+    check.add_argument("--required-scope", choices=sorted(SCOPES), default="delta")
     check.set_defaults(run=verify)
 
     display = commands.add_parser("show")

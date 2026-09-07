@@ -169,6 +169,12 @@ Use one `_artifacts/.../diagram-qa-status.json` file as the authoritative state 
 4. The main agent polls by reading the file. `pending` and `reviewing` are incomplete. `changes-requested` requires a new render and a new request round. `error` requires diagnosis and a new request. Never edit a reviewer verdict into the file manually.
 5. Before promotion, the main agent runs `verify` with the latest request ID. Verification must confirm `passed`, independent reviewer ownership, matching request/render/crop hashes, unchanged current artifacts, and no unresolved findings.
 
+### Incremental QA and release scope
+
+Use `delta` for a bounded label or crop edit only. The request records `base_request_id`, `change_class`, `affected_regions`, and `neighbor_regions`; the base must be a previously passed `full` request. A delta reviewer checks those regions and reports `review_scope: delta`; it cannot satisfy a release gate. Geometry, semantic, source, contract, canvas, font, arrow, node, or legend changes automatically escalate to `full`. The initial request and every formal publication require `python3 .../diagram_qa_status.py verify --required-scope full`.
+
+Claims are leased for ten minutes. Reviewers may run `heartbeat` (or `renew`) to extend a live lease. After expiry the main agent may run `reclaim`; an active lease cannot be stolen, and reclaim only returns the request to `pending` for a new reviewer. Delivery snapshots should record `last_full_request_id`, `last_delta_request_id`, `promotion_scope`, and whether pending delta changes remain.
+
 Run all commands from the same repository/workspace root so repository-relative artifact paths resolve identically. Keep one status file per diagram, preserve its diagram ID, and strictly increment `review_round`; the updater rejects same-round resets and diagram reuse.
 
 Example:

@@ -72,6 +72,10 @@
         "last_render_after_source": {"type": "boolean", "const": true},
         "status_file": {"type": "string", "pattern": "^_artifacts/.+\\.json$"},
         "status_schema_version": {"type": "integer", "const": 1},
+        "promotion_scope": {"enum": ["full", "delta", "blocked"]},
+        "last_full_request_id": {"type": ["string", "null"]},
+        "last_delta_request_id": {"type": ["string", "null"]},
+        "pending_delta_changes": {"type": "boolean"},
         "independent_review": {
           "type": "object", "additionalProperties": false,
           "required": ["reviewer", "reviewer_role", "review_round", "reviewed_render", "reviewed_render_id", "reviewed_at", "status", "findings", "re_reviewed_after_last_edit"],
