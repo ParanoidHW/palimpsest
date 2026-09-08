@@ -13,18 +13,19 @@
 7. [AngelSpec](papers/angelspec.md) 与 [TorchSpec](papers/torchspec.md)：看 workload-aware drafter、动态验证预算，以及解耦 hidden-state 训练系统。
 8. [AcceptMoE](papers/acceptmoe.md)：看 MoE 树验证中的 commitment-weighted、自适应专家集合与 offload cache 剪枝。
 9. [LibraSpec](papers/libraspec.md)：看扩散式 drafter 的边际收益驱动动态 speculative length。
+10. [Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)：看验证器如何用局部 regret、block cap 和请求级账本接受有界例外，并复用同次目标前向中的连续后缀。
 
 ## 文档索引
 
 - Surveys：[Evolution](surveys/evolution.md)，[Foundations and trends](surveys/foundations-and-trends.md)， [AcceptMoE](papers/acceptmoe.md)
-- Papers：[P-EAGLE](papers/p-eagle.md)，[DFlash](papers/dflash.md)，[D2SD](papers/d2sd.md)，[JetSpec](papers/jetspec.md)，[HyperDFlash](papers/hyperdflash.md)，[DSpark](papers/dspark.md)，[DeLS-Spec](papers/dels-spec.md)，[AngelSpec](papers/angelspec.md)，[TorchSpec](papers/torchspec.md)，[AcceptMoE](papers/acceptmoe.md)，[LibraSpec](papers/libraspec.md)
+- Papers：[P-EAGLE](papers/p-eagle.md)，[DFlash](papers/dflash.md)，[D2SD](papers/d2sd.md)，[JetSpec](papers/jetspec.md)，[HyperDFlash](papers/hyperdflash.md)，[DSpark](papers/dspark.md)，[DeLS-Spec](papers/dels-spec.md)，[AngelSpec](papers/angelspec.md)，[TorchSpec](papers/torchspec.md)，[AcceptMoE](papers/acceptmoe.md)，[LibraSpec](papers/libraspec.md)，[Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)
 - Topics：[RL drafter co-training](topics/rl-drafter-cotraining.md)
-- Evidence：[Figure inventory](evidence/figure-inventory.md)，[RL drafter co-training evidence](evidence/rl-drafter-cotraining.md)，[AcceptMoE figure inventory](evidence/acceptmoe-figure-inventory.md)，[LibraSpec figure inventory](evidence/libraspec-figure-inventory.md)
+- Evidence：[Figure inventory](evidence/figure-inventory.md)，[RL drafter co-training evidence](evidence/rl-drafter-cotraining.md)，[AcceptMoE figure inventory](evidence/acceptmoe-figure-inventory.md)，[LibraSpec figure inventory](evidence/libraspec-figure-inventory.md)，[ASD figure inventory](evidence/approximate-speculative-decoding-figure-inventory.md)
 - Supplement：[DFlash draft-model acceptance risk](supplements/dflash-acceptance-risk.html)
 
 ## Obsidian Properties
 
-本领域 `9/9` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+本领域 `10/10` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
 
 - 共同标签：`paper`、`collection/speculative-decoding`、`domain/model-systems`、`status/deep-review`。
 - 每篇另有一项 `topic/*` 和一项 `method/*`，分别表达研究问题与 draft/verification 方法。
