@@ -249,15 +249,15 @@ sequenceDiagram
 
 两条路径都要求目标内存先存在，但“接收动作由谁执行”不同：
 
-| 对比项 | Mooncake TCP transport | HIXL 单边传输 |
-| --- | --- | --- |
-| 上层调用 | 发起端提交 Mooncake `READ`/`WRITE` | 发起端调用 `TransferSync`/`TransferAsync` |
-| 目标应用是否逐请求匹配 `recv` | 否 | 否 |
-| 目标侧实际执行者 | Mooncake TCP worker 收 socket 数据并放置 | HIXL runtime、驱动和所选数据路径完成放置 |
-| 最终目标内存 | 必须预分配并登记为可访问范围 | 必须通过 `RegisterMem` 注册 |
-| 额外 staging | Device 内存、非连续布局或转换时可能需要 | 取决于内存类型、链路和具体实现，不能从 API 名称直接推出 |
-| 是否是原生 RDMA 单边路径 | 否；TCP 本身是双边字节流协议 | 不一定；HIXL 可能选择 RDMA，也可能选择其他 Ascend 链路 |
-| 完成后的消费条件 | 传输完成后仍需 ready、fence、event 或 stream wait | 同样需要按内存类型和执行流建立可见性顺序 |
+| 对比项                | Mooncake TCP transport                  | HIXL 单边传输                            |
+| ------------------ | --------------------------------------- | ------------------------------------ |
+| 上层调用               | 发起端提交 Mooncake `READ`/`WRITE`           | 发起端调用 `TransferSync`/`TransferAsync` |
+| 目标应用是否逐请求匹配 `recv` | 否                                       | 否                                    |
+| 目标侧实际执行者           | Mooncake TCP worker 收 socket 数据并放置      | HIXL runtime、驱动和所选数据路径完成放置           |
+| 最终目标内存             | 必须预分配并登记为可访问范围                          | 必须通过 `RegisterMem` 注册                |
+| 额外 staging         | Device 内存、非连续布局或转换时可能需要                 | 取决于内存类型、链路和具体实现，不能从 API 名称直接推出       |
+| 是否是原生 RDMA 单边路径    | 否；TCP 本身是双边字节流协议                        | 不一定；HIXL 可能选择 RDMA，也可能选择其他 Ascend 链路 |
+| 完成后的消费条件           | 传输完成后仍需 ready、fence、event 或 stream wait | 同样需要按内存类型和执行流建立可见性顺序                 |
 
 对于 `READ`，数据方向反过来：TCP 路径由远端 worker 从已登记的源范围取数并通过 socket 返回；HIXL 路径由发起端提交 `READ`，把远端已注册范围搬到发起端预先分配的本地目标 buffer。两者都不会替上层自动解决版本、并发写冲突和 KV Cache 对象生命周期。
 
