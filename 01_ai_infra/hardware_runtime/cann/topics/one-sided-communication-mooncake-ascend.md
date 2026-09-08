@@ -9,7 +9,7 @@ document_type: topic
 domain: hardware_runtime/cann
 canonical: true
 status: draft-for-iteration
-last_reviewed: 2026-09-04
+last_reviewed: 2026-09-08
 ---
 
 # 单边通信、Mooncake 与 Ascend ADXL/HIXL
@@ -187,6 +187,79 @@ sequenceDiagram
 | 并发冲突 | 多个接收者/发送者由匹配关系约束 | 多个发起方写同一远端区间仍需锁、原子操作或版本协议 |
 
 因此，单边通信减少的是“目标端逐请求匹配接收”的控制同步，不是把内存语义删除了。两种模式都必须回答：payload 何时写完、何时对消费者可见、消费者何时可以 `load`，以及并发写入是否有定义。
+
+### Mooncake 走 TCP 与 HIXL 时的实际时序
+
+Mooncake Transfer Engine 对上都可以暴露 `READ`/`WRITE` 一类单边式接口，但 TCP 与 HIXL 的底层执行者不同。TCP transport 是“单边 API 语义建立在双边 socket 协议之上”：目标应用不调用匹配的 `recv`，但目标节点上的 Mooncake TCP worker 必须接收报文并把 payload 写入目标内存。HIXL 则直接暴露远端 `READ`/`WRITE` 操作，目标应用提前注册内存后，不为每个传输请求执行匹配接收；实际数据路径由 HIXL 根据平台与配置选择，不能一概等同于 RDMA。
+
+#### TCP transport：目标 TCP worker 参与收包和放置
+
+```mermaid
+sequenceDiagram
+    participant SA as 发送端应用
+    participant ST as 发送端 Mooncake TCP transport
+    participant RT as 接收端 Mooncake TCP worker
+    participant RA as 接收端应用与目标内存
+
+    RA->>RA: 分配最终目标 buffer
+    RA->>RT: 注册 Segment、地址范围和容量
+    RT-->>SA: 控制面发布 Segment ID、offset、length
+    SA->>SA: 准备本地 source buffer
+    SA->>ST: 提交 WRITE(source, remote segment/offset)
+    ST->>RT: TCP 发送请求头和 payload
+    RT->>RT: 解析并校验 Segment、offset、length
+    alt CPU 连续目标内存
+        RT->>RA: 将 payload 写入最终目标 buffer
+    else Device 内存不能由 socket 直接写入
+        RT->>RT: 接收到 Host staging buffer
+        RT->>RA: 执行 Host-to-Device 拷贝
+    end
+    RT-->>ST: 返回传输完成或失败
+    ST-->>SA: 完成状态
+    SA-->>RA: 可选 ready/notify
+    RA->>RA: acquire、event 或 stream wait 后消费
+```
+
+时序图 A：Mooncake TCP `WRITE`（整理图，analysis-derived）。接收端必须预先分配最终目标内存；“不需要额外接收内存”只表示应用通常不用自行维护匹配 `recv` buffer。若目标是 NPU/GPU Device 内存、Tensor 非连续或需要布局转换，TCP transport 仍可能使用由运行时管理的 Host staging buffer。具体是否直写最终地址由 Mooncake 版本、内存类型和 transport 实现决定。
+
+#### HIXL transport：发起端提交远端操作
+
+```mermaid
+sequenceDiagram
+    participant TA as 目标端应用
+    participant TH as 目标端 HIXL runtime
+    participant IH as 发起端 HIXL engine
+    participant IA as 发起端应用
+
+    TA->>TA: 分配 MEM_HOST 或 MEM_DEVICE 目标 buffer
+    TA->>TH: RegisterMem(addr, len, memory type)
+    TH-->>IA: 控制面发布 engine、remote_addr、length 等描述
+    IA->>IH: Initialize 并 Connect(remote engine)
+    IA->>IA: 准备并注册本地 source buffer
+    IA->>IH: TransferSync/TransferAsync(WRITE, op list)
+    IH->>TH: HIXL 建链并选择可用数据路径
+    Note over IH,TH: 可能使用 HCCS、RDMA/RoCE、FabricMem 或 UBoE 等路径
+    TH->>TA: 将 payload 放入已注册的目标范围
+    IH-->>IA: COMPLETED、FAILED 或 TIMEOUT
+    IA-->>TA: 可选 notify/ready
+    TA->>TA: event/stream wait 后读取目标 buffer
+```
+
+时序图 B：HIXL `WRITE`（整理图，analysis-derived）。目标端应用只在建链前分配并注册内存，不为每个 `TransferSync`/`TransferAsync` 调用匹配的 `recv`。HIXL runtime、驱动或传输硬件仍会参与控制和数据放置；因此“单边”不能推导出所有链路都绕过远端 CPU。接口与状态名称以 [HIXL C++ 接口](https://gitcode.com/cann/hixl/blob/master/docs/zh/api/cpp/HIXL-interface.md)和 [HIXL 类型定义](https://gitcode.com/cann/hixl/blob/master/include/hixl/hixl_types.h)为准。
+
+两条路径都要求目标内存先存在，但“接收动作由谁执行”不同：
+
+| 对比项 | Mooncake TCP transport | HIXL 单边传输 |
+| --- | --- | --- |
+| 上层调用 | 发起端提交 Mooncake `READ`/`WRITE` | 发起端调用 `TransferSync`/`TransferAsync` |
+| 目标应用是否逐请求匹配 `recv` | 否 | 否 |
+| 目标侧实际执行者 | Mooncake TCP worker 收 socket 数据并放置 | HIXL runtime、驱动和所选数据路径完成放置 |
+| 最终目标内存 | 必须预分配并登记为可访问范围 | 必须通过 `RegisterMem` 注册 |
+| 额外 staging | Device 内存、非连续布局或转换时可能需要 | 取决于内存类型、链路和具体实现，不能从 API 名称直接推出 |
+| 是否是原生 RDMA 单边路径 | 否；TCP 本身是双边字节流协议 | 不一定；HIXL 可能选择 RDMA，也可能选择其他 Ascend 链路 |
+| 完成后的消费条件 | 传输完成后仍需 ready、fence、event 或 stream wait | 同样需要按内存类型和执行流建立可见性顺序 |
+
+对于 `READ`，数据方向反过来：TCP 路径由远端 worker 从已登记的源范围取数并通过 socket 返回；HIXL 路径由发起端提交 `READ`，把远端已注册范围搬到发起端预先分配的本地目标 buffer。两者都不会替上层自动解决版本、并发写冲突和 KV Cache 对象生命周期。
 
 ### 一个发布数据的安全协议
 
