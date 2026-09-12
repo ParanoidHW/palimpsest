@@ -5,17 +5,18 @@
 > - 领域入口：[README](../README.md)
 > - 上位汇总：[Evolution](evolution.md)
 > - 证据资产：无
-> - 相关文档：[P-EAGLE](../papers/p-eagle.md)，[DFlash](../papers/dflash.md)，[D2SD](../papers/d2sd.md)，[JetSpec](../papers/jetspec.md)，[HyperDFlash](../papers/hyperdflash.md)，[DSpark](../papers/dspark.md)，[RL drafter co-training](../topics/rl-drafter-cotraining.md)
+> - 相关文档：[P-EAGLE](../papers/p-eagle.md)，[DFlash](../papers/dflash.md)，[D2SD](../papers/d2sd.md)，[JetSpec](../papers/jetspec.md)，[HyperDFlash](../papers/hyperdflash.md)，[DSpark](../papers/dspark.md)，[Speculator training data lifecycle](../topics/speculator-training-data-lifecycle.md)，[RL drafter co-training](../topics/rl-drafter-cotraining.md)
 
 ## 修订信息
 
-- 当前文档版本：`1.2.0`
-- 当前修订 ID：`rev-spec-foundations-rl-drafter-20260907`
-- 当前修订时间：`2026-09-07T00:00:00+08:00`
+- 当前文档版本：`1.3.0`
+- 当前修订 ID：`rev-spec-foundations-framework-data-20260912`
+- 当前修订时间：`2026-09-12T00:00:00+08:00`
 - 替代版本：`rev-spec-foundations-delivery-remediation-20260725`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|
+| `rev-spec-foundations-framework-data-20260912` | `1.3.0` | `2026-09-12T00:00:00+08:00` | framework lifecycle synthesis | 增加 response 前置边界、hidden-state Online/Offline/Hybrid 策略与 TorchSpec/RL 集成路径导航 | [Speculator training data lifecycle](../topics/speculator-training-data-lifecycle.md) 与对应 Evidence | minor；澄清训练数据生命周期，不改变 lossless 合同 |
 | `rev-spec-foundations-rl-drafter-20260907` | `1.2.0` | `2026-09-07T00:00:00+08:00` | cross-paper synthesis | 增加 RL 期间 drafter 联合适配的收益排序、hidden-state 漂移边界和证据标签 | 三篇 RL rollout 论文与独立 evidence 清单 | minor；扩展训练阶段，不改变 lossless 合同 |
 | `rev-spec-foundations-delivery-remediation-20260725` | `1.1.0` | `2026-07-25T23:30:00+08:00` | evidence-and-link remediation | 明确 correctness contract、accepted-length/成本模型、六篇 canonical Paper 证据入口与 lossy 边界 | canonical Paper reviews 与发布器校验 | minor；不改变 lossless 合同 |
 
@@ -202,6 +203,14 @@ tree staging 近似再加 $2L n_{kv}d_hN_vb$，paged KV 可减少碎片但不消
 - **[待验证]** 在线联合适配是否优于相同数据量和训练 FLOPs 的最终 checkpoint 离线蒸馏，以及固定 GPU-hours 下是否提高最终精度，当前来源没有给出统一因果结论。
 
 完整机制、公式、稳定化建议和公平评测设计见 [RL 期间的 drafter 联合适配](../topics/rl-drafter-cotraining.md)；来源版本、论文直接结果和讨论推论的逐条边界见 [证据清单](../evidence/rl-drafter-cotraining.md)。
+
+### 7.1 框架中的 response 与 hidden-state 生命周期
+
+标准 vLLM Speculators 的 `prepare-data` 输入必须已经包含 target 生成的 response 行；render endpoint 只负责应用 chat template、分词和 loss mask，不负责生成 response。response 可以通过独立的 `regenerate-responses` 步骤自动产生，因此“提前存在”不等于“人工离线写好”。[官方文档事实]
+
+hidden states 是另一个独立选择：Online 按训练读取时从 live target 提取，Offline 训练前落盘，Hybrid 在第一轮生成后缓存。TorchSpec 的 train-with-decode 则把 target inference 与 draft optimization 组织成流式 producer-consumer；RL rollout 集成可以把 response 生产放进当前 policy 的 rollout，但会引入 policy/checkpoint 版本跨度问题。[框架策略综合]
+
+这一节只给基础导航，不把上述策略宣称为统一的精度、accepted length 或总训练耗时优势。逐条证据和未证明事项见[框架策略 Topic](../topics/speculator-training-data-lifecycle.md)与[证据清单](../evidence/speculator-training-data-lifecycle.md)。
 
 ## 8. 开放问题
 
