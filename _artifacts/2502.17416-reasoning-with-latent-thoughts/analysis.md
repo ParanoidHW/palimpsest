@@ -21,14 +21,15 @@ tags:
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-2026-09-14-initial`
-- 当前修订时间：`2026-09-14T18:00:00+08:00`
-- 替代版本：`none`
+- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-2026-09-15-render-qa`
+- 当前修订时间：`2026-09-15T00:05:00+08:00`
+- 替代版本：`rev-2026-09-14-initial / 1.0.0 / bfbdb1712c272da9bc2a105de77db5898a5571190e15078b0cc9be0aaace1c6e`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 原因 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|
 | rev-2026-09-14-initial | 1.0.0 | 2026-09-14 | Codex | initial | none | 新建 standalone Paper | 用户任务 | arXiv v1 PDF/source；验证脚本 | none |
+| rev-2026-09-15-render-qa | 1.0.1 | 2026-09-15T00:05:00+08:00 | Codex | evidence-update | rev-2026-09-14-initial / 1.0.0 / bfbdb1712c272da9bc2a105de77db5898a5571190e15078b0cc9be0aaace1c6e | 补 Pandoc 3.8 + Chromium 渲染 QA | 解除渲染门禁 | canonical Paper；review checklist | Pandoc 自包含 HTML、6 images、49 MathML nodes、1440×1200 screenshot | none |
 
 ## 0. 资料与配图索引
 

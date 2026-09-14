@@ -14,6 +14,6 @@
 - [done] Recorded generated-diagram decision: original Figure 1 is sufficient; no generated image used.
 - [done] Ran Markdown source checks, link/asset checks, and forbidden-reference scans.
 - [done] Publisher validator 2.0.0 passed after canonical links and assets were staged; errors and warnings are empty.
-- [done] Manual rendered-output inspection performed from PDF-derived crops and Markdown structure.
+- [done] Rendered canonical Paper with Pandoc 3.8 (`gfm+tex_math_dollars`, MathML, embedded resources) and inspected Chromium screenshot; 6 images and 49 MathML nodes rendered without overlap or truncation.
 
-Renderer note: no repository Markdown renderer is installed; source-level CommonMark checks and manual Obsidian-compatible syntax inspection were used. This limitation is recorded in the manifest.
+Renderer note: repository-specific renderer was not present; Pandoc 3.8 and headless Chromium provided the CommonMark-compatible render and visual inspection. Temporary HTML/screenshot were removed after QA.

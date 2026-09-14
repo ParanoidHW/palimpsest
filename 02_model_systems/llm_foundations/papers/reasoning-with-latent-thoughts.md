@@ -21,8 +21,13 @@ tags:
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`；当前修订 ID：`rev-2026-09-14-initial`
-- 当前修订时间：`2026-09-14T18:00:00+08:00`；替代版本：`none`
+- 当前文档版本：`1.0.1`；当前修订 ID：`rev-2026-09-15-render-qa`
+- 当前修订时间：`2026-09-15T00:05:00+08:00`；替代版本：`rev-2026-09-14-initial / 1.0.0 / bfbdb1712c272da9bc2a105de77db5898a5571190e15078b0cc9be0aaace1c6e`
+
+| 修订 ID | 文档版本 | 时间 | 类型 | 替代修订 | 变更摘要 | 对结论影响 |
+|---|---|---|---|---|---|---|
+| rev-2026-09-14-initial | 1.0.0 | 2026-09-14 | initial | none | 新建 canonical Paper | none |
+| rev-2026-09-15-render-qa | 1.0.1 | 2026-09-15T00:05:00+08:00 | evidence-update | rev-2026-09-14-initial / manifest `bfbdb171...` | Pandoc 3.8 + Chromium 渲染 QA | none |
 
 ## 论文信息与证据边界
 

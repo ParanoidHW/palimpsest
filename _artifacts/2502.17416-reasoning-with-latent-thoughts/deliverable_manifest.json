@@ -20,14 +20,16 @@
       "notes": ["No corresponding-author marker is present; email listing is not treated as a designation."]
     }
   },
-  "completion_status": "blocked",
+  "completion_status": "complete",
   "revision_info": {
     "document_path": "analysis.md",
     "section_heading": "修订信息",
-    "current_version": "1.0.0",
-    "current_revision_id": "rev-2026-09-14-initial",
+    "current_version": "1.0.1",
+    "current_revision_id": "rev-2026-09-15-render-qa",
     "history": [{
       "revision_id":"rev-2026-09-14-initial","version":"1.0.0","revised_at":"2026-09-14T18:00:00+08:00","revised_by":"Codex","revision_type":"initial","supersedes":null,"migration_resolution":null,"summary":"新建 standalone Paper deep review","reason":"用户任务","affected_locations":["analysis.md","figure_inventory.md","knowledge-promotion-plan.json"],"evidence":["arXiv 2502.17416v1 PDF and source"],"impact_on_conclusions":"none"
+    },{
+      "revision_id":"rev-2026-09-15-render-qa","version":"1.0.1","revised_at":"2026-09-15T00:05:00+08:00","revised_by":"Codex","revision_type":"evidence-update","supersedes":{"kind":"tracked","revision_id":"rev-2026-09-14-initial","version":"1.0.0","deliverable_manifest_sha256":"bfbdb1712c272da9bc2a105de77db5898a5571190e15078b0cc9be0aaace1c6e"},"migration_resolution":null,"summary":"补充 Pandoc 与 Chromium 渲染 QA","reason":"解除渲染门禁","affected_locations":["analysis.md","review_checklist.md","canonical Paper"],"evidence":["Pandoc 3.8 self-contained HTML","6 embedded images","49 MathML nodes","1440x1200 Chromium screenshot"],"impact_on_conclusions":"none"
     }]
   },
   "schema_validation": {"status":"passed","validator":"paper-deep-review/scripts/validate_deliverable.py","errors":[]},
@@ -38,8 +40,8 @@
   },
   "artifacts": {
     "paper_pdf":{"status":"present","path":"paper.pdf","sha256":"a3aed7457446fa4c11c5f6cac89c38725ca42d0a66c44cc1935e2f8b6376882e","reason":null},
-    "analysis":{"status":"present","path":"analysis.md","sha256":"4dfaedba670d3581c96bdb85e4d4df7caba14493951cecbed0c205365724f2b9","reason":null},
-    "review_checklist":{"status":"present","path":"review_checklist.md","sha256":"4b1e28af823745a92b43de33f16f7cca91cbaa978433da18c296fef29ab4af3f","reason":null},
+    "analysis":{"status":"present","path":"analysis.md","sha256":"d82560421e82bdada4761f0af5d9767018f20c56c86bc43a92de08d1f1ce6271","reason":null},
+    "review_checklist":{"status":"present","path":"review_checklist.md","sha256":"b0fc289c41039d988247c0d4d681912c2529a9b6f90a9644c42dc47c4d640c3c","reason":null},
     "figure_inventory":{"status":"present","path":"figure_inventory.md","sha256":"608fb3a218d30d1cab9b493f072649ac0f042014d2b404c2fc957ccc44b4735a","reason":null},
     "contact_sheet":{"status":"present","path":"figures/contact-sheet.png","sha256":"ae54ebd0019dc6449bde4c6f593b2d72b4a7d2f304057c81c1971848f9bce159","reason":null},
     "source_archive":{"status":"present","path":"source.tar","sha256":"e779240ead74d507d7c682e60063acff693ea8a0ff7c3cf3f45becb5b87c2041","reason":null},
@@ -91,7 +93,6 @@
   ],
   "evidence_checks":{"claim_matrix":"passed","paper_problem_solution":"passed","design_rationale_analysis":"passed","symbol_table":"passed","formula_explanations":"passed","readability_audit":"passed","prior_failure_explanation":"passed","algorithm_overview":"passed","evidence_loop":"passed","code_cross_check":"blocked","openreview_cross_check":"blocked","infrastructure_analysis":"passed","gain_attribution":"passed"},
   "limitations":[
-    {"requirement":"Rendered Markdown inspection","status":"blocked","reason":"No repository Markdown/CommonMark renderer was available in the environment.","effect_on_conclusions":"Review completion remains blocked despite source-level checks."},
     {"requirement":"OpenReview cross-check","status":"blocked","reason":"Official API returned HTTP 403 on 2026-09-14.","effect_on_conclusions":"Reviewer concerns and rebuttal cannot be incorporated."},
     {"requirement":"Runnable code cross-check","status":"blocked","reason":"No official runnable implementation was identified.","effect_on_conclusions":"Loss-sign and implementation details remain source-text only."}
   ]

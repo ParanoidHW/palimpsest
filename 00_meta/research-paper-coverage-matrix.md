@@ -142,7 +142,7 @@
 | Kimi Linear: An Expressive, Efficient Attention Architecture（KDA；arXiv:2510.26692v2） | 深度精读；accepted-with-limitations；technical report；Kimi Team 机构署名 | [kimi-linear](../02_model_systems/llm_foundations/papers/kimi-linear.md) |
 | Mamba-3: Improved Sequence Modeling using State Space Principles（arXiv:2603.15569） | 深度精读；accepted-with-limitations；selective SSM | [mamba-3](../02_model_systems/llm_foundations/papers/mamba-3.md) |
 | Gated DeltaNet-2（arXiv:2605.22791） | 深度精读；accepted-with-limitations；channel-wise erase/write | [gated-deltanet-2](../02_model_systems/llm_foundations/papers/gated-deltanet-2.md) |
-| Reasoning with Latent Thoughts: On the Power of Looped Transformers（arXiv:2502.17416v1） | 深度精读；blocked：OpenReview 403、Markdown renderer unavailable；ICLR 2025 | [reasoning-with-latent-thoughts](../02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md) |
+| Reasoning with Latent Thoughts: On the Power of Looped Transformers（arXiv:2502.17416v1） | 深度精读；accepted-with-limitations；ICLR 2025；OpenReview 403、无官方代码 | [reasoning-with-latent-thoughts](../02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md) |
 
 ### Multimodal generation（19）
 
