@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.1.0",
+  "task": "2502.17416-reasoning-with-latent-thoughts",
+  "repository_root": ".",
+  "organization_binding": {
+    "organization_schema_version": "1.0.0",
+    "organization_schema_sha256": "c182904b3083e912117e109dcf97f6f73e93119666908ef14fedb6deb8f961dd",
+    "default_profile_sha256": "574617743d18fac813cd4c311e45b68a6e6570f65772baebefbbdd796ea48a2e",
+    "resolved_profile_id": "research-vault",
+    "repository_profile": "research-knowledge.profile.json",
+    "repository_profile_sha256": "f7d1ae790ca93e9a494234eb619d2e7657f95bb9d97453a08854f5baf41fe5f8",
+    "process_root": "_artifacts"
+  },
+  "domains": ["02_model_systems/llm_foundations"],
+  "items": [
+    {"canonical_id":"paper:reasoning-with-latent-thoughts","domain":"02_model_systems/llm_foundations","doc_type":"paper","slug":"reasoning-with-latent-thoughts","canonical_path":"02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md","operation":"create","source_artifacts":["_artifacts/2502.17416-reasoning-with-latent-thoughts/analysis.md","_artifacts/2502.17416-reasoning-with-latent-thoughts/paper.pdf"],"owner":"02_model_systems/llm_foundations"},
+    {"canonical_id":"asset:reasoning-with-latent-thoughts","domain":"02_model_systems/llm_foundations","doc_type":"asset","slug":"reasoning-with-latent-thoughts","canonical_path":"02_model_systems/llm_foundations/assets/papers/reasoning-with-latent-thoughts/","operation":"create","source_artifacts":["_artifacts/2502.17416-reasoning-with-latent-thoughts/figure_inventory.md"],"owner":"paper:reasoning-with-latent-thoughts"}
+  ],
+  "required_links": [
+    {"from":"02_model_systems/llm_foundations/README.md","to":"02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md"},
+    {"from":"02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md","to":"02_model_systems/llm_foundations/README.md"},
+    {"from":"02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md","to":"02_model_systems/llm_foundations/evidence/figure-inventory.md"},
+    {"from":"02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md","to":"02_model_systems/llm_foundations/assets/papers/reasoning-with-latent-thoughts/"}
+  ],
+  "validation": ["deliverable schema 1.7.0", "promotion-plan schema 1.1.0", "publisher organization/profile", "relative links", "Git-tracked assets", "orphan scan"]
+}

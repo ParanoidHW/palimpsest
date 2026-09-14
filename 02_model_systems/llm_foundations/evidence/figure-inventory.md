@@ -35,8 +35,6 @@
 | Table 2 / PDF p.27；crop `(195,200,1510,1945)` | `../assets/papers/kimi-k3/table2-main-results-caption.png` | “Performance comparison of Kimi K3 against proprietary and open-source models. Bold denotes the best result for each benchmark and underline the second-best. Unless otherwise noted, Kimi K3 results are obtained with reasoning effort set to max and temperature equal to 1.0. For HLE-Full, MMMU-Pro, CharXiv (RQ), Math-Vision, and ZeroBench, each cell reports the scores without and with tool augmentation (general tools for HLE-Full, Python for the vision benchmarks), in that order. †On the official Agents’ Last Exam leaderboard, the Claude Fable 5 entry runs at xhigh effort with 40% of tasks annotated as downgraded.” | 主结果、effort、temperature、tool 与对手脚注边界 | pass：完整 Table/caption/脚注，1315×1745，2026-07-28 QA |
 | AI 解释图 / 非论文对象 | `../assets/papers/kimi-k3/algorithm-analysis.png` | “Kimi K3 End-to-End Causal Map.” 基于报告、官方 config 与 CANN 样例生成；不是论文原始证据。 | 训练—推理阶段、状态变化和 CANN 未支持项 | pass：1536×1024 原尺寸文字/事实 QA；OpenRouter ICU 两次 524 后由系统 imagegen 生成，2026-07-28 |
 
-## Kimi Linear
-
 ## Reasoning with Latent Thoughts
 
 | Object / source crop | 正式资产 | 完整 caption | Paper usage | QA |
@@ -47,6 +45,8 @@
 | Figure 3 / PDF p.9；crop `(235,160,1125,700)` | `../assets/papers/reasoning-with-latent-thoughts/fig3-effective-depth-scaling-caption.png` | “Scaling behavior for various task group as the effective depth increases. The blue curve shows how performance scales as the number of loops increases, without increasing parameters, using models of the form (4 ⊗ D/4) for various values of D. The orange curve visualizes the scaling behavior of (D ⊗ 1) which increases the depth by adding fresh parameters. For reasoning primitives, the looped model scales as well, or even better, than the baseline despite having D/4 fewer parameters.” | 有效深度缩放与对数拟合 | pass：完整图/caption，2026-09-14 |
 | Table 4 / PDF p.10；crop `(235,160,1130,500)` | `../assets/papers/reasoning-with-latent-thoughts/table4-regularization-results-caption.png` | “Results for the 24-layer 1B model with and without the regularization introduced in Section 4. We try various block sizes k motivated by the looped model settings from Table 3. Overall, regularization helps retain the inductive bias towards reasoning, with notable improvements on math word problems and reasoning primitives, without almost neutral perplexity.” | 循环启发正则化结果 | pass：完整表格/caption，2026-09-14 |
 | Figure 4 / PDF p.13；crop `(235,160,1125,620)` | `../assets/papers/reasoning-with-latent-thoughts/fig4-cot-latent-thoughts-caption.png` | “Left. Chain-of-thought reasoning can be viewed as a looped model, where each iteration produces one new thoughts token. The new tokens are highlighted in red. Right. A looped model can instead generate multiple latent thoughts in parallel and, in theory, can simulate CoT reasoning my masking the updates appropriately (see Theorem 5.4)” | CoT 与潜在思维理论桥接 | pass：完整图/caption，2026-09-14 |
+
+## Kimi Linear
 
 > 源页由 arXiv `2510.26692v2` PDF 以 220 DPI 渲染，尺寸 `1870×2420` px；bbox 使用左上角起点的 `(x,y,width,height)`。两张原论文图均于 2026-08-19 完成 contact-sheet 初筛与逐图原分辨率复核。
 

@@ -1,0 +1,15 @@
+{
+  "validation_schema_version": "2.0.0",
+  "validated_at": "2026-09-14",
+  "repository_root": "/mnt/d/huangwei/markdown",
+  "domain": "02_model_systems/llm_foundations",
+  "organization_schema_version": "1.0.0",
+  "profile_id": "research-vault",
+  "status": "passed",
+  "checked_markdown": 18,
+  "referenced_assets": 55,
+  "errors": [],
+  "warnings": [],
+  "validator": ".agents/skills/research-knowledge-publisher/scripts/validate_research_kb.py",
+  "command": "python3 .agents/skills/research-knowledge-publisher/scripts/validate_research_kb.py --repo-root . --domain 02_model_systems/llm_foundations"
+}

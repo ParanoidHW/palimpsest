@@ -1,0 +1,1 @@
+OpenReview forum `din0lGfZFd` was queried through the official API on 2026-09-14. The endpoint returned HTTP 403 (challenge/access block). Public reviews, meta-review, decision, and rebuttal could not be independently verified. No reviewer conclusions are inferred.
