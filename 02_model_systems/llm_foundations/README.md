@@ -9,6 +9,10 @@
 3. [Kimi K3 精读分析](papers/kimi-k3.md)：最后看 2.8T/104.2B-active、KDA/MLA、AttnRes、896-expert MoE、agent RL 与昇腾 CANN 0day 实现边界。
 4. [Linear Attention Transformer 演化](surveys/linear-attention-transformer-evolution.md)：从 2020 feature-map 状态、RetNet、Mamba/SSD、GLA/DeltaNet 到 2026 KDA、Mamba-3、Gated DeltaNet-2，分别比较方法谱系、Qwen3-Next/Kimi K3 系统采用、kernel、cache 与 serving 约束。
 
+### 单篇论文阅读路径
+
+1. [Reasoning with Latent Thoughts：Looped Transformers](papers/reasoning-with-latent-thoughts.md)：先看循环深度与参数共享，再看推理/记忆分化、有效深度缩放和循环正则化。
+
 ## 文档索引
 
 - Survey：[2026 H1 model scale](surveys/2026h1-model-scale.md)
@@ -24,6 +28,7 @@
 - Paper：[Kimi Linear / KDA](papers/kimi-linear.md)
 - Paper：[Mamba-3](papers/mamba-3.md)
 - Paper：[Gated DeltaNet-2](papers/gated-deltanet-2.md)
+- Paper：[Reasoning with Latent Thoughts](papers/reasoning-with-latent-thoughts.md)
 - Evidence：[Figure inventory](evidence/figure-inventory.md)
 - Survey：[Linear Attention Transformer 演化](surveys/linear-attention-transformer-evolution.md)
 - Evidence：[Linear Attention Transformer 证据索引](evidence/linear-attention-transformer-evidence.md)
