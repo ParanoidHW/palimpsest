@@ -6,7 +6,7 @@
 
 1. [Evolution](surveys/evolution.md)：canonical survey，先看 token draft、tree draft、block diffusion 和推理加速时间线。
 2. [Foundations and trends](surveys/foundations-and-trends.md)：看 lossless correctness contract、draft/verify 成本模型、机制分类、KV/serving 约束与开放问题。
-3. [Speculator training data lifecycle](topics/speculator-training-data-lifecycle.md)：回答 response 是否要先准备、hidden states 是否要预提取，并比较 Speculators、TorchSpec 与 RL rollout 的框架策略。
+3. [Speculator training data lifecycle](topics/speculator-training-data-lifecycle.md)：回答 response 是否独立生成、已有 response 后为何只需一次 prefill、Key-Value（KV）cache 与 hidden-state feature store 如何分工，并比较 Speculators、SpecForge、TorchSpec 与 RL rollout 的框架策略。
 4. [RL drafter co-training](topics/rl-drafter-cotraining.md)：看 RL rollout 中在线 drafter 的收益排序、hidden-state 漂移、梯度边界和证据等级。
 5. [P-EAGLE](papers/p-eagle.md)、[DFlash](papers/dflash.md)、[D2SD](papers/d2sd.md)、[JetSpec](papers/jetspec.md)：理解 parallel drafting、block diffusion 和 tree drafting 主线。
 6. [HyperDFlash](papers/hyperdflash.md) 与 [DSpark](papers/dspark.md)：看架构对齐、半自回归修正和 confidence scheduling。
