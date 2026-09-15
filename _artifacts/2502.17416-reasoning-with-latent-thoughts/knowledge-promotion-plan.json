@@ -13,8 +13,8 @@
   },
   "domains": ["02_model_systems/llm_foundations"],
   "items": [
-    {"canonical_id":"paper:reasoning-with-latent-thoughts","domain":"02_model_systems/llm_foundations","doc_type":"paper","slug":"reasoning-with-latent-thoughts","canonical_path":"02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md","operation":"create","source_artifacts":["_artifacts/2502.17416-reasoning-with-latent-thoughts/analysis.md","_artifacts/2502.17416-reasoning-with-latent-thoughts/paper.pdf"],"owner":"02_model_systems/llm_foundations"},
-    {"canonical_id":"asset:reasoning-with-latent-thoughts","domain":"02_model_systems/llm_foundations","doc_type":"asset","slug":"reasoning-with-latent-thoughts","canonical_path":"02_model_systems/llm_foundations/assets/papers/reasoning-with-latent-thoughts/","operation":"create","source_artifacts":["_artifacts/2502.17416-reasoning-with-latent-thoughts/figure_inventory.md"],"owner":"paper:reasoning-with-latent-thoughts"}
+    {"canonical_id":"paper:reasoning-with-latent-thoughts","domain":"02_model_systems/llm_foundations","doc_type":"paper","slug":"reasoning-with-latent-thoughts","canonical_path":"02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md","operation":"update","source_artifacts":["_artifacts/2502.17416-reasoning-with-latent-thoughts/analysis.md","_artifacts/2502.17416-reasoning-with-latent-thoughts/paper.pdf"],"owner":"02_model_systems/llm_foundations"},
+    {"canonical_id":"asset:reasoning-with-latent-thoughts","domain":"02_model_systems/llm_foundations","doc_type":"asset","slug":"reasoning-with-latent-thoughts","canonical_path":"02_model_systems/llm_foundations/assets/papers/reasoning-with-latent-thoughts/","operation":"update","source_artifacts":["_artifacts/2502.17416-reasoning-with-latent-thoughts/figure_inventory.md"],"owner":"paper:reasoning-with-latent-thoughts"}
   ],
   "required_links": [
     {"from":"02_model_systems/llm_foundations/README.md","to":"02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md"},
