@@ -56,8 +56,8 @@
   "revision_info": {
     "document_path": "analysis.md",
     "section_heading": "修订信息",
-    "current_version": "1.1.0",
-    "current_revision_id": "rev-2026-09-15-completeness-rewrite",
+    "current_version": "1.1.1",
+    "current_revision_id": "rev-2026-09-15-strict-validation",
     "history": [
       {
         "revision_id": "rev-2026-09-14-initial",
@@ -139,6 +139,32 @@
           "full template comparison"
         ],
         "impact_on_conclusions": "material"
+      },
+      {
+        "revision_id": "rev-2026-09-15-strict-validation",
+        "version": "1.1.1",
+        "revised_at": "2026-09-15T11:30:00+08:00",
+        "revised_by": "Codex",
+        "revision_type": "correction",
+        "supersedes": {
+          "kind": "tracked",
+          "revision_id": "rev-2026-09-15-completeness-rewrite",
+          "version": "1.1.0",
+          "deliverable_manifest_sha256": "8fb80f5c8277b6ebb8fd8dee810aedbdba5536b6b887449415346376b536edf3"
+        },
+        "migration_resolution": null,
+        "summary": "补全冻结审计并修复过程分析缺失的五项本地视觉资产",
+        "reason": "全局完备性强校验发现旧验证器未覆盖的过程资产和审计缺口",
+        "affected_locations": [
+          "analysis.md#修订信息",
+          "analysis.md#14-冻结前发布审计",
+          "figures/"
+        ],
+        "evidence": [
+          "strict validator global-completeness report",
+          "five mutation regression cases"
+        ],
+        "impact_on_conclusions": "minor"
       }
     ]
   },
@@ -185,7 +211,7 @@
     "analysis": {
       "status": "present",
       "path": "analysis.md",
-      "sha256": "840fca3fb3b148b0b8b7432ffeabeae77193dd4178b89d5bdb3fef3479d023a2",
+      "sha256": "bfdd05c02e2e18c905a153b7203c0f5c62db6a8e22c3e81f8583c444fe5c392a",
       "reason": null
     },
     "review_checklist": {

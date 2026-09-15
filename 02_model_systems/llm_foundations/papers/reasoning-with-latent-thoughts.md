@@ -21,16 +21,17 @@ tags:
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-2026-09-15-completeness-rewrite`
-- 当前修订时间：`2026-09-15T10:30:00+08:00`
-- 替代版本：`rev-2026-09-15-render-qa / 1.0.1 / a43e28286f2058b89980f46cdd0157dab9228872a28ab814e91d050e56e3b3ef`
+- 当前文档版本：`1.1.1`
+- 当前修订 ID：`rev-2026-09-15-strict-validation`
+- 当前修订时间：`2026-09-15T11:30:00+08:00`
+- 替代版本：`rev-2026-09-15-completeness-rewrite / 1.1.0 / 8fb80f5c8277b6ebb8fd8dee810aedbdba5536b6b887449415346376b536edf3`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-2026-09-14-initial` | 1.0.0 | 2026-09-14T18:00:00+08:00 | Codex | initial | none | none | 新建 standalone Paper | 用户任务 | 全文及六项资产 | arXiv v1 PDF/source | none |
 | `rev-2026-09-15-render-qa` | 1.0.1 | 2026-09-15T00:05:00+08:00 | Codex | evidence-update | `rev-2026-09-14-initial / 1.0.0 / bfbdb1712c272da9bc2a105de77db5898a5571190e15078b0cc9be0aaace1c6e` | none | 增加 Pandoc/Chromium 渲染 QA | 解除渲染门禁 | 正文、checklist | 49 个 MathML 节点、六图渲染截图 | none |
 | `rev-2026-09-15-completeness-rewrite` | 1.1.0 | 2026-09-15T10:30:00+08:00 | Codex | mixed | `rev-2026-09-15-render-qa / 1.0.1 / a43e28286f2058b89980f46cdd0157dab9228872a28ab814e91d050e56e3b3ef` | none | 按 schema 1.7.0 模板补齐结构、三项证据、公式卡、基础设施与核验边界 | 修复“校验可过但内容不全” | 全文；Table 2、Figure 2、Figure 5；审计文件 | 模板逐项对照、原论文逐页复核 | material：证据边界更严格，核心方向不变 |
+| `rev-2026-09-15-strict-validation` | 1.1.1 | 2026-09-15T11:30:00+08:00 | Codex | correction | `rev-2026-09-15-completeness-rewrite / 1.1.0 / 8fb80f5c8277b6ebb8fd8dee810aedbdba5536b6b887449415346376b536edf3` | none | 补全冻结审计记录并修复过程分析的五项缺图 | 新增全局完备性强校验发现旧门禁遗漏 | 修订信息、冻结审计、过程视觉资产 | strict validator mutation audit | minor：不改变论文结论 |
 
 ## 0. 资料与配图索引
 
@@ -486,9 +487,15 @@ OpenReview 缺失不推翻论文表内结果，但使外部质疑、作者澄清
 
 ## 14. 冻结前发布审计
 
+- Markdown 渲染器：Pandoc 3.8 自包含 HTML + Chromium headless。
+- 渲染命令或操作：`pandoc ... --standalone --embed-resources --mathml` 后以 Chromium `1440×1800` 截图检查。
+- 渲染结果：`passed`；9 张图片和 122 个 MathML 节点嵌入成功，标题、列表、公式与正文正常；超宽修订表在窄视口按 Markdown 表格横向阅读。
+- Figure/Table 邻近性审计：`passed`；九项对象均紧邻其支持的架构、结果、机制或理论边界解释，无孤立配图。
+- 临时标记扫描：`clean`；无 HTML comment、TODO、FIXME、pending、debug 文本、绝对路径或过程目录引用。
+- 审计证据：review validator、publisher validator、promotion-plan schema、Pandoc/Chromium 检查，2026-09-15。
 - canonical owner：`02_model_systems/llm_foundations`；slug：`reasoning-with-latent-thoughts`；操作：对既有 canonical Paper 做实质更新。
 - 正向链路：README → Paper → 九项 Asset；反向链路：Paper → README / Evidence inventory / 上位 Survey。
 - 正式 Markdown 只引用相对路径和正式资产，不引用过程工作区、绝对路径或页面渲染。
 - 每个嵌入图表对应一个正式资产、一个 inventory 行和邻近解释；AI 图不适用。
 - 公开评审与代码核验保持 blocked/unavailable，不伪装为通过。
-- 本修订在正文、inventory、checklist、promotion plan、manifest 冻结后重新运行 review validator、promotion-plan schema、publisher validator、链接/锚点/资产/Git 跟踪/孤立项/禁用引用扫描；以实际结果更新状态。
+- 本修订在正文、inventory、checklist、promotion plan、manifest 冻结后已重新运行 review validator、promotion-plan schema、publisher validator、链接/锚点/资产/Git 跟踪/孤立项/禁用引用扫描。
