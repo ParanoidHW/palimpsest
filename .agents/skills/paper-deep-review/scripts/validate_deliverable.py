@@ -61,7 +61,235 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--schema", type=Path)
     parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--canonical-paper",
+        type=Path,
+        help="Canonical Paper projection. Standalone runs otherwise resolve it from knowledge-promotion-plan.json.",
+    )
     return parser.parse_args()
+
+
+def markdown_headings(markdown: str) -> list[str]:
+    return re.findall(r"(?m)^(#{2,3} .+?)\s*$", markdown)
+
+
+def section_text(markdown: str, heading: str) -> str:
+    level = len(heading) - len(heading.lstrip("#"))
+    match = re.search(rf"(?m)^{re.escape(heading)}\s*$", markdown)
+    if not match:
+        return ""
+    following = markdown[match.end():]
+    boundary = re.search(rf"(?m)^#{{1,{level}}} .+$", following)
+    return following[:boundary.start()] if boundary else following
+
+
+def display_math_blocks(markdown: str) -> list[str]:
+    formula_section = section_text(markdown, "### 4.4 关键公式")
+    return [item.strip() for item in re.findall(r"(?ms)^\$\$\s*\n?(.*?)\n?\s*\$\$\s*$", formula_section)]
+
+
+def table_data_rows(markdown: str, heading: str) -> list[str]:
+    section = section_text(markdown, heading)
+    rows = [line.strip() for line in section.splitlines() if line.strip().startswith("|")]
+    return [
+        line for line in rows
+        if not re.fullmatch(r"\|?[\s|:-]+", line)
+        and not re.search(r"现有方案/做法|设计项.*论文是否明确说明", line)
+    ]
+
+
+def image_paths(markdown: str) -> list[str]:
+    return [item.strip().split()[0] for item in re.findall(r"!\[[^\]]*\]\(([^)]+)\)", markdown)]
+
+
+def checklist_key(line: str) -> str | None:
+    match = re.match(
+        r"- \[(?:pending|done|blocked|skipped-with-reason)\]\s+([A-Z]\d+)(?:\s+([^:]+):)?",
+        line,
+    )
+    if not match:
+        return None
+    if match.group(1).startswith(("Q", "F")):
+        return match.group(1)
+    label = match.group(2)
+    return f"{match.group(1)}:{label.strip()}" if label else match.group(1)
+
+
+def resolve_canonical(args: argparse.Namespace, root: Path, manifest: dict) -> Path | None:
+    if args.canonical_paper:
+        return args.canonical_paper.resolve()
+    if manifest.get("invocation_mode") != "standalone":
+        return None
+    plan_path = root / "knowledge-promotion-plan.json"
+    if not plan_path.is_file():
+        return None
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    repo_root = root.parent.parent if root.parent.name == "_artifacts" else None
+    if repo_root is None:
+        return None
+    papers = [
+        item for item in plan.get("items", [])
+        if item.get("doc_type") == "paper" and item.get("operation") != "no-promotion"
+    ]
+    return repo_root / papers[0]["canonical_path"] if len(papers) == 1 else None
+
+
+def validate_global_completeness(
+    *,
+    args: argparse.Namespace,
+    root: Path,
+    manifest: dict,
+    analysis: str,
+    artifacts: dict,
+    skill_root: Path,
+    errors: list[str],
+) -> dict:
+    contract_path = skill_root / "references/completeness-contract.json"
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    required = contract["required_headings"]
+    headings = markdown_headings(analysis)
+    positions = []
+    for heading in required:
+        count = headings.count(heading)
+        add(errors, count == 1, f"completeness: required heading {heading!r} occurs {count} times")
+        if count == 1:
+            positions.append(headings.index(heading))
+        content = section_text(analysis, heading)
+        add(errors, len(re.sub(r"[#|\s-]", "", content)) >= 8,
+            f"completeness: required section {heading!r} is empty or placeholder-only")
+    add(errors, positions == sorted(positions), "completeness: required headings are out of template order")
+
+    template_path = skill_root / "references/review-checklist-template.md"
+    expected_keys = [
+        key for key in (checklist_key(line) for line in template_path.read_text(encoding="utf-8").splitlines())
+        if key
+    ]
+    checklist_info = artifacts.get("review_checklist", {})
+    checklist_path = root / checklist_info.get("path", "review_checklist.md")
+    checklist = checklist_path.read_text(encoding="utf-8") if checklist_path.is_file() else ""
+    actual_keys = [
+        key for key in (checklist_key(line) for line in checklist.splitlines())
+        if key
+    ]
+    add(errors, actual_keys == expected_keys,
+        f"completeness: checklist item sequence differs from template ({len(actual_keys)} vs {len(expected_keys)})")
+    classified = re.findall(r"(?m)^- \[(done|blocked|skipped-with-reason)\]", checklist)
+    add(errors, len(classified) == len(expected_keys),
+        "completeness: every checklist template item must have a final classified status")
+
+    formulas = display_math_blocks(analysis)
+    declared_formulas = manifest.get("explanation_quality", {}).get("formula_explanations", {}).get("entries", [])
+    formula_applicable = manifest.get("explanation_quality", {}).get("formula_explanations", {}).get("applicability") == "applicable"
+    minimum_formula_count = contract["minimum_counts"]["key_formulas_when_applicable"] if formula_applicable else 0
+    add(errors, len(formulas) >= minimum_formula_count,
+        f"completeness: found {len(formulas)} key formula blocks, expected at least {minimum_formula_count}")
+    add(errors, len(formulas) == len(declared_formulas),
+        f"completeness: Markdown formula blocks ({len(formulas)}) != manifest formula entries ({len(declared_formulas)})")
+    formula_section = section_text(analysis, "### 4.4 关键公式")
+    formula_matches = list(re.finditer(r"(?ms)^\$\$\s*\n?.*?\n?\s*\$\$\s*$", formula_section))
+    for label in contract["formula_explanation_labels"]:
+        add(errors, formula_section.count(label) == len(formulas),
+            f"completeness: formula-card label {label!r} occurs {formula_section.count(label)} times for {len(formulas)} formulas")
+    for index, match in enumerate(formula_matches, start=1):
+        end = formula_matches[index].start() if index < len(formula_matches) else len(formula_section)
+        card = formula_section[match.end():end]
+        for label in contract["formula_explanation_labels"]:
+            add(errors, card.count(label) == 1,
+                f"completeness: formula {index} must have one adjacent {label!r} field")
+
+    failure_rows = table_data_rows(analysis, "### 2.2 现有方案为何不够")
+    declared_failures = manifest.get("explanation_quality", {}).get("prior_solution_explanation", {}).get("failure_modes", [])
+    minimum_failures = contract["minimum_counts"]["prior_failure_modes"]
+    add(errors, len(failure_rows) >= minimum_failures,
+        f"completeness: prior-failure table has {len(failure_rows)} rows, expected at least {minimum_failures}")
+    add(errors, len(failure_rows) == len(declared_failures),
+        f"completeness: prior-failure rows ({len(failure_rows)}) != manifest entries ({len(declared_failures)})")
+
+    rationale_rows = table_data_rows(analysis, "### 4.2 组件级设计动机与具体问题映射")
+    declared_rationales = manifest.get("design_rationales", [])
+    minimum_rationales = contract["minimum_counts"]["design_rationales"]
+    add(errors, len(rationale_rows) >= minimum_rationales,
+        f"completeness: design-rationale table has {len(rationale_rows)} rows, expected at least {minimum_rationales}")
+    add(errors, len(rationale_rows) == len(declared_rationales),
+        f"completeness: design-rationale rows ({len(rationale_rows)}) != manifest entries ({len(declared_rationales)})")
+
+    refs = image_paths(analysis)
+    ref_names = [Path(path).name for path in refs]
+    add(errors, len(ref_names) == len(set(ref_names)), "completeness: duplicate Markdown image references")
+    process_pngs = sorted(
+        path for path in (root / "figures").rglob("*.png")
+        if path.name != "contact-sheet.png"
+    ) if (root / "figures").is_dir() else []
+    process_names = [path.name for path in process_pngs]
+    add(errors, set(ref_names) == set(process_names),
+        f"completeness: Markdown image set and process PNG set differ; refs={sorted(ref_names)}, files={sorted(process_names)}")
+    visual = manifest.get("visual_evidence", {})
+    add(errors, len(ref_names) == visual.get("counted_total"),
+        f"completeness: Markdown images ({len(ref_names)}) != manifest counted_total ({visual.get('counted_total')})")
+    inventory_info = artifacts.get("figure_inventory", {})
+    inventory_path = root / inventory_info.get("path", "figure_inventory.md")
+    inventory = inventory_path.read_text(encoding="utf-8") if inventory_path.is_file() else ""
+    for name in ref_names:
+        add(errors, name in inventory, f"completeness: image {name} missing from figure inventory")
+    inventory_names = set(re.findall(r"[A-Za-z0-9_.-]+\.png", inventory)) - {"contact-sheet.png"}
+    add(errors, inventory_names == set(process_names),
+        f"completeness: inventory PNG set and process PNG set differ; inventory={sorted(inventory_names)}, files={sorted(process_names)}")
+    for path in refs:
+        match = re.search(rf"!\[[^\]]*\]\({re.escape(path)}\)", analysis)
+        if match:
+            neighborhood = analysis[max(0, match.start() - 700):match.start()] + analysis[match.end():match.end() + 700]
+            prose = re.sub(r"[\s#|`*\[\]()$.:;，。；：/\\-]", "", neighborhood)
+            add(errors, len(prose) >= 40,
+                f"completeness: image {Path(path).name} lacks nearby explanatory prose")
+
+    canonical_path = resolve_canonical(args, root, manifest)
+    canonical_checked = canonical_path is not None
+    if manifest.get("invocation_mode") == "standalone":
+        add(errors, canonical_path is not None,
+            "completeness: standalone delivery must resolve exactly one canonical Paper projection")
+    if canonical_path is not None:
+        add(errors, canonical_path.is_file(), f"completeness: canonical Paper missing: {canonical_path}")
+        canonical = canonical_path.read_text(encoding="utf-8") if canonical_path.is_file() else ""
+        canonical_headings = markdown_headings(canonical)
+        add(errors, all(canonical_headings.count(item) == 1 for item in required),
+            "completeness: canonical Paper does not contain every required heading exactly once")
+        canonical_positions = [canonical_headings.index(item) for item in required if item in canonical_headings]
+        add(errors, len(canonical_positions) == len(required) and canonical_positions == sorted(canonical_positions),
+            "completeness: canonical Paper headings differ from template order")
+        add(errors, len(display_math_blocks(canonical)) == len(formulas),
+            "completeness: canonical Paper and analysis have different key-formula counts")
+        canonical_images = [Path(path).name for path in image_paths(canonical)]
+        add(errors, set(canonical_images) == set(ref_names),
+            "completeness: canonical Paper and analysis have different visual evidence sets")
+        add(errors, parse_frontmatter_tags(canonical) == parse_frontmatter_tags(analysis),
+            "completeness: canonical Paper and analysis frontmatter tags differ")
+        for heading in required:
+            content = section_text(canonical, heading)
+            add(errors, len(re.sub(r"[#|\s-]", "", content)) >= 8,
+                f"completeness: canonical section {heading!r} is empty or placeholder-only")
+
+    freeze = section_text(analysis, "## 14. 冻结前发布审计")
+    freeze_concepts = ("渲染", "邻近", "临时", "审计")
+    for concept in freeze_concepts:
+        add(errors, concept in freeze, f"completeness: freeze audit does not record {concept!r} evidence")
+    placeholder_input = "\n".join(
+        line for line in analysis.splitlines()
+        if not line.startswith("- 临时标记扫描：")
+    )
+    placeholders = re.findall(r"(?i)(<[^>]+>|\bTODO\b|\bFIXME\b|\[pending\])", placeholder_input)
+    add(errors, not placeholders, f"completeness: frozen analysis contains placeholders {placeholders[:5]}")
+
+    return {
+        "contract": str(contract_path),
+        "contract_sha256": sha256_path(contract_path),
+        "required_headings": len(required),
+        "checklist_items": len(expected_keys),
+        "formula_blocks": len(formulas),
+        "prior_failure_rows": len(failure_rows),
+        "design_rationale_rows": len(rationale_rows),
+        "visual_references": len(ref_names),
+        "canonical_checked": canonical_checked,
+    }
 
 
 def main() -> int:
@@ -274,6 +502,16 @@ def main() -> int:
         add(errors, all(checks.values()),
             "complete delivery has one or more false semantic_validation checks")
 
+    completeness = validate_global_completeness(
+        args=args,
+        root=root,
+        manifest=manifest,
+        analysis=analysis,
+        artifacts=artifacts,
+        skill_root=skill_root,
+        errors=errors,
+    )
+
     result = {
         "validator": "paper-deep-review/scripts/validate_deliverable.py",
         "manifest": str(manifest_path),
@@ -285,6 +523,7 @@ def main() -> int:
         ),
         "checked_formulas": len(formulas),
         "checked_prior_failure_modes": len(prior.get("failure_modes", [])),
+        "global_completeness": completeness,
         "errors": errors,
     }
     rendered = json.dumps(result, ensure_ascii=False, indent=2)
