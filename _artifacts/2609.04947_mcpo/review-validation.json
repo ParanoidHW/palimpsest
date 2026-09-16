@@ -1,0 +1,21 @@
+{
+  "validator": "paper-deep-review/scripts/validate_deliverable.py",
+  "manifest": "/mnt/d/huangwei/markdown/_artifacts/2609.04947_mcpo/deliverable_manifest.json",
+  "schema": "/mnt/d/huangwei/markdown/.agents/skills/paper-deep-review/references/deliverable-schema.json",
+  "status": "passed",
+  "checked_artifacts": 6,
+  "checked_formulas": 8,
+  "checked_prior_failure_modes": 4,
+  "global_completeness": {
+    "contract": "/mnt/d/huangwei/markdown/.agents/skills/paper-deep-review/references/completeness-contract.json",
+    "contract_sha256": "cf6f3e04d8e07197988c0198e90408dada7117411103337694fb33b8fb251893",
+    "required_headings": 48,
+    "checklist_items": 63,
+    "formula_blocks": 8,
+    "prior_failure_rows": 4,
+    "design_rationale_rows": 8,
+    "visual_references": 4,
+    "canonical_checked": true
+  },
+  "errors": []
+}

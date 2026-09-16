@@ -1,4 +1,11 @@
-# DME Figure Inventory
+# Multimodal Understanding Figure Inventory
+
+> [!info] 文档关系
+> - 文档类型：Evidence
+> - 领域入口：[多模态理解与检索](../README.md)
+> - Paper 索引：[Paper Index](paper-index.md)
+
+## DME (arXiv:2608.02148v3)
 
 Source: `arXiv:2608.02148v3`, LaTeX source archive. Source visuals were rasterized at 220 DPI and trimmed with a 16 px white safety border. Each entry is one numbered object; the visual asset itself has no caption, so the complete source caption is adjacent in the Paper Markdown.
 
@@ -14,3 +21,16 @@ Source: `arXiv:2608.02148v3`, LaTeX source archive. Source visuals were rasteriz
 | Figure 8 | 17 | 1153x1358 | (119,13,1153,1358) | `../assets/papers/douyin-multimodal-embedding/fig-generate_3.png` | Reconstruction visualization on video moment-retrieval inputs. | §5.5 information completeness | contact-sheet passed; individual 100% passed |
 
 Contact sheet is retained in the process package. All crops were inspected individually at original resolution after contact-sheet triage; no blank canvas, clipped panel, neighboring numbered object, or >5% unrelated margin remains.
+
+## MCPO (arXiv:2609.04947v1)
+
+Source: arXiv:2609.04947v1 PDF, 10 pages, letter 612×792 pt. Pages were rasterized at 180 DPI to 1530×1980 px. Each crop contains one numbered figure and its full caption with an 8--32 px safety margin. Contact-sheet triage and individual 100% inspection passed on 2026-09-16.
+
+| Object | PDF page | Source dimensions | Crop bbox `(x,y,w,h)` | Asset | Complete caption | Usage | QA |
+|---|---:|---:|---|---|---|---|---|
+| Figure 1 | 2 | 1530×1980 | `(96,175,1338,610)` | `../assets/papers/mcpo/fig1-empirical-overview-caption.png` | Comprehensive empirical evaluation of the MCPO framework on Qwen3-VL-8B-Thinking. (a) Multi-benchmark vector shift illustrating the optimization trajectory from Base-8B to MCPO across MathVista, ScienceQA, MMMU, and MMStar: thinking token lengths are significantly compressed (by 42.6%--69.5%) while maintaining competitive task accuracy compared to StepEntropy and REFRAIN baselines. (b) Dual-axis hyperparameter landscape measuring accuracy and token length sensitivity across contrastive weights $\alpha\in\{0.0,0.05,0.1,0.2\}$, identifying $\alpha=0.05$ as the optimal Pareto choice. (c) Overthinking mitigation across reasoning difficulty levels, demonstrating that MCPO adaptively curtails redundant reasoning steps on simple tasks while unlocking a +10.3% absolute accuracy boost on Hard reasoning tasks. | [MCPO §5.1](../papers/mcpo.md#51-主结果) | one numbered object; full caption; original-resolution text readable; passed |
+| Figure 2 | 3 | 1530×1980 | `(96,180,1338,620)` | `../assets/papers/mcpo/fig2-mcpo-pipeline-caption.png` | Overview of the proposed MCPO (Modality-Contrastive Preference Optimization) framework. The offline phase leverages step-level NCMI to adaptively prune ungrounded reasoning steps and construct compact chosen trajectories. In the online phase, an asymmetric loss combines steep log-odds in multimodal contexts with flat linear constraints in unimodal contexts to maintain strong visual dependencies while preventing probability collapse. | [MCPO §4.1](../papers/mcpo.md#41-方法总览) | one numbered object; full caption; original-resolution labels readable; passed |
+| Figure 3 | 5 | 1530×1980 | `(96,175,1338,625)` | `../assets/papers/mcpo/fig3-clevr-case-caption.png` | Qualitative case study on a CLEVR visual reasoning example. Comparing the original verbose CoT ($y_{orig}$, 168 tokens) against our MCPO pruned CoT ($y_w$, 42 tokens). MCPO effectively identifies and prunes redundant self-doubt loops and text-only prompt repetitions using step-level NCMI, replacing them with `[SKIP]` tokens to achieve a 75% length reduction while preserving strict visual grounding. | [MCPO §2.2](../papers/mcpo.md#22-现有方案为何不够) | one numbered object; full caption; original-resolution labels readable; passed |
+| Figure 4 | 8 | 1530×1980 | `(96,175,1338,520)` | `../assets/papers/mcpo/fig4-latency-caption.png` | System-level end-to-end inference latency and speedup analysis. (a) Execution time per sample across four multimodal benchmarks on Qwen3-VL-8B-Thinking. (b) Cross-scale latency reduction on Qwen3-VL-4B-Thinking. (c) Speedup multipliers across different contrastive weight configurations $\alpha$, demonstrating up to 3.34× end-to-end inference speedup on complex multimodal reasoning tasks. | [MCPO §8.6](../papers/mcpo.md#86-系统性能分析) | one numbered object; full caption; original-resolution axes readable; passed |
+
+The MCPO Paper links all four assets near the claims they support. The process-side contact sheet is intentionally not promoted.

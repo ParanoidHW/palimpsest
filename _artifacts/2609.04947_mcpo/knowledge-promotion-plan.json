@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.1.0",
+  "task": "Publish the evidence-locked deep review of arXiv:2609.04947v1 (MCPO)",
+  "repository_root": "/mnt/d/huangwei/markdown",
+  "organization_binding": {
+    "organization_schema_version": "1.0.0",
+    "organization_schema_sha256": "c182904b3083e912117e109dcf97f6f73e93119666908ef14fedb6deb8f961dd",
+    "default_profile_sha256": "574617743d18fac813cd4c311e45b68a6e6570f65772baebefbbdd796ea48a2e",
+    "resolved_profile_id": "research-vault",
+    "repository_profile": "research-knowledge.profile.json",
+    "repository_profile_sha256": "f7d1ae790ca93e9a494234eb619d2e7657f95bb9d97453a08854f5baf41fe5f8",
+    "process_root": "_artifacts/2609.04947_mcpo"
+  },
+  "domains": [
+    "02_model_systems/multimodal_understanding"
+  ],
+  "items": [
+    {
+      "canonical_id": "paper:arxiv-2609.04947v1",
+      "domain": "02_model_systems/multimodal_understanding",
+      "doc_type": "paper",
+      "slug": "mcpo",
+      "canonical_path": "02_model_systems/multimodal_understanding/papers/mcpo.md",
+      "operation": "create",
+      "source_artifacts": ["_artifacts/2609.04947_mcpo/analysis.md"],
+      "owner": "paper:arxiv-2609.04947v1"
+    },
+    {
+      "canonical_id": "evidence:multimodal-understanding-paper-index",
+      "domain": "02_model_systems/multimodal_understanding",
+      "doc_type": "evidence",
+      "slug": "paper-index",
+      "canonical_path": "02_model_systems/multimodal_understanding/evidence/paper-index.md",
+      "operation": "create",
+      "source_artifacts": ["_artifacts/2609.04947_mcpo/analysis.md"],
+      "owner": "02_model_systems/multimodal_understanding"
+    },
+    {
+      "canonical_id": "evidence:multimodal-understanding-figure-inventory",
+      "domain": "02_model_systems/multimodal_understanding",
+      "doc_type": "evidence",
+      "slug": "figure-inventory",
+      "canonical_path": "02_model_systems/multimodal_understanding/evidence/figure-inventory.md",
+      "operation": "update",
+      "source_artifacts": ["_artifacts/2609.04947_mcpo/figure_inventory.md"],
+      "owner": "02_model_systems/multimodal_understanding"
+    },
+    {
+      "canonical_id": "evidence:multimodal-understanding-readme",
+      "domain": "02_model_systems/multimodal_understanding",
+      "doc_type": "evidence",
+      "slug": "readme",
+      "canonical_path": "02_model_systems/multimodal_understanding/README.md",
+      "operation": "update",
+      "source_artifacts": ["_artifacts/2609.04947_mcpo/analysis.md"],
+      "owner": "02_model_systems/multimodal_understanding"
+    },
+    {
+      "canonical_id": "asset:mcpo-figure-1",
+      "domain": "02_model_systems/multimodal_understanding",
+      "doc_type": "asset",
+      "slug": "mcpo-figure-1",
+      "canonical_path": "02_model_systems/multimodal_understanding/assets/papers/mcpo/fig1-empirical-overview-caption.png",
+      "operation": "create",
+      "source_artifacts": ["_artifacts/2609.04947_mcpo/figures/crops/fig1-empirical-overview-caption.png"],
+      "owner": "paper:arxiv-2609.04947v1"
+    },
+    {
+      "canonical_id": "asset:mcpo-figure-2",
+      "domain": "02_model_systems/multimodal_understanding",
+      "doc_type": "asset",
+      "slug": "mcpo-figure-2",
+      "canonical_path": "02_model_systems/multimodal_understanding/assets/papers/mcpo/fig2-mcpo-pipeline-caption.png",
+      "operation": "create",
+      "source_artifacts": ["_artifacts/2609.04947_mcpo/figures/crops/fig2-mcpo-pipeline-caption.png"],
+      "owner": "paper:arxiv-2609.04947v1"
+    },
+    {
+      "canonical_id": "asset:mcpo-figure-3",
+      "domain": "02_model_systems/multimodal_understanding",
+      "doc_type": "asset",
+      "slug": "mcpo-figure-3",
+      "canonical_path": "02_model_systems/multimodal_understanding/assets/papers/mcpo/fig3-clevr-case-caption.png",
+      "operation": "create",
+      "source_artifacts": ["_artifacts/2609.04947_mcpo/figures/crops/fig3-clevr-case-caption.png"],
+      "owner": "paper:arxiv-2609.04947v1"
+    },
+    {
+      "canonical_id": "asset:mcpo-figure-4",
+      "domain": "02_model_systems/multimodal_understanding",
+      "doc_type": "asset",
+      "slug": "mcpo-figure-4",
+      "canonical_path": "02_model_systems/multimodal_understanding/assets/papers/mcpo/fig4-latency-caption.png",
+      "operation": "create",
+      "source_artifacts": ["_artifacts/2609.04947_mcpo/figures/crops/fig4-latency-caption.png"],
+      "owner": "paper:arxiv-2609.04947v1"
+    }
+  ],
+  "required_links": [
+    {"from": "02_model_systems/multimodal_understanding/README.md", "to": "02_model_systems/multimodal_understanding/papers/mcpo.md", "relation": "indexes"},
+    {"from": "02_model_systems/multimodal_understanding/README.md", "to": "02_model_systems/multimodal_understanding/evidence/paper-index.md", "relation": "indexes"},
+    {"from": "02_model_systems/multimodal_understanding/evidence/paper-index.md", "to": "02_model_systems/multimodal_understanding/papers/mcpo.md", "relation": "indexes"},
+    {"from": "02_model_systems/multimodal_understanding/papers/mcpo.md", "to": "02_model_systems/multimodal_understanding/README.md", "relation": "backlink"},
+    {"from": "02_model_systems/multimodal_understanding/papers/mcpo.md", "to": "02_model_systems/multimodal_understanding/evidence/paper-index.md", "relation": "backlink"},
+    {"from": "02_model_systems/multimodal_understanding/papers/mcpo.md", "to": "02_model_systems/multimodal_understanding/assets/papers/mcpo/", "relation": "evidence-for"}
+  ],
+  "validation": [
+    "promotion-plan schema 1.1.0",
+    "paper-deep-review strict validator",
+    "research-knowledge-publisher validator",
+    "relative links and anchors",
+    "Git-tracked formal assets",
+    "orphan and forbidden-reference scan"
+  ]
+}

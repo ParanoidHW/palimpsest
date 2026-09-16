@@ -1,0 +1,93 @@
+{
+  "validation_schema_version": "2.0.0",
+  "repository_root": "/mnt/d/huangwei/markdown",
+  "domain": "02_model_systems/multimodal_understanding",
+  "organization": {
+    "schema_version": "1.0.0",
+    "profile_id": "research-vault",
+    "process_root": "_artifacts",
+    "domain_entry": "README.md",
+    "document_paths": {
+      "survey": "surveys",
+      "paper": "papers",
+      "topic": "topics",
+      "evidence": "evidence",
+      "supplement": "supplements"
+    },
+    "asset_paths": {
+      "root": "assets",
+      "survey_template": "assets/surveys/{slug}",
+      "paper_template": "assets/papers/{slug}"
+    },
+    "process_only_kinds": [
+      "pdf",
+      "source-snapshot",
+      "page-render",
+      "crop-in-progress",
+      "contact-sheet",
+      "search-cache",
+      "build-script",
+      "manifest",
+      "log",
+      "qa-output"
+    ],
+    "relationships": {
+      "domain_entry_indexes": [
+        "survey",
+        "paper",
+        "topic",
+        "evidence"
+      ],
+      "survey_links_to": [
+        "paper",
+        "evidence"
+      ],
+      "paper_backlinks_to_any": [
+        "survey",
+        "evidence"
+      ],
+      "paper_backlinks_to_all": [
+        "domain-entry"
+      ]
+    },
+    "formal_forbidden_patterns": [
+      "_artifacts",
+      "file://",
+      "page_png",
+      "page-render",
+      "page_render"
+    ],
+    "validation": {
+      "require_relative_links": true,
+      "require_git_tracked_assets": true,
+      "check_orphan_documents": true,
+      "check_orphan_assets": true,
+      "relationship_block_style": "obsidian-callout"
+    }
+  },
+  "organization_provenance": {
+    "organization_schema": "/mnt/d/huangwei/markdown/.agents/skills/research-knowledge-publisher/references/organization-schema.json",
+    "organization_schema_sha256": "c182904b3083e912117e109dcf97f6f73e93119666908ef14fedb6deb8f961dd",
+    "default_profile": "/mnt/d/huangwei/markdown/.agents/skills/research-knowledge-publisher/references/default-profile.json",
+    "default_profile_sha256": "574617743d18fac813cd4c311e45b68a6e6570f65772baebefbbdd796ea48a2e",
+    "repository_profile": "/mnt/d/huangwei/markdown/research-knowledge.profile.json",
+    "repository_profile_sha256": "f7d1ae790ca93e9a494234eb619d2e7657f95bb9d97453a08854f5baf41fe5f8",
+    "policy_documents": [
+      {
+        "path": "AGENTS.md",
+        "exists": true,
+        "sha256": "762851bd66296d7bc229ea0903f376bec88058192edf4075f7c709d3af157b5e"
+      },
+      {
+        "path": "00_meta/research-knowledge-organization.md",
+        "exists": true,
+        "sha256": "dc4b59e668ab0e503c97a3f122d1921eafe700519188fdc8edd5645946db60d0"
+      }
+    ]
+  },
+  "status": "passed",
+  "checked_markdown": 6,
+  "referenced_assets": 12,
+  "errors": [],
+  "warnings": []
+}
