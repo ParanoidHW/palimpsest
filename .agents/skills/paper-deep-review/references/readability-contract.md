@@ -2,6 +2,21 @@
 
 Apply this contract before drafting and again as a dedicated revision pass. The target reader is technically literate but has not read the paper. Evidence accuracy and accessibility are both completion requirements.
 
+## 0. Problem-first opening
+
+Before method acronyms, component names, and equations, make the problem observable through at least one concrete end-to-end scenario. The scenario must identify:
+
+1. who or what is operating;
+2. the input, workload, or environment;
+3. what the current/prior approach does;
+4. the exact step where it fails;
+5. the visible quality, correctness, cost, latency, memory, or safety consequence;
+6. what behavior a successful method must preserve and what it must change.
+
+Prefer a motivating example, case study, Figure, trace, or measured failure from the paper. If the paper has no suitable example, construct the smallest useful scenario and label it “本文为便于理解所做的重构，不是论文逐字案例/实验”. Do not invent measurements, implementation details, or author intent.
+
+The scenario must appear near the opening or in “2.1 出发点与背景痛点”, before the reader is expected to understand the proposed solution. A taxonomy, abstract paraphrase, contribution list, or table of failure labels is not a substitute. After reading the scenario alone, an unfamiliar reader should be able to answer: “What specifically goes wrong today, and what must this paper make different?”
+
 ## 1. Formula explanation card
 
 Do not place several equations in a row and explain them only through a remote symbol table. Immediately after every key formula, answer:
@@ -111,13 +126,15 @@ For the method section, a design-rationale table is an index for scanning, not a
 Before completion, reread only these four parts as if unfamiliar with the paper:
 
 1. the first paragraph;
-2. “现有方案为何不够”;
-3. the algorithm overview;
-4. the key-formula explanation cards.
+2. the concrete motivating scenario;
+3. “现有方案为何不够”;
+4. the algorithm overview;
+5. the key-formula explanation cards.
 
 The reader should be able to state, without consulting another section:
 
 - what breaks in the old approach;
+- where the failure occurs in a concrete workflow and what consequence is visible;
 - what the paper changes;
 - how data/state flows through the method;
 - what each key equation computes;
