@@ -30,8 +30,8 @@
   "revision_info": {
     "document_path": "analysis.md",
     "section_heading": "修订信息",
-    "current_version": "1.0.2",
-    "current_revision_id": "rev-mcpo-v1-problem-scenario-20260917",
+    "current_version": "1.0.3",
+    "current_revision_id": "rev-mcpo-v1-data-pruning-boundary-20260917",
     "history": [{
       "revision_id": "rev-mcpo-v1-initial-20260916",
       "version": "1.0.0",
@@ -81,6 +81,24 @@
       "affected_locations": ["analysis.md#opening", "analysis.md#1.1 摘要中文翻译", "analysis.md#2.1 出发点与背景痛点"],
       "evidence": ["User feedback on 2026-09-17", "arXiv:2609.04947v1 abstract", "paper Figure 3"],
       "impact_on_conclusions": "minor"
+    }, {
+      "revision_id": "rev-mcpo-v1-data-pruning-boundary-20260917",
+      "version": "1.0.3",
+      "revised_at": "2026-09-17T15:21:27+08:00",
+      "revised_by": "/root",
+      "revision_type": "content-update",
+      "supersedes": {
+        "kind": "tracked",
+        "revision_id": "rev-mcpo-v1-problem-scenario-20260917",
+        "version": "1.0.2",
+        "deliverable_manifest_sha256": "95145187840586d8a971dd6b3b02474d875a34e80b04f6f3b7967c79b71759cd"
+      },
+      "migration_resolution": null,
+      "summary": "Clarify that MCPO prunes within-sample reasoning text, then internalizes short-chain generation through training",
+      "reason": "Reader feedback identified ambiguity between whole-corpus pruning, within-sample trajectory pruning, and the need for multimodal-specific optimization.",
+      "affected_locations": ["analysis.md#opening", "analysis.md#2.1 出发点与背景痛点", "analysis.md#4.1 方法总览"],
+      "evidence": ["User feedback on 2026-09-17", "arXiv:2609.04947v1 §3.2-3.3", "paper Figure 2", "paper Figure 3"],
+      "impact_on_conclusions": "minor"
     }]
   },
   "schema_validation": {"status": "passed", "validator": "paper-deep-review/scripts/validate_deliverable.py (Draft 2020-12, strict canonical mode)", "errors": []},
@@ -114,7 +132,7 @@
   },
   "artifacts": {
     "paper_pdf": {"status": "present", "path": "paper.pdf", "sha256": "e3944062585ca7abab3a77f304c6a15305c175e708f40bec7535f044c854d2d0", "reason": null},
-    "analysis": {"status": "present", "path": "analysis.md", "sha256": "bcc632fb95ede3461aac0cf9c9770ee30263cb9a8e589c495cd3628577839d7d", "reason": null},
+    "analysis": {"status": "present", "path": "analysis.md", "sha256": "729ee1c850ca4db76c5b0c61822b78b9bd3734c6ca58968e8523a94e74f407a4", "reason": null},
     "review_checklist": {"status": "present", "path": "review_checklist.md", "sha256": "abdecf4fa16c72ff09e4960f3e7402adcb0778788a982535d4f4b78161b129cb", "reason": null},
     "figure_inventory": {"status": "present", "path": "figure_inventory.md", "sha256": "41872ffff20d816507bb4dc505e1357c65fbb26b6b1bdd1bf25849c256e86357", "reason": null},
     "contact_sheet": {"status": "present", "path": "figures/contact-sheet.png", "sha256": "f9464877c6d86f7036d6297533acd92d41c51db4207fea6c064f668816b043d7", "reason": null},
