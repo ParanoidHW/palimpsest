@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1.0",
-  "task": "Publish MCPO review revision 1.0.1 with renderer-compatible §4.4 formulas",
+  "task": "Publish MCPO review revision 1.0.2 with a problem-first explanation, Chinese abstract translation, and concrete motivating scenario",
   "repository_root": "/mnt/d/huangwei/markdown",
   "organization_binding": {
     "organization_schema_version": "1.0.0",
