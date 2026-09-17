@@ -14,13 +14,14 @@ MCPO 用不足 900 条训练样本学习把多模态长推理压短：先比较�
 
 ## 修订信息
 
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-mcpo-v1-initial-20260916`
-- 当前修订时间：`2026-09-16T12:00:00+08:00`
+- 当前文档版本：`1.0.1`
+- 当前修订 ID：`rev-mcpo-v1-formula-rendering-20260917`
+- 当前修订时间：`2026-09-17T12:00:56+08:00`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 替代修订 | 变更位置 | 原因与证据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|
 | `rev-mcpo-v1-initial-20260916` | `1.0.0` | 2026-09-16 | initial | 无 | 全文 | arXiv:2609.04947v1 PDF、v1 LaTeX 源码与逐图 QA | 初始精读 |
+| `rev-mcpo-v1-formula-rendering-20260917` | `1.0.1` | 2026-09-17 | format-only | `rev-mcpo-v1-initial-20260916` / manifest `02b9cd…d077` | §4.4 | 用户报告多式编号在部分 Markdown 数学渲染器中失败；改用可移植的可见编号并拆分长行 | 无 |
 
 ## 0. 资料与配图索引
 
@@ -182,7 +183,10 @@ Figure 3 把第一个失败模式具体化：原链 168 token，其中问题复�
 **式 1：把原链表示为步骤序列。**
 
 $$
-y_{\mathrm{orig}}=(S_1,S_2,\ldots,S_N). \tag{1}
+\begin{aligned}
+y_{\mathrm{orig}}&=(S_1,S_2,\ldots,S_N)
+&&\qquad\text{(1)}
+\end{aligned}
 $$
 
 **这条公式在算什么？** 定义后续剪枝的最小单位。
@@ -203,9 +207,18 @@ $$
 
 $$
 \begin{aligned}
-\operatorname{NCMI}(S_i)&=\log P_\theta(S_i\mid I,T,S_{1:i-1})-\log P_\theta(S_i\mid I_\emptyset,T,S_{1:i-1}), \tag{2}\\
-\log P_\theta(S_i\mid I,T,S_{1:i-1})&=\frac{1}{|S_i|}\sum_{x_t\in S_i}\log\pi_\theta(x_t\mid x_{1:t-1},S_{1:i-1},I,T), \tag{3}\\
-\log P_\theta(S_i\mid I_\emptyset,T,S_{1:i-1})&=\frac{1}{|S_i|}\sum_{x_t\in S_i}\log\pi_\theta(x_t\mid x_{1:t-1},S_{1:i-1},I_\emptyset,T). \tag{4}
+\operatorname{NCMI}(S_i)
+&=\log P_\theta(S_i\mid I,T,S_{1:i-1})\\
+&\quad-\log P_\theta(S_i\mid I_\emptyset,T,S_{1:i-1})
+&&\qquad\text{(2)}\\[4pt]
+\log P_\theta(S_i\mid I,T,S_{1:i-1})
+&=\frac{1}{|S_i|}\sum_{x_t\in S_i}
+\log\pi_\theta(x_t\mid x_{1:t-1},S_{1:i-1},I,T)
+&&\qquad\text{(3)}\\[4pt]
+\log P_\theta(S_i\mid I_\emptyset,T,S_{1:i-1})
+&=\frac{1}{|S_i|}\sum_{x_t\in S_i}
+\log\pi_\theta(x_t\mid x_{1:t-1},S_{1:i-1},I_\emptyset,T)
+&&\qquad\text{(4)}
 \end{aligned}
 $$
 
@@ -226,9 +239,12 @@ $$
 **式 5：动态阈值。**
 
 $$
-\mathrm{CV}=\frac{\sigma_{\mathrm{NCMI}}}{|\mu_{\mathrm{NCMI}}|},\quad
-\beta=-1+\mathrm{CV}\cdot\mathrm{scale},\quad
-\tau=\mu_{\mathrm{NCMI}}+\beta\sigma_{\mathrm{NCMI}}. \tag{5}
+\begin{aligned}
+\mathrm{CV}&=\frac{\sigma_{\mathrm{NCMI}}}{|\mu_{\mathrm{NCMI}}|},\qquad
+\beta=-1+\mathrm{CV}\cdot\mathrm{scale},\\
+\tau&=\mu_{\mathrm{NCMI}}+\beta\sigma_{\mathrm{NCMI}}
+&&\qquad\text{(5)}
+\end{aligned}
 $$
 
 **这条公式在算什么？** 为每个样本生成剪枝阈值。
@@ -248,7 +264,12 @@ $$
 **式 6：总训练目标。**
 
 $$
-\mathcal L_{\mathrm{Total}}(\theta)=\mathcal L_{\mathrm{VGLP}}(\theta\mid I,T)+\alpha\mathcal L_{\mathrm{MILP}}(\theta\mid I_\emptyset,T). \tag{6}
+\begin{aligned}
+\mathcal L_{\mathrm{Total}}(\theta)
+&=\mathcal L_{\mathrm{VGLP}}(\theta\mid I,T)\\
+&\quad+\alpha\mathcal L_{\mathrm{MILP}}(\theta\mid I_\emptyset,T)
+&&\qquad\text{(6)}
+\end{aligned}
 $$
 
 **这条公式在算什么？** 合并有图主偏好与视觉清零正则。
@@ -269,9 +290,16 @@ $$
 
 $$
 \begin{aligned}
-\mathcal L_{\mathrm{VGLP}}&=-\mathbb E\log\sigma\!\left(R_{\mathrm{VGLP}}(y_w\mid I,T)-R_{\mathrm{VGLP}}(y_l\mid I,T)\right), \tag{7}\\
-R_{\mathrm{VGLP}}(y\mid I,T)=\log\frac{p(y\mid I,T)}{1-p(y\mid I,T)+\epsilon},\quad
-p=\exp\!\left(\overline{\log p}_\theta(y\mid I,T)\right). \tag{8}
+\mathcal L_{\mathrm{VGLP}}
+&=-\mathbb E\log\sigma\!\left(
+R_{\mathrm{VGLP}}(y_w\mid I,T)-R_{\mathrm{VGLP}}(y_l\mid I,T)
+\right)
+&&\qquad\text{(7)}\\[4pt]
+R_{\mathrm{VGLP}}(y\mid I,T)
+&=\log\frac{p(y\mid I,T)}{1-p(y\mid I,T)+\epsilon},\\
+p(y\mid I,T)
+&=\exp\!\left(\overline{\log p}_\theta(y\mid I,T)\right)
+&&\qquad\text{(8)}
 \end{aligned}
 $$
 
@@ -293,8 +321,15 @@ $$
 
 $$
 \begin{aligned}
-R_{\mathrm{MILP}}(y\mid I_\emptyset,T)&=\overline{\log p}_\theta(y\mid I_\emptyset,T), \tag{9}\\
-\mathcal L_{\mathrm{MILP}}=-\mathbb E\log\sigma\!\left(R_{\mathrm{MILP}}(y_w\mid I_\emptyset,T)-R_{\mathrm{MILP}}(y_l\mid I_\emptyset,T)\right). \tag{10}
+R_{\mathrm{MILP}}(y\mid I_\emptyset,T)
+&=\overline{\log p}_\theta(y\mid I_\emptyset,T)
+&&\qquad\text{(9)}\\[4pt]
+\mathcal L_{\mathrm{MILP}}
+&=-\mathbb E\log\sigma\!\left(
+R_{\mathrm{MILP}}(y_w\mid I_\emptyset,T)
+-R_{\mathrm{MILP}}(y_l\mid I_\emptyset,T)
+\right)
+&&\qquad\text{(10)}
 \end{aligned}
 $$
 
@@ -316,8 +351,12 @@ $$
 
 $$
 \begin{aligned}
-\left|\frac{\partial\mathcal L_{\mathrm{VGLP}}}{\partial A}\right|&=\left[1-\sigma(\Delta R_V)\right]\frac{1}{1-p_w}, \tag{11}\\
-\left|\frac{\partial(\alpha\mathcal L_{\mathrm{MILP}})}{\partial B}\right|=\alpha\left[1-\sigma(\Delta R_M)\right]. \tag{12}
+\left|\frac{\partial\mathcal L_{\mathrm{VGLP}}}{\partial A}\right|
+&=\left[1-\sigma(\Delta R_V)\right]\frac{1}{1-p_w}
+&&\qquad\text{(11)}\\[4pt]
+\left|\frac{\partial(\alpha\mathcal L_{\mathrm{MILP}})}{\partial B}\right|
+&=\alpha\left[1-\sigma(\Delta R_M)\right]
+&&\qquad\text{(12)}
 \end{aligned}
 $$
 
@@ -338,8 +377,12 @@ $$
 **式 13：论文声称的严格梯度优势。**
 
 $$
-\left|\frac{\partial\mathcal L_{\mathrm{VGLP}}}{\partial A}\right|>
-\left|\frac{\partial(\alpha\mathcal L_{\mathrm{MILP}})}{\partial B}\right|. \tag{13}
+\begin{aligned}
+\left|\frac{\partial\mathcal L_{\mathrm{VGLP}}}{\partial A}\right|
+&>
+\left|\frac{\partial(\alpha\mathcal L_{\mathrm{MILP}})}{\partial B}\right|
+&&\qquad\text{(13)}
+\end{aligned}
 $$
 
 **这条公式在算什么？** 作者把它作为有图学习速度始终快于无图分支的保证。
@@ -569,7 +612,7 @@ MCPO 的实证价值在于用 860 个样本把 Qwen3-VL-Thinking 的推理显著
 
 - Markdown 渲染器：Pandoc 生成独立 HTML，Chromium headless 截图复核。
 - 渲染命令或操作：`pandoc analysis.md --standalone --mathjax`；Chromium 加载本地 HTML 并截取全页。
-- 渲染结果：通过。Pandoc 生成嵌入资产与 MathML 的独立 HTML；Chromium 输出 23 页 PDF，逐页缩略总览未见断图、吞表、公式原样泄漏或横向溢出。
+- 渲染结果：通过。修订 1.0.1 由 Pandoc 生成嵌入资产与 MathML 的独立 HTML，未产生数学转换警告；Chromium 输出 24 页 PDF。对 §4.4 所在第 12--15 页逐页原分辨率检查，式 (1)--(13) 均正常显示，未见源码泄漏、编号重复、裁切或横向溢出。
 - Figure/Table 邻近性审计：Figures 1--4 均紧邻其支持的方法、案例、主结果或时延段落；Tables 1--5 在 §5 原位重建。
 - 临时标记扫描：冻结前运行 HTML comment、占位词和调试标记扫描。
 - 审计证据：`figure_inventory.md`、`review_checklist.md`、最终 validator 输出和渲染截图的人工检查记录。

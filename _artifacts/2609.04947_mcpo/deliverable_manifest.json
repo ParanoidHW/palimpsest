@@ -30,8 +30,8 @@
   "revision_info": {
     "document_path": "analysis.md",
     "section_heading": "修订信息",
-    "current_version": "1.0.0",
-    "current_revision_id": "rev-mcpo-v1-initial-20260916",
+    "current_version": "1.0.1",
+    "current_revision_id": "rev-mcpo-v1-formula-rendering-20260917",
     "history": [{
       "revision_id": "rev-mcpo-v1-initial-20260916",
       "version": "1.0.0",
@@ -45,6 +45,24 @@
       "affected_locations": ["analysis.md", "figure_inventory.md", "figures/crops"],
       "evidence": ["arXiv:2609.04947v1 PDF", "v1 LaTeX source", "individual crop inspection"],
       "impact_on_conclusions": "material"
+    }, {
+      "revision_id": "rev-mcpo-v1-formula-rendering-20260917",
+      "version": "1.0.1",
+      "revised_at": "2026-09-17T12:00:56+08:00",
+      "revised_by": "/root",
+      "revision_type": "format-only",
+      "supersedes": {
+        "kind": "tracked",
+        "revision_id": "rev-mcpo-v1-initial-20260916",
+        "version": "1.0.0",
+        "deliverable_manifest_sha256": "02b9cd024314b2b5c9daac3735d973de65b803fec02836d55c8ff858ba81d077"
+      },
+      "migration_resolution": null,
+      "summary": "Repair §4.4 formula rendering across Markdown math engines",
+      "reason": "User reported that several grouped equations failed to render; aligned blocks contained multiple tag commands.",
+      "affected_locations": ["analysis.md#4.4 关键公式"],
+      "evidence": ["User report on 2026-09-17", "Pandoc MathML and Chromium rendered QA"],
+      "impact_on_conclusions": "none"
     }]
   },
   "schema_validation": {"status": "passed", "validator": "paper-deep-review/scripts/validate_deliverable.py (Draft 2020-12, strict canonical mode)", "errors": []},
@@ -78,8 +96,8 @@
   },
   "artifacts": {
     "paper_pdf": {"status": "present", "path": "paper.pdf", "sha256": "e3944062585ca7abab3a77f304c6a15305c175e708f40bec7535f044c854d2d0", "reason": null},
-    "analysis": {"status": "present", "path": "analysis.md", "sha256": "c2826bfbe28031cd97e73d965b9065fca74d7e12b4e02bebe87294b41a84791b", "reason": null},
-    "review_checklist": {"status": "present", "path": "review_checklist.md", "sha256": "0f57ce276e3eef797a04cced240453fe85a7399b7fa576ff86cd4c52d8a0f599", "reason": null},
+    "analysis": {"status": "present", "path": "analysis.md", "sha256": "54b5465b3841206be453443d090e515285e881f2c2bd15b909cc878fc18ccbc8", "reason": null},
+    "review_checklist": {"status": "present", "path": "review_checklist.md", "sha256": "1a7c11f097e37b81ff946faa21d55b42bb2eb5901d36e616936987e7585612fd", "reason": null},
     "figure_inventory": {"status": "present", "path": "figure_inventory.md", "sha256": "41872ffff20d816507bb4dc505e1357c65fbb26b6b1bdd1bf25849c256e86357", "reason": null},
     "contact_sheet": {"status": "present", "path": "figures/contact-sheet.png", "sha256": "f9464877c6d86f7036d6297533acd92d41c51db4207fea6c064f668816b043d7", "reason": null},
     "source_archive": {"status": "present", "path": "source-v1.tar", "sha256": "a7a0c2e23d278b411764ef3dedc9cf2f39fd88241e5c0aab3dc2f9191b5caa07", "reason": null},

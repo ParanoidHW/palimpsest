@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1.0",
-  "task": "Publish the evidence-locked deep review of arXiv:2609.04947v1 (MCPO)",
+  "task": "Publish MCPO review revision 1.0.1 with renderer-compatible §4.4 formulas",
   "repository_root": "/mnt/d/huangwei/markdown",
   "organization_binding": {
     "organization_schema_version": "1.0.0",
@@ -21,7 +21,7 @@
       "doc_type": "paper",
       "slug": "mcpo",
       "canonical_path": "02_model_systems/multimodal_understanding/papers/mcpo.md",
-      "operation": "create",
+      "operation": "update",
       "source_artifacts": ["_artifacts/2609.04947_mcpo/analysis.md"],
       "owner": "paper:arxiv-2609.04947v1"
     },
@@ -31,7 +31,7 @@
       "doc_type": "evidence",
       "slug": "paper-index",
       "canonical_path": "02_model_systems/multimodal_understanding/evidence/paper-index.md",
-      "operation": "create",
+      "operation": "link-only",
       "source_artifacts": ["_artifacts/2609.04947_mcpo/analysis.md"],
       "owner": "02_model_systems/multimodal_understanding"
     },
@@ -41,7 +41,7 @@
       "doc_type": "evidence",
       "slug": "figure-inventory",
       "canonical_path": "02_model_systems/multimodal_understanding/evidence/figure-inventory.md",
-      "operation": "update",
+      "operation": "link-only",
       "source_artifacts": ["_artifacts/2609.04947_mcpo/figure_inventory.md"],
       "owner": "02_model_systems/multimodal_understanding"
     },
@@ -51,7 +51,7 @@
       "doc_type": "evidence",
       "slug": "readme",
       "canonical_path": "02_model_systems/multimodal_understanding/README.md",
-      "operation": "update",
+      "operation": "link-only",
       "source_artifacts": ["_artifacts/2609.04947_mcpo/analysis.md"],
       "owner": "02_model_systems/multimodal_understanding"
     },
@@ -61,7 +61,7 @@
       "doc_type": "asset",
       "slug": "mcpo-figure-1",
       "canonical_path": "02_model_systems/multimodal_understanding/assets/papers/mcpo/fig1-empirical-overview-caption.png",
-      "operation": "create",
+      "operation": "link-only",
       "source_artifacts": ["_artifacts/2609.04947_mcpo/figures/crops/fig1-empirical-overview-caption.png"],
       "owner": "paper:arxiv-2609.04947v1"
     },
@@ -71,7 +71,7 @@
       "doc_type": "asset",
       "slug": "mcpo-figure-2",
       "canonical_path": "02_model_systems/multimodal_understanding/assets/papers/mcpo/fig2-mcpo-pipeline-caption.png",
-      "operation": "create",
+      "operation": "link-only",
       "source_artifacts": ["_artifacts/2609.04947_mcpo/figures/crops/fig2-mcpo-pipeline-caption.png"],
       "owner": "paper:arxiv-2609.04947v1"
     },
@@ -81,7 +81,7 @@
       "doc_type": "asset",
       "slug": "mcpo-figure-3",
       "canonical_path": "02_model_systems/multimodal_understanding/assets/papers/mcpo/fig3-clevr-case-caption.png",
-      "operation": "create",
+      "operation": "link-only",
       "source_artifacts": ["_artifacts/2609.04947_mcpo/figures/crops/fig3-clevr-case-caption.png"],
       "owner": "paper:arxiv-2609.04947v1"
     },
@@ -91,7 +91,7 @@
       "doc_type": "asset",
       "slug": "mcpo-figure-4",
       "canonical_path": "02_model_systems/multimodal_understanding/assets/papers/mcpo/fig4-latency-caption.png",
-      "operation": "create",
+      "operation": "link-only",
       "source_artifacts": ["_artifacts/2609.04947_mcpo/figures/crops/fig4-latency-caption.png"],
       "owner": "paper:arxiv-2609.04947v1"
     }
