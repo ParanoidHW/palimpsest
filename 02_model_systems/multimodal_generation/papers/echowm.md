@@ -492,6 +492,7 @@ $$
 - 仓库：[jd-opensource/JoyAI-Echo](https://github.com/jd-opensource/JoyAI-Echo/tree/a08f1274573d7cd6ec66719f204951f4227a5173)
 - commit：`a08f1274573d7cd6ec66719f204951f4227a5173`（2026-09-04）。
 - 代码范围：base/Flash 推理、Action DSL、UCPE 配置、因果 rollout、五类缓存、测试与样例；训练脚本未公开。
+- 测试状态：在固定 commit 上运行 `python3 -m pytest -q`，两个测试模块均因当前环境缺少 `torch` 而在收集阶段失败；未安装整套模型依赖或下载权重，因此本文只声称静态代码/配置核验，不声称执行复现。
 
 | 论文机制 | 固定 commit 路径 | 一致性判断 |
 |---|---|---|
@@ -566,9 +567,9 @@ EchoWM 最有价值的贡献，是把跨视角导航统一成保留公制幅度�
 
 ## 14. 冻结前发布审计
 
-- Markdown 渲染器：`markdown-it`（仓库 Node 环境）与 Chromium headless 截图复核。
-- 渲染命令或操作：见最终 `review_checklist.md` 和 validation 记录。
-- 渲染结果：在最终冻结后填写实际结果；表格、公式、图片、caption、标题、列表、锚点和溢出均须人工检查。
-- Figure/Table 邻近性审计：五个对象已安排在其支持的机制、消融或主结果段落附近；最终渲染后再次核验。
-- 临时标记扫描：冻结前运行 HTML comment、TODO、FIXME、pending、debug 与过程注释扫描。
+- Markdown 渲染器：Pandoc 3.8 生成 standalone HTML，Chromium 153 headless 生成 21 页 PDF 与全页 contact sheet。
+- 渲染命令或操作：`pandoc analysis.md --standalone --from=gfm+tex_math_dollars --to=html5`，再由 Chromium 打印 PDF；临时 render 文件在 QA 后删除。
+- 渲染结果：2026-09-18 人工检查 21 页 contact sheet；表格、六个公式块、五张图片、完整 caption、标题、列表和末页均可见，无横向溢出或内容截断。Pandoc 对三处含 `\\qquad`/`\\operatorname` 的 TeX 给出转换 warning，但浏览器打印稿保留了居中公式且可读，不影响 Markdown 源公式。
+- Figure/Table 邻近性审计：五个对象均位于其支持的动机、机制或主结果段落附近，且每个只引用一次。
+- 临时标记扫描：最终正文已扫描 HTML comment、TODO、FIXME、调试词与过程占位语，未发现残留。
 - 审计证据：`review_checklist.md`、`figure_inventory.md`、`deliverable_manifest.json`、`knowledge-validation.json`。
