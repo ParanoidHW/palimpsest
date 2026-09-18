@@ -5,11 +5,11 @@
 1. 哪些研究领域/子领域已经有正式 Survey 或 Paper；
 2. 某篇论文是否已经完成 canonical 分析，应当复用、链接或增量更新，而不是重新生成一份。
 
-> 快照日期：2026-09-16。当前共登记 10 个正式 paper domain、92 篇 canonical Paper。
+> 快照日期：2026-09-18。当前共登记 10 个正式 paper domain、104 篇 canonical Paper。
 >
-> 作者机构元数据：`89/89` 已按论文 PDF 标题页、机构编号和角色脚注核验（2026-09-16）。其中 79 篇为个人作者署名，记录首位列名作者、明确共同一作、明确通讯作者/联系人与去重机构；10 篇为机构署名，仅记录署名机构。未披露字段保持“无法核验”，不按邮箱域名或外部履历推断。
+> 作者机构元数据：`90/90` 已按论文 PDF 标题页、机构编号和角色脚注核验（2026-09-18）。其中 80 篇为个人作者署名，记录首位列名作者、明确共同一作、明确通讯作者/联系人与去重机构；10 篇为机构署名，仅记录署名机构。未披露字段保持“无法核验”，不按邮箱域名或外部履历推断。
 >
-> Obsidian 元数据：`89/89` canonical Paper 已加入统一 YAML Properties（2026-09-16）。每篇均有 `paper`、collection、domain、`status/deep-review` 四项共同层级标签，以及各一项 `topic/*`、`method/*`；独立属性保留文档类型、canonical 状态和集合归属。12 篇 ICML 2026 Paper 先行试验，确认 schema 后推广到其余 Paper。
+> Obsidian 元数据：`90/90` 已完成深度精读的 canonical Paper 加入统一 YAML Properties（2026-09-18）。每篇均有 `paper`、collection、domain、`status/deep-review` 四项共同层级标签，以及各一项 `topic/*`、`method/*`；独立属性保留文档类型、canonical 状态和集合归属。其余短 Paper note 不计入该元数据审计分母。
 
 ## 使用规则
 
@@ -41,9 +41,9 @@
 | `02_model_systems/diffusion` | 1 | language diffusion 与 AR/diffusion/self-speculative 统一 | [Language diffusion serving](../02_model_systems/diffusion/surveys/language-diffusion-serving.md) | 单篇锚点，可继续扩展 |
 | `02_model_systems/embodied_ai` | 13 | VLA、导航、操作策略、world model、3D/4D perception、数据合成 | [Embodied AI evolution](../02_model_systems/embodied_ai/surveys/embodied-ai-evolution-infra.md) | 核心谱系已覆盖 |
 | `02_model_systems/llm_foundations` | 13 | frontier LLM 架构、规模、Infra、looped reasoning 与 linear-attention system adoption | [2026 H1 model scale](../02_model_systems/llm_foundations/surveys/2026h1-model-scale.md) · [Linear Attention Transformer evolution](../02_model_systems/llm_foundations/surveys/linear-attention-transformer-evolution.md) | 新增 Looped Transformer 推理/潜在思维 canonical Paper；Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet、Kimi Linear、Mamba-3、Gated DeltaNet-2 已完成独立验收；Kimi K3 复用；taxonomy 独立计入 benchmark lane |
-| `02_model_systems/multimodal_generation` | 19 | image/video diffusion、AR/flow、MoT、VAE、cache、稀疏 attention、serving | [Visual generation landscape](../02_model_systems/multimodal_generation/surveys/visual-generation-model-landscape.md) | Sparse VideoGen 方法族与 Jenga pipeline 已覆盖 |
+| `02_model_systems/multimodal_generation` | 21 | image/video/audio diffusion、AR/flow、MoT、world model、VAE、cache、稀疏 attention、serving | [Diffusion evolution](../02_model_systems/multimodal_generation/surveys/diffusion-evolution.md) | Sparse VideoGen/Jenga pipeline 与 EchoWM 可进入全模态世界模型已覆盖 |
 | `02_model_systems/multimodal_understanding` | 2 | 多模态统一嵌入、检索、视觉推理效率与思维链压缩 | [Paper Index](../02_model_systems/multimodal_understanding/evidence/paper-index.md) | DME 与 MCPO 已建立 canonical Paper、正式资产及双向索引 |
-| `02_model_systems/speculative_decoding` | 10 | diffusion draft、tree/parallel drafting、解耦 local correction、workload-aware drafting、hidden-state training、relaxed verification、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖；新增 ASD 有界近似验证 |
+| `02_model_systems/speculative_decoding` | 12 | diffusion draft、tree/parallel drafting、解耦 local correction、workload-aware drafting、hidden-state training、relaxed verification、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖；新增 ASD 有界近似验证 |
 | `03_agentic_workflows/kernel_agents` | 4 | LLM 自动 kernel 生成、Ascend/NPU、test-time scaling | [Paper index](../03_agentic_workflows/kernel_agents/evidence/paper-index.md) | 当前为 Paper note，适合按需补全 |
 
 ## Paper 明细
@@ -145,7 +145,7 @@
 | Gated DeltaNet-2（arXiv:2605.22791） | 深度精读；accepted-with-limitations；channel-wise erase/write | [gated-deltanet-2](../02_model_systems/llm_foundations/papers/gated-deltanet-2.md) |
 | Reasoning with Latent Thoughts: On the Power of Looped Transformers（arXiv:2502.17416v1） | 深度精读；accepted-with-limitations；ICLR 2025；OpenReview 403、无官方代码 | [reasoning-with-latent-thoughts](../02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md) |
 
-### Multimodal generation（19）
+### Multimodal generation（21）
 
 | Paper                                                                                                                     | 状态                   | Canonical                                                                                |
 | ------------------------------------------------------------------------------------------------------------------------- | -------------------- | ---------------------------------------------------------------------------------------- |
@@ -169,6 +169,7 @@
 | Transfusion                                                                                                               | 深度精读                 | [transfusion](../02_model_systems/multimodal_generation/papers/transfusion.md)           |
 | Vega                                                                                                                      | 深度精读                 | [vega](../02_model_systems/multimodal_generation/papers/vega.md)                         |
 | LongLive-2.0: An NVFP4 Parallel Infrastructure for Long Video Generation（arXiv:2605.18739） | 深度精读；NVFP4/Balanced SP | [longlive-2-0](../02_model_systems/multimodal_generation/papers/longlive-2-0.md) |
+| EchoWM: Open and Enterable Omnimodal World Models（arXiv:2608.23189v1；别名：Echo-WM、EchoWM-Flash） | 深度精读；相对 6-DoF 相机意图、联合音视频、4 步因果 rollout 与有界缓存 | [echowm](../02_model_systems/multimodal_generation/papers/echowm.md) |
 
 ### Multimodal understanding（2）
 
@@ -177,7 +178,7 @@
 | Douyin Multimodal Embedding Model Technical Report（DME；arXiv:2608.02148v3） | 深度精读；证据定位与跨条件重建 | [douyin-multimodal-embedding](../02_model_systems/multimodal_understanding/papers/douyin-multimodal-embedding.md) |
 | MCPO: Modality-Contrastive Preference Optimization for Multimodal Chain-of-Thought Compression（MCPO；arXiv:2609.04947v1；别名：Modality-Contrastive Preference Optimization） | 深度精读；版本锁定 v1；官方代码与完整时延环境未披露 | [mcpo](../02_model_systems/multimodal_understanding/papers/mcpo.md) |
 
-### Speculative decoding（7）
+### Speculative decoding（12）
 
 | Paper | 状态 | Canonical |
 |---|---|---|
