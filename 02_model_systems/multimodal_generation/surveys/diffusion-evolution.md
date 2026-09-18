@@ -551,6 +551,7 @@ shorter sampling / distillation
 | Omnimodal MoT / special mask | [Cosmos 3](https://arxiv.org/abs/2606.02800) | 2026-06 | omnimodal world model，Mixture-of-Transformers、reasoner/generator 分流、video/audio/action 物理时间对齐，是 MoE/tower-aware 量化和特殊 mask 的核心参考。 |
 | Layered MoT video editing | [Vera](https://arxiv.org/abs/2606.23610) | 2026-06 | layered diffusion + Mixture-of-Transformers，把编辑层和原视频层通过 joint self-attention 交互，适合作为多塔/多层生成架构参考。 |
 | Custom mask kernel / causal diffusion | [Causal-rCM](https://arxiv.org/abs/2606.25473) | 2026-06 | causal video diffusion / interactive world model 的 open recipe，明确把 custom-mask FlashAttention-2 JVP kernel 作为训练和蒸馏基础设施。 |
+| Enterable omnimodal world model | [EchoWM](../papers/echowm.md) | 2026-08 | 用保留幅度的相对 6-DoF 相机轨迹统一第一/第三人称导航，并把联合音视频扩散后训练成 4 步因果 rollout；sink-plus-FIFO 同时约束 video/audio/cross-modal/UCPE 历史。完整系统有 WBench 和 961 帧证据，但各组件消融与音频定量证据不足。 |
 | Audio-video chunk AR | [Lip Forcing](https://arxiv.org/abs/2606.11180) | 2026-06 | 把 14B audio-conditioned bidirectional video diffusion teacher 蒸馏成 2-step causal student，面向实时 lip sync，强调 sync-window reward 和 first-frame latency。 |
 | Planner-executor RL | [TempAct](https://arxiv.org/abs/2606.28016) | 2026-06 | 面向 chunk-wise AR 的事件顺序和 prompt transition 问题，用 LLM planner + AR diffusion executor 的层级 RL 优化 temporal plausibility。 |
 | AR + diffusion unified video | [Vega](https://arxiv.org/abs/2606.31326) | 2026-06 | 统一 video understanding 和 generation：AR 模型预测 keyframe semantic visual tokens，diffusion 模块负责 dense rendering。 |

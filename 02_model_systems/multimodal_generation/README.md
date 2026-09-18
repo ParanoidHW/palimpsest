@@ -15,6 +15,7 @@
 9. [Cosmos 3 Q&A](supplements/cosmos-3-q-and-a.md)：按 Q1--Q12 复读位置编码、模态编码、训练数据与系统问题。
 10. [Figure inventory](evidence/figure-inventory.md)：追溯正式资产的原编号、source/PDF 页码、caption、owner 与 QA。
 11. [LongLive-2.0](papers/longlive-2-0.md)：NVFP4、Balanced SP 与长视频端到端推理基础设施。
+12. [EchoWM](papers/echowm.md)：相对 6-DoF 相机意图、联合音视频生成、4 步因果 rollout 与有界多模态缓存。
 
 ## 文档索引
 
@@ -23,7 +24,7 @@
 
 - Survey：[Diffusion evolution](surveys/diffusion-evolution.md)，[近半年多模态视觉生成模型全景](surveys/visual-generation-model-landscape.md)，[Diffusion 多模态生成与 AI Infra](surveys/multimodal-diffusion-infra.md)
 - Topics：[Model pipeline](topics/model-pipeline.md)，[Training data](topics/training-data.md)
-- Paper：[LDM](papers/ldm.md)，[DiT](papers/dit.md)，[Transfusion](papers/transfusion.md)，[Qwen-Image-2.0](papers/qwen-image-2-0.md)，[BAGEL](papers/bagel.md)，[PixelDiT](papers/pixeldit.md)，[DC-AE](papers/dcae.md)，[HunyuanVideo 1.5](papers/hunyuanvideo-1-5.md)，[SANA-Video 2.0](papers/sana-video-2.md)，[Helios](papers/helios.md)，[Vega](papers/vega.md)，[LongLive-2.0](papers/longlive-2-0.md)，[Sparse VideoGen](papers/sparse-videogen.md)，[FEB-Cache](papers/feb-cache.md)，[SwiftFusion](papers/swiftfusion.md)，[Causal-rCM](papers/causal-rcm.md)，[MAGI-1](papers/magi-1.md)，[Cosmos 3](papers/cosmos-3.md)
+- Paper：[LDM](papers/ldm.md)，[DiT](papers/dit.md)，[Transfusion](papers/transfusion.md)，[Qwen-Image-2.0](papers/qwen-image-2-0.md)，[BAGEL](papers/bagel.md)，[PixelDiT](papers/pixeldit.md)，[DC-AE](papers/dcae.md)，[HunyuanVideo 1.5](papers/hunyuanvideo-1-5.md)，[SANA-Video 2.0](papers/sana-video-2.md)，[Helios](papers/helios.md)，[Vega](papers/vega.md)，[LongLive-2.0](papers/longlive-2-0.md)，[Sparse VideoGen](papers/sparse-videogen.md)，[FEB-Cache](papers/feb-cache.md)，[SwiftFusion](papers/swiftfusion.md)，[Causal-rCM](papers/causal-rcm.md)，[MAGI-1](papers/magi-1.md)，[Cosmos 3](papers/cosmos-3.md)，[EchoWM](papers/echowm.md)
 - Supplement：[Cosmos 3 Q&A](supplements/cosmos-3-q-and-a.md)
 - Word 交付：[Diffusion 多模态生成与 AI Infra](supplements/multimodal-diffusion-infra.docx)
 - Evidence：[Figure inventory](evidence/figure-inventory.md)
@@ -31,7 +32,7 @@
 
 ## Obsidian Properties
 
-本领域 `19/19` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+本领域 `20/20` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
 
 - 共同标签：`paper`、`collection/multimodal-generation`、`domain/model-systems`、`status/deep-review`。
 - 每篇另有一项 `topic/*` 和一项 `method/*`，分别表达生成任务与核心方法。
@@ -47,6 +48,7 @@
 - `assets/papers/qwen-image-2-0/`、`assets/papers/sana-video-2/`、`assets/papers/helios/`、`assets/papers/vega/`：本次新精读的原论文机制与证据图。
 - `assets/papers/magi-1/`：MAGI-1 chunkwise-AR、ARDF、MagiAttention 与 latency 原论文证据图。
 - `assets/papers/cosmos-3/`：Cosmos 3 paper-owned 原论文图与明确标注的知识库整理图。
+- `assets/papers/echowm/`：EchoWM 方法总览、相机尺度、因果 mask 与主结果原论文证据图。
 
 ## 维护规则
 
