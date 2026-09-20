@@ -156,6 +156,8 @@ MAGI-1 是这条主线中值得单独区分的一种系统化因果 video DiT：
 
 MAGI-1 也说明视频 diffusion 的算法与 infra 已经不可分割：block-causal KV cache、shortcut distillation、context parallel、FP8 SmoothQuant、CUDA Graph 与 tiled/compiled VAE 共同把 24B 模型的 TPOC 推到 0.98 秒。这个结果不能只归因于 chunkwise-AR；逐级延迟和质量证据边界见 [MAGI-1 serving 归因](../papers/magi-1.md#53-serving-收益归因)。
 
+MAGI-2 Preview 把这条路线从 24B 长视频系统扩展到 114B/6B 稀疏音视频模型：Multi-Head LatentMoE 将 3072 维状态拆成 12 个 256 维路由 head，每 head 配置 256 个专家并激活 Top-6；Head Parallel 先按 head 做固定形状跨 rank 分发，再将数据相关路由限制在本地，从而避免 Top-K 直接放大跨节点通信。MagiMoE 继续融合路由、重排、窄专家 FFN 与输出合并，MagiMuon 则面向 `head × expert` 小矩阵批次。完整机制、代码证据和训练证据缺口见 [MAGI-2 Preview 深度评审](../papers/magi-2-preview.md#2-研究动机与问题方案闭环)。
+
 ## 7. 2023-2025：音频与 3D 扩展
 
 代表工作：

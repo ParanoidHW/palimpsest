@@ -5,7 +5,7 @@
 1. 哪些研究领域/子领域已经有正式 Survey 或 Paper；
 2. 某篇论文是否已经完成 canonical 分析，应当复用、链接或增量更新，而不是重新生成一份。
 
-> 快照日期：2026-09-18。当前共登记 10 个正式 paper domain、104 篇 canonical Paper。
+> 快照日期：2026-09-20。当前共登记 10 个正式 paper domain、105 篇 canonical Paper。
 >
 > 作者机构元数据：`90/90` 已按论文 PDF 标题页、机构编号和角色脚注核验（2026-09-18）。其中 80 篇为个人作者署名，记录首位列名作者、明确共同一作、明确通讯作者/联系人与去重机构；10 篇为机构署名，仅记录署名机构。未披露字段保持“无法核验”，不按邮箱域名或外部履历推断。
 >
@@ -41,7 +41,7 @@
 | `02_model_systems/diffusion` | 1 | language diffusion 与 AR/diffusion/self-speculative 统一 | [Language diffusion serving](../02_model_systems/diffusion/surveys/language-diffusion-serving.md) | 单篇锚点，可继续扩展 |
 | `02_model_systems/embodied_ai` | 13 | VLA、导航、操作策略、world model、3D/4D perception、数据合成 | [Embodied AI evolution](../02_model_systems/embodied_ai/surveys/embodied-ai-evolution-infra.md) | 核心谱系已覆盖 |
 | `02_model_systems/llm_foundations` | 13 | frontier LLM 架构、规模、Infra、looped reasoning 与 linear-attention system adoption | [2026 H1 model scale](../02_model_systems/llm_foundations/surveys/2026h1-model-scale.md) · [Linear Attention Transformer evolution](../02_model_systems/llm_foundations/surveys/linear-attention-transformer-evolution.md) | 新增 Looped Transformer 推理/潜在思维 canonical Paper；Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet、Kimi Linear、Mamba-3、Gated DeltaNet-2 已完成独立验收；Kimi K3 复用；taxonomy 独立计入 benchmark lane |
-| `02_model_systems/multimodal_generation` | 21 | image/video/audio diffusion、AR/flow、MoT、world model、VAE、cache、稀疏 attention、serving | [Diffusion evolution](../02_model_systems/multimodal_generation/surveys/diffusion-evolution.md) | Sparse VideoGen/Jenga pipeline 与 EchoWM 可进入全模态世界模型已覆盖 |
+| `02_model_systems/multimodal_generation` | 22 | image/video/audio diffusion、AR/flow、MoT、world model、VAE、cache、稀疏 attention、serving | [Diffusion evolution](../02_model_systems/multimodal_generation/surveys/diffusion-evolution.md) | 新增 MAGI-2 Preview 的 114B/6B Multi-Head LatentMoE 与训练系统解读 |
 | `02_model_systems/multimodal_understanding` | 2 | 多模态统一嵌入、检索、视觉推理效率与思维链压缩 | [Paper Index](../02_model_systems/multimodal_understanding/evidence/paper-index.md) | DME 与 MCPO 已建立 canonical Paper、正式资产及双向索引 |
 | `02_model_systems/speculative_decoding` | 12 | diffusion draft、tree/parallel drafting、解耦 local correction、workload-aware drafting、hidden-state training、relaxed verification、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖；新增 ASD 有界近似验证 |
 | `03_agentic_workflows/kernel_agents` | 4 | LLM 自动 kernel 生成、Ascend/NPU、test-time scaling | [Paper index](../03_agentic_workflows/kernel_agents/evidence/paper-index.md) | 当前为 Paper note，适合按需补全 |
@@ -145,7 +145,7 @@
 | Gated DeltaNet-2（arXiv:2605.22791） | 深度精读；accepted-with-limitations；channel-wise erase/write | [gated-deltanet-2](../02_model_systems/llm_foundations/papers/gated-deltanet-2.md) |
 | Reasoning with Latent Thoughts: On the Power of Looped Transformers（arXiv:2502.17416v1） | 深度精读；accepted-with-limitations；ICLR 2025；OpenReview 403、无官方代码 | [reasoning-with-latent-thoughts](../02_model_systems/llm_foundations/papers/reasoning-with-latent-thoughts.md) |
 
-### Multimodal generation（21）
+### Multimodal generation（22）
 
 | Paper                                                                                                                     | 状态                   | Canonical                                                                                |
 | ------------------------------------------------------------------------------------------------------------------------- | -------------------- | ---------------------------------------------------------------------------------------- |
@@ -159,6 +159,7 @@
 | HunyuanVideo 1.5                                                                                                          | 深度精读                 | [hunyuanvideo-1-5](../02_model_systems/multimodal_generation/papers/hunyuanvideo-1-5.md) |
 | LDM                                                                                                                       | 深度精读                 | [ldm](../02_model_systems/multimodal_generation/papers/ldm.md)                           |
 | MAGI-1                                                                                                                    | 深度精读                 | [magi-1](../02_model_systems/multimodal_generation/papers/magi-1.md)                     |
+| MAGI-2 Preview: Scaling Video Generation Models Efficiently（Sand.ai 技术报告，2026-08-05）                              | 深度精读；官方网页 WAF、训练证据受限 | [magi-2-preview](../02_model_systems/multimodal_generation/papers/magi-2-preview.md)     |
 | PixelDiT                                                                                                                  | 深度精读                 | [pixeldit](../02_model_systems/multimodal_generation/papers/pixeldit.md)                 |
 | Qwen-Image-2.0                                                                                                            | 深度精读                 | [qwen-image-2-0](../02_model_systems/multimodal_generation/papers/qwen-image-2-0.md)     |
 | SANA-Video 2.0                                                                                                            | 深度精读                 | [sana-video-2](../02_model_systems/multimodal_generation/papers/sana-video-2.md)         |
