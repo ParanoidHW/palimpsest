@@ -4,6 +4,7 @@
 > - 文档类型：Survey
 > - 领域入口：[Custom Attention README](../README.md)
 > - 上位综述：[Multimodal custom attention](multimodal-custom-attention.md)
+> - 相关 Paper：[Low-Precision Flash Attention](../papers/low-precision-flash-attention.md)
 > - 跨域模型入口：[Multimodal Generation](../../../../02_model_systems/multimodal_generation/README.md)
 > - 选篇与证据：[Selection](../evidence/video-generation-sparse-attention-selection.md) · [Claim matrix](../evidence/video-generation-sparse-attention-claims.md) · [Figure inventory](../evidence/figure-inventory.md)
 
