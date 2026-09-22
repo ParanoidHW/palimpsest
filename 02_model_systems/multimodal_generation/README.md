@@ -48,6 +48,7 @@
 - `assets/surveys/multimodal-diffusion-infra/`：本次跨论文整理图与 AI 生成趋势图。
 - `assets/papers/qwen-image-2-0/`、`assets/papers/sana-video-2/`、`assets/papers/helios/`、`assets/papers/vega/`：本次新精读的原论文机制与证据图。
 - `assets/papers/magi-1/`：MAGI-1 chunkwise-AR、ARDF、MagiAttention 与 latency 原论文证据图。
+- `assets/papers/magi-2-preview/`：MAGI-2 Preview Multi-Head LatentMoE 与训练 Infra 知识库整理图；已移除特定合作横幅，不是原报告图表。
 - `assets/papers/cosmos-3/`：Cosmos 3 paper-owned 原论文图与明确标注的知识库整理图。
 - `assets/papers/echowm/`：EchoWM 方法总览、相机尺度、因果 mask 与主结果原论文证据图。
 

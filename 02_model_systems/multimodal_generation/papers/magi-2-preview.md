@@ -21,16 +21,17 @@ tags:
 
 ## 修订信息
 
-- 当前文档版本：`1.2.0`
-- 当前修订 ID：`rev-magi-2-preview-scope-cleanup-20260922`
+- 当前文档版本：`1.3.0`
+- 当前修订 ID：`rev-magi-2-preview-asset-cleanup-20260922`
 - 当前修订时间：`2026-09-22T00:00:00+08:00`
-- 替代版本：`rev-magi-2-preview-code-audit-20260920` / `1.1.0`
+- 替代版本：`rev-magi-2-preview-scope-cleanup-20260922` / `1.2.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|
 | `rev-magi-2-preview-initial-20260920` | `1.0.0` | `2026-09-20T20:12:06+08:00` | Hermes Agent | initial | 无 | 建立官方技术报告、固定代码提交、模型配置和训练 Infra 的证据化解读 | 官方报告索引片段、官方代码与配置、知识库整理图 | material |
 | `rev-magi-2-preview-code-audit-20260920` | `1.1.0` | `2026-09-20T20:50:16+08:00` | Hermes Agent | evidence-update | `rev-magi-2-preview-initial-20260920` / `1.0.0` / `41e6d57b4c8e3abf6244cc3cd00530380d5d367231e4ab8506c083e168a82af5` | 补充参数量复算、head padding、CP/EP rank 复用、Refiner 视频-only 路径与确定性开关边界 | 独立代码审计与固定提交源码 | minor |
 | `rev-magi-2-preview-scope-cleanup-20260922` | `1.2.0` | `2026-09-22T00:00:00+08:00` | Codex | editorial-cleanup | `rev-magi-2-preview-code-audit-20260920` / `1.1.0` | 移除特定硬件合作语境及其整理图，保留通用系统分析 | 用户指定范围清理 | minor |
+| `rev-magi-2-preview-asset-cleanup-20260922` | `1.3.0` | `2026-09-22T00:00:00+08:00` | Codex | asset-correction | `rev-magi-2-preview-scope-cleanup-20260922` / `1.2.0` | 恢复通用系统整理图，仅裁去底部特定合作横幅 | 用户复核与图片原分辨率检查 | minor |
 
 ## 0. 资料与配图索引
 
@@ -41,6 +42,7 @@ tags:
 | 模型权重 | 公开但未下载 | [sand-ai/MAGI-2-preview](https://huggingface.co/sand-ai/MAGI-2-preview) | 官方 README 报告总量约 307 GB；本次未下载逐 tensor 审计 |
 | OpenReview | 未发现 | 不适用 | 无公开评审、decision 或 rebuttal 可交叉核验 |
 | 原报告 Figure/Table | 无可接受资产 | WAF 阻断；第三方网页图片不是报告图，已拒绝提升 | 不以第三方卡片冒充论文证据 |
+| 知识库整理图 | 已生成并 QA | `magi2-infra-overview.png` | 解释模型结构—通信—内核—优化器—Attention 的联动关系；已移除底部特定合作横幅，不是原报告证据 |
 
 ## 0.1 术语与符号解释
 
@@ -218,6 +220,12 @@ $$
 **边界。** 该式没有计协议、拓扑、双向 dispatch/undispatch、反向梯度和 expert state materialization，也不证明实际链路利用率。
 
 **小例子。** 代码中 `ep_dispatch` 将 `(S,H,D)` 变为 `(S×ep,H/ep,D)`，元素总数不变；随后才在本地形成 `[head, token, expert]` router logits。
+
+## 0.2 AI 生成算法分析示意图
+
+![MAGI-2 Preview 模型与训练 Infra 整理图](../assets/papers/magi-2-preview/magi2-infra-overview.png)
+
+> 图注：知识库整理图，依据官方报告索引片段与官方代码提交 `f68a0f9...`。该图用于解释执行链，不代表 Sand.ai 原始图表，也不承担实验结果证据；底部特定合作横幅已移除。
 
 ### 4.5 训练/实验/部署设计
 
