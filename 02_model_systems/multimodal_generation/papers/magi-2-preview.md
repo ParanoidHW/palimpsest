@@ -21,15 +21,16 @@ tags:
 
 ## 修订信息
 
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-magi-2-preview-code-audit-20260920`
-- 当前修订时间：`2026-09-20T20:50:16+08:00`
-- 替代版本：`rev-magi-2-preview-initial-20260920` / `1.0.0` / manifest `41e6d57b4c8e3abf6244cc3cd00530380d5d367231e4ab8506c083e168a82af5`
+- 当前文档版本：`1.2.0`
+- 当前修订 ID：`rev-magi-2-preview-scope-cleanup-20260922`
+- 当前修订时间：`2026-09-22T00:00:00+08:00`
+- 替代版本：`rev-magi-2-preview-code-audit-20260920` / `1.1.0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|
 | `rev-magi-2-preview-initial-20260920` | `1.0.0` | `2026-09-20T20:12:06+08:00` | Hermes Agent | initial | 无 | 建立官方技术报告、固定代码提交、模型配置和训练 Infra 的证据化解读 | 官方报告索引片段、官方代码与配置、知识库整理图 | material |
 | `rev-magi-2-preview-code-audit-20260920` | `1.1.0` | `2026-09-20T20:50:16+08:00` | Hermes Agent | evidence-update | `rev-magi-2-preview-initial-20260920` / `1.0.0` / `41e6d57b4c8e3abf6244cc3cd00530380d5d367231e4ab8506c083e168a82af5` | 补充参数量复算、head padding、CP/EP rank 复用、Refiner 视频-only 路径与确定性开关边界 | 独立代码审计与固定提交源码 | minor |
+| `rev-magi-2-preview-scope-cleanup-20260922` | `1.2.0` | `2026-09-22T00:00:00+08:00` | Codex | editorial-cleanup | `rev-magi-2-preview-code-audit-20260920` / `1.1.0` | 移除特定硬件合作语境及其整理图，保留通用系统分析 | 用户指定范围清理 | minor |
 
 ## 0. 资料与配图索引
 
@@ -40,7 +41,6 @@ tags:
 | 模型权重 | 公开但未下载 | [sand-ai/MAGI-2-preview](https://huggingface.co/sand-ai/MAGI-2-preview) | 官方 README 报告总量约 307 GB；本次未下载逐 tensor 审计 |
 | OpenReview | 未发现 | 不适用 | 无公开评审、decision 或 rebuttal 可交叉核验 |
 | 原报告 Figure/Table | 无可接受资产 | WAF 阻断；第三方网页图片不是报告图，已拒绝提升 | 不以第三方卡片冒充论文证据 |
-| 知识库整理图 | 已生成并 QA | `magi2-infra-overview.png` | 解释模型结构—通信—内核—优化器—Attention 的联动关系，不是原报告证据 |
 
 ## 0.1 术语与符号解释
 
@@ -73,12 +73,6 @@ tags:
 | $RuntimeSeconds$ | 对应通信路径耗时 | analysis-derived | 每次通信/每层 | seconds | 本文带宽核算 | 需用 trace 实测 |
 | $BW_{peak}$ | 互联理论峰值带宽 | analysis-derived | 某条链路 | bytes/s | 硬件规格 | 不等于应用有效带宽 |
 
-## 0.2 AI 生成算法分析示意图
-
-![MAGI-2 Preview 模型与训练 Infra 整理图](../assets/papers/magi-2-preview/magi2-infra-overview.png)
-
-> 图注：知识库整理图，依据官方报告索引片段与官方代码提交 `f68a0f9...`。该图用于解释执行链，不代表 Sand.ai 原始图表，也不承担实验结果证据。
-
 ## 1. 论文基本信息
 
 - 标题：*MAGI-2 Preview: Scaling Video Generation Models Efficiently*
@@ -98,7 +92,7 @@ tags:
 
 **具体场景（依据官方报告重构，不是论文逐字实验）**：一批音视频样本被编码成很长的时空 token 序列，模型在多个去噪步中反复执行 Transformer。若把 100B 参数全部做成 Dense FFN，每个 token 都要调用全部 FFN 参数，参数、梯度、优化器状态和激活显存同时增长；如果改用普通 token-choice MoE，动态 Top-K 路由又直接决定跨设备发送量，某些 rank 收到更多 token，产生慢 rank、通信尾部和局部峰值显存。成功方案必须保留大容量与动态专家选择，但把跨节点通信变成可预测形状，并把细粒度专家的排序、访存和优化器开销控制住。
 
-报告将问题拆成三条相互依赖的主线：可扩展模型结构、可扩展训练系统和可扩展数据。本文重点审计前两条，因为它们直接决定昇腾950上的训练联创切入点。
+报告将问题拆成三条相互依赖的主线：可扩展模型结构、可扩展训练系统和可扩展数据。本文重点审计前两条，因为它们直接决定大规模异构集群的训练系统设计。
 
 ### 2.2 现有方案为何不够
 
@@ -295,7 +289,7 @@ $$
 
 ### 8.1 算力
 
-核心算子不是一个大 FFN GEMM，而是大量 `256→1280→256` 的窄专家计算。每层 3072 个专家单元、每 token 激活 72 个，使 kernel 的 token grouping、tile occupancy、launch 数和 scatter merge 成为核心。昇腾950适配需要把完整链路视为一个优化对象：FP32 router score/Top-K、stable sort/offset、Gather、gate/up fusion、SwiGLU7、down projection、weighted scatter-back。
+核心算子不是一个大 FFN GEMM，而是大量 `256→1280→256` 的窄专家计算。每层 3072 个专家单元、每 token 激活 72 个，使 kernel 的 token grouping、tile occupancy、launch 数和 scatter merge 成为核心。面向其他加速器适配时，需要把完整链路视为一个优化对象：FP32 router score/Top-K、stable sort/offset、Gather、gate/up fusion、SwiGLU7、down projection、weighted scatter-back。
 
 ### 8.2 显存与存储
 
@@ -312,7 +306,7 @@ $$
 
 ### 8.4 带宽、互联与高效利用
 
-Head Parallel 的价值不是减少隐藏状态元素总数，而是让跨节点 send/recv count 与 head partition 静态确定。训练报告进一步把跨节点 head activation 交换放到 InfiniBand，把节点内专家参数/梯度/优化器状态 materialize/reshard 放到 NVLink。对昇腾950，应映射到实际节点内高带宽互联与节点间网络，而不能照搬 NVLink/IB 名称；关键是分别测量固定 head activation 流量、按层专家状态流量和未隐藏通信占比。
+Head Parallel 的价值不是减少隐藏状态元素总数，而是让跨节点 send/recv count 与 head partition 静态确定。训练报告进一步把跨节点 head activation 交换放到 InfiniBand，把节点内专家参数/梯度/优化器状态 materialize/reshard 放到 NVLink。迁移到其他硬件时，应映射到实际节点内高带宽互联与节点间网络，而不能照搬特定互联名称；关键是分别测量固定 head activation 流量、按层专家状态流量和未隐藏通信占比。
 
 公开材料没有通信 bytes、链路峰值、step trace 或 wall time，因此无法计算有效带宽：
 
@@ -330,29 +324,19 @@ $$
 
 **直觉。** 同样的峰值链路，如果小包、同步或负载不均增加耗时，$BW_{eff}$ 和 $U$ 都会下降。
 
-**边界。** MAGI-2 未公开 `BytesMoved` 与训练 runtime，本报告只把它列为昇腾联创必须补齐的测量项，不能给出数值结果。
+**边界。** MAGI-2 未公开 `BytesMoved` 与训练 runtime，本报告只把它列为后续实测必须补齐的测量项，不能给出数值结果。
 
 **小例子。** 不适用：缺少训练通信 bytes 和 runtime，给出数值会误导。
 
 ### 8.5 CPU/GPU/NPU 异构执行
 
-官方实现依赖 CPU 侧配置、checkpoint shard 并发读取、视频/audio 后处理和 ffmpeg；GPU 执行路由、Triton MoE、Attention 与 VAE。动态路由的核心路径尽量留在 device 上，避免 host metadata 同步。昇腾950适配要确认 Top-K、stable sort、prefix offsets、动态 shape 编译和自定义算子不会回退到 Host。
-
-### 8.6 昇腾950联创切入点
-
-1. **Head Parallel 通信原语**：实现 `(S,H,D) → (S×EP,H/EP,D)` 的固定形状 All-to-All，并与节点内外拓扑映射、双向 dispatch/undispatch 和反向梯度组合验证。
-2. **MagiMoE 融合算子**：围绕 12×256 experts、Top-6、`256→1280→256` 窄矩阵，融合 FP32 routing、expert-wise layout、SwiGLU7 和 weighted scatter；重点测 launch、HBM 和小矩阵利用率。
-3. **无辅助损失负载治理**：实现 per-head expert bias、异步负载统计和 EMA 对齐，监控 expert load 的均值、P99、空专家比例和跨 step 波动。
-4. **专家状态分片与 MagiMuon**：按 `head × expert` matrix batch 建立参数/梯度/优化器状态 ownership，验证按层 materialize/reshard、重计算和优化器计算均衡。
-5. **MoE × MagiAttention 多轴并行**：联合 CP/EP/DP，而非分别优化；避免 CP All-to-All、HP All-to-All 和专家状态通信在同一关键路径竞争。
-6. **全链路可观测性**：建立 step breakdown、MFU、峰值显存、通信暴露、kernel occupancy、router entropy、load skew、数值溢出与收敛对齐基线。
-7. **编译与确定性**：替换 Hopper/FA3/Triton/MagiCompiler 专属路径，明确动态图、custom op、确定性 scatter 和 compile cache 在 CANN 图模式中的等价实现。
+官方实现依赖 CPU 侧配置、checkpoint shard 并发读取、视频/audio 后处理和 ffmpeg；GPU 执行路由、Triton MoE、Attention 与 VAE。动态路由的核心路径尽量留在 device 上，避免 host metadata 同步。迁移到其他加速器时要确认 Top-K、stable sort、prefix offsets、动态 shape 编译和自定义算子不会回退到 Host。
 
 ### 8.6 调度/Serving/自定义算子
 
-官方推理以 8 张 Hopper GPU、CP=8、EP=8 运行；两个轴复用同一组 8 ranks，不是 64 卡笛卡尔积，默认 DP=1。12 个 MoE head 在 EP=8 时被 padding 到 16，每 rank 持有 2 个 head，其中 rank 6、7 的 head 全为 dummy zero weights，形成通信和计算空洞。Preview 和 Refiner 采用 roundtrip offload 分阶段驻留，VAE 使用滑动窗口解码。昇腾侧需要重新实现 Head Parallel All-to-All、MoE 自定义算子、MagiAttention 后端、compile cache 与确定性 scatter，并在 CP×EP 组合下避免 collective 争用，同时针对 `head_count % EP != 0` 做并行度搜索或非均匀 head placement。
+官方推理以 8 张 Hopper GPU、CP=8、EP=8 运行；两个轴复用同一组 8 ranks，不是 64 卡笛卡尔积，默认 DP=1。12 个 MoE head 在 EP=8 时被 padding 到 16，每 rank 持有 2 个 head，其中 rank 6、7 的 head 全为 dummy zero weights，形成通信和计算空洞。Preview 和 Refiner 采用 roundtrip offload 分阶段驻留，VAE 使用滑动窗口解码。迁移到其他加速器时需要重新实现 Head Parallel All-to-All、MoE 自定义算子、MagiAttention 后端、compile cache 与确定性 scatter，并在 CP×EP 组合下避免 collective 争用，同时针对 `head_count % EP != 0` 做并行度搜索或非均匀 head placement。
 
-确定性路径也存在接口边界：`MAGI2_DETERMINISTIC=1` 会触发仓内 MoE 顺序 scatter 和 Preview FA3 确定性分支；单独传 `--deterministic` 没有设置该环境变量，因此两者并非完全等价。昇腾正确性对齐应显式覆盖路由排序、scatter 累加次序和编译 autotune 开关。
+确定性路径也存在接口边界：`MAGI2_DETERMINISTIC=1` 会触发仓内 MoE 顺序 scatter 和 Preview FA3 确定性分支；单独传 `--deterministic` 没有设置该环境变量，因此两者并非完全等价。跨硬件正确性对齐应显式覆盖路由排序、scatter 累加次序和编译 autotune 开关。
 
 ## 9. 开源代码对照
 
@@ -396,7 +380,7 @@ $$
 3. 未公开训练集群规模、训练 FLOPs、wall time、MFU、通信 trace、峰值显存或故障率。
 4. 未提供 Dense、普通 MoE、Head Parallel、MagiMoE、MagiMuon 的 matched ablation。
 5. 114B/6B 是官方声明；本次未下载约 307 GB 权重逐 tensor 复算。
-6. 推理强依赖 Hopper、FA3、Triton、NCCL 和自研编译/Attention 栈，不能直接外推到昇腾950。
+6. 推理强依赖 Hopper、FA3、Triton、NCCL 和自研编译/Attention 栈，不能直接外推到其他硬件平台。
 
 ### 最小补实验
 
@@ -415,7 +399,6 @@ $$
 - MoE 的“路由轴”可以同时成为通信分区轴和优化器矩阵批次轴；结构选择应贯穿模型、runtime 与 optimizer。
 - 对细粒度专家，系统瓶颈往往从大 GEMM 转向排序、内存搬运、launch、元数据和同步，单算子峰值不是充分指标。
 - 长视频训练的 Attention 轴和 MoE 轴共享网络与 HBM，必须做组合调度和全链路 trace，不能分别看局部收益。
-- 昇腾联创最有价值的目标不是复刻 CUDA API，而是复现“固定跨节点边界、局部动态路由、按层状态物化”的系统语义。
 
 ## 12. 解读问题/待验证清单
 
@@ -426,7 +409,6 @@ $$
 5. MagiMuon 的 momentum、正交化迭代和分布矩阵 batch 如何与 FSDP state ownership 组合？
 6. HP、CP、DP、EP 的生产拓扑和 collective 优先级如何安排？
 7. 114B 相对小模型的能力收益是否来自容量、数据、训练预算或统一音视频目标？
-8. 昇腾950上哪些窄专家 shape 能达到高利用率，哪些需要 batching、padding 或 persistent kernel？
 
 ## 13. 一句话总结
 
@@ -436,7 +418,7 @@ MAGI-2 Preview 的关键不只是“114B MoE”，而是用 Multi-Head LatentMoE
 
 - Markdown 渲染器：Python Markdown 3.10.2，启用 `tables` 与 `fenced_code` 扩展。
 - 渲染命令：`python -c 'markdown.markdown(..., extensions=["tables", "fenced_code"])'`，输出 `rendered-gfm.html`。
-- 渲染结果：passed；11 张表、17 个二级标题、1 张图片均生成，table/code 标签成对闭合。
-- Figure/Table 邻近性审计：无官方 Figure/Table；知识库整理图紧邻资料索引和方法总览。
+- 渲染结果：passed；11 张表、17 个二级标题、0 张图片均生成，table/code 标签成对闭合。
+- Figure/Table 邻近性审计：无官方 Figure/Table；本 Paper 不再引用整理图。
 - 临时标记扫描：clean；未发现 HTML 注释、TODO、FIXME、pending 或 debug 标记。
 - 审计证据：`review_checklist.md` 与 `deliverable_manifest.json`。

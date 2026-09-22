@@ -103,7 +103,6 @@ Causal-rCM 与 Sparse VideoGen 原先在 custom-attention 下的重复资产已�
 |---|---|---|
 | BAGEL | `../assets/papers/bagel/algorithm-analysis-generated.png` | 机制、证据边界与 Infra 总结；pass |
 | Causal-rCM | `../assets/papers/causal-rcm/algorithm-analysis-generated.png` | TF/CM/SF 与 custom kernel 关系；pass |
-| MAGI-2 Preview | `../assets/papers/magi-2-preview/magi2-infra-overview.png` | Multi-Head LatentMoE、Head Parallel、MagiMoE、MagiMuon 与 MagiAttention 的知识库整理图；`1800x980`；2026-09-20 contact-sheet 初筛 + 原分辨率三轮 QA；pass；不是原报告图表 |
 
 - Source-native figures 未把 PDF 页眉、页码或相邻正文带入正式资产；过程 render/crop 不进入正式引用。
 
