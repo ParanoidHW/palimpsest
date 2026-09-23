@@ -1,4 +1,4 @@
-# 最近半年云侧大模型参数量规模梳理
+# 云侧大模型参数量规模梳理
 
 > [!info] 文档关系
 > - 文档类型：Survey
@@ -8,10 +8,10 @@
 
 ## 修订信息
 
-- 当前版本：`1.2.0`
-- 修订日期：`2026-07-28`
-- 变更：按用户指定加入窗口外追踪的 Kimi K3，链接独立精读；核验官方 checkpoint/config 与昇腾 CANN 4 节点/32 NPU 0day 样例。
-- 结论影响：Moonshot 的公开模型规模从 K2.x 的 1T/32B-active 工作点扩展到 K3 的 2.8T/104.2B-active，并由纯 MLA 转为 69 KDA + 24 Gated MLA；组件级收益和 CANN 完整生产功能仍需验证。
+- 当前版本：`1.3.0`
+- 修订日期：`2026-09-23`
+- 变更：将标题去掉 H1/半年限定；按用户指定的 TypeSafeAI/Step-5-Preview-BF16 HF 仓库补入 Step-5-Preview 的参数、MoE、混合注意力、长上下文和部署规格，并区分模型卡声明与 config 可核验字段。
+- 结论影响：StepFun 的公开规模上界新增 600B total / 27B active、1M context 的 Step-5-Preview；其 92 层、352-expert Top-8、3:1 sliding/full attention 与 full-attention 稀疏索引器可由参考 config 核验，但单组件收益仍缺原始技术报告/受控消融。
 
 ## 资料边界
 
@@ -46,11 +46,37 @@ Kimi K3 的架构/规模核验见[关键规格](../papers/kimi-k3.md#01-关键�
 | MiniMax          | MiniMax-M2.7                     |                                  2026-04 | HF safetensors 约 228.7B total；同架构 M2 官方口径为 230B total / 10B active，M2.7 README 未重复披露 active | FP8 safetensors；config dtype 为 BF16；HF collection 同列 M2/M2.1/M2.5/M2.7                                   | Agentic MoE；62 层；256 local experts，8 selected/token；MTP；最大上下文 204,800 tokens                                        | GQA 形态（48 Q / 8 KV）；未标注稀疏 attention                                                                  | [MiniMax-M2.7](https://huggingface.co/MiniMaxAI/MiniMax-M2.7), [MiniMax-M2](https://huggingface.co/MiniMaxAI/MiniMax-M2) |
 | StepFun / 阶跃星辰   | Step-3.7-Flash                   |                               2026-05/06 |                                   198B total / ~11B activated；HF safetensors 约 201.4B total | BF16；HF collection 提供 FP8、NVFP4、GGUF 量化版本                                                                | 多模态 sparse MoE VLM；196B language backbone + 1.8B vision encoder；文本 45 层；288 routed experts，Top-8；256K context；MTP-3 | GQA + Sliding Window Attention（3:1 SWA/full attention，window=512）；config 为 64 heads / 8 groups       | [Step-3.7-Flash](https://huggingface.co/stepfun-ai/Step-3.7-Flash)                                                       |
 | StepFun / 阶跃星辰   | Step-3.5-Flash                   |                               2026-02/03 |                                196.81B total / ~11B activated；HF safetensors 约 199.4B total | BF16；HF collection 提供 FP8、GGUF-Q4_K_S 量化版本                                                               | Sparse MoE；45 层，hidden dim 4096；288 routed experts + 1 shared expert，Top-8；256K context；MTP-3                       | GQA + Sliding Window Attention（3:1 SWA/full attention，window=512）；config 为 64 heads / 8 groups       | [Step-3.5-Flash](https://huggingface.co/stepfun-ai/Step-3.5-Flash), [paper](https://arxiv.org/abs/2602.10604)            |
+| StepFun / 阶跃星辰   | Step-5-Preview                   |                         2026-09 HF 预览权重 |                                  600B total / 27B active per token（模型卡口径） | BF16 checkpoint；模型卡另列 FP8/INT4 为部署目标，当前参考仓库为 BF16 | 稀疏 MoE 多模态模型；文本 92 层、hidden size 4096；config 为 352 experts、Top-8，MoE 层 3–90（共 88 层）；统一视觉编码器 | Sparse GQA；3:1 sliding/full attention；sliding window 512；full-attention 层启用 block-sparse indexer，top-k 512、block 8 | [HF 模型卡与 config](https://huggingface.co/TypeSafeAI/Step-5-Preview-BF16) |
 | 腾讯混元             | Tencent Hy3 preview / 腾讯 HY 云侧模型 | 产品页显示 Hy3 preview 上线；产品页含 2026-04/05 更新项 |                                                                “万亿级参数规模”，未公开精确 total/active | 未公开                                                                                                      | 官方披露采用 MoE；最大 256K 上下文                                                                                              | 未公开                                                                                                  | [腾讯混元产品页](https://cloud.tencent.com/product/tclm)                                                                        |
 | 京东 JoyAI         | JoyAI-LLM Flash 48B-A3B          |                             2026-04 技术报告 |             48.9B total / 3.28B active per token；摘要口径约 48B / 2.7B active，含 embedding 约 3.2B | 官方 BF16；技术报告/发布物含 FP8、INT8、FP4、GGUF、QAT/W4AFP8；HF search 另见社区 MLX 4/5/6/8-bit、GGUF、MXFP8-MLX、AWQ 4/8-bit | sparse MoE；40 Transformer 层；首层 dense FFN，其余 39 层 MoE；256 experts，Top-8 + 1 shared；dense MTP                         | MLA                                                                                                  | [JoyAI-LLM Flash](https://arxiv.org/abs/2604.03044)                                                                      |
 | 美团 LongCat       | LongCat-Next                     |                               2026-03/04 |                          HF safetensors 约 74.26B total；官方称 A3B 级 backbone，未给精确 active/token | 官方 BF16 + 少量 F32；HF search 另见社区 MLX 4/6/8-bit、INT4 AutoRound、W8A8 INT8                                   | 原生多模态 DiNA；LongCat-Flash-Lite MoE backbone；256 routed experts；zero-computation experts；统一文本/视觉/音频离散 token；dNaViT    | 主干 MLA；视觉生成 Transformer 为 GQA（21 heads / 7 KV heads）；音频模块未公开更细分类型                                    | [LongCat-Next](https://huggingface.co/meituan-longcat/LongCat-Next), [paper](https://arxiv.org/abs/2603.27538)           |
 
 补充：严格看“公开参数量 + 公开结构 + 公开 Attn”的完整度，阿里、DeepSeek、Moonshot、智谱/Z.ai、MiniMax、StepFun/阶跃星辰、京东、美团这些开权重/技术报告模型信息最完整；Google、OpenAI、字节、腾讯的云侧闭源模型大多只公开产品能力和上下文/价格，底层参数量、精度和 Attention 类型未披露。
+
+## Step-5-Preview 结构与规格核验
+
+Step-5 官方原始仓库当前不可用，本节以用户指定的 [TypeSafeAI/Step-5-Preview-BF16](https://huggingface.co/TypeSafeAI/Step-5-Preview-BF16) 为参考版本。参数总量、激活参数和“block-wise token merging”等叙述来自模型卡；层数、维度、专家列表、注意力层型和稀疏索引器参数来自同一仓库的 `config.json`。因此，600B/27B 应理解为发布方口径，而不是由公开 config 独立重算出的精确参数量。
+
+### 文本主干
+
+- **深而窄的 92 层 Transformer**：`hidden_size=4096`、`intermediate_size=13824`、`num_hidden_layers=92`，词表为 128,896。模型卡将其解释为通过更长的信息传播路径服务长上下文和多步推理；这属于设计意图，公开材料没有提供与更宽更浅基线的受控消融。
+- **稀疏 MoE**：`moe_num_experts=352`、`moe_top_k=8`、`num_experts_per_tok=8`，并启用一个 `share_expert_dim=1536` 的共享专家。`moe_layer_list` 覆盖第 3–90 层（按 config 的 0-based 编号，共 88 层），前 3 层不在该列表中。该布局说明大部分层采用 token 级专家路由，但不能仅凭 config 推断 600B 的精确总参数拆分。
+- **BF16 与残差精度**：文本配置声明 `torch_dtype=bfloat16`，同时启用 `norm_dtype=float32` 和 `fp32_residual_connection=true`；这意味着权重/主计算路径以 BF16 为主，但归一化和残差累加保留更高精度路径。
+
+### 混合注意力与百万上下文
+
+- **3:1 层型周期**：`layer_types` 按三个 `sliding_attention` 接一个 `full_attention` 重复，92 层中约 69 个滑窗层、23 个全注意力层。两类层均为 64 个 query heads、4 个 KV groups、head dimension 192，即 GQA 形态。
+- **滑窗路径**：滑窗大小为 512 token；它把大多数层的 KV 访问限制在局部历史，降低长上下文 decode 的带宽和缓存压力。config 还为这一路径配置了 `head_wise_attn_gate`，但没有公开该门控的训练消融。
+- **全注意力稀疏化**：`sparse_config.apply_to_layer_types` 只包含 `full_attention`；索引器使用 16 个 index heads、1 个 K head、`topk=512`、`region_block_size=8`，并以 `csa_block_compress` 做块压缩，最终实现标记为 `sparse_gqa`。因此“1M context”不是 92 层都做 1M 范围的稠密注意力，而是局部滑窗与全注意力层的块稀疏索引组合。
+- **位置编码**：最大序列长度和位置嵌入均为 1,048,576；RoPE 配置为 Llama-3 风格，YARN 只应用于 `full_attention`。这与模型卡“Sparse GQA + block-wise token merging”的高层描述一致，但 config 没有直接出现 `token merging` 这一字段，应该把后者视为实现说明而非独立可复现的算子定义。
+
+### 多模态编码器与推理规格
+
+`config.json` 的 `vision_config` 是 47 层 perception encoder，宽度 1536、16 heads、输入图像 728、patch size 14；模型结构声明为文本、图像、视频输入、文本输出。模型卡给出 1M token context、最大输出默认 32,768（可配置到 131,072）、BF16 权重约 1.2 TB，建议 8× H100 80GB tensor parallel；这些部署数字还不含 1M 上下文所需的 KV cache，因此不能把“8 卡可载入权重”理解为“8 卡可无压力承载任意百万 token 请求”。
+
+### 结构判断与证据边界
+
+Step-5 的核心规模策略是“**大总参数 + 低激活参数 + 混合注意力**”：352 专家提供容量，Top-8 将每 token 的 FFN 计算限制在少量专家；滑窗层控制常规上下文成本，全注意力层通过块稀疏索引保留跨段检索能力。公开 config 能支持这一结构判断，但不能证明模型卡中“索引/Top-k 成本约降至稠密基线八分之一”、基准领先或 24 小时 agent 结果的单组件因果贡献；这些仍需原始技术报告、训练日志或受控消融。
 
 ## Kimi 系列规模对照
 
