@@ -31,6 +31,8 @@
 
 [P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵) · [D²SD](../papers/d2sd.md#5-关键结论) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵) · [DeLS-Spec](../papers/dels-spec.md) · [AngelSpec](../papers/angelspec.md) · [TorchSpec](../papers/torchspec.md) · [AcceptMoE](../papers/acceptmoe.md) · [LibraSpec](../papers/libraspec.md) · [Approximate Speculative Decoding](../papers/approximate-speculative-decoding.md)
 
+**DPara** 将并行投机解码从“预测某个接受结果”改为“预计算所有接受边界”，在 Qwen3-8B/14B 上报告 3.21×/3.52× 平均加速；其接受长度低于 DSpark，收益主要来自骨干与验证的稳定重叠，详见 [DPara 精读](../papers/dpara.md)。
+
 LibraSpec 将扩散式草稿器的动态长度选择改写为“新增接受收益是否值得验证成本”的边际判断；它用 drafter 置信度近似 target 接受概率，在六个 target、三种 diffusion drafter 上报告了更高的端到端加速，但理论最优性仍受概率校准与近似常数成本假设约束。详见 [LibraSpec 精读](../papers/libraspec.md)。
 
 Approximate Speculative Decoding（ASD）把优化面从 drafter/验证长度推进到**提交规则**：允许少量满足局部 target-logit regret gate、单 block 例外上限和持久请求预算的不匹配，从而复用在已实现前缀下仍为 target-greedy 的连续后缀。它不增加目标前向，论文报告相对匹配严格验证 `3.05%–15.26%` 的固定工作量 TPS 增益；但高输出哈希差异、只约束局部 regret 而不保证任务质量，以及主表聚合口径冲突，使其应被定位为需逐工作负载校准的近似 verifier，而不是 lossless SD。详见 [ASD 精读与数值审计](../papers/approximate-speculative-decoding.md)。

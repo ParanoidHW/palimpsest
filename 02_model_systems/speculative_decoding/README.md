@@ -15,11 +15,12 @@
 9. [AcceptMoE](papers/acceptmoe.md)：看 MoE 树验证中的 commitment-weighted、自适应专家集合与 offload cache 剪枝。
 10. [LibraSpec](papers/libraspec.md)：看扩散式 drafter 的边际收益驱动动态 speculative length。
 11. [Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)：看验证器如何用局部 regret、block cap 和请求级账本接受有界例外，并复用同次目标前向中的连续后缀。
+12. [DPara](papers/dpara.md)：看如何枚举所有接受边界，把并行草稿骨干稳定隐藏在目标验证窗口内。
 
 ## 文档索引
 
 - Surveys：[Evolution](surveys/evolution.md)，[Foundations and trends](surveys/foundations-and-trends.md)， [AcceptMoE](papers/acceptmoe.md)
-- Papers：[P-EAGLE](papers/p-eagle.md)，[DFlash](papers/dflash.md)，[D2SD](papers/d2sd.md)，[JetSpec](papers/jetspec.md)，[HyperDFlash](papers/hyperdflash.md)，[DSpark](papers/dspark.md)，[DeLS-Spec](papers/dels-spec.md)，[AngelSpec](papers/angelspec.md)，[TorchSpec](papers/torchspec.md)，[AcceptMoE](papers/acceptmoe.md)，[LibraSpec](papers/libraspec.md)，[Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)
+- Papers：[P-EAGLE](papers/p-eagle.md)，[DFlash](papers/dflash.md)，[D2SD](papers/d2sd.md)，[JetSpec](papers/jetspec.md)，[HyperDFlash](papers/hyperdflash.md)，[DSpark](papers/dspark.md)，[DeLS-Spec](papers/dels-spec.md)，[AngelSpec](papers/angelspec.md)，[TorchSpec](papers/torchspec.md)，[AcceptMoE](papers/acceptmoe.md)，[LibraSpec](papers/libraspec.md)，[Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)，[DPara](papers/dpara.md)
 - Topics：[Speculator training data lifecycle](topics/speculator-training-data-lifecycle.md)，[RL drafter co-training](topics/rl-drafter-cotraining.md)
 - Evidence：[Figure inventory](evidence/figure-inventory.md)，[Speculator training data lifecycle evidence](evidence/speculator-training-data-lifecycle.md)，[RL drafter co-training evidence](evidence/rl-drafter-cotraining.md)，[AcceptMoE figure inventory](evidence/acceptmoe-figure-inventory.md)，[LibraSpec figure inventory](evidence/libraspec-figure-inventory.md)，[ASD figure inventory](evidence/approximate-speculative-decoding-figure-inventory.md)
 - Supplement：[DFlash draft-model acceptance risk](supplements/dflash-acceptance-risk.html)
