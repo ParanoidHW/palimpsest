@@ -20,14 +20,19 @@ canonical: true
 > - 领域入口：canonical `02_model_systems/speculative_decoding/README.md`
 > - 上位汇总：canonical `02_model_systems/speculative_decoding/surveys/evolution.md`
 > - 证据资产：canonical `02_model_systems/speculative_decoding/assets/papers/dpara/`
-> - 相关文档：`figure_inventory.md`
+> - 相关文档：[DPara Figure inventory](../evidence/dpara-figure-inventory.md)
 
 ## 修订信息
 
-- 当前版本：`1.0.0`
-- 当前修订 ID：`rev-dpara-initial-20260929`
-- 当前修订时间：`2026-09-29T18:00:00+08:00`
-- 前序：无（initial）
+- 当前版本：`1.1.0`
+- 当前修订 ID：`rev-dpara-ssd-background-20261008`
+- 当前修订时间：`2026-10-08T12:00:00+08:00`
+- 前序：`rev-dpara-initial-20260929` / `1.0.0` / manifest SHA-256 `9e7d04f70e969cae4c15f75a3306a0bfe93a4ba26426ca5db848ef62d2e6eec6`
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|
+| `rev-dpara-initial-20260929` | `1.0.0` | `2026-09-29T18:00:00+08:00` | `/root` | `initial` | 无 | 建立 DPara 单篇深度解读 | arXiv:2609.27396v1 PDF、图表与实验 | material |
+| `rev-dpara-ssd-background-20261008` | `1.1.0` | `2026-10-08T12:00:00+08:00` | `/root` | `content-update` | `rev-dpara-initial-20260929` / `1.0.0` / `9e7d04f70e969cae4c15f75a3306a0bfe93a4ba26426ca5db848ef62d2e6eec6` | 补充普通投机解码、SSD 跨轮并行、预测 bonus 失配和批回退背景 | 用户阅读反馈；论文 §2.1–2.3、Figures 2–3、Appendix B | minor：不改变论文结论，补足理解 DPara 所需的前置机制 |
 
 ## 0. 资料与配图索引
 
@@ -36,7 +41,7 @@ canonical: true
 - 机构：南京大学 State Key Laboratory of Novel Software Technology；Alibaba Group。首位作者 Fuliang Liu 标注机构 1、2；通讯作者 Zhibin Wang 标注机构 1，论文明确给出邮箱；其余作者机构按标题页编号归并为上述两家。未标注共同第一作者。
 - 公开评审：未找到 OpenReview 页面、评审、rebuttal 或 decision；结论只基于论文 PDF。
 - 代码/source：未能在受限网络环境取得官方代码或 LaTeX 源码；实现细节以论文正文和附录为准。
-- 论文图表裁剪与 QA：[figure inventory](figure_inventory.md)；共 10 个正式对象，均包含完整 caption，contact sheet 与逐图原分辨率检查在过程目录完成。
+- 论文图表裁剪与 QA：[DPara figure inventory](../evidence/dpara-figure-inventory.md)；共 11 个正式对象，均包含完整 caption，contact sheet 与逐图原分辨率检查在过程目录完成。
 
 ## 0.1 术语与符号解释
 
@@ -47,11 +52,13 @@ canonical: true
 | 投机解码 | 小草稿器先提出候选，大模型一次验证并保留可接受前缀 | 论文 §2.1；不等同于无验证的小模型生成 |
 | 并行草稿器 | 一次前向同时产生多个未来位置的 logits | 论文 §2.2；位置间仍需轻量头恢复局部因果性 |
 | 并行投机解码（PSD） | 草稿下一轮与当前目标验证重叠执行 | 论文 §2.3 |
+| SSD | *Speculative Speculative Decoding*：在当前轮验证期间，预测接受边界和 bonus，并据此提前生成下一轮草稿 | 论文 §2.3 对前置工作的概括；不要与 Mamba-2 的 Structured State Space Duality 混淆 |
 | 骨干网络 | M-DFlash 的高成本扩散式主干 | 论文 §3；负责多接受边界的基础 logits |
 | 自回归头（AR head） | 逐位置读取前一已采样 token 的低成本修正头 | 论文 §3.2–3.3；只留下少量串行开销 |
 | 特征无目标锚点 | 尚未经过目标模型、因此没有目标隐藏特征的 carried-over token | 论文 §3.1；不是“无 embedding” |
 | 接受边界 | 当前验证结果接受了多少 draft token 的位置 $r$ | 论文算法 1；共有 $d+1$ 个候选边界 |
-| bonus token | 首个拒绝位置由目标模型产生的修正 token | 论文 §2.1；不是预先猜测的 bonus |
+| 真实 bonus token | 当前轮验证后由目标模型产生的修正 token；若全部接受，则是目标模型额外产生的下一 token | 论文 §2.1；本文记为 $b$，它本身不是“猜错”的对象 |
+| SSD 预测 bonus | SSD 为了在验证结束前提前草拟，对未来真实 bonus 所作的预测 | 论文 §2.3、Figure 2；本文记为 $\hat b$，所谓“bonus 猜错”是 $\hat b\ne b$ |
 | 临界路径 | 决定下一轮何时能开始的串行时间 | 论文 §1、§3.3 |
 
 ### 0.1.2 符号表
@@ -63,6 +70,8 @@ canonical: true
 | $t_{0:d}$ | carried-over 的 bonus 加本轮待验证 draft block | 论文算法 1 |
 | $r$ | 接受 draft 数，$r\in\{0,\ldots,d\}$ | 论文 §3.1 |
 | $b$ | 本轮由目标模型返回的 bonus token | 论文算法 1 |
+| $\hat r,\hat b$ | 本文为解释 SSD 引入的预测接受边界与预测 bonus | 分析符号；论文 §2.3、Figure 2 |
+| $p,B$ | 单请求 bonus 预测失配概率、同步 batch 的请求数 | 本文分析公式；$p\in[0,1]$，$B$ 为正整数 |
 | $C$ | 已接受历史的目标特征缓存 | 论文 §3.3 |
 | $\ell_i^{(r)}$ | 边界 $r$ 对应的第 $i$ 个基础 logits | 论文算法 1 |
 | $E,W$ | AR 头的低秩 token embedding 与词表投影 | 论文 §3.2 |
@@ -83,13 +92,86 @@ canonical: true
 
 ### 2.1 出发点与背景痛点
 
-一个具体场景（论文 Figure 2 的改写）：服务端同时处理 16 个请求。SSD 在目标模型验证当前 block 时，提前猜每个请求将接受到哪里以及 bonus token；只要一个请求的 bonus 猜错，整批预计算 continuation 被丢弃，下一轮必须重新串行草拟。论文附录 B 测得 batch 16 的回退率为 57%–96%，因此“并行重叠”会随着负载增加而消失。DPara 要改变的正是这个决策点：不猜接受长度和 bonus，而是把所有可能边界都算好。
+要理解 DPara，必须先区分两种“并行”。DSpark/DFlash 解决的是**一轮内部**的并行：一次生成多个 draft token；SSD 解决的是**相邻两轮之间**的并行：让第 $t+1$ 轮草拟与第 $t$ 轮目标验证重叠。DPara 的直接问题背景正是 SSD，而不是只有普通投机解码。
+
+#### 2.1.1 从普通投机解码到 SSD
+
+下面的时间线是本文依据论文 §2.1–2.3 和 Figure 3 所做的解释性重构，不是 SSD 原论文的独立精读。设已提交上下文为 $H$，草稿器在第 $t$ 轮提出 `B C D`：
+
+```text
+普通投机解码 / DSpark：
+
+H -> 草拟 B C D -> target 验证 B C D
+                         -> 接受 B、C，拒绝 D
+                         -> target 返回真实 bonus D*
+                         -> 新上下文 H B C D*
+                         -> 下一轮才草拟 E F G
+
+时间：Draft_t -> Verify_t -> Draft_{t+1} -> Verify_{t+1}
+```
+
+真实 bonus $b=D^*$ 是 target 在验证后给出的结果，本身没有“猜错”这一说法。串行瓶颈来自：第 $t+1$ 轮必须等真实接受边界 $r$ 和真实 bonus $b$ 都揭晓后，才知道应该基于哪个上下文生成 `E F G`。DSpark 即使把 `B C D` 一次并行产生，也没有消除 `Verify_t` 与 `Draft_{t+1}` 之间的等待。
+
+SSD（*Speculative Speculative Decoding*）再向前投机一步：在 target 验证 `B C D` 的同时，先预测验证将返回的接受边界和 bonus，记为 $(\hat r,\hat b)$，并根据这个预测上下文提前生成下一轮 `E F G`：
+
+```text
+SSD：
+
+                    +-> target 正在验证 B C D -> 返回真实 (r, b)
+H B C D ------------+
+                    +-> SSD 预测 (r_hat, b_hat) -> 提前草拟 E F G
+```
+
+如果 $(\hat r,\hat b)=(r,b)$，预计算的 `E F G` 已经建立在真实上下文上，下一轮可以立即验证，原来的 `Draft_{t+1}` 延迟就被隐藏。这里 SSD 投机的不只是 token，而是“本轮投机验证会产生什么结果”，这也是其名称中第二个 *speculative* 的含义。
+
+#### 2.1.2 “bonus 猜错”究竟是什么
+
+所谓“bonus 猜错”，准确含义是 SSD 的预测 $\hat b$ 与 target 随后揭示的真实 $b$ 不同，而不是 target 自己给出了错误答案。例如：
+
+```text
+SSD 预计算所用上下文：H B C )
+target 返回真实上下文：H B C ;
+```
+
+即使只有 `)` 与 `;` 一个 token 不同，后续分布也是不同的：预先算出的 `E F G` 条件于错误前缀 `H B C )`，不能直接当作真实前缀 `H B C ;` 下的草稿。接受边界猜错也同理：SSD 若按“接受 B、C”预计算，而 target 实际只接受 B，那么上下文的长度和内容都变了，预计算 continuation 失效。
+
+#### 2.1.3 为什么一个请求失配会触发整批回退
+
+论文 Figure 2 和 Appendix B 评测的 SSD 把一批请求作为同步的 GPU 草拟/验证单元，并维护批量 speculation cache。只要某个请求揭示出的真实 bonus 没有命中其预计算 cache，该实现就丢弃整批预计算 continuation，并为整批串行重新草拟。因此，若单请求失配概率为 $p$，batch 中至少一次失配的概率为：
+
+$$
+P(\text{整批回退})=1-(1-p)^B.
+$$
+
+**这条公式在算什么？** 它计算一个同步 batch 中至少有一个请求发生 bonus 预测失配的概率。
+
+**怎么读？** 单请求不失配的概率是 $1-p$；$B$ 个请求都不失配的概率是 $(1-p)^B$；用 1 减去它，就是至少一次失配的概率。
+
+**输入与输出。** 输入是单请求失配概率 $p$ 和 batch 大小 $B$；输出是该步触发至少一次失配、进而在论文 SSD 实现中触发整批回退的概率。
+
+**变量在这里各做什么？** $p$ 描述单个请求的预测风险，$B$ 描述同步耦合的请求数；二者增大都会提高整批回退概率。
+
+**直觉。** 即使每个请求单独看都很可靠，请求越多，“至少一个出错”也越容易发生。
+
+**边界。** 该式使用请求失配相互独立的近似，并把“至少一个失配”映射为论文所测 SSD 的整批回退事件；若运行时允许请求级拆批或失配相关，实际概率与代价会不同。
+
+**小例子。** 本文构造的说明例，不是论文实验：$p=0.1$、$B=16$ 时，$1-0.9^{16}\approx81.5\%$。
+
+例如 $p=10\%$、$B=16$ 时，该概率约为 $81.5\%$。论文实测 batch 16 的 SSD 回退率为 57%–96%。需要强调：**整批回退不是投机解码正确性在数学上的必然要求，而是论文所评测 SSD 的批处理与 cache 调度行为。** 理论上可以拆出失配请求单独重算，但会引入动态拆批、重组、不同步执行和 CUDA Graph 形状管理成本；DPara 论文没有评测这种替代实现。
 
 ![SSD 在批处理下的串行回退](../assets/papers/dpara/fig2-ssd-fallback-caption.png)
 
+Figure 2 中红色请求表示预测 bonus 未命中真实结果；它使该步的整批预计算 continuation 失效。DPara 要改变的决策点是：不预测单一 $(\hat r,\hat b)$，而是在昂贵骨干中覆盖所有可能的 $r$，等真实 $b$ 返回后才用轻量头完成条件化。
+
 ### 2.2 现有方案为何不够
 
-串行 DSpark/DFlash 的问题是骨干前向位于临界路径；论文附录 A 报告该草拟阶段占 24%–32% 的单轮时间。SSD/PEARL 将草拟与验证重叠，却依赖“预测 bonus 命中”。简单提高 bonus 预测准确率只能降低回退概率，不能从结构上消除“一个请求失败拖累整批”的放大效应 $1-(1-p)^B$。Figure 10 直接显示 SSD 回退率随 batch 增长，而 DPara 结构上为 0。
+串行 DSpark/DFlash 的问题是骨干前向位于临界路径；论文附录 A 报告该草拟阶段占 24%–32% 的单轮时间。SSD/PEARL 将草拟与验证重叠，却依赖预测结果命中。简单提高 $\hat b$ 的准确率只能降低回退概率，不能从结构上消除同步批处理中“一个请求失配拖累整批”的放大效应。Figure 10 直接显示 SSD 回退率随 batch 增长，而 DPara 的“预测诱发回退”为 0；这不等于 DPara 永远不会因显存、运行时或其他异常回退。
+
+| 现有方案/做法 | 可观察的失败 | 具体场景或例子 | 例子来源 | 根因/被忽略变量 | 为什么简单修补仍不够 | 证据 |
+|---|---|---|---|---|---|---|
+| 串行 DSpark/DFlash | 下一轮草拟等待本轮验证 | `Verify_t` 结束后才能开始 `Draft_{t+1}` | 本文依据论文 §2.2 重构 | 下一轮上下文依赖真实 $(r,b)$ | 只并行一轮内部 token，不能跨轮隐藏骨干 | §2.2、Figure 3 |
+| SSD | 预测失配时预计算 continuation 作废 | 预测 `H B C )`，真实结果为 `H B C ;` | 本文依据 Figure 2 重构 | 提前草拟绑定了单一预测 $(\hat r,\hat b)$ | 提高预测率不能消除剩余失配，也不能消除 batch 放大 | §2.3、Figure 2、Appendix B |
+| 同步批 SSD | 任一请求失配可触发整批重新草拟 | 单请求 $p=10\%$、batch 16 时至少一次失配约 81.5% | 本文公式例；不是论文实验数字 | 批量 cache 与固定执行形状耦合请求 | 按请求拆批可避免整批重算，但引入动态调度成本且论文未评测 | Appendix B、Figure 10 |
 
 ![不同 batch 下的 SSD 回退率](../assets/papers/dpara/fig10-fallback-rate-caption.png)
 
@@ -321,4 +403,4 @@ DPara 不再猜“这轮会接受哪条路径”，而是在目标验证期间�
 - 过程审阅：结构化章节、公式解释、术语审计、图表邻近性已完成。
 - 渲染检查：使用 `pandoc -f markdown -t html5 -s` 成功生成 HTML；数学公式由浏览器 MathJax/Obsidian 继续解释，pandoc 对损失公式给出保留 TeX 的警告。
 - 临时标记扫描：canonical Paper 无 HTML 注释、TODO、FIXME、过程目录或绝对本地路径引用。
-- 发布状态：review validator 已运行但严格完整性校验未通过；publisher validator 20 秒内无输出并超时。在两者均通过前保持 `blocked`。
+- 发布状态：2026-10-08 重跑 review validator，结构校验通过但语义/完整性仍有 33 项错误；publisher validator 通过且错误列表为空。交付状态继续保持 `blocked`。
