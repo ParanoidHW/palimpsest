@@ -483,6 +483,10 @@ $$
 
 它与 DSpark 的关系需要严格限定：论文 Table 2 直接使用 **DSpark 发布的 DFlash block-7 baseline checkpoints**，4B 平均 speedup/$\tau$ 从 `3.18×/3.92` 提高到 `3.38×/4.18`，8B 从 `3.23×/3.90` 提高到 `3.35×/4.14`；但没有与 DSpark sequential head、Confidence、STS 或 hardware-aware scheduler 比较。因此它证明的是“DSpark release 资产可被低成本增强”，不是“DeLS-Spec 优于完整 DSpark”。详见 [DeLS-Spec 隔离精读](../papers/dels-spec.md) 与 [DSpark 的算法增量候选](../papers/dspark.md#103-算法级增量候选已验证结果与待验证方案)。
 
+### 6.9 2026-10：验证频率、块内条件化与候选修复
+
+本批三篇新工作把并行草稿的剩余瓶颈拆成三个位置：[DLoop](../papers/dloop.md) 优化 target verification 的频率；[D-Loop](../papers/d-loop.md) 修复 diffusion block 内缺少前缀条件的问题；[DRelay](../papers/drelay.md) 在候选池内修复早期选择错误。它们的比较已整理到 [Foundations and trends 的机制表](foundations-and-trends.md#33-block--diffusion-drafting)。
+
 ## 7. 路线差异总表
 
 | 时间 | 路线 | 代表方法 | 解决的瓶颈 | 留下的问题 |

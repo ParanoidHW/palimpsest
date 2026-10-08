@@ -43,7 +43,7 @@
 | `02_model_systems/llm_foundations` | 13 | frontier LLM 架构、规模、Infra、looped reasoning 与 linear-attention system adoption | [2026 H1 model scale](../02_model_systems/llm_foundations/surveys/2026h1-model-scale.md) · [Linear Attention Transformer evolution](../02_model_systems/llm_foundations/surveys/linear-attention-transformer-evolution.md) | 新增 Looped Transformer 推理/潜在思维 canonical Paper；Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet、Kimi Linear、Mamba-3、Gated DeltaNet-2 已完成独立验收；Kimi K3 复用；taxonomy 独立计入 benchmark lane |
 | `02_model_systems/multimodal_generation` | 22 | image/video/audio diffusion、AR/flow、MoT、world model、VAE、cache、稀疏 attention、serving | [Diffusion evolution](../02_model_systems/multimodal_generation/surveys/diffusion-evolution.md) | 新增 MAGI-2 Preview 的 114B/6B Multi-Head LatentMoE 与训练系统解读 |
 | `02_model_systems/multimodal_understanding` | 2 | 多模态统一嵌入、检索、视觉推理效率与思维链压缩 | [Paper Index](../02_model_systems/multimodal_understanding/evidence/paper-index.md) | DME 与 MCPO 已建立 canonical Paper、正式资产及双向索引 |
-| `02_model_systems/speculative_decoding` | 12 | diffusion draft、tree/parallel drafting、解耦 local correction、workload-aware drafting、hidden-state training、relaxed verification、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖；新增 ASD 有界近似验证 |
+| `02_model_systems/speculative_decoding` | 16 | diffusion draft、tree/parallel drafting、解耦 local correction、验证频率、块内条件化、候选修复、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖；新增 DLoop、D-Loop、DRelay 与 DPara |
 | `03_agentic_workflows/kernel_agents` | 4 | LLM 自动 kernel 生成、Ascend/NPU、test-time scaling | [Paper index](../03_agentic_workflows/kernel_agents/evidence/paper-index.md) | 当前为 Paper note，适合按需补全 |
 
 ## Paper 明细
@@ -180,7 +180,7 @@
 | Douyin Multimodal Embedding Model Technical Report（DME；arXiv:2608.02148v3） | 深度精读；证据定位与跨条件重建 | [douyin-multimodal-embedding](../02_model_systems/multimodal_understanding/papers/douyin-multimodal-embedding.md) |
 | MCPO: Modality-Contrastive Preference Optimization for Multimodal Chain-of-Thought Compression（MCPO；arXiv:2609.04947v1；别名：Modality-Contrastive Preference Optimization） | 深度精读；版本锁定 v1；官方代码与完整时延环境未披露 | [mcpo](../02_model_systems/multimodal_understanding/papers/mcpo.md) |
 
-### Speculative decoding（12）
+### Speculative decoding（16）
 
 | Paper | 状态 | Canonical |
 |---|---|---|
@@ -197,6 +197,9 @@
 | LibraSpec: Dynamic Diffusion-Based Speculative Decoding via Marginal-Gain-Driven Optimization（arXiv:2608.08721） | 深度精读；边际收益驱动的扩散式动态 speculative length | [libraspec](../02_model_systems/speculative_decoding/papers/libraspec.md) |
 | Approximate Speculative Decoding（arXiv:2608.03447v3） | 深度精读；局部 regret、block cap、请求级账本与连续后缀复用；含代码与数值口径审计 | [approximate-speculative-decoding](../02_model_systems/speculative_decoding/papers/approximate-speculative-decoding.md) |
 | When Parallel Drafter Meets Parallel Speculative Decoding（DPara；arXiv:2609.27396v1） | 深度精读；已补普通 SD→SSD→DPara 前置链；多锚点 M-DFlash、结果无关预计算、无预测诱发回退；源码/代码未取得 | [dpara](../02_model_systems/speculative_decoding/papers/dpara.md) |
+| DLoop: Looped Speculative Decoding（arXiv:2610.07659v1） | 深度精读；多 drafting stage 合并一次 lossless verification | [dloop](../02_model_systems/speculative_decoding/papers/dloop.md) |
+| D-Loop: Looped Diffusion Drafting for Speculative Decoding（arXiv:2610.06011v1） | 深度精读；共享 backbone 的 prefix-conditioned suffix regeneration | [d-loop](../02_model_systems/speculative_decoding/papers/d-loop.md) |
+| DRelay: Global Draft Context for Prefix-Aware Parallel Speculative Decoding Repair（arXiv:2610.01439v1） | 深度精读；global candidate read 与 prefix-aware repair | [drelay](../02_model_systems/speculative_decoding/papers/drelay.md) |
 
 ### Kernel agents（4）
 
