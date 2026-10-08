@@ -196,7 +196,7 @@
 | AcceptMoE: Commitment-Weighted Self-Sizing Verifier Expert Sets for Efficient MoE Speculative Decoding（arXiv:2608.02989） | 深度精读；约束路由与 offload cache 剪枝 | [acceptmoe](../02_model_systems/speculative_decoding/papers/acceptmoe.md) |
 | LibraSpec: Dynamic Diffusion-Based Speculative Decoding via Marginal-Gain-Driven Optimization（arXiv:2608.08721） | 深度精读；边际收益驱动的扩散式动态 speculative length | [libraspec](../02_model_systems/speculative_decoding/papers/libraspec.md) |
 | Approximate Speculative Decoding（arXiv:2608.03447v3） | 深度精读；局部 regret、block cap、请求级账本与连续后缀复用；含代码与数值口径审计 | [approximate-speculative-decoding](../02_model_systems/speculative_decoding/papers/approximate-speculative-decoding.md) |
-| When Parallel Drafter Meets Parallel Speculative Decoding（DPara；arXiv:2609.27396v1） | 深度精读；多锚点 M-DFlash、结果无关预计算、无预测诱发回退；源码/代码未取得 | [dpara](../02_model_systems/speculative_decoding/papers/dpara.md) |
+| When Parallel Drafter Meets Parallel Speculative Decoding（DPara；arXiv:2609.27396v1） | 深度精读；已补普通 SD→SSD→DPara 前置链；多锚点 M-DFlash、结果无关预计算、无预测诱发回退；源码/代码未取得 | [dpara](../02_model_systems/speculative_decoding/papers/dpara.md) |
 
 ### Kernel agents（4）
 
