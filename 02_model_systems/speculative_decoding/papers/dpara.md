@@ -24,22 +24,24 @@ canonical: true
 
 ## 修订信息
 
-- 当前版本：`1.1.1`
-- 当前修订 ID：`rev-dpara-figure-recrop-20261008`
-- 当前修订时间：`2026-10-08T18:00:00+08:00`
-- 前序：`rev-dpara-ssd-background-20261008` / `1.1.0` / manifest SHA-256 `7e9d2a7ddfc09e1fb277680afffe11614c8a79bb1675c5a2b451b3a1d2c6c2fc`
+- 当前版本：`1.1.2`
+- 当前修订 ID：`rev-dpara-validator-fix-20261008`
+- 当前修订时间：`2026-10-08T20:00:00+08:00`
+- 前序：`rev-dpara-figure-recrop-20261008` / `1.1.1` / manifest SHA-256 `9171489b3c13f0ad642bcab88e60041e64aa077852403011be9d40e9af5055d0`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|
 | `rev-dpara-initial-20260929` | `1.0.0` | `2026-09-29T18:00:00+08:00` | `/root` | `initial` | 无 | 建立 DPara 单篇深度解读 | arXiv:2609.27396v1 PDF、图表与实验 | material |
 | `rev-dpara-ssd-background-20261008` | `1.1.0` | `2026-10-08T12:00:00+08:00` | `/root` | `content-update` | `rev-dpara-initial-20260929` / `1.0.0` / `9e7d04f70e969cae4c15f75a3306a0bfe93a4ba26426ca5db848ef62d2e6eec6` | 补充普通投机解码、SSD 跨轮并行、预测 bonus 失配和批回退背景 | 用户阅读反馈；论文 §2.1–2.3、Figures 2–3、Appendix B | minor：不改变论文结论，补足理解 DPara 所需的前置机制 |
 | `rev-dpara-figure-recrop-20261008` | `1.1.1` | `2026-10-08T18:00:00+08:00` | `/root` | `evidence-update` | `rev-dpara-ssd-background-20261008` / `1.1.0` / `7e9d2a7ddfc09e1fb277680afffe11614c8a79bb1675c5a2b451b3a1d2c6c2fc` | 以 300 DPI 重渲染并重新裁剪全部 11 个 Figure/Table，修复截断、缺 caption、混入相邻正文与页眉问题 | 用户截图反馈；PDF pages 1–9、13；逐图原分辨率 QA | patch：不改变论文结论，只修复视觉证据完整性和可读性 |
+| `rev-dpara-validator-fix-20261008` | `1.1.2` | `2026-10-08T20:00:00+08:00` | `/root` | `correction` | `rev-dpara-figure-recrop-20261008` / `1.1.1` / `9171489b3c13f0ad642bcab88e60041e64aa077852403011be9d40e9af5055d0` | 补齐作者证据、3 个公式解释卡、3 个 prior-failure 条目和 5 个设计动机条目，修复 strict review validator 阻塞 | review validator 失败清单；readability/completeness contract | minor：提高可审计性，不改变论文结论 |
 
 ## 0. 资料与配图索引
 
 - 论文：arXiv:2609.27396v1，2026-09-23；本地 PDF 15 页，SHA-256 记录于过程 manifest。
 - 作者：Fuliang Liu、Xue Li、Kun Qian、Zhibin Wang、Wanchun Dou、Wenyuan Yu、Chen Tian。
 - 机构：南京大学 State Key Laboratory of Novel Software Technology；Alibaba Group。首位作者 Fuliang Liu 标注机构 1、2；通讯作者 Zhibin Wang 标注机构 1，论文明确给出邮箱；其余作者机构按标题页编号归并为上述两家。未标注共同第一作者。
+- 作者身份核验：Fuliang Liu 的身份依据为 `first listed author`，所属机构为 `State Key Laboratory of Novel Software Technology, Nanjing University` 与 `Alibaba Group`，对应依据为 `paper PDF title block, page 1`。Zhibin Wang 的身份依据为 `asterisk and corresponding-author footnote`，所属机构为 `State Key Laboratory of Novel Software Technology, Nanjing University`，对应依据为 `paper PDF title block and footnote, page 1`。其余作者涉及机构为 `State Key Laboratory of Novel Software Technology, Nanjing University`、`Alibaba Group`。全体作者证据为 `paper PDF title block, page 1`。
 - 公开评审：未找到 OpenReview 页面、评审、rebuttal 或 decision；结论只基于论文 PDF。
 - 代码/source：未能在受限网络环境取得官方代码或 LaTeX 源码；实现细节以论文正文和附录为准。
 - 论文图表裁剪与 QA：[DPara figure inventory](../evidence/dpara-figure-inventory.md)；共 11 个正式对象，均包含完整 caption，contact sheet 与逐图原分辨率检查在过程目录完成。
@@ -216,9 +218,15 @@ Figure 3 对比了串行 SD、SSD 和 DPara 的调度。DPara 的输入是上轮
 
 ### 4.2 组件级设计动机与具体问题映射
 
-多锚点骨干解决“验证还未结束时不知道哪一段前缀有效”的问题：没有它，DPara 只能回到单锚点 DFlash，无法同时覆盖所有 $r$。树状 mask 把共享 spine 与各分支隔离，避免一个假设接受边界污染另一个分支；代价是分支数量和固定 buffer 增长。冻结 AR 头把真实 bonus 的依赖延迟到 barrier 之后，只留下低秩修正的串行时间；代价是接受长度低于已看见完整特征的串行 DSpark。仅微调骨干而冻结头部是复用 DSpark checkpoint 的工程选择，Figure 8 支持接受长度改善，但没有证明其他训练配方不会更好。
+**多锚点骨干与树状 mask。** 多锚点骨干解决“验证还未结束时不知道哪一段前缀有效”的问题：没有它，DPara 只能回到单锚点 DFlash，无法同时覆盖所有 $r$。树状 mask 把共享 spine 与各分支隔离，避免一个假设接受边界污染另一个分支。这样做用额外分支和固定缓冲区换取验证后无需重跑骨干；Figure 5–6 给出机制证据，但没有单独量化 mask 本身的收益。
 
-| 设计 | 具体问题 | 改变的变量/状态 | 代价与证据 | 动机状态 |
+**冻结 AR 头并延迟 bonus 条件化。** 真实 bonus 只有验证结束后才能知道。DPara 让骨干先产生与具体 bonus 无关的基础 logits，再由冻结 AR 头注入真实 bonus，只把低秩修正留在串行路径。它直接消除了 SSD 的 bonus 预测依赖，但仍保留 $T_{Head}$，而且缺少完整目标特征会让接受长度低于串行 DSpark；Figure 4、Figure 7 和算法 1 支持这条机制链。
+
+**仅微调骨干。** 多锚点、无目标特征的输入分布与原 DSpark checkpoint 不同，而 AR 头承担的“根据前一 token 修正”功能没有改变。因此论文只适配骨干并冻结头部，以降低训练改动并复用已有能力。Figure 8 在保持 AR 头和解码配置不变时将平均接受长度从 3.62 提高到 4.73，但没有从零训练或联合微调对照，不能证明这是唯一最优训练方案。
+
+**异构 A10+H800 拆分。** 如果把完整草稿流水线放在较弱的 A10 上，全词表 logits 传输和 AR 头会暴露在临界路径。论文把 LM head 移到 H800，只跨卡传更小的 hidden states，使 A10 骨干和传输尽量落入验证窗口。Figure 7 支持该硬件配置下的延迟收益，但结果仍受互联带宽和同步开销约束。
+
+| 设计项 | 论文是否明确说明 why / 具体问题 | 改变的变量/状态 | 代价与证据 | 动机状态 |
 |---|---|---|---|---|
 | 多锚点 M-DFlash | 验证结果未知，单锚点无法覆盖所有前缀 | 一次输出 $d+1$ 边界 logits | 需要微调；Figure 8 接受长度平均提升 30.7% | 作者明确 |
 | 树状 mask | 分支之间不能互相泄漏 | 共享 spine + 分支内双向可见 | mask 复杂；Figure 6 是机制图 | 作者明确 |
@@ -246,7 +254,13 @@ $$
 
 **输入与输出。** 输入是边界 $r$ 的 $\ell_i$、上一 token $y_{i-1}$ 和 bonus $b$；输出是 $y_{1:d}$。
 
-**直觉与边界。** 骨干负责并行候选，AR 头只恢复局部依赖；若头耗时超过验证窗口，隐藏骨干的收益会下降。小例子：Figure 4 中接受 $B,C$、拒绝 $D$ 后，$b=D^*$，头读取 $C$ 后生成 $E,F,G$。
+**变量在这里各做什么？** $\ell_i$ 是 M-DFlash 为边界 $r$ 预先算出的第 $i$ 个基础 logits；$W E(y_{i-1})$ 是冻结 AR 头根据前一 token 给出的修正；$b$ 在 $y_0$ 位置提供真实 bonus；$z_i$ 是修正后的 logits；$y_i$ 是采样出的 draft token。
+
+**直觉。** 骨干负责并行候选，AR 头只恢复局部依赖；因此 bonus 依赖被推迟到验证完成后，骨干可以隐藏在验证窗口内。
+
+**边界。** 该式只适用于验证已返回并选定边界 $r$ 的推理阶段；若 AR 头耗时超过验证窗口，隐藏骨干的收益会下降。
+
+**小例子。** 论文 Figure 4 中接受 $B,C$、拒绝 $D$ 后，$b=D^*$，头读取 $C$ 后生成 $E,F,G$。
 
 $$
 \mathcal L=\frac{\sum_i m_iw_i\left[0.1(-\log q_i(y_i))+0.9\sum_{v\in V}|q_i(v)-p_i(v)|\right]}{\sum_i m_iw_i},\qquad w_i=e^{-(i-1)/\gamma}.
@@ -256,13 +270,31 @@ $$
 
 **怎么读？** 目标分布匹配占 90%，真实 token 交叉熵占 10%，越靠后的 draft 位置权重越低；$m_i$ 排除 assistant span 外的监督。
 
+**输入与输出。** 输入是有效位置掩码 $m_i$、位置权重 $w_i$、草稿分布 $q_i$、目标分布 $p_i$ 和真实 token $y_i$；输出是训练骨干与头部的标量损失 $\mathcal L$。
+
+**变量在这里各做什么？** $m_i$ 决定位置是否参与监督，$w_i$ 控制位置衰减，$q_i$ 是草稿分布，$p_i$ 是目标分布，$y_i$ 是交叉熵中的真实 token，$V$ 是词表，$\gamma$ 是衰减常数。
+
+**直觉。** 该目标同时要求草稿命中真实 token，并在整个词表上接近目标分布；提高后者的匹配度通常能改善接受率，但会增加训练约束。
+
 **边界。** 论文固定 $\gamma=4$，禁用 confidence loss，因此 draft 长度 $d$ 不动态截断。该损失能解释接受率变化，但没有单独消融 0.1/0.9 比例。
+
+**小例子。** 本文构造的说明例，不是论文实验：若某位置的真实 token 概率为 $q_i(y_i)=0.8$，而目标分布在全词表上与 $q_i$ 有较大差异，两个加权项会同时惩罚“命中但分布形状不一致”。
 
 $$T_{step}\approx\max(T_{verify},T_{precompute})+T_{Head}.$$
 
 **这条公式在算什么？** 它给出重叠调度的临界路径估算。
 
 **怎么读？** 骨干只要在目标验证窗口内完成，就不增加串行时间；剩下的头成本仍要相加。论文 Figure 7 的 Qwen3-14B batch 1 测量为验证 12.5 ms、暴露头/调度 1.3 ms，总计 13.8 ms。
+
+**输入与输出。** 输入是目标验证时间 $T_{verify}$、骨干预计算时间 $T_{precompute}$ 和头部时间 $T_{Head}$；输出是单轮端到端时间估计 $T_{step}$。
+
+**变量在这里各做什么？** $T_{verify}$ 是目标模型验证当前 draft 的时间，$T_{precompute}$ 是 M-DFlash 并行预计算时间，$T_{Head}$ 是验证后 AR 头与调度的串行时间。
+
+**直觉。** 并行部分取两者较大值，因为较慢者决定重叠窗口；只有窗口外的头部时间继续增加临界路径。
+
+**边界。** 该近似假设通信、同步和资源争用已包含在测量时间中，并且骨干确实落在验证窗口内；窗口不足时不能把 $T_{precompute}$ 完全隐藏。
+
+**小例子。** 论文 Figure 7 中 $T_{verify}=12.5$ ms、$T_{precompute}$ 小于该窗口、$T_{Head}=1.3$ ms，因此 $T_{step}\approx13.8$ ms。
 
 ### 4.5 训练/实验/部署设计
 
