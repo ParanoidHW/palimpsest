@@ -24,15 +24,16 @@ canonical: true
 
 ## 修订信息
 
-- 当前版本：`1.1.0`
-- 当前修订 ID：`rev-dpara-ssd-background-20261008`
-- 当前修订时间：`2026-10-08T12:00:00+08:00`
-- 前序：`rev-dpara-initial-20260929` / `1.0.0` / manifest SHA-256 `9e7d04f70e969cae4c15f75a3306a0bfe93a4ba26426ca5db848ef62d2e6eec6`
+- 当前版本：`1.1.1`
+- 当前修订 ID：`rev-dpara-figure-recrop-20261008`
+- 当前修订时间：`2026-10-08T18:00:00+08:00`
+- 前序：`rev-dpara-ssd-background-20261008` / `1.1.0` / manifest SHA-256 `7e9d2a7ddfc09e1fb277680afffe11614c8a79bb1675c5a2b451b3a1d2c6c2fc`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|
 | `rev-dpara-initial-20260929` | `1.0.0` | `2026-09-29T18:00:00+08:00` | `/root` | `initial` | 无 | 建立 DPara 单篇深度解读 | arXiv:2609.27396v1 PDF、图表与实验 | material |
 | `rev-dpara-ssd-background-20261008` | `1.1.0` | `2026-10-08T12:00:00+08:00` | `/root` | `content-update` | `rev-dpara-initial-20260929` / `1.0.0` / `9e7d04f70e969cae4c15f75a3306a0bfe93a4ba26426ca5db848ef62d2e6eec6` | 补充普通投机解码、SSD 跨轮并行、预测 bonus 失配和批回退背景 | 用户阅读反馈；论文 §2.1–2.3、Figures 2–3、Appendix B | minor：不改变论文结论，补足理解 DPara 所需的前置机制 |
+| `rev-dpara-figure-recrop-20261008` | `1.1.1` | `2026-10-08T18:00:00+08:00` | `/root` | `evidence-update` | `rev-dpara-ssd-background-20261008` / `1.1.0` / `7e9d2a7ddfc09e1fb277680afffe11614c8a79bb1675c5a2b451b3a1d2c6c2fc` | 以 300 DPI 重渲染并重新裁剪全部 11 个 Figure/Table，修复截断、缺 caption、混入相邻正文与页眉问题 | 用户截图反馈；PDF pages 1–9、13；逐图原分辨率 QA | patch：不改变论文结论，只修复视觉证据完整性和可读性 |
 
 ## 0. 资料与配图索引
 
