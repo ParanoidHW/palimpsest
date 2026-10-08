@@ -126,6 +126,16 @@ block drafter 一次或少数步并行预测一段 token，target 仍按 token c
 
 DFlash 的局限是 block 内 prefix dependency 弱、首个 mismatch 后缀浪费。D²SD 用 confidence 定位潜在拒绝边界，再以 variable-prefix drafter 生成共享前缀分支；见 [D²SD 研究方法](../papers/d2sd.md#4-研究方法)与[关键结论](../papers/d2sd.md#5-关键结论)。
 
+2026-10 新增三条并行草稿增量路线：[DLoop](../papers/dloop.md) 把优化变量从每轮草稿长度上移到验证频率：全接受时继续 drafting，最后一次性验证累积 block；它保持 lossless，但额外 draft forward 只有在 target verification 足够昂贵时才净收益。[D-Loop](../papers/d-loop.md) 在块内部 reveal 已选 prefix 并并行重生成 suffix，用共享 backbone 与 prefix–suffix loss 修复 repetition trap；收益主要来自 accepted length，而非单次 draft latency。[DRelay](../papers/drelay.md) 读取整个候选块，以 global reader 与 causal selector 修复早期 native choice；它针对“正确 token 已在候选池但选错”，代价是 $H\times K$ 候选状态和 selector 计算。
+
+| 新方法 | 主要失败模式 | 改变的层 | 直接证据 | 主要边界 |
+|---|---|---|---|---|
+| DLoop | 全接受后仍立即验证 | 验证频率 | Table 1–4 与 loop/gate 消融 | gate 校准、额外 draft 成本 |
+| D-Loop | 块内边际预测重复 | 草稿条件化 | repetition statistics、Table 5–6 | 二轮 pass 在低接受率任务可能不划算 |
+| DRelay | 候选存在但早期选择错误 | 候选选择/修复 | Figure 2–4、Table 3–4 | 候选池缺真值时无法修复 |
+
+三者不是同一层面的替代：DLoop 减少 verification 次数，D-Loop 增加 block 内条件信息，DRelay 改善候选选择。它们可以组合，但必须重新测量 draft-side 计算、峰值显存、selector/loop kernel 与 target forward 节省。
+
 HyperDFlash 不是简单加深 vanilla DFlash，而是让 block drafter 的 hidden-state reducer 对齐 target 的 mHC 架构，并用 LM-head KL distillation 约束前两个位置；见 [关键公式](../papers/hyperdflash.md#44-关键公式)、[主结果](../papers/hyperdflash.md#51-主结果) 与 [收益归因](../papers/hyperdflash.md#54-收益来源归因)。matched six-step 对比支持完整 bundle 的优势，但组件消融缺失，因此“架构对齐 + distillation”只能作为组合机制解释，不能拆分量化。
 
 DSpark 位于纯并行 block 与纯 AR draft 之间：semi-autoregressive groups 保留部分依赖，并用 confidence scheduling 动态决定何时 verify。其[研究方法](../papers/dspark.md#4-研究方法)、[关键结论与证据矩阵](../papers/dspark.md#5-关键结论与技术主张证据矩阵)与[Infra 需求分析](../papers/dspark.md#8-infra-需求分析)表明，动态 policy 必须与 load/scheduler 联合评估。
