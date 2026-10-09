@@ -45,7 +45,9 @@ tags:
 
 ## 1. 论文基本信息
 - 标题：DRelay: Global Draft Context for Prefix-Aware Parallel Speculative Decoding Repair。
-- 作者：Zhuoyu Wang, Junnan Huang, Xinyu Chen；第一作者 Zhuoyu Wang、Hong Kong University of Science and Technology (Guangzhou)；通讯作者 Xinyu Chen（标题页 †），同一机构。未列其他机构。
+- 作者：Zhuoyu Wang, Junnan Huang, Xinyu Chen。
+- 第一作者：Zhuoyu Wang；身份依据：first listed author；所属机构：The Hong Kong University of Science and Technology (Guangzhou)；对应依据：PDF title block。
+- 通讯作者：Xinyu Chen；身份依据：corresponding author marker；所属机构：The Hong Kong University of Science and Technology (Guangzhou)；对应依据：PDF title block。其余作者机构：The Hong Kong University of Science and Technology (Guangzhou)。全局证据：PDF title block。
 - 核心问题：并行候选中正确 token 已存在，但早期 native 选择错误导致连续前缀过早截断。
 
 ## 2. 研究动机与问题—方案闭环
@@ -80,6 +82,12 @@ global reader 汇聚整个 block 的候选 hidden states/distributions；causal 
 图注：原论文 Figure 2，展示 candidate availability、continuation evidence 与 repair value；它支撑“正确候选常已在池中”的动机。
 ### 4.2 组件级设计动机与具体问题映射
 global reader 解决因果 selector 看不到未来候选的问题，但引入跨位置注意力和额外显存；selector 保持输出路径因果，避免使用未来已选 token 造成泄漏。位置加权损失把早期位置的高边际价值编码进训练，直接对应连续 prefix 指标。Table 3/4 的移除实验支持这些模块，但无法完全拆开 reader 的容量与 selector 的训练收益。
+
+**Global reader。** 没有全局读取时，早期位置只能依赖本地候选，后续位置提供的 continuation evidence 无法反向修复；全局聚合提高选择依据，但让显存与计算随 $H\times K$ 增长。Table 3 的 No Global Read 是直接消融。
+
+**Causal selector。** 全局信息只说明候选间相关性，仍需沿已修复 prefix 逐位置决定保留或替换；因果执行避免未来已选 token 泄漏。代价是增加串行选择路径和 kernel 调度，论文以端到端 latency 计入但未独立给 kernel 性能。
+
+**位置加权 repair loss。** 连续前缀在早期出错的损失最大，因此训练对前部位置赋予更高贡献权重；这比均匀 loss 更贴近 $\tau$。Table 4 的 uniform-weight control 支持其方向，但各 loss 同时训练导致归因仍有耦合。
 | 设计项 | 证据 | 判断 |
 |---|---|---|
 | global read | Table 3 No Global Read | 直接支持 |
@@ -89,7 +97,7 @@ global reader 解决因果 selector 看不到未来候选的问题，但引入�
 parallel drafter 生成 $H\times K$ 候选 → global reader 聚合 → selector 从左到右选择/修复 → target 一次验证 → 提交连续 prefix。
 ### 4.4 关键公式
 $$\mathcal L=\mathcal L_{\mathrm{support}}+\lambda\mathcal L_{\mathrm{repair}}$$
-**这条公式在算什么？** 同时训练候选池质量与 prefix 修复决策。
+**这条公式在算什么？** 计算候选池质量与 prefix 修复决策的联合损失。
 **怎么读？** 候选要包含正确 token，selector 才有可修复空间。
 **输入与输出。** 输入是候选 logits、真实 token 与已选 prefix；输出是训练 loss。
 **变量在这里各做什么？** $\lambda$ 平衡两项，support 约束候选覆盖，repair 约束保留/替换。
@@ -123,6 +131,18 @@ DRelay 在八个 benchmark 上提升 $\tau$ 与 speedup；并发 32 时 Qwen3-4B
 ## 7. OpenReview 公开评审 × 论文内容交叉核验
 未发现公开 OpenReview 评审。
 
+### 7.1 与论文证据一致的正向评价
+不适用：没有公开 reviewer 意见；本文只把 Figure 2 与 Table 1–4 作为正向证据。
+
+### 7.2 经核验仍成立的主要担忧
+候选池不含正确 token 时无法 repair；$H\times K$ 状态成本和 selector kernel 未被完整拆分；公开代码 commit 不可核验。
+
+### 7.3 Rebuttal/Revision 是否真正解决问题
+不适用：未发现公开 rebuttal，核验对象为 arXiv v1。
+
+### 7.4 对本文贡献、适用范围和潜在风险的影响
+论文证据支持“候选选择错误可修复”，但不支持把收益外推到候选覆盖率低或显存受限的部署；实现未公开使 correctness 与 runtime 仍需复现。
+
 ## 8. Infra 需求分析
 ### 8.1 算力
 global reader 与 selector 增加 draft-side FLOPs；若 $\Delta\tau$ 足够，target verification 摊薄这些成本。
@@ -142,7 +162,7 @@ selector 可放 GPU；CPU 放置会引入候选 logits 往返，论文未测异�
 ### 9.1 开源权重/配置对照
 未取得 checkpoint metadata；与 DFlash/Domino/DSpark 的容量公平性以论文设置为准，尚未外部复核。
 
-## 10. 优点、局限与风险
+## 10. 优点与局限
 ### 优点
 利用已有候选池做修复，不改 target 合同；同时覆盖单请求和并发 serving；定位了“候选存在但选择错误”这一具体 failure。
 ### 局限
@@ -160,6 +180,6 @@ DRelay 与 D-Loop 分别优化“选择质量”和“块内条件化”，可�
 ## 13. 一句话总结
 DRelay 用全块候选上下文在 target 验证前修复早期选择错误，延长连续接受前缀；收益证据完整，但显存与 selector runtime 是部署边界。
 ## 14. 冻结前发布审计
-- Markdown 渲染器：`markdown-it`；结果 passed。
+- Markdown 渲染器：`markdown-it-py` CommonMark；渲染命令或操作：`python3 -c 'MarkdownIt().render(...)'`；结果 passed，HTML 输出 15824 字节。
 - Figure/Table 邻近性：Figure 2 紧邻动机；passed。
 - 临时标记扫描：clean；审计证据为过程侧 checklist/manifest。

@@ -45,7 +45,9 @@ tags:
 
 ## 1. 论文基本信息
 - 标题：D-Loop: Looped Diffusion Drafting for Speculative Decoding。
-- 作者：Kecheng Chen, Yuyang He, Cheng Gong, Hui Liu, Guoping Long, Jiajun Li, Shi Wu, Suiyun Zhang, Haoliang Li, Ziru Liu, Rui Liu；通讯作者标记为 Ziru Liu、Rui Liu，Huawei Research。第一作者 Kecheng Chen，City University of Hong Kong；其余机构还包括 CUHK、Huawei Research。
+- 作者：Kecheng Chen, Yuyang He, Cheng Gong, Hui Liu, Guoping Long, Jiajun Li, Shi Wu, Suiyun Zhang, Haoliang Li, Ziru Liu, Rui Liu。
+- 第一作者：Kecheng Chen；身份依据：first listed author；所属机构：City University of Hong Kong；对应依据：PDF title block。
+- 通讯作者：Ziru Liu、Rui Liu；身份依据：corresponding author marker；所属机构：Huawei Research；对应依据：PDF title block。其余作者机构：City University of Hong Kong、The Chinese University of Hong Kong、Huawei Research。全局证据：PDF title block。
 - 核心问题：block diffusion 的边际预测看不到块内已选 token，导致重复与短 accepted prefix。
 
 ## 2. 研究动机与问题—方案闭环
@@ -80,6 +82,12 @@ tags:
 图注：原论文 Figure 1，DFlash 的一次边际预测与 D-Loop 的 prefix reveal + suffix regeneration。
 ### 4.2 组件级设计动机与具体问题映射
 共享 backbone 的动机是避免新增 refiner 的参数和部署分支；代价是同一参数要兼容两个状态分布。prefix–suffix loss 不是装饰：仅用 full-mask loss 会使第二轮输入成为训练外分布，论文 Table 5 显示完整目标提升均值接受长度。selected-prefix 策略通过只暴露已选前缀避免错误传播，但其选择阈值/规则仍依赖实现细节。
+
+**共享参数循环。** 没有这一设计时，需要第二套 refiner 权重，部署显存和模型管理成本上升；复用 backbone 让两轮使用同一参数，但增加一次完整 draft forward。主结果支持完整方案，尚未隔离“参数共享”本身的收益。
+
+**前缀—后缀联合损失。** 只训练 full-mask 或 suffix view 会使首轮 proposal 与二轮 refinement 互相牵制；联合目标让两个输入视图都得到监督。Table 5 是直接消融，但增益相对完整系统较小。
+
+**选择性前缀暴露。** 直接 reveal 整个首轮 block 会把错误 token 送入后缀；只暴露选定 prefix 可降低错误传播。其代价是 prefix 选择策略本身需要校准，论文没有完全拆分这一决策的误差来源。
 | 设计项 | 依据 | 证据强度 |
 |---|---|---|
 | looped shared parameters | author-stated §3 | 直接机制+主结果 |
@@ -89,7 +97,7 @@ tags:
 输入 anchor/context → pass-1 block proposal → 选择 prefix → pass-2 suffix regeneration → target parallel verification → longest prefix commit。
 ### 4.4 关键公式
 $$\mathcal L=\mathcal L_{\mathrm{prefix}}+\beta\mathcal L_{\mathrm{suffix}}$$
-**这条公式在算什么？** 共享 drafter 的联合训练损失。
+**这条公式在算什么？** 计算共享 drafter 的联合训练损失。
 **怎么读？** 同时要求首轮预测 prefix 和看到 prefix 后的 suffix 正确。
 **输入与输出。** 输入是两种 mask/revealed-prefix 视图，输出是标量 loss。
 **变量在这里各做什么？** $\beta$ 控制 suffix 目标权重，两个子损失分别覆盖两种 pass。
@@ -123,6 +131,18 @@ D-Loop 在八个数据集上通常超过 DFlash/DSpark；Qwen3-8B 的平均接�
 ## 7. OpenReview 公开评审 × 论文内容交叉核验
 未发现公开 OpenReview 评审。
 
+### 7.1 与论文证据一致的正向评价
+不适用：没有公开 reviewer 意见；正文的正向判断只来自主表和 loss ablation。
+
+### 7.2 经核验仍成立的主要担忧
+额外 loop pass 使 Alpaca 出现轻微负收益，说明更长 accepted prefix 不自动等于更快；未公开代码也限制 runtime 复核。
+
+### 7.3 Rebuttal/Revision 是否真正解决问题
+不适用：未发现公开 rebuttal，核验对象为 arXiv v1。
+
+### 7.4 对本文贡献、适用范围和潜在风险的影响
+贡献可定位为块内条件化的低参数方案；不能外推为所有 workload 的最优 drafter，也不能在未复现前断言部署开销低于独立 refiner。
+
 ## 8. Infra 需求分析
 ### 8.1 算力
 draft forward 近似由 1 次变 2 次；只有 $\Delta\tau$ 足以摊薄额外计算时才加速。
@@ -142,7 +162,7 @@ draft forward 近似由 1 次变 2 次；只有 $\Delta\tau$ 足以摊薄额外�
 ### 9.1 开源权重/配置对照
 无公开权重元数据，容量差异按论文配置待复核。
 
-## 10. 优点、局限与风险
+## 10. 优点与局限
 ### 优点
 不增加 refiner；机制直指 repetition trap；训练目标和推理流程一致。
 ### 局限
@@ -160,6 +180,6 @@ draft forward 近似由 1 次变 2 次；只有 $\Delta\tau$ 足以摊薄额外�
 ## 13. 一句话总结
 D-Loop 用共享参数的“首轮提议、前缀条件化重生成”修复块扩散的 repetition trap；它以额外草稿计算换取更长接受前缀，收益边界由负载决定。
 ## 14. 冻结前发布审计
-- Markdown 渲染器：`markdown-it`；结果 passed。
+- Markdown 渲染器：`markdown-it-py` CommonMark；渲染命令或操作：`python3 -c 'MarkdownIt().render(...)'`；结果 passed，HTML 输出 15164 字节。
 - Figure/Table 邻近性：Figure 1 紧邻方法总览；passed。
 - 临时标记扫描：clean；审计证据为过程侧 checklist/manifest。

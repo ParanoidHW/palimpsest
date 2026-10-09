@@ -50,7 +50,8 @@ tags:
 ## 1. 论文基本信息
 - 标题：DLoop: Looped Speculative Decoding
 - 作者：Geonmo Gu, Byeongho Heo, HeeJae Jun, Yoohoon Kang, Sangmin Lee, Sangdoo Yun, Dongyoon Han。
-- 第一作者：Geonmo Gu，NAVER AI Lab；通讯作者：论文标题页未标个人通讯 marker，记为 not-stated。其余机构：NAVER AI Search Platform、Korea University、NAVER AI Lab。
+- 第一作者：Geonmo Gu；身份依据：first listed author；所属机构：NAVER AI Lab；对应依据：PDF title block。
+- 通讯作者：not-stated；论文标题页未标个人通讯 marker。其余作者机构：NAVER AI Search Platform、Korea University、NAVER AI Lab。作者与机构的全局证据：PDF title block。
 - 领域：lossless speculative decoding；核心问题是减少并行 drafter 场景中不必要的 target verification。
 
 ## 2. 研究动机与问题—方案闭环
@@ -104,7 +105,7 @@ tags:
 
 ### 4.4 关键公式
 $$L=\frac{T_d+T_v}{\tau}$$
-**这条公式在算什么？** 每轮平均每个输出 token 的时间。
+**这条公式在算什么？** 计算每个输出 token 的平均时间。
 
 **怎么读？** drafting 与 verification 的总时间要由一次提交的 token 数摊薄。
 
@@ -145,6 +146,18 @@ $$L=\frac{T_d+T_v}{\tau}$$
 ## 7. OpenReview 公开评审 × 论文内容交叉核验
 未发现公开 OpenReview 评审；论文为 arXiv v1。
 
+### 7.1 与论文证据一致的正向评价
+不适用：未发现公开评审；本文只依据论文表格确认跨 drafter 的 wall-clock 增益。
+
+### 7.2 经核验仍成立的主要担忧
+代码尚未发布可核验 commit，且 gate 在 Alpaca 上存在收益例外；这两项分别限制复现性和跨负载外推。
+
+### 7.3 Rebuttal/Revision 是否真正解决问题
+不适用：未发现公开 rebuttal，当前核验版本为 arXiv v1。
+
+### 7.4 对本文贡献、适用范围和潜在风险的影响
+缺少公开评审不削弱表内结果本身，但使 novelty、实现正确性和 baseline 公平性缺少第三方交叉核验；结论应限定在论文所测模型、硬件与负载。
+
 ## 8. Infra 需求分析
 ### 8.1 算力
 target forward 数减少，drafter forward 数增加；净收益取决于 $T_v/T_d$ 比例。
@@ -164,7 +177,7 @@ CPU 可负责 gate 与调度，target/drafter 在 GPU；跨设备部署会放大
 ### 9.1 开源权重/配置对照
 未提供可下载 checkpoint 配置；参数量和层数沿用各 baseline，不能据此推断新容量。
 
-## 10. 优点、局限与风险
+## 10. 优点与局限
 ### 优点
 保留 lossless 合同；可叠加多种 drafter；把验证次数作为独立优化变量。
 ### 局限
@@ -185,7 +198,7 @@ CPU 可负责 gate 与调度，target/drafter 在 GPU；跨设备部署会放大
 DLoop 通过“多轮草稿、一次验证”减少并行投机解码中的重复 target forward；核心收益有直接实验支持，但 gate 和额外 hidden-state 成本决定其负载边界。
 
 ## 14. 冻结前发布审计
-- Markdown 渲染器：`markdown-it`（本地可用性检查）；渲染结果：passed。
+- Markdown 渲染器：`markdown-it-py` CommonMark；渲染命令或操作：`python3 -c 'MarkdownIt().render(...)'`；渲染结果：passed，HTML 输出 15892 字节。
 - Figure/Table 邻近性审计：Figure 2 紧邻方法总览；passed。
 - 临时标记扫描：clean。
 - 审计证据：过程侧 `review_checklist.md`、`deliverable_manifest.json`。
