@@ -17,11 +17,16 @@ tags:
 > - 证据资产：`../assets/papers/d-loop/`
 
 ## 修订信息
-- 当前文档版本：`1.0.0`；当前修订 ID：`rev-d-loop-initial-20261008`；当前修订时间：`2026-10-08T21:00:00+08:00`；替代版本：无。
+- 当前文档版本：`1.1.0`；当前修订 ID：`rev-d-loop-evidence-correction-20261009`；当前修订时间：`2026-10-09T12:00:00+08:00`；替代版本：`rev-d-loop-initial-20261008` / `1.0.0` / manifest `fe07927680742207b228390e087f438728c16ebd4f70ba4749a6b282bd47d86a`。
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-d-loop-initial-20261008` | `1.0.0` | `2026-10-08T21:00:00+08:00` | Codex | initial | 无 | 无 | 首次精读 | 用户请求 | 全文 | arXiv v1 | material |
+| `rev-d-loop-evidence-correction-20261009` | `1.1.0` | `2026-10-09T12:00:00+08:00` | Codex | correction | `rev-d-loop-initial-20261008` / `1.0.0` / `fe079276...` | 无 | 重建视觉证据、manifest 语义与 QA | 修复错误完成声明 | 修订信息、0、2、4、5、14 | PDF/source、严格 validator、逐图 QA | material |
 
 ## 0. 资料与配图索引
 - 论文：[arXiv:2610.06011](https://arxiv.org/abs/2610.06011)，PDF/source v1。
-- 配图：[D-Loop framework](../assets/papers/d-loop/fig1-framework.png)，原始 source figure 转 PNG，单一 Figure 1，原分辨率 QA 已完成。
+- 配图：[Table 1](../assets/papers/d-loop/table1-repetition-statistics-caption.png)、[Figure 1](../assets/papers/d-loop/fig1-framework-caption.png)、[Table 3](../assets/papers/d-loop/table3-qwen4-main-results-caption.png)、[Table 5](../assets/papers/d-loop/table5-loss-ablation-caption.png)、[Table 6](../assets/papers/d-loop/table6-latency-caption.png)。均为 PDF 200 dpi 裁剪并保留完整 caption。
 - 代码/公开评审：论文未给出可核验 commit，未发现公开 OpenReview 评审。
 
 ## 0.1 术语与符号解释
@@ -58,6 +63,10 @@ tags:
 |---|---|---|---|---|
 | vanilla full-mask diffusion | 相邻重复，accepted length 短 | 位置间无因果信息 | 只增大块会放大重复 | §2/Table 1 |
 | 额外 causal head/refiner | 质量改善但参数与目标增加 | 需要第二组件/训练目标 | 受显存与维护成本限制 | Related Work |
+
+![D-Loop Table 1：重复统计](../assets/papers/d-loop/table1-repetition-statistics-caption.png)
+
+图注：原论文 Table 1（含完整 caption）。DFlash 在 GSM8K、LCB、MT-Bench 上的相邻重复率与平均最长重复长度，使 repetition trap 成为可观察失败而非抽象判断。
 ### 2.3 论文计划解决的问题与成功标准
 在不增加组件和第二套权重的情况下引入块内条件化；成功标准是 accepted length 与 speedup 超过 DFlash/DSpark，代价是额外 loop pass 可被收益抵消前仍要净加速。
 ### 2.4 核心方案如何解决并优化问题
@@ -77,7 +86,7 @@ tags:
 
 ## 4. 研究方法
 ### 4.1 方法总览
-![D-Loop framework](../assets/papers/d-loop/fig1-framework.png)
+![D-Loop framework](../assets/papers/d-loop/fig1-framework-caption.png)
 
 图注：原论文 Figure 1，DFlash 的一次边际预测与 D-Loop 的 prefix reveal + suffix regeneration。
 ### 4.2 组件级设计动机与具体问题映射
@@ -110,16 +119,28 @@ Qwen3-4B/8B，8 个 math/code/chat benchmark，报告 greedy 与 sampling，Qwen
 ## 5. 关键结论
 ### 5.1 主结果
 D-Loop 在八个数据集上通常超过 DFlash/DSpark；Qwen3-8B 的平均接受长度约 8.11（greedy）/6.37（sampling）对应约 5.67×/4.45×（Table 5）。
+
+![D-Loop Table 3：Qwen3-4B 主结果](../assets/papers/d-loop/table3-qwen4-main-results-caption.png)
+
+图注：原论文 Table 3（含完整 caption），覆盖八个数据集的 greedy/sampling 接受长度与 wall-clock speedup。
 ### 5.2 消融和机制证据
 | 技术点 | 对照 | 结论 |
 |---|---|---|
 | repetition trap | DFlash 统计 | 相邻重复率与短接受长度相关 |
 | loop pass | DFlash/DSpark | 额外 draft 成本换取更长 prefix |
 | full objective | suffix-only | 接受长度与 speedup 小幅提升 |
+
+![D-Loop Table 5：loss 消融](../assets/papers/d-loop/table5-loss-ablation-caption.png)
+
+图注：原论文 Table 5（含完整 caption）。suffix-only 与完整 prefix–suffix loss 的对照直接检验联合训练目标。
 ### 5.3 是否验证了假设
 块内依赖能提升 accepted prefix 得到支持；“额外 pass 总能净加速”被 Alpaca 反例否定。
 ### 5.4 收益来源归因
 收益来自 acceptance length，而非单次 draft latency；Table 6 证明 draft time 增加，故不能把提升归给 kernel 优化。
+
+![D-Loop Table 6：latency 分解](../assets/papers/d-loop/table6-latency-caption.png)
+
+图注：原论文 Table 6（含完整 caption）。D-Loop 的 drafting time 高于 DFlash/DSpark，但更长 AL 仍产生更高 speedup，明确了计算换接受长度的权衡。
 
 ## 6. Related Work 对比
 | 方法 | 核心机制 | 代价 | D-Loop 差异 |

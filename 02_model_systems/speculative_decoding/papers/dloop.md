@@ -17,15 +17,20 @@ tags:
 > - 证据资产：`../assets/papers/dloop/`
 
 ## 修订信息
-- 当前文档版本：`1.0.0`
-- 当前修订 ID：`rev-dloop-initial-20261008`
-- 当前修订时间：`2026-10-08T21:00:00+08:00`
-- 替代版本：无
+- 当前文档版本：`1.1.0`
+- 当前修订 ID：`rev-dloop-evidence-correction-20261009`
+- 当前修订时间：`2026-10-09T12:00:00+08:00`
+- 替代版本：`rev-dloop-initial-20261008` / `1.0.0` / manifest `b0c83ff5f05e07cf7e8632c2464a5b76a1e4a7f571d66ae8621445b1d1678ae1`
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-dloop-initial-20261008` | `1.0.0` | `2026-10-08T21:00:00+08:00` | Codex | initial | 无 | 无 | 首次精读 | 用户请求 | 全文 | arXiv v1 | material |
+| `rev-dloop-evidence-correction-20261009` | `1.1.0` | `2026-10-09T12:00:00+08:00` | Codex | correction | `rev-dloop-initial-20261008` / `1.0.0` / `b0c83ff5...` | 无 | 重建视觉证据、manifest 语义与 QA | 修复错误完成声明 | 修订信息、0、1、2、4、5、14 | PDF/source、严格 validator、逐图 QA | material |
 
 ## 0. 资料与配图索引
 - 论文：[arXiv:2610.07659](https://arxiv.org/abs/2610.07659)，PDF/source 已核验，v1。
 - 开源代码：论文称将发布 `naver-ai/DLoop`；本次未取得 commit，代码结论标为未验证。
-- 配图：[方法流程图](../assets/papers/dloop/fig2-pipeline.png)。原始 source figure 转 PNG；单一 Figure 2，原分辨率 QA 已完成。
+- 配图：[Figure 1](../assets/papers/dloop/fig1-full-acceptance-caption.png)、[Figure 2](../assets/papers/dloop/fig2-looped-pipeline-caption.png)、[Table 1](../assets/papers/dloop/table1-main-results-caption.png)、[Table 2](../assets/papers/dloop/table2-loop-training-ablation-caption.png)、[Figure 3](../assets/papers/dloop/fig3-time-output-breakdown-caption.png)。均为 PDF 200 dpi 裁剪，保留完整 caption；bbox 与逐图 QA 见 [figure inventory](../evidence/2610-figure-inventory.md)。
 
 ## 0.1 术语与符号解释
 ### 0.1.1 术语表
@@ -50,13 +55,17 @@ tags:
 ## 1. 论文基本信息
 - 标题：DLoop: Looped Speculative Decoding
 - 作者：Geonmo Gu, Byeongho Heo, HeeJae Jun, Yoohoon Kang, Sangmin Lee, Sangdoo Yun, Dongyoon Han。
-- 第一作者：Geonmo Gu；身份依据：first listed author；所属机构：NAVER AI Lab；对应依据：PDF title block。
+- 第一作者：Geonmo Gu；身份依据：first listed author；所属机构：NAVER AI Lab、Korea University；对应依据：PDF title block 的 `1,3` 标记。
 - 通讯作者：not-stated；论文标题页未标个人通讯 marker。其余作者机构：NAVER AI Search Platform、Korea University、NAVER AI Lab。作者与机构的全局证据：PDF title block。
 - 领域：lossless speculative decoding；核心问题是减少并行 drafter 场景中不必要的 target verification。
 
 ## 2. 研究动机与问题—方案闭环
 ### 2.1 出发点与背景痛点
 一个并行 drafter 每轮一次生成 4 个 token；若 4 个都被 target 接受，现有流程仍立即启动下一次完整 target forward。对长回答而言，target 验证成为主要延迟，而轻量 drafter 其实可以继续工作。该场景按论文 Figure 1/§1 重述：旧流程的失败不是 token 错，而是“全接受后仍重复验证”。成功方案要保持 target 的最终裁决，同时减少验证次数。
+
+![DLoop Figure 1：全接受比例](../assets/papers/dloop/fig1-full-acceptance-caption.png)
+
+图注：原论文 Figure 1（含完整 caption）。四类 drafter 在 math/code/chat 任务上均出现整段全接受，为“延后 verification”提供直接动机证据。
 ### 2.2 现有方案为何不够
 | 方案 | 可观察失败 | 根因 | 为什么简单修补不够 | 证据 |
 |---|---|---|---|---|
@@ -83,7 +92,7 @@ tags:
 
 ## 4. 研究方法
 ### 4.1 方法总览
-![DLoop Figure 2 方法流程](../assets/papers/dloop/fig2-pipeline.png)
+![DLoop Figure 2 方法流程](../assets/papers/dloop/fig2-looped-pipeline-caption.png)
 
 图注：原论文 Figure 2，展示普通 speculative decoding 与 DLoop 的 draft-loop/一次性 verification 对比。
 
@@ -125,16 +134,28 @@ $$L=\frac{T_d+T_v}{\tau}$$
 ## 5. 关键结论
 ### 5.1 主结果
 论文报告平均接受长度增加 12%–102%，wall-clock speedup 增加 5%–41%；Qwen3-8B 上平均 speedup 为 greedy 5.02×、sampling 4.03×。这些数字来自 Table 1/Appendix A9。
+
+![DLoop Table 1：主结果](../assets/papers/dloop/table1-main-results-caption.png)
+
+图注：原论文 Table 1（含完整 caption）。表中同时给出接受长度与相对 AR 的 wall-clock speedup，避免只用接受长度代替端到端收益。
 ### 5.2 消融和机制证据
 | 技术点 | 对照 | 结果 | 证据强度 |
 |---|---|---|---|
 | loop gate | 无 loop | speedup/acceptance 下降 | 直接消融 |
 | loop-aware training | 公共 drafter | 多数设置提升，部分抵消 | 直接消融、存在异质性 |
 | stage 数 $S$ | $S=1,2,3,4$ | $S$ 增大后收益饱和 | sensitivity |
+
+![DLoop Table 2：循环与训练消融](../assets/papers/dloop/table2-loop-training-ablation-caption.png)
+
+图注：原论文 Table 2（含完整 caption）。`Loop` 与 `Train` 的四组组合直接区分推理循环和 loop-aware training 的作用。
 ### 5.3 是否验证了假设
 “减少 verification 能带来净加速”被 Table 4 支持；“固定 gate 对所有负载最优”未验证，论文明确指出 Alpaca 例外。
 ### 5.4 收益来源归因
 主要来源是 target forward 次数下降；接受率提升是中介变量，不能把收益归因于 drafter kernel。额外 draft pass 的成本已在 latency 表中体现。
+
+![DLoop Figure 3：解码时间与输出 token 分解](../assets/papers/dloop/fig3-time-output-breakdown-caption.png)
+
+图注：原论文 Figure 3（含完整 caption）。左图展示总 decode time 下降，右图展示一次 loop 产出增加，直接支撑收益来自更少 verification，而非更快 drafter kernel。
 
 ## 6. Related Work 对比
 | 路线 | 机制 | 优点 | 局限 | 本文差异 |

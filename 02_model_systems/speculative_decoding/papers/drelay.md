@@ -17,11 +17,16 @@ tags:
 > - 证据资产：`../assets/papers/drelay/`
 
 ## 修订信息
-- 当前文档版本：`1.0.0`；当前修订 ID：`rev-drelay-initial-20261008`；当前修订时间：`2026-10-08T21:00:00+08:00`；替代版本：无。
+- 当前文档版本：`1.1.0`；当前修订 ID：`rev-drelay-evidence-correction-20261009`；当前修订时间：`2026-10-09T12:00:00+08:00`；替代版本：`rev-drelay-initial-20261008` / `1.0.0` / manifest `2d3f9ca96ad90b7316cffd48f9680fc7ddb44e86bb9eaac46af09548e2c7058d`。
+
+| 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `rev-drelay-initial-20261008` | `1.0.0` | `2026-10-08T21:00:00+08:00` | Codex | initial | 无 | 无 | 首次精读 | 用户请求 | 全文 | arXiv v1 | material |
+| `rev-drelay-evidence-correction-20261009` | `1.1.0` | `2026-10-09T12:00:00+08:00` | Codex | correction | `rev-drelay-initial-20261008` / `1.0.0` / `2d3f9ca...` | 无 | 重建视觉证据、manifest 语义与 QA | 修复错误完成声明 | 修订信息、0、2、4、5、14 | PDF/source、严格 validator、逐图 QA | material |
 
 ## 0. 资料与配图索引
 - 论文：[arXiv:2610.01439](https://arxiv.org/abs/2610.01439)，PDF/source v1。
-- 配图：[Figure 2 candidate repair evidence](../assets/papers/drelay/fig2-repair-evidence.png)，原始 source figure 转 PNG，单一 Figure 2，原分辨率 QA 已完成。
+- 配图：[Figure 2](../assets/papers/drelay/fig2-repair-opportunity-caption.png)、[Figure 3](../assets/papers/drelay/fig3-architecture-caption.png)、[Table 1](../assets/papers/drelay/table1-main-results-caption.png)、[Figure 4](../assets/papers/drelay/fig4-latency-breakdown-caption.png)、[Table 3](../assets/papers/drelay/table3-architecture-ablation-caption.png)、[Table 4](../assets/papers/drelay/table4-training-ablation-caption.png)。均为 PDF 200 dpi 单对象裁剪并保留完整 caption。
 - 代码/公开评审：未取得可核验代码 commit；未发现公开 OpenReview 评审。
 
 ## 0.1 术语与符号解释
@@ -58,6 +63,10 @@ tags:
 |---|---|---|---|---|
 | DFlash | 正确 token 在 pool 但 native top-1 错 | 各位置独立选择 | 只扩大 K 增加验证/显存 | Fig.2 |
 | Domino/DSpark | 后续依赖前缀，但无法回看早期选择 | 因果方向单向 | 加深 causal head 仍不能 backward repair | §1, Fig.3 |
+
+![DRelay Figure 2：repair opportunity](../assets/papers/drelay/fig2-repair-opportunity-caption.png)
+
+图注：原论文 Figure 2（含完整 caption）。左图检查正确候选是否已在 top-16，中图检查后续位置是否提供可用信号，右图量化修复早错对连续前缀的价值。
 ### 2.3 论文计划解决的问题与成功标准
 在不增加 target 验证次数的情况下，提高连续 accepted prefix。成功标准是 $\tau$、单请求 speedup、并发吞吐同时提升；不解决候选池本身没有正确 token 的情况。
 ### 2.4 核心方案如何解决并优化问题
@@ -77,9 +86,9 @@ global reader 汇聚整个 block 的候选 hidden states/distributions；causal 
 
 ## 4. 研究方法
 ### 4.1 方法总览
-![DRelay Figure 2](../assets/papers/drelay/fig2-repair-evidence.png)
+![DRelay Figure 3：方法架构](../assets/papers/drelay/fig3-architecture-caption.png)
 
-图注：原论文 Figure 2，展示 candidate availability、continuation evidence 与 repair value；它支撑“正确候选常已在池中”的动机。
+图注：原论文 Figure 3（含完整 caption）。Global Read 读取全块候选，Causal Selector 沿已选前缀执行 KEEP/REPAIR，target 最后统一验证。
 ### 4.2 组件级设计动机与具体问题映射
 global reader 解决因果 selector 看不到未来候选的问题，但引入跨位置注意力和额外显存；selector 保持输出路径因果，避免使用未来已选 token 造成泄漏。位置加权损失把早期位置的高边际价值编码进训练，直接对应连续 prefix 指标。Table 3/4 的移除实验支持这些模块，但无法完全拆开 reader 的容量与 selector 的训练收益。
 
@@ -110,16 +119,32 @@ Qwen3-4B/8B、八个 math/code/chat benchmark，H800 单卡与 SGLang；单请�
 ## 5. 关键结论
 ### 5.1 主结果
 DRelay 在八个 benchmark 上提升 $\tau$ 与 speedup；并发 32 时 Qwen3-4B/Qwen3-8B 在 AIME25/HumanEval 达 2.34×/2.27×、2.63×/2.89× 相对 AR（Table 2）。
+
+![DRelay Table 1：单 H800 主结果](../assets/papers/drelay/table1-main-results-caption.png)
+
+图注：原论文 Table 1（含完整 caption）。相同 target、temperature 与硬件下同时报告 speedup $S$ 和 committed tokens $\tau$。
 ### 5.2 消融和机制证据
 | 技术点 | 对照 | 结果 |
 |---|---|---|
 | global reader | No Global Read | accepted length 下降 |
 | selector | architecture ablation | 去掉后修复收益消失 |
 | support/repair loss | Table 4 controls | 去掉任一项均下降；耦合仍存在 |
+
+![DRelay Table 3：架构消融](../assets/papers/drelay/table3-architecture-ablation-caption.png)
+
+图注：原论文 Table 3（含完整 caption）。移除 Global Read 后 mean accepted length 从 7.58 降至 7.16。
+
+![DRelay Table 4：训练目标消融](../assets/papers/drelay/table4-training-ablation-caption.png)
+
+图注：原论文 Table 4（含完整 caption）。分别移除 support loss、selector loss 或位置权重，验证三项训练信号的贡献。
 ### 5.3 是否验证了假设
 “候选池中有正确 token”由 Figure 2 支持；“全局信号可稳定修复”由跨任务结果与消融支持，但尚未在不同 K/H、不同硬件上系统敏感性分析。
 ### 5.4 收益来源归因
 收益主要来自 accepted prefix 增长；Figure 4 显示新增 selector/global read 开销，故 speedup 是端到端结果，不应归为纯候选生成改进。
+
+![DRelay Figure 4：latency 分解](../assets/papers/drelay/fig4-latency-breakdown-caption.png)
+
+图注：原论文 Figure 4（含完整 caption）。DRelay selector 增加 method-specific overhead，但 target verification 仍是最大组成，说明更长前缀可摊薄新增选择成本。
 
 ## 6. Related Work 对比
 | 方法 | 机制 | 优点 | 局限 | DRelay 差异 |
