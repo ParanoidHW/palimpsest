@@ -17,15 +17,16 @@ tags:
 > - 证据资产：`../assets/papers/dloop/`
 
 ## 修订信息
-- 当前文档版本：`1.1.0`
-- 当前修订 ID：`rev-dloop-evidence-correction-20261009`
-- 当前修订时间：`2026-10-09T12:00:00+08:00`
+- 当前文档版本：`1.2.0`
+- 当前修订 ID：`rev-dloop-visual-crop-correction-20261010`
+- 当前修订时间：`2026-10-10T12:00:00+08:00`
 - 替代版本：`rev-dloop-initial-20261008` / `1.0.0` / manifest `b0c83ff5f05e07cf7e8632c2464a5b76a1e4a7f571d66ae8621445b1d1678ae1`
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-dloop-initial-20261008` | `1.0.0` | `2026-10-08T21:00:00+08:00` | Codex | initial | 无 | 无 | 首次精读 | 用户请求 | 全文 | arXiv v1 | material |
 | `rev-dloop-evidence-correction-20261009` | `1.1.0` | `2026-10-09T12:00:00+08:00` | Codex | correction | `rev-dloop-initial-20261008` / `1.0.0` / `b0c83ff5...` | 无 | 重建视觉证据、manifest 语义与 QA | 修复错误完成声明 | 修订信息、0、1、2、4、5、14 | PDF/source、严格交付校验、逐图 QA | material |
+| `rev-dloop-visual-crop-correction-20261010` | `1.2.0` | `2026-10-10T12:00:00+08:00` | Codex | correction | `rev-dloop-evidence-correction-20261009` / `1.1.0` | 无 | 重裁 Table 1/2，排除截断与邻文 | 用户指出表格截图不完整 | 0、5、14 | PDF p.7/8 原分辨率逐图 QA | material |
 
 ## 0. 资料与配图索引
 - 论文：[arXiv:2610.07659](https://arxiv.org/abs/2610.07659)，PDF/source 已核验，v1。

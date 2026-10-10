@@ -17,12 +17,13 @@ tags:
 > - 证据资产：`../assets/papers/drelay/`
 
 ## 修订信息
-- 当前文档版本：`1.1.0`；当前修订 ID：`rev-drelay-evidence-correction-20261009`；当前修订时间：`2026-10-09T12:00:00+08:00`；替代版本：`rev-drelay-initial-20261008` / `1.0.0` / manifest `2d3f9ca96ad90b7316cffd48f9680fc7ddb44e86bb9eaac46af09548e2c7058d`。
+- 当前文档版本：`1.2.0`；当前修订 ID：`rev-drelay-visual-crop-correction-20261010`；当前修订时间：`2026-10-10T12:00:00+08:00`；替代版本：`rev-drelay-evidence-correction-20261009` / `1.1.0`。
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-drelay-initial-20261008` | `1.0.0` | `2026-10-08T21:00:00+08:00` | Codex | initial | 无 | 无 | 首次精读 | 用户请求 | 全文 | arXiv v1 | material |
 | `rev-drelay-evidence-correction-20261009` | `1.1.0` | `2026-10-09T12:00:00+08:00` | Codex | correction | `rev-drelay-initial-20261008` / `1.0.0` / `2d3f9ca...` | 无 | 重建视觉证据、manifest 语义与 QA | 修复错误完成声明 | 修订信息、0、2、4、5、14 | PDF/source、严格交付校验、逐图 QA | material |
+| `rev-drelay-visual-crop-correction-20261010` | `1.2.0` | `2026-10-10T12:00:00+08:00` | Codex | correction | `rev-drelay-evidence-correction-20261009` / `1.1.0` | 无 | 重裁 Table 1/3/4，排除截断与邻文 | 用户指出表格截图不完整 | 0、5、14 | PDF p.8/9 原分辨率逐图 QA | material |
 
 ## 0. 资料与配图索引
 - 论文：[arXiv:2610.01439](https://arxiv.org/abs/2610.01439)，PDF/source v1。

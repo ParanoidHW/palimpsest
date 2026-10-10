@@ -17,12 +17,13 @@ tags:
 > - 证据资产：`../assets/papers/d-loop/`
 
 ## 修订信息
-- 当前文档版本：`1.1.0`；当前修订 ID：`rev-d-loop-evidence-correction-20261009`；当前修订时间：`2026-10-09T12:00:00+08:00`；替代版本：`rev-d-loop-initial-20261008` / `1.0.0` / manifest `fe07927680742207b228390e087f438728c16ebd4f70ba4749a6b282bd47d86a`。
+- 当前文档版本：`1.2.0`；当前修订 ID：`rev-d-loop-visual-crop-correction-20261010`；当前修订时间：`2026-10-10T12:00:00+08:00`；替代版本：`rev-d-loop-evidence-correction-20261009` / `1.1.0`。
 
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-d-loop-initial-20261008` | `1.0.0` | `2026-10-08T21:00:00+08:00` | Codex | initial | 无 | 无 | 首次精读 | 用户请求 | 全文 | arXiv v1 | material |
 | `rev-d-loop-evidence-correction-20261009` | `1.1.0` | `2026-10-09T12:00:00+08:00` | Codex | correction | `rev-d-loop-initial-20261008` / `1.0.0` / `fe079276...` | 无 | 重建视觉证据、manifest 语义与 QA | 修复错误完成声明 | 修订信息、0、2、4、5、14 | PDF/source、严格交付校验、逐图 QA | material |
+| `rev-d-loop-visual-crop-correction-20261010` | `1.2.0` | `2026-10-10T12:00:00+08:00` | Codex | correction | `rev-d-loop-evidence-correction-20261009` / `1.1.0` | 无 | 重裁 Table 3/5/6，排除截断与邻文 | 用户指出表格截图不完整 | 0、5、14 | PDF p.7/9 原分辨率逐图 QA | material |
 
 ## 0. 资料与配图索引
 - 论文：[arXiv:2610.06011](https://arxiv.org/abs/2610.06011)，PDF/source v1。
@@ -73,6 +74,7 @@ tags:
 在不增加组件和第二套权重的情况下引入块内条件化；成功标准是 accepted length 与 speedup 超过 DFlash/DSpark，代价是额外 loop pass 可被收益抵消前仍要净加速。
 ### 2.4 核心方案如何解决并优化问题
 首轮生成完整 block；选出 prefix 后，第二轮把 prefix 显式 reveal，平行重生成 suffix；两轮共享 backbone。prefix–suffix loss 让同一模型学会两种输入视图。
+
 | 设计 | 改变 | 预期指标 | 证据 |
 |---|---|---|---|
 | looped shared backbone | suffix 条件从 anchor 变为 selected prefix | 减少重复、提高 $\tau$ | Fig.1, Table 3 |
@@ -99,6 +101,7 @@ tags:
 **前缀—后缀联合损失。** 只训练 full-mask 或 suffix view 会使首轮 proposal 与二轮 refinement 互相牵制；联合目标让两个输入视图都得到监督。Table 5 是直接消融，但增益相对完整系统较小。
 
 **选择性前缀暴露。** 直接 reveal 整个首轮 block 会把错误 token 送入后缀；只暴露选定 prefix 可降低错误传播。其代价是 prefix 选择策略本身需要校准，论文没有完全拆分这一决策的误差来源。
+
 | 设计项 | 依据 | 证据强度 |
 |---|---|---|
 | looped shared parameters | author-stated §3 | 直接机制+主结果 |
