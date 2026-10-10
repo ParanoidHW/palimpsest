@@ -25,7 +25,7 @@ tags:
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-dloop-initial-20261008` | `1.0.0` | `2026-10-08T21:00:00+08:00` | Codex | initial | 无 | 无 | 首次精读 | 用户请求 | 全文 | arXiv v1 | material |
-| `rev-dloop-evidence-correction-20261009` | `1.1.0` | `2026-10-09T12:00:00+08:00` | Codex | correction | `rev-dloop-initial-20261008` / `1.0.0` / `b0c83ff5...` | 无 | 重建视觉证据、manifest 语义与 QA | 修复错误完成声明 | 修订信息、0、1、2、4、5、14 | PDF/source、严格 validator、逐图 QA | material |
+| `rev-dloop-evidence-correction-20261009` | `1.1.0` | `2026-10-09T12:00:00+08:00` | Codex | correction | `rev-dloop-initial-20261008` / `1.0.0` / `b0c83ff5...` | 无 | 重建视觉证据、manifest 语义与 QA | 修复错误完成声明 | 修订信息、0、1、2、4、5、14 | PDF/source、严格交付校验、逐图 QA | material |
 
 ## 0. 资料与配图索引
 - 论文：[arXiv:2610.07659](https://arxiv.org/abs/2610.07659)，PDF/source 已核验，v1。
@@ -71,6 +71,8 @@ tags:
 |---|---|---|---|---|
 | 固定每轮验证 | 全接受轮仍调用 target | 验证边界固定 | 只增大 $k$ 会降低接受率 | §1, Fig.1 |
 | 自回归 adaptive length | 能按 token 停止，但并行 drafter 一次 forward 成本已付出 | 并行块不能中途截断 | 需要处理未验证 token 的 hidden state | §1–2 |
+
+具体失败场景补充：并行 drafter 一轮提出四个正确 token，旧流程仍立即调用 target，而不是继续廉价 drafting；单纯增大固定 block 会降低连续接受概率，也不能适配不同请求。并行 drafter 一次同时算完整 block，即使只需前几个位置，提前停止也不能退回已发生的计算；沿用自回归的 token 级阈值不会改变并行 forward 的固定成本。前面一个位置不确定时，后续正确 token 也无法提交，长 block 只增加被丢弃的 suffix；更大 block 同时增加 verification 与接受失败风险。
 
 ### 2.3 论文计划解决的问题与成功标准
 问题：能否在不改 target 接受规则的前提下，把多个 drafting stage 合并到一次 verification？成功标准是平均接受长度、target forward 次数和 wall-clock speedup 同时改善；不解决的是非 lossless 语义接受。
@@ -219,7 +221,7 @@ CPU 可负责 gate 与调度，target/drafter 在 GPU；跨设备部署会放大
 DLoop 通过“多轮草稿、一次验证”减少并行投机解码中的重复 target forward；核心收益有直接实验支持，但 gate 和额外 hidden-state 成本决定其负载边界。
 
 ## 14. 冻结前发布审计
-- Markdown 渲染器：`markdown-it-py` CommonMark；渲染命令或操作：`python3 -c 'MarkdownIt().render(...)'`；渲染结果：passed，HTML 输出 15892 字节。
+- Markdown 渲染器：`Pandoc 3.1.11`；渲染命令：`pandoc --standalone --embed-resources analysis.md` 后用 Chromium 1260px 视口整页截图；渲染结果：passed。
 - Figure/Table 邻近性审计：Figure 2 紧邻方法总览；passed。
 - 临时标记扫描：clean。
 - 审计证据：过程侧 `review_checklist.md`、`deliverable_manifest.json`。

@@ -22,7 +22,7 @@ tags:
 | 修订 ID | 文档版本 | 时间 | 修订者 | 类型 | 替代修订 | 迁移问题/解析 | 变更摘要 | 原因 | 影响位置 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rev-drelay-initial-20261008` | `1.0.0` | `2026-10-08T21:00:00+08:00` | Codex | initial | 无 | 无 | 首次精读 | 用户请求 | 全文 | arXiv v1 | material |
-| `rev-drelay-evidence-correction-20261009` | `1.1.0` | `2026-10-09T12:00:00+08:00` | Codex | correction | `rev-drelay-initial-20261008` / `1.0.0` / `2d3f9ca...` | 无 | 重建视觉证据、manifest 语义与 QA | 修复错误完成声明 | 修订信息、0、2、4、5、14 | PDF/source、严格 validator、逐图 QA | material |
+| `rev-drelay-evidence-correction-20261009` | `1.1.0` | `2026-10-09T12:00:00+08:00` | Codex | correction | `rev-drelay-initial-20261008` / `1.0.0` / `2d3f9ca...` | 无 | 重建视觉证据、manifest 语义与 QA | 修复错误完成声明 | 修订信息、0、2、4、5、14 | PDF/source、严格交付校验、逐图 QA | material |
 
 ## 0. 资料与配图索引
 - 论文：[arXiv:2610.01439](https://arxiv.org/abs/2610.01439)，PDF/source v1。
@@ -63,6 +63,8 @@ tags:
 |---|---|---|---|---|
 | DFlash | 正确 token 在 pool 但 native top-1 错 | 各位置独立选择 | 只扩大 K 增加验证/显存 | Fig.2 |
 | Domino/DSpark | 后续依赖前缀，但无法回看早期选择 | 因果方向单向 | 加深 causal head 仍不能 backward repair | §1, Fig.3 |
+
+具体失败场景补充：并行 drafter 一轮提出四个正确 token，旧流程仍立即调用 target，而不是继续廉价 drafting；单纯增大固定 block 会降低连续接受概率，也不能适配不同请求。并行 drafter 一次同时算完整 block，即使只需前几个位置，提前停止也不能退回已发生的计算；沿用自回归的 token 级阈值不会改变并行 forward 的固定成本。前面一个位置不确定时，后续正确 token 也无法提交，长 block 只增加被丢弃的 suffix；更大 block 同时增加 verification 与接受失败风险。
 
 ![DRelay Figure 2：repair opportunity](../assets/papers/drelay/fig2-repair-opportunity-caption.png)
 
@@ -205,6 +207,6 @@ DRelay 与 D-Loop 分别优化“选择质量”和“块内条件化”，可�
 ## 13. 一句话总结
 DRelay 用全块候选上下文在 target 验证前修复早期选择错误，延长连续接受前缀；收益证据完整，但显存与 selector runtime 是部署边界。
 ## 14. 冻结前发布审计
-- Markdown 渲染器：`markdown-it-py` CommonMark；渲染命令或操作：`python3 -c 'MarkdownIt().render(...)'`；结果 passed，HTML 输出 15824 字节。
+- Markdown 渲染器：`Pandoc 3.1.11`；渲染命令：`pandoc --standalone --embed-resources analysis.md` 后用 Chromium 1260px 视口整页截图；渲染结果：passed。
 - Figure/Table 邻近性：Figure 2 紧邻动机；passed。
 - 临时标记扫描：clean；审计证据为过程侧 checklist/manifest。
