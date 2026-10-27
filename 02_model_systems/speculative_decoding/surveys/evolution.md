@@ -11,10 +11,10 @@
 
 ## 修订信息
 
-- 当前文档版本：`1.4.2`
-- 当前修订 ID：`rev-spec-evolution-retrace-illustrated-20260903`
-- 当前修订时间：`2026-09-03T23:00:00+08:00`
-- 替代版本：`rev-spec-evolution-token-recycling-readout-20260903` / `1.4.1`
+- 当前文档版本：`1.5.0`
+- 当前修订 ID：`rev-spec-evolution-october-lineage-refresh-20261027`
+- 当前修订时间：`2026-10-27T21:40:00+08:00`
+- 替代版本：`rev-spec-evolution-retrace-illustrated-20260903` / `1.4.2`
 
 | 修订 ID | 文档版本 | 时间 | 类型 | 变更摘要 | 依据 | 对结论影响 |
 |---|---|---|---|---|---|---|
@@ -24,6 +24,7 @@
 | `rev-spec-evolution-rejection-feedback-20260903` | `1.4.0` | `2026-09-03T22:00:00+08:00` | mechanism/evidence update | 补充拒绝采样的 lossless 概率守恒、reject error signal 的已有路线，以及 rejected-suffix 跨轮条件化 | Leviathan/DeepMind speculative sampling、OSD、Token Recycling、OnlineSPEC、ReTrace 原文 | material：把 verification feedback 从“裁决结果”扩展为可复用的 draft adaptation 信号 |
 | `rev-spec-evolution-token-recycling-readout-20260903` | `1.4.1` | `2026-09-03T22:30:00+08:00` | explanation clarification | 展开 Token Recycling adjacency matrix 的存储语义、逐层构树、并行更新与上下文丢失边界 | Token Recycling Sections 3.1-3.3、5.2 与 Appendix A.3-A.5 | minor：不改变路线判断，补足机制可读性 |
 | `rev-spec-evolution-retrace-illustrated-20260903` | `1.4.2` | `2026-09-03T23:00:00+08:00` | explanation clarification | 用流程图、位置映射和门控残差公式解释 ReTrace 如何复用 rejected suffix | ReTrace arXiv `2608.29748` 摘要与机制描述 | minor：不改变证据边界，提升可读性 |
+| `rev-spec-evolution-october-lineage-refresh-20261027` | `1.5.0` | `2026-10-27T21:40:00+08:00` | content-and-lineage update | 纳入 8 月以来已完成 canonical Paper 的最新交付，并新增 2026-10 候选对 DFlash/DSpark 谱系的摘要级识别表 | LibraSpec、Approximate SD、DPara、DLoop、D-Loop、DRelay canonical Paper；arXiv 2026-10 元数据与摘要；`evidence/2026-10-dflash-lineage-scan.md` | material：更新时间线并明确新候选的继承边界，不新增未精读 Paper |
 
 本文是 canonical timeline；[Foundations and trends](foundations-and-trends.md#1-lossless-correctness-contract) 维护完整的 lossless correctness、accepted-length、draft/verify 成本与 KV/serving 基础合同。本文只在拒绝反馈成为独立演进路线的位置重述必要的概率守恒，以说明哪些反馈复用仍然 lossless。
 
@@ -486,6 +487,21 @@ $$
 ### 6.9 2026-10：验证频率、块内条件化与候选修复
 
 本批三篇新工作把并行草稿的剩余瓶颈拆成三个位置：[DLoop](../papers/dloop.md) 优化 target verification 的频率；[D-Loop](../papers/d-loop.md) 修复 diffusion block 内缺少前缀条件的问题；[DRelay](../papers/drelay.md) 在候选池内修复早期选择错误。它们的比较已整理到 [Foundations and trends 的机制表](foundations-and-trends.md#33-block--diffusion-drafting)。
+
+### 6.10 2026-08 至 2026-10：最新交付与 10 月候选谱系
+
+8 月以来已完成 canonical 精读的新增节点，按其在路线中的位置更新如下：
+
+| 时间 | 工作 | 在 DFlash/DSpark 演进中的位置 | 当前证据入口 |
+|---|---|---|---|
+| 2026-08 | LibraSpec | 把 block/diffusion draft length 从固定超参改为边际收益驱动的动态策略 | [LibraSpec](../papers/libraspec.md) |
+| 2026-08 | Approximate Speculative Decoding | 把优化面从 drafter/长度推进到有界近似验证；不保持 lossless 分布 | [Approximate SD](../papers/approximate-speculative-decoding.md) |
+| 2026-09 | DPara | 将并行 drafter 与并行 speculative verification 结合，预计算接受边界 | [DPara](../papers/dpara.md) |
+| 2026-10 | DLoop | 合并多个 drafting stage，减少 target verification 频率 | [DLoop](../papers/dloop.md) |
+| 2026-10 | D-Loop | 在 diffusion block 内引入 prefix-conditioned suffix regeneration | [D-Loop](../papers/d-loop.md) |
+| 2026-10 | DRelay | 利用 global draft context 修复候选池中的早期选择错误 | [DRelay](../papers/drelay.md) |
+
+对 10 月新提交论文，本轮只做谱系识别，不展开分析。摘要级结果见 [2026-10 DFlash/DSpark 谱系候选识别](../evidence/2026-10-dflash-lineage-scan.md)：DStill、ReAnchor、TreeSpark、DCOCO 分别直接延申 DFlash 或 DSpark；JetSpec++、FlashMap 属于相邻的 block/parallel drafting 发展；Packed-SS、PV-Decoding、SPOT、ORL 等属于 diffusion/self-speculative 或替代路线，当前不并入 DFlash 主线；两篇 acceptance 诊断工作只作为评测背景。
 
 ## 7. 路线差异总表
 
