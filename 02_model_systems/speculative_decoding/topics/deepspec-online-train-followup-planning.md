@@ -115,9 +115,9 @@ DeepSeek-V4 recipe 在 `config/dspark/dspark_deepseek_v4_flash.py:45-77` 固定�
 
 ### 训练实现与 vLLM DSpark 实现不是天然等价
 
-`hw_test/docs/deepseek_v4_dspark_comparison.md` 将 DeepSpec 训练模型与 vLLM Ascend 推理模型的差异列为高风险项：DeepSpec 使用 dense SDPA，vLLM 使用 DSA/indexer/compressed KV；MoE grouped top-k、输出投影布局、draft/MTP 层编号、Markov bias 的责任边界和 checkpoint 映射也不同。训练 loss 或离线 logits 的改善，只有在 checkpoint 转换和真实 vLLM evaluator parity 通过后，才有资格解释为线上 acceptance 改善。
+`hw_test/docs/deepseek_v4_dspark_comparison.md` 将 DeepSpec 训练模型与 vLLM Ascend 推理模型的差异列为需要跟踪的实现风险：DeepSpec 使用 dense SDPA，vLLM 使用 DSA/indexer/compressed KV；MoE grouped top-k、输出投影布局、draft/MTP 层编号、Markov bias 的责任边界和 checkpoint 映射也不同。项目方已经对实际 dump 做过关键点位比对，attention 结果、MoE 结果等的余弦相似度可达到 `0.999`，说明主要计算路径已有较强数值对齐证据，不能再把“尚未做 parity”作为当前算法实验的阻塞理由。
 
-因此新增一条硬性门槛：在算法实验前，至少用小模型或固定随机权重完成逐层 parity（main projection、HC、attention、MoE 路由、final logits），并完成 DeepSpec dense checkpoint 到 vLLM MTP layout 的 round-trip 检查。parity 未通过时，实验结果只作为训练侧诊断，不进入线上收益排序。
+剩余 parity 工作改为收敛性检查：确认 dump 覆盖的输入形态、batch/sequence 边界、最终 logits、checkpoint 转换 round-trip、Markov bias 责任边界和真实 vLLM evaluator 的 acceptance。若这些检查出现失败，再将对应实验结果降级为训练侧诊断；在已有 `0.999` 关键点位证据下，loss、数据和 OPD 实验可以并行推进。
 
 ## 3. 实验原则与统一协议
 
@@ -155,14 +155,14 @@ DeepSeek-V4 recipe 在 `config/dspark/dspark_deepseek_v4_flash.py:45-77` 固定�
 
 ### P0：指标、数据与在线一致性
 
-| ID | 实验 | 改动 | 主要假设 | 为什么优先 | 支撑来源 | Go/No-go |
-|---|---|---|---|---|---|---|
-| P0-1 | 双接受长度基线 | 不改模型；同时记录 greedy/probabilistic、位置接受率、first rejection | 当前 2.7 可能混用了两种口径 | 仓库明确区分两种指标，默认 best checkpoint 还是 greedy 指标 | `loss.py:65-109`；`docs/configuration.md:216-241` | 若两者差距大于 0.3，后续先按 greedy 重新定 baseline |
-| P0-2 | target 版本闭环 | 为每条数据记录 target hash、producer commit、tokenizer/chat template、layer schema | online feature stale 或 schema mismatch 会伪装成训练失败 | Mooncake 路径已验证 token/shape/dtype，但没有证明 target 版本被完整记录 | `online_feature_dataset.py:64-86`、`:201-223` | 发现混版则废弃该 run，不比较算法 |
-| P0-3 | 在线 vs 固定 feature | 同一批 1--2 万样本先保存 feature，再用相同 seed 做 online/static 对照 | online transfer 或 producer 时序不应改变模型收敛 | 区分算法问题和 online pipeline 问题 | `base_trainer.py:761-803`；`async_feature_cache.py:157-180` | acceptance 差异超过 0.1 或 loss 曲线明显漂移，先修 pipeline |
-| P0-4 | 难例分层 | 按 response 长度、thinking/non-thinking、first rejection 位置和 entropy 分桶 | 2.7 可能由数据构成决定，而不是模型容量 | DFlash/DSpark 研究都强调 accepted prefix 与位置条件；长 CoT 还需单独看 | [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵)；[DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵) | 若某一桶低于 1.5，后续增加该桶采样比例 |
-| P0-5 | 离线验证 vs 真实 rollout | 同一 checkpoint/同一 prompt，分别测 teacher-forced 概率长度、greedy 长度和真实 evaluator 接受长度 | 条件轨迹差异可能解释约 3.5 与 2.6--2.7 的差值；temperature 贡献待独立测量 | `hw_test/docs/algorithm_design.md` 的温度与验证口径分析；仓库 `docs/configuration.md` 的验证公式 | 若离线与 rollout 差值超过 0.3，先修验证口径或 prefix 覆盖，不比较 loss 算法 |
-| P0-6 | DeepSpec/vLLM parity | 固定随机权重和输入，逐层比较 HC、attention、MoE、logits；再做 checkpoint round-trip | 训练模型结构/权重布局差异可能掩盖算法收益 | `hw_test/docs/deepseek_v4_dspark_comparison.md` P0 风险与 parity 建议 | parity 未通过时，线上 acceptance 结论 blocked |
+| ID   | 实验                   | 改动                                                                          | 主要假设                                               | 为什么优先                                                                          | 支撑来源                                                                                             | Go/No-go                                      |
+| ---- | -------------------- | --------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| P0-1 | 双接受长度基线              | 不改模型；同时记录 greedy/probabilistic、位置接受率、first rejection                        | 当前 2.7 可能混用了两种口径                                   | 仓库明确区分两种指标，默认 best checkpoint 还是 greedy 指标                                     | `loss.py:65-109`；`docs/configuration.md:216-241`                                                 | 若两者差距大于 0.3，后续先按 greedy 重新定 baseline          |
+| P0-2 | target 版本闭环          | 为每条数据记录 target hash、producer commit、tokenizer/chat template、layer schema    | online feature stale 或 schema mismatch 会伪装成训练失败    | Mooncake 路径已验证 token/shape/dtype，但没有证明 target 版本被完整记录                          | `online_feature_dataset.py:64-86`、`:201-223`                                                     | 发现混版则废弃该 run，不比较算法                            |
+| P0-3 | 在线 vs 固定 feature     | 同一批 1--2 万样本先保存 feature，再用相同 seed 做 online/static 对照                        | online transfer 或 producer 时序不应改变模型收敛              | 区分算法问题和 online pipeline 问题                                                     | `base_trainer.py:761-803`；`async_feature_cache.py:157-180`                                       | acceptance 差异超过 0.1 或 loss 曲线明显漂移，先修 pipeline |
+| P0-4 | 难例分层                 | 按 response 长度、thinking/non-thinking、first rejection 位置和 entropy 分桶          | 2.7 可能由数据构成决定，而不是模型容量                              | DFlash/DSpark 研究都强调 accepted prefix 与位置条件；长 CoT 还需单独看                          | [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵)；[DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵) | 若某一桶低于 1.5，后续增加该桶采样比例                         |
+| P0-5 | 离线验证 vs 真实 rollout   | 同一 checkpoint/同一 prompt，分别测 teacher-forced 概率长度、greedy 长度和真实 evaluator 接受长度 | 条件轨迹差异可能解释约 3.5 与 2.6--2.7 的差值；temperature 贡献待独立测量 | `hw_test/docs/algorithm_design.md` 的温度与验证口径分析；仓库 `docs/configuration.md` 的验证公式 | 若离线与 rollout 差值超过 0.3，先修验证口径或 prefix 覆盖，不比较 loss 算法                                              |                                               |
+| P0-6 | DeepSpec/vLLM parity 收敛检查 | 复用已有 dump；补齐最终 logits、checkpoint round-trip、边界 shape 和真实 evaluator acceptance | 关键点位已有余弦相似度 `0.999`，剩余风险集中在接口、转换和长链路行为 | 项目方 dump 比对结果；`hw_test/docs/deepseek_v4_dspark_comparison.md` | 只在新增检查失败时阻断线上归因 |
 
 ### P1：低风险训练目标与采样
 
@@ -179,34 +179,34 @@ DeepSeek-V4 recipe 在 `config/dspark/dspark_deepseek_v4_flash.py:45-77` 固定�
 
 ### P2：直接吸收 DFlash/DSpark 后续路线
 
-| ID | 实验 | 实现范围 | 目标假设 | 参考来源 | 成功标准与风险 |
-|---|---|---|---|---|---|
-| P2-0 | Drafter OPD | 用当前 drafter 生成 proposal，在其诱导的状态/首个拒绝位置请求 target supervision；增加 rejection-position replay 或 residual target-logit loss | 普通 teacher-forced/target-regen 监督没有覆盖 draft 自身造成的状态偏移；在 draft-induced state 上训练可直接改善真实 rollout 的首个拒绝位置 | `hw_test/docs/algorithm_design.md` 中 Draft-OPD 讨论；Draft-OPD (arXiv:2605.29343) | 先做 offline 小规模 replay；必须同时看真实 rollout、训练成本和是否破坏 lossless target 分布 |
-| P2-1 | rejected-suffix state reuse | 在验证数据生产端保存首个拒绝后的 target hidden states；训练一个小 residual/gate 注入下一 block | ReTrace/ReAnchor 表明拒绝后状态仍包含可复用轨迹信息 | [ReTrace](https://arxiv.org/abs/2608.29748)；10 月谱系中的 ReAnchor；Survey 的 rejected-trajectory 小节 | 先做 training-only offline replay；若 feature/transfer 成本超过 5%，不接 online 主链 |
-| P2-2 | DCOCO/全局候选修复 | 每个 block 保留 top-k candidate，增加轻量相邻位置 compatibility selector | DFlash 的 per-position marginal 组合不一致，是后位 rejection 来源之一 | 10 月候选 DCOCO，及 [DRelay](../papers/drelay.md) 的 global reader + repair loss | 需要同时报告 selector latency、显存和 candidate coverage；没有正确候选时不能修复 |
-| P2-3 | DSpark confidence scheduler | 复用 confidence head 做动态 block/stage 预算；保持 target verifier 不变 | 固定 block=5 对不同样本不适配；confidence 可决定是否继续便宜 drafting | [DSpark](../papers/dspark.md)；[LibraSpec](../papers/libraspec.md) | 若平均 acceptance 提升但 target call 未降，说明 gate 只改善指标未改善系统 |
-| P2-4 | block size sweep | `3/5/7`，只改推理和训练形状，重新训练 | 2.7 可能受 block 长度与接受概率乘积限制 | DFlash/HyperDFlash 证明更长 block 不一定更快；[HyperDFlash](../papers/hyperdflash.md#8-infra-需求分析) | 以 speedup Pareto 选点，不按 accepted length 单指标选 7 |
-| P2-5 | looped drafting | 在当前 5-token block 上累积 2 个 stage 后一次验证 | 减少全接受轮的 target verification | [DLoop](../papers/dloop.md)、[D-Loop](../papers/d-loop.md) | 这是 serving/状态机改动，放在 P2 后半；需先证明线上 graph/cache 可承载 |
+| ID   | 实验                          | 实现范围                                                                                                                  | 目标假设                                                                                                   | 参考来源                                                                                          | 成功标准与风险                                                                 |
+| ---- | --------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| P2-0 | Drafter OPD                 | 用当前 drafter 生成 proposal，在其诱导的状态/首个拒绝位置请求 target supervision；增加 rejection-position replay 或 residual target-logit loss | 普通 teacher-forced/target-regen 监督没有覆盖 draft 自身造成的状态偏移；在 draft-induced state 上训练可直接改善真实 rollout 的首个拒绝位置 | `hw_test/docs/algorithm_design.md` 中 Draft-OPD 讨论；Draft-OPD (arXiv:2605.29343)                | 先做 offline 小规模 replay；必须同时看真实 rollout、训练成本和是否破坏 lossless target 分布      |
+| P2-1 | rejected-suffix state reuse | 在验证数据生产端保存首个拒绝后的 target hidden states；训练一个小 residual/gate 注入下一 block                                                  | ReTrace/ReAnchor 表明拒绝后状态仍包含可复用轨迹信息                                                                     | [ReTrace](https://arxiv.org/abs/2608.29748)；10 月谱系中的 ReAnchor；Survey 的 rejected-trajectory 小节 | 先做 training-only offline replay；若 feature/transfer 成本超过 5%，不接 online 主链 |
+| P2-2 | DCOCO/全局候选修复                | 每个 block 保留 top-k candidate，增加轻量相邻位置 compatibility selector                                                           | DFlash 的 per-position marginal 组合不一致，是后位 rejection 来源之一                                                | 10 月候选 DCOCO，及 [DRelay](../papers/drelay.md) 的 global reader + repair loss                    | 需要同时报告 selector latency、显存和 candidate coverage；没有正确候选时不能修复              |
+| P2-3 | DSpark confidence scheduler | 复用 confidence head 做动态 block/stage 预算；保持 target verifier 不变                                                           | 固定 block=5 对不同样本不适配；confidence 可决定是否继续便宜 drafting                                                      | [DSpark](../papers/dspark.md)；[LibraSpec](../papers/libraspec.md)                             | 若平均 acceptance 提升但 target call 未降，说明 gate 只改善指标未改善系统                    |
+| P2-4 | block size sweep            | `3/5/7`，只改推理和训练形状，重新训练                                                                                                | 2.7 可能受 block 长度与接受概率乘积限制                                                                              | DFlash/HyperDFlash 证明更长 block 不一定更快；[HyperDFlash](../papers/hyperdflash.md#8-infra-需求分析)      | 以 speedup Pareto 选点，不按 accepted length 单指标选 7                           |
+| P2-5 | looped drafting             | 在当前 5-token block 上累积 2 个 stage 后一次验证                                                                                 | 减少全接受轮的 target verification                                                                            | [DLoop](../papers/dloop.md)、[D-Loop](../papers/d-loop.md)                                     | 这是 serving/状态机改动，放在 P2 后半；需先证明线上 graph/cache 可承载                        |
 
 ### P3：数据与在线训练策略
 
-| ID | 实验 | 做法 | 为什么值得做 | 来源 | 主要风险 / 判读 |
-|---|---|---|---|---|---|
-| P3-1 | 训练数据构成审计 | 核对当前 40 万样本是 ground-truth、target regen 还是混合，以及各自比例和生成配置 | 避免把未知来源的旧 response 错当成 ground-truth 对照 | 项目实际 baseline；`hw_test/docs/algorithm_design.md` 的数据来源定义 | 数据来源未核实时，不启动 regen 效果对比 |
-| P3-2 | ground-truth vs target regen | 固定 regen 解码参数，等训练 token/FLOPs 比较 ground-truth、target regen、混合数据 | 判断 regen 的主效应，避免把 regen temperature 当成数据来源结论 | `hw_test/docs/algorithm_design.md` 的数据来源分析；DistillSpec 等已有研究线索 | 若收益小于生成成本或只改善离线指标，不采用全量 regen |
-| P3-3 | 长序列覆盖 | `max_length=4096/8192/目标长度`；算力不足时测试带前文滑窗和回答优先窗口 | 后段 token 未被监督可能限制长回答后位 acceptance | `hw_test/docs/algorithm_design.md` 的长序列截断分析；仓库 `docs/configuration.md` | 按回答位置、有效 loss token 和真实 rollout 分桶；窗口结果标注为近似 |
-| P3-4 | regen/chat 与 hidden-state 前缀一致性 | 对同一 messages 比较服务端 chat template 与本地 `input_ids` 的 token ID，记录首个差异位置 | 模板、BOS、thinking 标志差异会造成 target feature 与训练文本错位 | `hw_test/docs/algorithm_design.md` 的入口一致性分析 | 首个差异发生在 assistant 起始前即停止该数据组比较 |
-| P3-5 | online freshness window | 当前 target snapshot 每 N 个 step 更新 producer；限制 feature 最大年龄 | 避免在线 producer 与 response/target 版本错位 | 原 P3-4 与 `hw_test/docs/online_async_cache.md` | producer reload/cache invalidation 成本必须单独报告 |
-| P3-6 | asynchronous pipeline ablation | sync、async、不同 `window/concurrency/slots`，同时记录 host wait/H2D/compute | 区分算法收益和缓存 backpressure 造成的训练噪声 | `hw_test/docs/online_async_cache.md`：有界 `/dev/shm`、lease、clone/H2D 生命周期和 host timing | 只改变吞吐不能宣称提高 acceptance |
-| P3-7 | rejection-focused replay | 用当前 checkpoint 在训练集上跑 verifier，过采样首个拒绝位置前后窗口 | 直接增加模型最缺的错误边界样本 | `hw_test/docs/algorithm_design.md` 的 Draft-OPD 研究线索 | 可能过拟合某个 checkpoint 或任务桶；与 P2-0 分开归因 |
-| P3-8 | length/entropy curriculum | 前期短样本和低 entropy，后期加入长 thinking、高 entropy、代码样本 | 先学稳定首位，再学长尾后缀 | 本文 P0-4 分桶诊断结果将决定采样权重 | curriculum 顺序可能只改变收敛速度，需等 step 对齐比较 |
+| ID   | 实验                              | 做法                                                                   | 为什么值得做                                         | 来源                                                                                   | 主要风险 / 判读                                    |
+| ---- | ------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------- |
+| P3-1 | 训练数据构成审计                        | 核对当前 40 万样本是 ground-truth、target regen 还是混合，以及各自比例和生成配置              | 避免把未知来源的旧 response 错当成 ground-truth 对照         | 项目实际 baseline；`hw_test/docs/algorithm_design.md` 的数据来源定义                             | 数据来源未核实时，不启动 regen 效果对比                      |
+| P3-2 | ground-truth vs target regen    | 固定 regen 解码参数，等训练 token/FLOPs 比较 ground-truth、target regen、混合数据      | 判断 regen 的主效应，避免把 regen temperature 当成数据来源结论   | `hw_test/docs/algorithm_design.md` 的数据来源分析；DistillSpec 等已有研究线索                       | 若收益小于生成成本或只改善离线指标，不采用全量 regen                |
+| P3-3 | 长序列覆盖                           | `max_length=4096/8192/目标长度`；算力不足时测试带前文滑窗和回答优先窗口                      | 后段 token 未被监督可能限制长回答后位 acceptance              | `hw_test/docs/algorithm_design.md` 的长序列截断分析；仓库 `docs/configuration.md`               | 按回答位置、有效 loss token 和真实 rollout 分桶；窗口结果标注为近似 |
+| P3-4 | regen/chat 与 hidden-state 前缀一致性 | 对同一 messages 比较服务端 chat template 与本地 `input_ids` 的 token ID，记录首个差异位置 | 模板、BOS、thinking 标志差异会造成 target feature 与训练文本错位 | `hw_test/docs/algorithm_design.md` 的入口一致性分析                                          | 首个差异发生在 assistant 起始前即停止该数据组比较               |
+| P3-5 | online freshness window         | 当前 target snapshot 每 N 个 step 更新 producer；限制 feature 最大年龄            | 避免在线 producer 与 response/target 版本错位           | 原 P3-4 与 `hw_test/docs/online_async_cache.md`                                        | producer reload/cache invalidation 成本必须单独报告  |
+| P3-6 | asynchronous pipeline ablation  | sync、async、不同 `window/concurrency/slots`，同时记录 host wait/H2D/compute  | 区分算法收益和缓存 backpressure 造成的训练噪声                 | `hw_test/docs/online_async_cache.md`：有界 `/dev/shm`、lease、clone/H2D 生命周期和 host timing | 只改变吞吐不能宣称提高 acceptance                       |
+| P3-7 | rejection-focused replay        | 用当前 checkpoint 在训练集上跑 verifier，过采样首个拒绝位置前后窗口                         | 直接增加模型最缺的错误边界样本                                | `hw_test/docs/algorithm_design.md` 的 Draft-OPD 研究线索                                  | 可能过拟合某个 checkpoint 或任务桶；与 P2-0 分开归因          |
+| P3-8 | length/entropy curriculum       | 前期短样本和低 entropy，后期加入长 thinking、高 entropy、代码样本                        | 先学稳定首位，再学长尾后缀                                  | 本文 P0-4 分桶诊断结果将决定采样权重                                                                | curriculum 顺序可能只改变收敛速度，需等 step 对齐比较          |
 
 ## 5. 推荐执行顺序
 
 ### 第一阶段：一周内完成的诊断
 
 1. 固定 40 万数据、GBS 32、实际 epoch 和有效 step，重跑 baseline。
-2. 做 DeepSpec/vLLM 小规模 parity 和 checkpoint round-trip；未通过前不解释线上 acceptance。
+2. 记录已有 dump 比对：attention/MoE 等关键点位余弦相似度约 `0.999`；并补做最终 logits、checkpoint round-trip 和真实 evaluator acceptance 收敛检查。
 3. 输出离线 teacher-forced、greedy 和真实 rollout 三种接受长度，确认 2.7 的口径。
 4. 做 online/static feature 对照，确认 target 版本、feature schema 和 chat template 没有混用。
 5. 对数据按 thinking、长度、entropy、assistant 位置和 first rejection 分桶。
@@ -268,6 +268,6 @@ DeepSeek-V4 recipe 在 `config/dspark/dspark_deepseek_v4_flash.py:45-77` 固定�
 
 - DeepSpec-npu 的代码事实来自 GitCode `online_train` 分支提交 `2b730e8c7142f7f516c4c5a4b476f765e95de1`；新增设计约束来自 `hw_test` 分支提交 `f2b428ded798c9703295d8e48f12ecc9098db2f8` 的 `docs/algorithm_design.md`、`docs/deepseek_v4_dspark_comparison.md`、`docs/configuration.md` 和 `docs/online_async_cache.md`；代码仓库不是本知识库的 canonical Paper。
 - 当前 2.7、40 万样本、GBS 32、3 个以上 epoch 来自项目方提供的实际运行口径；仓库默认脚本参数已明确排除为本 baseline。
-- `hw_test` 文档中的约 3.5（离线验证）与约 2.6--2.7（真实框架）是设计笔记中的待核对口径，不作为已完成实验结论；温度、数据 regen、长序列截断和 DeepSpec/vLLM parity 均需独立实验。
+- `hw_test` 文档中的约 3.5（离线验证）与约 2.6--2.7（真实框架）是设计笔记中的待核对口径，不作为已完成实验结论；项目方已提供 DeepSpec/vLLM 关键 dump 点位余弦相似度约 `0.999` 的实测证据，后续只需补齐最终 logits、转换和真实 evaluator 收敛检查。温度、数据 regen 和长序列截断仍需独立实验。
 - DFlash、DSpark、DeLS-Spec、DPara、DLoop、D-Loop、DRelay、LibraSpec 等算法依据链接到已有 canonical Paper；ReTrace、ReAnchor、DCOCO、TreeSpark 等 10 月候选只用于方向识别，不在本文展开其论文分析。
 - 本文是规划交付：**review validation、publisher validation、promotion-plan validation 和正式资产 Git-tracked 审计按用户要求暂未执行**。因此本文不应被表述为已通过发布门禁的最终验收件。
