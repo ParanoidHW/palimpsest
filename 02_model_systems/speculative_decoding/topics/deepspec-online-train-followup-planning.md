@@ -177,7 +177,9 @@ DeepSeek-V4 recipe 在 `config/dspark/dspark_deepseek_v4_flash.py:45-77` 固定�
 | P1-7 | loss/metric temperature | 保持 `T=1` 基线；离线评估 `T=0.7/1.0/1.3`，再单独测试 serving temperature | 训练概率目标的温度与线上 proposal/verifier 温度可能作用不同 | `hw_test/docs/algorithm_design.md`；Temperature-Centric Investigation (arXiv:2410.10141) | 只有真实 rollout 和端到端 tokens/s 同时改善，才考虑 multi-temperature loss |
 | P1-8 | 验证路径修正 | 逐轮复现 draft 自回归、拒绝后状态更新和 bonus token；对齐离线/线上指标 | teacher-forced 概率长度不是 rollout 接受长度的无偏替代 | `hw_test/docs/algorithm_design.md`；`loss.py` 与 evaluator 路径 | 修正前只用离线指标做诊断，不作为算法 Go |
 
-### P2：直接吸收 DFlash/DSpark 后续路线
+### P2：轨迹监督与结构增量
+
+OPD 单列是因为它改变的是监督轨迹，不是 drafter 的层数、attention 或 block 结构。DFlash/DSpark 系列主要回答“怎样生成和验证候选”；OPD 回答“训练时是否在 drafter 自己造成的状态上获得 target 监督”。两者可以组合，但实验归因必须分开。
 
 | ID   | 实验                          | 实现范围                                                                                                                  | 目标假设                                                                                                   | 参考来源                                                                                          | 成功标准与风险                                                                 |
 | ---- | --------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
@@ -218,17 +220,17 @@ DeepSeek-V4 recipe 在 `config/dspark/dspark_deepseek_v4_flash.py:45-77` 固定�
 3. 并行做 P3-2/P3-4 的低成本数据对照；只有在数据入口一致后，才比较长序列和结构容量。
 4. 只有当这些实验不能把 greedy length 推到约 `2.9` 以上，才做 Markov/gated/RNN 结构比较。
 
-### 第三阶段：结构增量
+### 第三阶段：轨迹监督与结构增量
 
 推荐顺序是：
 
-1. Drafter OPD / draft-induced state supervision；
-2. DSpark confidence scheduler / dynamic block；
-3. rejected-suffix state reuse；
-4. DCOCO/DRelay 风格候选修复；
-5. DLoop looped drafting。
+1. Drafter OPD / draft-induced state supervision（训练监督方向）；
+2. DSpark confidence scheduler / dynamic block（推理预算方向）；
+3. rejected-suffix state reuse（状态复用方向）；
+4. DCOCO/DRelay 风格候选修复（候选组合方向）；
+5. DLoop looped drafting（验证调度方向）。
 
-原因是 Drafter OPD、confidence scheduler 和 rejected-state reuse 可以先保持现有 target verifier 和 5-token block 合同；候选修复和 DLoop 会增加 candidate storage、selector 或 serving 状态机复杂度。Drafter OPD 需要额外处理 draft proposal 诱导的状态分布，不能用普通 target regen 替代。DLoop 的论文证据显示减少 target verification 可能带来更好的 wall-clock，但它不能直接替代 drafter 训练优化。
+推荐顺序不是重要性排名。OPD、confidence scheduler 和 rejected-state reuse 都可以先保持现有 target verifier 和 5-token block 合同；候选修复和 DLoop 会增加 candidate storage、selector 或 serving 状态机复杂度。Drafter OPD 需要额外处理 draft proposal 诱导的状态分布，不能用普通 target regen 替代。DLoop 的论文证据显示减少 target verification 可能带来更好的 wall-clock，但它不能直接替代 drafter 训练优化。
 
 ## 6. 需要避免的错误结论
 
