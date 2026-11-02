@@ -161,7 +161,7 @@ DeepSeek-V4 recipe 在 `config/dspark/dspark_deepseek_v4_flash.py:45-77` 固定�
 | P0-2 | target 版本闭环 | 为每条数据记录 target hash、producer commit、tokenizer/chat template、layer schema | online feature stale 或 schema mismatch 会伪装成训练失败 | Mooncake 路径已验证 token/shape/dtype，但没有证明 target 版本被完整记录 | `online_feature_dataset.py:64-86`、`:201-223` | 发现混版则废弃该 run，不比较算法 |
 | P0-3 | 在线 vs 固定 feature | 同一批 1--2 万样本先保存 feature，再用相同 seed 做 online/static 对照 | online transfer 或 producer 时序不应改变模型收敛 | 区分算法问题和 online pipeline 问题 | `base_trainer.py:761-803`；`async_feature_cache.py:157-180` | acceptance 差异超过 0.1 或 loss 曲线明显漂移，先修 pipeline |
 | P0-4 | 难例分层 | 按 response 长度、thinking/non-thinking、first rejection 位置和 entropy 分桶 | 2.7 可能由数据构成决定，而不是模型容量 | DFlash/DSpark 研究都强调 accepted prefix 与位置条件；长 CoT 还需单独看 | [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵)；[DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵) | 若某一桶低于 1.5，后续增加该桶采样比例 |
-| P0-5 | 离线验证 vs 真实 rollout | 同一 checkpoint/同一 prompt，分别测 teacher-forced 概率长度、greedy 长度和真实 evaluator 接受长度 | 约 3.5 与 2.6--2.7 的差值主要来自条件轨迹和拒绝后状态，而非 temperature 单因 | `hw_test/docs/algorithm_design.md` 的温度与验证口径分析；仓库 `docs/configuration.md` 的验证公式 | 若离线与 rollout 差值超过 0.3，先修验证口径或 prefix 覆盖，不比较 loss 算法 |
+| P0-5 | 离线验证 vs 真实 rollout | 同一 checkpoint/同一 prompt，分别测 teacher-forced 概率长度、greedy 长度和真实 evaluator 接受长度 | 条件轨迹差异可能解释约 3.5 与 2.6--2.7 的差值；temperature 贡献待独立测量 | `hw_test/docs/algorithm_design.md` 的温度与验证口径分析；仓库 `docs/configuration.md` 的验证公式 | 若离线与 rollout 差值超过 0.3，先修验证口径或 prefix 覆盖，不比较 loss 算法 |
 | P0-6 | DeepSpec/vLLM parity | 固定随机权重和输入，逐层比较 HC、attention、MoE、logits；再做 checkpoint round-trip | 训练模型结构/权重布局差异可能掩盖算法收益 | `hw_test/docs/deepseek_v4_dspark_comparison.md` P0 风险与 parity 建议 | parity 未通过时，线上 acceptance 结论 blocked |
 
 ### P1：低风险训练目标与采样
@@ -190,16 +190,16 @@ DeepSeek-V4 recipe 在 `config/dspark/dspark_deepseek_v4_flash.py:45-77` 固定�
 
 ### P3：数据与在线训练策略
 
-| ID | 实验 | 做法 | 为什么值得做 | 主要风险 |
-|---|---|---|---|---|
-| P3-1 | on-policy response 重生成 | 固定 40 万 prompt，比较旧 response、当前 target 重生成 response、混合 1:1 | drafter 目标必须和实际 target 输出分布一致；Topic 已区分 response 与 hidden-state 生命周期 | 生成成本高；必须锁 target/sampling 版本 |
+| ID | 实验 | 做法 | 为什么值得做 | 来源 | 主要风险 / 判读 |
+|---|---|---|---|---|---|
+| P3-1 | 训练数据构成审计 | 核对当前 40 万样本是 ground-truth、target regen 还是混合，以及各自比例和生成配置 | 避免把未知来源的旧 response 错当成 ground-truth 对照 | 项目实际 baseline；`hw_test/docs/algorithm_design.md` 的数据来源定义 | 数据来源未核实时，不启动 regen 效果对比 |
 | P3-2 | ground-truth vs target regen | 固定 regen 解码参数，等训练 token/FLOPs 比较 ground-truth、target regen、混合数据 | 判断 regen 的主效应，避免把 regen temperature 当成数据来源结论 | `hw_test/docs/algorithm_design.md` 的数据来源分析；DistillSpec 等已有研究线索 | 若收益小于生成成本或只改善离线指标，不采用全量 regen |
 | P3-3 | 长序列覆盖 | `max_length=4096/8192/目标长度`；算力不足时测试带前文滑窗和回答优先窗口 | 后段 token 未被监督可能限制长回答后位 acceptance | `hw_test/docs/algorithm_design.md` 的长序列截断分析；仓库 `docs/configuration.md` | 按回答位置、有效 loss token 和真实 rollout 分桶；窗口结果标注为近似 |
 | P3-4 | regen/chat 与 hidden-state 前缀一致性 | 对同一 messages 比较服务端 chat template 与本地 `input_ids` 的 token ID，记录首个差异位置 | 模板、BOS、thinking 标志差异会造成 target feature 与训练文本错位 | `hw_test/docs/algorithm_design.md` 的入口一致性分析 | 首个差异发生在 assistant 起始前即停止该数据组比较 |
 | P3-5 | online freshness window | 当前 target snapshot 每 N 个 step 更新 producer；限制 feature 最大年龄 | 避免在线 producer 与 response/target 版本错位 | 原 P3-4 与 `hw_test/docs/online_async_cache.md` | producer reload/cache invalidation 成本必须单独报告 |
 | P3-6 | asynchronous pipeline ablation | sync、async、不同 `window/concurrency/slots`，同时记录 host wait/H2D/compute | 区分算法收益和缓存 backpressure 造成的训练噪声 | `hw_test/docs/online_async_cache.md`：有界 `/dev/shm`、lease、clone/H2D 生命周期和 host timing | 只改变吞吐不能宣称提高 acceptance |
-| P3-7 | rejection-focused replay | 用当前 checkpoint 在训练集上跑 verifier，过采样首个拒绝位置前后窗口 | 直接增加模型最缺的错误边界样本 | 可能过拟合某个 checkpoint 或任务桶 |
-| P3-8 | length/entropy curriculum | 前期短样本和低 entropy，后期加入长 thinking、高 entropy、代码样本 | 先学稳定首位，再学长尾后缀 | curriculum 顺序可能只改变收敛速度，需等 step 对齐比较 |
+| P3-7 | rejection-focused replay | 用当前 checkpoint 在训练集上跑 verifier，过采样首个拒绝位置前后窗口 | 直接增加模型最缺的错误边界样本 | `hw_test/docs/algorithm_design.md` 的 Draft-OPD 研究线索 | 可能过拟合某个 checkpoint 或任务桶；与 P2-0 分开归因 |
+| P3-8 | length/entropy curriculum | 前期短样本和低 entropy，后期加入长 thinking、高 entropy、代码样本 | 先学稳定首位，再学长尾后缀 | 本文 P0-4 分桶诊断结果将决定采样权重 | curriculum 顺序可能只改变收敛速度，需等 step 对齐比较 |
 
 ## 5. 推荐执行顺序
 
@@ -240,7 +240,7 @@ DeepSeek-V4 recipe 在 `config/dspark/dspark_deepseek_v4_flash.py:45-77` 固定�
 
 ## 7. 当前建议的首批最小矩阵
 
-如果算力只能支持 8--12 个 run，优先执行以下组合：
+先完成 B0、B9、B12、B15 四项诊断；其中 B12、B15 不需要重新训练。训练预算仅支持 8--12 个 run 时，从下表的 B1--B8、B10--B11、B13--B14、B16 中按诊断结果选择，不应把所有候选同时启动。
 
 | Run | 配置 | 目的 |
 |---|---|---|
