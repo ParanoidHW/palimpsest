@@ -39,21 +39,33 @@
 
 ## 3. 第一门槛：训推一致性
 
-### 3.1 对齐的不是数据集，而是目标模型的行为
+“训推一致性”不是一个单一指标，而是多个层面分别对齐。每个层面都有自己的责任人、检查方法和失败表现；把它们混成一个 cosine 相似度，容易把输入问题误判成模型问题。
 
-草稿模型要逼近的是目标模型在具体推理协议下的分布。协议至少包括：模型前向实现、权重转换、tokenizer 与 chat template、BOS/EOS 处理、采样温度、top-k/top-p、停止条件、批处理形状，以及拒绝后如何更新 prefix 和 KV cache。只要其中一项不同，草稿看到的 hidden state 就不再是线上会看到的状态。
+### 3.1 模型层：前向实现与权重转换
 
-建议把“对齐”拆成三个可验收层级：
+训练侧和推理侧首先要计算同一个目标模型。需要核对算子实现、归一化顺序、位置编码、并行切分、dtype，以及 checkpoint 到推理权重的命名和排列。对同一输入逐层比较 hidden state 和最终 logits，记录余弦相似度、最大相对误差和首个显著偏差位置；`>0.999` 只能作为当前项目的起始门槛，不能直接推导接受长度。
 
-1. **数值对齐**：同一输入、同一权重和同一 dtype 下，训练侧与推理侧的关键 hidden state、logit 做逐点比较；目标是先达到项目约定的余弦相似度门槛（当前讨论以 `>0.999` 为起点），同时报告最大相对误差，而不是只报一个平均值。
-2. **语义对齐**：两侧使用同一 tokenizer、chat template、采样和停止规则。不同业务场景若确实需要不同协议，应先判断能否通过显式条件输入或少量校准覆盖；直接为每种 harness（推理驱动程序）训练一套模型会迅速失去维护性。
-3. **轨迹对齐**：训练验证阶段必须使用 sampled-prefix。也就是说，草稿已经生成的 token 被接受或拒绝后，下一步状态要按线上规则更新；不能持续喂数据集真值，否则会掩盖草稿自身造成的状态偏移。
+### 3.2 采样层：策略与 temperature
 
-### 3.2 可证伪的对齐检查
+训练期间生成 proposal、离线评估和线上 decode 必须明确使用哪一种采样策略。temperature、top-k/top-p、随机种子、停止条件和 bonus token 规则只要有一项不同，草稿遇到的 token 分布就会改变。应分别记录 greedy、采样 rollout 和目标验证后的接受长度，不能把 probabilistic acceptance 当作线上 greedy 收益。
 
-每次实验都应保存 `target hash`、producer commit、tokenizer/chat template、layer schema、dtype 和随机种子。对同一 prompt 同时记录：teacher-forced 概率长度、greedy 长度、真实 rollout 接受长度、首个拒绝位置及最终 logits。若离线与线上接受长度差异超过约 `0.3`，先修评估口径或 prefix 覆盖，再讨论模型结构。
+### 3.3 输入层：chat template、QA regen 与 hidden state 提取
 
-这一步的因果逻辑是：只有输入、目标前向和轨迹都相同，接受长度的变化才可能归因于草稿训练；否则“算法收益”与 pipeline 错位无法区分。
+输入形式决定模型看到的 prefix。需要对齐 tokenizer、BOS/EOS、system/user/assistant 标记、thinking 开关和 chat template，并逐条比较服务端与本地 `input_ids` 的首个差异位置。QA regen 应使用与线上相同的目标模型和模板；hidden state 提取还要对齐层号、截断位置、padding、dtype 和 feature schema。否则 feature 看似来自同一目标模型，实际上对应的是另一条上下文。
+
+### 3.4 Infra 层：确定性计算与 batch 一致性
+
+相同输入不一定产生相同结果。需要检查 deterministic kernel、通信归约顺序、TP/EP 分组、batch padding、动态 batching、长度桶和并发请求的调度方式。先用固定 batch 和单请求建立基线，再逐步加入真实并发；如果只在大 batch 下出现差异，应优先排查归约、padding 和调度，而不是修改 loss。
+
+### 3.5 评估层：teacher-forcing 只是训练期验证口径
+
+teacher-forcing 是把数据集中的真实前缀喂给模型，用来计算训练期间的验证 loss 或概率长度。它不是一种模型对齐维度，也不能代替推理实测：真实推理中 prefix 会由草稿模型生成，并经过接受或拒绝后继续前进。训练期间可以保留 teacher-forcing 观察收敛，但必须并行做 sampled-prefix 或真实 rollout 评估，至少报告 greedy 接受长度、首个拒绝位置、目标调用次数和端到端时延。否则训练曲线无法回答“这次更新是否真的改善线上候选”。
+
+### 3.6 统一的对齐记录
+
+每次实验保存 `target hash`、producer commit、tokenizer/chat template、采样配置、layer schema、dtype、batch 形状和随机种子。对同一 prompt 同时记录前向误差、模板差异、teacher-forcing 概率长度、greedy 长度、真实 rollout 接受长度、首个拒绝位置和最终 logits。若离线与线上接受长度差异超过约 `0.3`，先定位上述五个维度，再讨论模型结构。
+
+因果关系是：模型层决定“算的是不是同一个模型”，采样层决定“走的是不是同一分布”，输入层决定“看的是不是同一 prefix”，infra 层决定“同一输入是否稳定复现”，评估层决定“训练曲线能不能预测线上表现”。只有这些层面分别闭环，接受长度变化才有资格归因于草稿训练。
 
 ## 4. 技术栈的六层结构
 
