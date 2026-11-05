@@ -7,7 +7,8 @@
 1. [Evolution](surveys/evolution.md)：canonical survey，先看 token draft、tree draft、block diffusion 和推理加速时间线。
 2. [Foundations and trends](surveys/foundations-and-trends.md)：看 lossless correctness contract、draft/verify 成本模型、机制分类、KV/serving 约束与开放问题。
 3. [Speculator training data lifecycle](topics/speculator-training-data-lifecycle.md)：回答 response 是否独立生成、已有 response 后为何只需一次 prefill、Key-Value（KV）cache 与 hidden-state feature store 如何分工，并比较 Speculators、SpecForge、TorchSpec 与 RL rollout 的框架策略。
-4. [RL drafter co-training](topics/rl-drafter-cotraining.md)：看 RL rollout 中在线 drafter 的收益排序、hidden-state 漂移、梯度边界和证据等级。
+4. [投机草稿模型技术栈与思考](topics/speculative-drafter-stack.md)：看训推对齐、feature 生命周期、训练目标、验证调度、框架交付和实验决策树。
+5. [RL drafter co-training](topics/rl-drafter-cotraining.md)：看 RL rollout 中在线 drafter 的收益排序、hidden-state 漂移、梯度边界和证据等级。
 5. [P-EAGLE](papers/p-eagle.md)、[DFlash](papers/dflash.md)、[D2SD](papers/d2sd.md)、[JetSpec](papers/jetspec.md)：理解 parallel drafting、block diffusion 和 tree drafting 主线。
 6. [HyperDFlash](papers/hyperdflash.md) 与 [DSpark](papers/dspark.md)：看架构对齐、半自回归修正和 confidence scheduling。
 7. [DeLS-Spec](papers/dels-spec.md)：看 DSpark 发布后的低成本算法增量——冻结 DFlash、独立训练短上下文专家并做 prior-corrected logit fusion。
@@ -22,9 +23,9 @@
 
 - Surveys：[Evolution](surveys/evolution.md)，[Foundations and trends](surveys/foundations-and-trends.md)， [AcceptMoE](papers/acceptmoe.md)
 - Papers：[P-EAGLE](papers/p-eagle.md)，[DFlash](papers/dflash.md)，[D2SD](papers/d2sd.md)，[JetSpec](papers/jetspec.md)，[HyperDFlash](papers/hyperdflash.md)，[DSpark](papers/dspark.md)，[DeLS-Spec](papers/dels-spec.md)，[AngelSpec](papers/angelspec.md)，[TorchSpec](papers/torchspec.md)，[AcceptMoE](papers/acceptmoe.md)，[LibraSpec](papers/libraspec.md)，[Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)，[DPara](papers/dpara.md)，[DLoop](papers/dloop.md)，[D-Loop](papers/d-loop.md)，[DRelay](papers/drelay.md)
-- Topics：[Speculator training data lifecycle](topics/speculator-training-data-lifecycle.md)，[RL drafter co-training](topics/rl-drafter-cotraining.md)，[DeepSpec online_train 后续算法与实验规划](topics/deepspec-online-train-followup-planning.md)
+- Topics：[Speculator training data lifecycle](topics/speculator-training-data-lifecycle.md)，[投机草稿模型技术栈与思考](topics/speculative-drafter-stack.md)，[RL drafter co-training](topics/rl-drafter-cotraining.md)，[DeepSpec online_train 后续算法与实验规划](topics/deepspec-online-train-followup-planning.md)
 - Evidence：[Figure inventory](evidence/figure-inventory.md)，[2026-10 figure inventory](evidence/2610-figure-inventory.md)，[2026-10 DFlash/DSpark lineage scan](evidence/2026-10-dflash-lineage-scan.md)，[Speculator training data lifecycle evidence](evidence/speculator-training-data-lifecycle.md)，[RL drafter co-training evidence](evidence/rl-drafter-cotraining.md)，[AcceptMoE figure inventory](evidence/acceptmoe-figure-inventory.md)，[LibraSpec figure inventory](evidence/libraspec-figure-inventory.md)，[ASD figure inventory](evidence/approximate-speculative-decoding-figure-inventory.md)，[DPara figure inventory](evidence/dpara-figure-inventory.md)
-- Supplement：[DFlash draft-model acceptance risk](supplements/dflash-acceptance-risk.html)
+- Supplement：[DFlash draft-model acceptance risk](supplements/dflash-acceptance-risk.html)，[投机草稿模型技术栈与思考全景](supplements/speculative-drafter-stack.html)
 
 ## Obsidian Properties
 
