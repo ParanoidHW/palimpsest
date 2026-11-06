@@ -102,7 +102,15 @@ Super 有两个 MTP-only 阶段：先在 SFT checkpoint 上做短 warm start，�
 
 之前的 MTP 训练阶段使用 cross-entropy；boosting 阶段改用 LK loss。论文的解释是，冻结 backbone 作为 teacher，用 teacher 分布监督 MTP head，可以更好地对齐 backbone，尤其改善 probabilistic draft sampling。
 
-论文没有在该节重新展开 LK 的完整公式，因此本页只记录损失切换和作用，不把 LK 写成普通 token cross-entropy 的同义词。实现时需要以论文引用的 LK 工作和官方 recipe 为准。
+这里的 LK 不是普通 cross-entropy 的另一个名字。在相关 MTP 工作中，它通常写成：
+
+$$
+L_{\mathrm{LK}}=-\log\sum_{x\in\mathcal V}\min\bigl(p(x),q(x)\bigr).
+$$
+
+公式解释：$p(x)$ 是冻结的 target 分布，$q(x)$ 是 MTP head 给出的分布，$\mathcal V$ 是整个词表。对每个词取两边概率的较小值再求和，得到两个分布的重叠程度；重叠越大，$L_{\mathrm{LK}}$ 越小。若两边完全相同，重叠为 1，损失为 0；若几乎没有重叠，损失会变大。它与只关心一个真实 token 概率的 cross-entropy 不同，更直接地优化 probabilistic speculative sampling 所需要的分布重叠，也就是单步被接受的概率。
+
+2610.38095 的正文没有在该节重新展开这个公式，因此这里按相关 MTP 文献解释 LK 的含义，不把它写成普通 token cross-entropy 的同义词。实现时仍需核对论文引用的 LK 工作和官方 recipe，尤其是温度、截断和权重设置。
 
 ### 4.4 步数
 
