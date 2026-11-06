@@ -10,7 +10,7 @@ review_status: maintained
 canonical: true
 ---
 
-# 现有工作：投机模型训练方案
+# 现有工作：投机模型训练 Recipes
 
 > [!info] 文档关系
 > - 文档类型：Topic
@@ -18,139 +18,139 @@ canonical: true
 > - 上位汇总：[Foundations and trends](../surveys/foundations-and-trends.md)
 > - 相关文档：[投机草稿模型技术栈与思考](speculative-drafter-stack.md)
 > - 相关规划：[DeepSpec online_train 后续算法与实验规划](deepspec-online-train-followup-planning.md)
-> - HTML 补充页：[投机模型训练方案](../supplements/speculative-training-recipes.html)
+> - HTML 补充页：[投机模型训练 Recipes](../supplements/speculative-training-recipes.html)
 
 ## 1. 这页要回答什么
 
-投机模型训练的关键问题不是“给模型增加几个预测头”，而是让训练时的输入状态接近推理时的状态。推理中的多词元预测（MTP）会递归使用前一位置自己生成的隐藏状态；如果训练始终喂给它由目标模型产生的干净隐藏状态，训练损失可能下降，但后面几个草稿位置的接受长度仍会掉得很快。
+投机模型训练的关键问题不是“给模型增加几个预测头”，而是让训练时的输入状态接近推理时的状态。推理中的 MTP（Multi-Token Prediction，多 token 预测）会递归使用前一位置自己生成的 hidden state；如果训练始终喂给它由目标模型产生的干净 hidden state，训练损失可能下降，但后面几个 draft position 的接受长度仍会掉得很快。
 
-本页先整理 NVIDIA《Nemotron 3.5 Super and Lightning》（arXiv:2610.38095v1，2026-10-28）公开的多词元预测训练方案。这里把“模型预训练阶段的初始化与预热”和“后训练完成后的增强训练”分开，因为二者的目标、数据和训练步数不同。
+本页先整理 NVIDIA《Nemotron 3.5 Super and Lightning》（arXiv:2610.38095v1，2026-10-28）公开的 MTP recipe。这里把“模型预训练阶段的 MTP 初始化与 warmup”和“后训练完成后的 MTP boosting”分开，因为二者的目标、数据和训练步数不同。
 
-## 2. 论文给出的完整预测流程
+## 2. 论文给出的完整 MTP 流程
 
 ```text
-已有主模型 / 多词元预测检查点
+已有 backbone / MTP checkpoint
         ↓
-按模型结构初始化预测头
+按模型结构初始化 MTP head
         ↓
-冻结主模型，仅训练预测头
-        ↓ 100B 词元预热
-        ├─ Lightning：标准两步递归预测
-        └─ Super：混合不同层的隐藏状态，模拟推理状态
+冻结 backbone，仅训练 MTP head
+        ↓ 100B token warmup
+        ├─ Lightning：标准 2-step recursive MTP
+        └─ Super：hidden-state mixing，模拟推理时混合状态
         ↓
-主模型继续做蒸馏、长上下文和后训练
+backbone 继续做蒸馏、长上下文和后训练
         ↓
-Super：在监督微调检查点上先做 4k 步预测头预热
+Super：SFT checkpoint 上先做 4k steps MTP-only warm start
         ↓
-最终后训练主模型上继续做增强训练
-        ├─ Super：25k 步
-        └─ Lightning：48k 步
+最终 post-trained backbone 上继续做 MTP boosting
+        ├─ Super：25k steps
+        └─ Lightning：48k steps
         ↓
-在 SPEED-Bench 定性评测集上测平均接受长度
+SPEED-Bench qualitative split 上测 acceptance length
 ```
 
-这条流程的核心边界是：预测头负责提出多个候选词元，主模型仍然冻结并负责最终验证；论文没有把增强训练写成重新训练整个目标模型。
+这条流程的核心边界是：MTP head 负责提出多个候选 token，backbone 仍然冻结并负责最终验证；论文没有把 MTP boosting 写成重新训练整个目标模型。
 
-## 3. 第一阶段：预测头初始化与 100B 词元预热
+## 3. 第一阶段：MTP 初始化与 100B token warmup
 
 ### 3.1 Super 的初始化
 
-Nemotron 3.5 Super 从 Nemotron 3 Super Base 的预测头参数开始。原始模型有两个不同的预测头；论文只取第一个预测头来初始化新的单个递归共享预测头，丢弃第二个。这样做的含义是：把多个物理预测头收敛为一个可以重复调用的预测头，同时尽量保留原模型的表示空间。
+Nemotron 3.5 Super 从 Nemotron 3 Super Base 的 MTP 参数开始。原始模型有两个不同的 MTP head；论文只取第一个 head 来初始化新的单个递归共享 head，丢弃第二个 head。这样做的含义是：把多个物理 head 收敛为一个可以重复调用的 head，同时尽量保留原模型的表示空间。
 
 ### 3.2 Lightning 的初始化
 
-Lightning 也从 Nemotron 3 Super Base 的预测头开始，但它的主模型规模不同。论文先把潜在混合专家投影融合进专家的上下投影矩阵，然后裁剪结构以匹配 Lightning：隐藏维度从 4096 变为 2688，混合专家中间维度从 2688 变为 1856，路由专家数从 512 变为 128。
+Lightning 也从 Nemotron 3 Super Base 的 MTP head 开始，但它的 backbone 规模不同。论文先把 latent MoE projection 融合进 expert 的上下投影矩阵，然后裁剪结构以匹配 Lightning：hidden size 从 4096 变为 2688，MoE intermediate size 从 2688 变为 1856，路由专家数从 512 变为 128。
 
-这不是普通的权重拷贝，而是“先做表示融合，再按目标架构缩小”。因此复现时必须把权重转换脚本、裁剪规则和最终张量形状固定下来，否则同一个训练方案可能实际训练的是另一套初始化。
+这不是普通的权重拷贝，而是“先做表示融合，再按目标架构缩小”。因此复现时必须把权重转换脚本、裁剪规则和最终 tensor shape 固定下来，否则同一个 recipe 可能实际训练的是另一套 MTP 初始化。
 
-### 3.3 预热的共同设置
+### 3.3 Warmup 的共同设置
 
-- 训练预算：100B 词元。
-- 主模型：冻结。
-- 可更新参数：只有预测头。
-- 目的：先让预测头适应主模型的隐藏状态表示，不改变主模型能力。
+- 训练预算：100B tokens。
+- backbone：冻结。
+- 可更新参数：只有 MTP head。
+- 目的：先让 MTP head 适应 backbone 的 hidden-state 表示，不改变主模型能力。
 
-### 3.4 为什么要混合隐藏状态
+### 3.4 为什么 hidden-state mixing 有必要
 
-标准递归训练在深度 $k$ 使用第 $k-1$ 步由真实序列产生的移位隐藏状态；而推理时，越往后的草稿位置越可能接收到前一步自己生成的合成隐藏状态。于是同一个预测头在训练和推理中看到的状态分布逐步分离，后位接受长度下降。
+标准递归训练在深度 $k$ 使用第 $k-1$ 步由真实序列产生的 shifted hidden states；而推理时，越往后的 draft position 越可能接收到前一 MTP step 自己生成的 synthetic hidden state。于是同一个 head 在训练和推理中看到的状态分布逐步分离，后位 acceptance 下降。
 
-Super 在预热中采用隐藏状态混合：第 $k$ 步不只使用第 $k-1$ 步的状态，而是从前面多个预测步骤产生的状态中采样输入。它不完整模拟每次测试时的递归展开，但让预测头提前见到主模型状态与合成状态的混合，降低训练到推理的状态分布差距。
+Super 在 warmup 中采用 hidden-state mixing：第 $k$ 步不只使用第 $k-1$ 步的状态，而是从前面多个 MTP step 产生的状态中采样输入。它不完整模拟每次测试时递归展开，但让 head 提前见到 backbone state 与 synthetic state 的混合，降低训练到推理的状态分布差距。
 
-论文明确给出的是 Super 使用状态混合、Lightning 使用标准两步递归预测；论文没有公开所有混合概率、采样分布和批次级实现细节，因此这些参数不能从论文中补猜。
+论文明确给出的是 Super 使用 mixing、Lightning 使用标准 2-step recursive MTP；论文没有把所有 mixing 概率、采样分布和 batch 级实现细节公开，因此这些参数不能从论文中补猜。
 
-## 4. 第二阶段：后训练后的增强训练
+## 4. 第二阶段：后训练后的 MTP boosting
 
 ### 4.1 为什么要在后训练后再做一次
 
-主模型在监督微调、强化学习和其他后训练阶段后，输出分布会改变。早期预热得到的预测头仍然依附于旧主模型状态，直接把它接到最终检查点上会丢失一部分接受长度。因此论文对预测头单独再训练：主模型保持冻结，只让预测头适应最终模型。
+backbone 在 SFT、RL 和其他 post-training 阶段后，输出分布会改变。早期 warmup 得到的 MTP head 仍然依附于旧 backbone 状态，直接把它接到最终 checkpoint 上会丢失一部分接受长度。因此论文对 MTP head 单独再训练：backbone 保持冻结，只让 MTP head 适应最终模型。
 
-Super 有两个只训练预测头的阶段：先在监督微调检查点上做短暂预热，再把该预测头迁移到最终后训练主模型上继续增强训练。Lightning 跳过监督微调预热，只在最终主模型上增强训练。
+Super 有两个 MTP-only 阶段：先在 SFT checkpoint 上做短 warm start，再把该 head 迁移到最终 post-trained backbone 上继续 boosting。Lightning 跳过 SFT warm start，只在最终 backbone 上 boosting。
 
 ### 4.2 数据生成和监督范围
 
-论文用对应主模型生成当前策略轨迹：
+论文用对应 backbone 生成 on-policy rollouts：
 
 - 普通数据来自 `Nemotron-Post-Training-Dataset-v2`。
-- 代理任务数据来自 `Nemotron-RL-Super-Training-Blends`。
-- 采样温度为 1。
-- 每条序列最多 8K 词元。
-- 损失只累积助手回答词元，不对用户输入部分计算监督。
+- Agent 数据来自 `Nemotron-RL-Super-Training-Blends`。
+- 采样 temperature 为 1。
+- 每条序列最多 8K tokens。
+- loss 只累积 assistant response tokens，不对用户输入部分计算监督。
 
-这一步与普通真实前缀训练的区别在于：训练样本中的回答是由当前主模型重新生成的，预测头训练时面对的是更接近实际推理的回答分布。两个数据集的具体混合比例和每个子集的采样权重，论文该节没有公开，不能自行补齐。
+这一步与普通 teacher-forcing 的区别在于：训练样本中的 response 是由当前对应 backbone 重新 rollout 得到的，MTP head 训练时面对的是更接近实际推理的 response 分布。两个数据集的具体混合比例和每个子集的采样权重，论文该节没有公开，不能自行补齐。
 
 ### 4.3 训练目标
 
-之前的预测头训练阶段使用交叉熵；增强训练阶段改用 LK 损失（论文采用的知识蒸馏损失）。论文的解释是，冻结主模型作为教师，用教师分布监督预测头，可以更好地对齐主模型，尤其改善随机采样下的草稿生成。
+之前的 MTP 训练阶段使用 cross-entropy；boosting 阶段改用 LK loss。论文的解释是，冻结 backbone 作为 teacher，用 teacher 分布监督 MTP head，可以更好地对齐 backbone，尤其改善 probabilistic draft sampling。
 
-论文没有在该节重新展开 LK 的完整公式，因此本页只记录损失切换和作用，不把 LK 写成普通词元交叉熵的同义词。实现时需要以论文引用的 LK 工作和官方训练方案为准。
+论文没有在该节重新展开 LK 的完整公式，因此本页只记录损失切换和作用，不把 LK 写成普通 token cross-entropy 的同义词。实现时需要以论文引用的 LK 工作和官方 recipe 为准。
 
 ### 4.4 步数
 
-| 模型与阶段 | 主模型 | 预测头更新步数 | 作用 |
+| 模型与阶段 | backbone | MTP 更新步数 | 作用 |
 | --- | --- | ---: | --- |
-| Super，监督微调检查点预热 | 冻结 | 4k | 先让预测头适应监督微调后的主模型 |
-| Super，最终检查点增强训练 | 冻结 | 25k | 对齐最终后训练主模型 |
-| Lightning，最终检查点增强训练 | 冻结 | 48k | 在最终主模型上直接训练预测头 |
+| Super，SFT checkpoint warm start | 冻结 | 4k | 先让 MTP head 适应 SFT 后的 backbone |
+| Super，最终 checkpoint boosting | 冻结 | 25k | 对齐最终 post-trained backbone |
+| Lightning，最终 checkpoint boosting | 冻结 | 48k | 在最终 backbone 上直接训练 MTP head |
 
-论文报告 Super 的监督微调阶段预测头迁移到最终检查点后仍保留部分收益，但最终 25k 步增强训练才得到完整提升。
+论文报告 Super 的 SFT-stage MTP head 迁移到最终 checkpoint 后仍保留部分收益，但最终 25k boosting 才得到完整提升。
 
 ## 5. 证据：收益到底说明了什么
 
-论文在 SPEED-Bench 定性评测集、草稿长度为 7 时报告平均接受长度：
+论文在 SPEED-Bench qualitative split、draft length 7 上报告平均 acceptance length（AL）：
 
-| Super 状态 | 贪心，温度=0 | 随机采样，温度=1 |
+| Super 状态 | greedy，temperature=0 | probabilistic，temperature=1 |
 | --- | ---: | ---: |
-| 最终模型自带预测头 | 4.287 | 3.787 |
-| 加载监督微调阶段预测头 | 4.528 | 4.436 |
-| 再做 25k 步增强训练 | 4.718 | 4.612 |
+| Final native MTP | 4.287 | 3.787 |
+| 加载 SFT 阶段 MTP head | 4.528 | 4.436 |
+| 再做 25k MTP boosting | 4.718 | 4.612 |
 
-这支持两条判断：第一，后训练后的主模型确实需要重新适配预测头；第二，隐藏状态混合与 LK 监督对随机采样的帮助更明显。论文还报告增强训练后每个草稿位置都有改善，深层位置增益最大，符合“越深越受训练—推理状态差异影响”的机制解释。
+这支持两条判断：第一，后训练后的 backbone 确实需要重新适配 MTP head；第二，hidden-state mixing 与 LK 监督对 probabilistic sampling 的帮助更明显。论文还报告 boosting 后每个 draft position 都有改善，深层位置增益最大，符合“越深越受训练—推理状态差异影响”的机制解释。
 
-但这些结果主要验证平均接受长度。它们不能单独证明端到端速度一定提高，因为真实收益还取决于预测头计算成本、目标验证成本、批次、键值缓存和推理框架调度。
+但这些结果主要验证 acceptance length。它们不能单独证明端到端 tokens/s 一定提高，因为真实收益还取决于 MTP head 计算成本、目标验证成本、batch、KV cache 和推理框架调度。
 
 ## 6. 对我们训练计划的直接启发
 
-1. **把预测头预热与最终主模型适配拆开。** 早期训练解决“预测头能否使用主模型隐藏状态”，后期增强训练解决“后训练后分布是否改变”。
-2. **把隐藏状态混合作为独立变量。** 训练时必须记录每个预测深度实际使用了哪类状态，不能只记录总损失。
-3. **后训练数据要生成当前策略回答。** 如果只把旧回答做真实前缀训练，无法复现论文要解决的递归状态差异。
-4. **训练指标和线上指标同时保留。** 真实前缀损失、采样前缀损失、每位置接受长度、平均接受长度、草稿延迟、目标模型调用次数和端到端时延要分开记录。
-5. **先锁定数据混合和采样协议。** 论文公开了两个数据集、温度为 1、8K 上限和只训练助手回答，但没有公开全部混合比例；实验配置需要显式补齐。
+1. **把 MTP warmup 与最终 backbone 适配拆开。** 早期 head 训练解决“能否使用 backbone hidden state”，后期 boosting 解决“post-training 后分布是否改变”。
+2. **把 hidden-state mixing 当成独立变量。** 训练时必须记录每个 MTP depth 实际使用了哪类状态，不能只记录总 loss。
+3. **后训练数据要生成 on-policy response。** 如果只把旧 response 做 teacher-forcing，无法复现论文要解决的递归状态差异。
+4. **训练指标和线上指标同时保留。** teacher-forcing loss、sampled-prefix loss、每位置 acceptance、平均 AL、draft latency、target calls 和端到端时延要分开记录。
+5. **先锁定数据混合和采样协议。** 论文公开了两个数据集、temperature=1、8K cap 和 assistant-only loss，但没有公开全部混合比例；实验配置需要显式补齐。
 
 ## 7. 仍然缺少的复现信息
 
-- 隐藏状态混合的精确采样概率和实现细节；
-- LK 损失的完整公式、温度参数和权重；
-- 两个生成轨迹数据集的混合比例与去重方式；
-- 预测头的学习率、批次、优化器和硬件配置；
-- 4k/25k/48k 步对应的有效词元数；
-- 预测头权重转换与检查点版本；
-- 平均接受长度提升转化为端到端吞吐的完整推理配置。
+- hidden-state mixing 的精确采样概率和实现细节；
+- LK loss 的完整公式、温度参数和权重；
+- 两个 rollout 数据集的混合比例与去重方式；
+- MTP head 的学习率、batch、优化器和硬件配置；
+- 4k/25k/48k steps 对应的有效 token 数；
+- MTP head 权重转换与 checkpoint 版本；
+- acceptance length 提升转化为端到端吞吐的完整 serving 配置。
 
-因此，这篇论文可以作为“训练流程和变量拆分”的强参考，但还不能单凭论文复现出完全相同的检查点。
+因此，这篇论文可以作为“训练流程和变量拆分”的强参考，但还不能单凭论文复现出完全相同的 checkpoint。
 
 ## 8. 一手来源
 
-- [arXiv:2610.38095](https://arxiv.org/abs/2610.38095)，§2.1 “Multi-Token Prediction”、§3.7 “MTP Boosting”、表 8–9。
+- [arXiv:2610.38095](https://arxiv.org/abs/2610.38095)，§2.1 “Multi-Token Prediction”、§3.7 “MTP Boosting”、Table 8–9。
 - [Nemotron-Post-Training-Dataset-v2](https://huggingface.co/datasets/nvidia/Nemotron-Post-Training-Dataset-v2)。
 - [Nemotron-RL-Super-Training-Blends](https://huggingface.co/datasets/nvidia/Nemotron-RL-Super-Training-Blends)。
-- [SPEED-Bench](https://huggingface.co/datasets/nvidia/SPEED-Bench)，用于平均接受长度评估。
+- [SPEED-Bench](https://huggingface.co/datasets/nvidia/SPEED-Bench)，用于 acceptance length 评估。
