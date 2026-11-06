@@ -5,6 +5,7 @@
 > - 领域入口：[Speculative Decoding README](../README.md)
 > - 上位汇总：[Evolution](../surveys/evolution.md)
 > - 相关文档：[DeepSpec online_train 后续算法与实验规划](deepspec-online-train-followup-planning.md)
+> - 训练 Recipes：[现有工作：投机模型训练 Recipes](speculative-training-recipes.md)
 > - 全景补充件：[技术栈与思考全景 HTML](../supplements/speculative-drafter-stack.html)
 
 ## 1. 先把问题说清楚
