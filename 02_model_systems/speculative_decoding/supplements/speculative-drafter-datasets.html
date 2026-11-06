@@ -8,12 +8,16 @@
 :root{--ink:#17212b;--muted:#5d6b78;--line:#d9e1e8;--bg:#f5f7fa;--card:#fff;--teal:#117a72;--amber:#a85d00;--purple:#7047a5;--red:#b23a48}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 system-ui,-apple-system,"Noto Sans CJK SC","Microsoft YaHei",sans-serif}header{background:#17212b;color:#fff;padding:38px 5vw 30px}header h1{margin:0 0 8px;font-size:clamp(24px,4vw,42px)}header p{margin:0;color:#cbd6df;max-width:980px}.wrap{width:80vw;margin:0 auto;padding:26px 0 60px}.back{display:inline-block;margin-bottom:20px;color:#1769aa;text-decoration:none}.back:hover{text-decoration:underline}.intro{background:#eef6fd;border-left:4px solid #1769aa;padding:14px 16px;margin-bottom:22px}.section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:22px}.section h2{margin:0 0 6px;font-size:22px}.section>p{margin:5px 0 14px;color:var(--muted)}.table-wrap{overflow-x:auto}table{width:100%;min-width:1500px;border-collapse:collapse;font-size:13px;table-layout:fixed}th,td{border-bottom:1px solid var(--line);padding:11px 12px;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#f8fafc;color:#43515e;font-weight:700}.dataset-table th:nth-child(1){width:150px}.dataset-table th:nth-child(2){width:220px}.dataset-table th:nth-child(3){width:390px}.dataset-table th:nth-child(4){width:350px}.dataset-table th:nth-child(5){width:240px}.dataset-table th:nth-child(6){width:390px}tbody tr:hover{background:#fbfcfd}td ul{margin:0;padding-left:18px}td li{margin:0 0 5px}td li:last-child{margin-bottom:0}.tag{display:inline-block;border-radius:999px;padding:2px 8px;margin:1px 3px 1px 0;font-size:11px;background:#edf2f6;color:#43515e}.tag.training{background:#fff7ea;color:var(--amber)}.tag.eval{background:#f6f0fb;color:var(--purple)}.pending{color:var(--red);font-weight:600}.note{color:var(--muted);font-size:13px;margin-top:12px}.links a{color:#1769aa;display:inline-block;margin-bottom:4px}.footer{color:var(--muted);font-size:13px}@media(max-width:900px){.wrap{width:auto;margin:0;padding:22px 18px 50px}}
 </style>
 <style>.links a{display:block}.dataset-table td ul ul{margin-top:5px;padding-left:18px}</style>
+<style>
+.tabs{display:none;gap:24px;border-bottom:1px solid var(--line);margin:10px 0 20px}.js .tabs{display:flex}.tabs button{font:inherit;font-weight:650;color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;padding:10px 2px;cursor:pointer}.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--teal)}.tabs button:hover{color:var(--teal)}.tabs button:focus-visible,summary:focus-visible{outline:2px solid var(--teal);outline-offset:3px}.tabs .count{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}.section[hidden]{display:none}.js .section{background:none;border:0;border-radius:0;padding:0}.js .section>h2,.js .intro{display:none}.dataset-list{border-top:1px solid var(--line)}.dataset-item{border-bottom:1px solid var(--line);background:var(--card)}.dataset-item summary{cursor:pointer;padding:14px 18px;font-weight:650;list-style-position:inside}.dataset-item summary:hover{background:#f1f7f7}.dataset-item[open] summary{border-bottom:1px solid var(--line);color:var(--teal)}.dataset-fields{display:grid;grid-template-columns:150px minmax(0,1fr);gap:0 22px;margin:0;padding:4px 18px 16px;font-size:14px}.dataset-fields dt,.dataset-fields dd{margin:0;padding:10px 0;border-bottom:1px solid #edf1f4;min-width:0}.dataset-fields dt{font-weight:650;color:#43515e}.dataset-fields dd:last-child,.dataset-fields dt:nth-last-of-type(1){border-bottom:0}.dataset-fields a{color:#1769aa}.dataset-fields ul{margin:0;padding-left:20px}.dataset-fields li{margin-bottom:5px}.dataset-fields li:last-child{margin-bottom:0}.dataset-fields .links{display:inline-block;margin-right:14px}.context{margin-top:18px;color:var(--muted);font-size:13px}.context summary{cursor:pointer;color:#1769aa}.context p,.context .intro{display:block;margin:10px 0}.js .context .intro{display:block}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:640px){.dataset-fields{display:block;padding:4px 16px 14px}.dataset-fields dt{border:0;padding-bottom:0}.dataset-fields dd{padding-top:2px}.tabs{gap:18px}}
+</style>
 </head>
 <body>
-<header><h1>投机草稿模型：训练与评测数据集</h1><p>渐进式披露页面：先看数据集职责和可追溯字段，需要时再回到技术栈全景与实验决策。</p></header>
+<header><h1>投机草稿模型：训练与评测数据集</h1></header>
 <main class="wrap">
 <a class="back" href="speculative-drafter-stack.html">← 返回技术栈与思考全景</a>
 <div class="intro"><b>阅读规则：</b>训练集与评测集分别列出。公开材料没有给出的总量、长度、生成模型或 harness 字段统一标为 <span class="pending">待补/需核验</span>，不把推断写成数据卡事实。open-perfectblend 的规模、字段和来源信息已根据其数据卡（版本 SHA：<code>af60f3c</code>）更新。</div>
+<div class="tabs" role="tablist" aria-label="数据集类型"><button type="button" id="training-tab" role="tab" aria-controls="training-panel" aria-selected="true" tabindex="0">训练数据集<span class="count" aria-hidden="true"></span></button><button type="button" id="eval-tab" role="tab" aria-controls="eval-panel" aria-selected="false" tabindex="-1">评测数据集<span class="count" aria-hidden="true"></span></button></div>
 
 <section class="section"><h2>一、训练数据集</h2><p>训练集用于学习草稿模型的下一个 token 分布；数据版本、切分方式和处理链需要与训练配置一起记录。</p><div class="table-wrap"><table class="dataset-table"><thead><tr><th>数据集名称</th><th>获取地址</th><th>特点（总样本量、序列长度范围等）</th><th>生成来源</th><th>生成模型</th><th>Harness / 处理链</th></tr></thead><tbody>
 <tr><td><b>open-perfectblend</b><br><span class="tag training">公开训练集</span></td><td><a class="links" href="https://huggingface.co/datasets/mlabonne/open-perfectblend" target="_blank" rel="noopener">Hugging Face 数据集页</a><br><a class="links" href="https://hf-mirror.com/datasets/mlabonne/open-perfectblend" target="_blank" rel="noopener">镜像数据集页</a></td><td><ul><li><b>最终规模：</b>1,420,909 条。</li><li><b>切分：</b>仅有 <code>train</code> split。</li><li><b>字段：</b><code>conversations</code>（多轮消息，含 <code>from</code> 与 <code>value</code>）和 <code>source</code>。</li><li><b>数据体积：</b>约 2.95 GB；压缩下载约 1.48 GB。</li><li><b>长度：</b>数据卡未给出 token 或字符长度范围，需下载后统计。</li><li><b>领域汇总（按来源归类）：</b><ul><li>数学：595,035（MetaMathQA 395,000 + Orca Math 200,035）</li><li>代码：111,272（Evol-CodeAlpaca）</li><li>聊天：265,227（UltraChat 207,865 + LMSYS 57,362）</li><li>工具/Agent 交互：288,579（UltraInteract）</li><li>通用指令：61,492（AutoIF）</li><li>偏好数据：244,767（UltraFeedback 187,405 + LMSYS 57,362）</li></ul></li><li>上述领域统计来自去重前来源，且领域有重叠；不能直接相加为最终规模。</li></ul></td><td><ul><li>Open-PerfectBlend 是对论文 <i>The Perfect Blend: Redefining RLHF with Mixture of Judges</i> 中 instruction 数据配方的开源复现。</li><li><b>来源明细（去重前）：</b><ul><li>MetaMathQA：395,000</li><li>UltraInteract_sft：288,579</li><li>UltraChat 200k：207,865</li><li>Orca Math Word Problems：200,035</li><li>UltraFeedback Binarized：187,405</li><li>Evol-CodeAlpaca：111,272</li><li>AutoIF-instruct：61,492</li><li>LMSYS Arena Human Preference：57,362</li></ul></li><li>原始混合条目合计 1,509,010 条；去重移除约 88.1k 条后形成当前训练集。</li><li>数据卡说明各来源使用 Apache 2.0 或 MIT 许可证。</li></ul></td><td><ul><li>不是单一生成模型产生的数据集。</li><li>数据卡未提供统一的生成模型；来源数据可能各自有不同生成或筛选过程。</li><li>用于投机训练时，target checkpoint、标签生成模型和 hidden states 提取配置需另行记录。</li></ul></td><td><ul><li>公开数据卡未提供统一的训练 harness。</li><li>当前可确认的处理是混合、去重并统一为对话字段。</li><li>分词、截断/拼接、train/validation 切分，以及接入投机训练所需的 target 标签或 hidden states 提取方式：<span class="pending">待按实验配置补充</span>。</li></ul></td></tr>
@@ -38,7 +42,86 @@
 <tr><td><b>LongBench v2</b><br><span class="tag eval">长上下文</span></td><td><a class="links" href="https://huggingface.co/datasets/THUDM/LongBench-v2" target="_blank" rel="noopener">Hugging Face 数据集页</a><a class="links" href="https://github.com/THUDM/LongBench" target="_blank" rel="noopener">LongBench 官方代码</a><a class="links" href="https://arxiv.org/abs/2412.15213" target="_blank" rel="noopener">论文</a></td><td><ul><li><b>规模：</b>503 道长上下文四选一题。</li><li><b>上下文长度：</b>约 8K–2M tokens，覆盖单文档、多文档、代码、数学、知识和推理等任务。</li><li><b>特点：</b>重点测长上下文定位、跨段整合和复杂推理，不等同于普通短题准确率。</li><li><b>适用：</b>检查 speculative decoding 在长 prompt、长 KV cache 和较高 prefill 成本下的质量与时延。</li></ul></td><td><ul><li>由长文档、代码和多文档材料构造题目，并经过人工整理和质量检查。</li><li>不是单一模型生成的对话轨迹。</li></ul></td><td><ul><li>无统一生成模型；具体题目构造和校验以 LongBench v2 版本为准。</li><li>被测模型的上下文窗口和提示模板必须记录。</li></ul></td><td><ul><li>四选一答案准确率，配合长上下文加载和答案解析。</li><li>需固定上下文长度、截断/拼接策略、KV cache、batch、temperature 和最大输出长度。</li></ul></td></tr>
 </tbody></table></div><p class="note">SPEED-Bench 的数量和任务结构来自其 Hugging Face 数据卡（通过 <code>hf-mirror.com</code> 读取）；“总样本量”按各配置条目相加，不能替代对具体实验 split 的记录。AgentX 的规模、轨迹字段、重放图构造和 warmup 规则来自其 Methodology 页面；原始 provider 模型未公开，且 AgentX 不评价合成 token 的答案质量。</p></section>
 
-<p class="footer">相关技术解释：[投机草稿模型技术栈与思考](speculative-drafter-stack.html)。</p>
+<p class="footer">相关技术解释：<a href="speculative-drafter-stack.html">投机草稿模型技术栈与思考</a>。</p>
 </main>
+<script>
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+const panels = [...document.querySelectorAll('main > .section')];
+const intro = document.querySelector('.intro');
+
+panels.forEach((panel, index) => {
+  const table = panel.querySelector('table');
+  const labels = [...table.tHead.rows[0].cells].slice(1).map(cell => cell.textContent.trim());
+  const list = document.createElement('div');
+  list.className = 'dataset-list';
+  let count = 0;
+
+  for (const row of table.tBodies[0].rows) {
+    const name = row.cells[0].querySelector('b')?.textContent.trim();
+    if (!name || row.cells.length !== labels.length + 1) continue;
+
+    const item = document.createElement('details');
+    item.className = 'dataset-item';
+    const summary = document.createElement('summary');
+    summary.textContent = name;
+    const fields = document.createElement('dl');
+    fields.className = 'dataset-fields';
+
+    labels.forEach((label, fieldIndex) => {
+      const term = document.createElement('dt');
+      term.textContent = label;
+      const description = document.createElement('dd');
+      description.append(...[...row.cells[fieldIndex + 1].childNodes].map(node => node.cloneNode(true)));
+      fields.append(term, description);
+    });
+
+    item.append(summary, fields);
+    list.append(item);
+    count++;
+  }
+
+  table.parentElement.replaceWith(list);
+  const context = document.createElement('details');
+  context.className = 'context';
+  const contextSummary = document.createElement('summary');
+  contextSummary.textContent = index === 0 ? '数据与核验说明' : '评测说明';
+  context.append(contextSummary);
+  if (index === 0) context.append(intro);
+  panel.querySelectorAll(':scope > p').forEach(paragraph => context.append(paragraph));
+  panel.append(context);
+  panel.querySelector('h2').classList.add('sr-only');
+  panel.id = index === 0 ? 'training-panel' : 'eval-panel';
+  panel.setAttribute('role', 'tabpanel');
+  panel.setAttribute('aria-labelledby', tabs[index].id);
+  tabs[index].querySelector('.count').textContent = count;
+});
+
+function selectTab(index) {
+  tabs.forEach((tab, tabIndex) => {
+    const selected = tabIndex === index;
+    tab.setAttribute('aria-selected', String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+    panels[tabIndex].hidden = !selected;
+  });
+}
+
+tabs.forEach((tab, index) => {
+  tab.addEventListener('click', () => selectTab(index));
+  tab.addEventListener('keydown', event => {
+    let next = index;
+    if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+    else if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = tabs.length - 1;
+    else return;
+    event.preventDefault();
+    selectTab(next);
+    tabs[next].focus();
+  });
+});
+
+selectTab(0);
+document.documentElement.classList.add('js');
+</script>
 </body>
 </html>
