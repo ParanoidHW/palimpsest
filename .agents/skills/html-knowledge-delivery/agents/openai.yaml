@@ -1,0 +1,4 @@
+interface:
+  display_name: "HTML Knowledge Delivery"
+  short_description: "整合领域主题并交付渐进式披露的 HTML 知识页面"
+  default_prompt: "Use $html-knowledge-delivery to organize related knowledge topics into a coherent, progressive-disclosure HTML deliverable."
