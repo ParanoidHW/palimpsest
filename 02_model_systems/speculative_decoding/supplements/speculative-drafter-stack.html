@@ -21,7 +21,7 @@
 .sandbox-note{grid-row:5}
 </style>
 <style>
-.process-flow{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px;margin:0 0 28px;overflow:hidden}.process-flow h2{margin:0 0 6px;font-size:22px;line-height:1.3}.process-flow>p{margin:0 0 14px;color:var(--muted)}.mermaid{min-width:940px;padding:14px 8px;background:#fbfcfd;border:1px solid #e5ebf0;border-radius:6px;overflow:auto}.flow-fallback{display:block;margin:14px 0 0;padding:12px 14px;background:#f8fafc;border-left:3px solid var(--teal);color:#43515e;font-size:13px}.mermaid[data-processed] + .flow-fallback{display:none}@media(max-width:900px){.process-flow{overflow-x:auto}.process-flow>p{max-width:760px}}
+.process-flow{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px;margin:0 0 28px;overflow:hidden}.process-flow h2{margin:0 0 6px;font-size:22px;line-height:1.3}.process-flow>p{margin:0 0 14px;color:var(--muted)}.mermaid{min-width:940px;padding:14px 8px;background:#fbfcfd;border:1px solid #e5ebf0;border-radius:6px;overflow:auto}.mermaid[data-zoomable="true"]{cursor:zoom-in}.mermaid[data-zoomable="true"]:focus-visible{outline:3px solid var(--teal);outline-offset:2px}.flow-fallback{display:block;margin:14px 0 0;padding:12px 14px;background:#f8fafc;border-left:3px solid var(--teal);color:#43515e;font-size:13px}.mermaid[data-processed] + .flow-fallback{display:none}.flow-zoom{position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;padding:18px;background:rgba(17,27,36,.82)}.flow-zoom[hidden]{display:none}.flow-zoom-toolbar{display:flex;justify-content:flex-end;align-items:center;gap:12px;color:#fff}.flow-zoom-close{min-width:42px;min-height:42px;border:1px solid #ffffff80;border-radius:5px;background:#17212b;color:#fff;font:inherit;cursor:pointer}.flow-zoom-close:hover{background:#2b3b48}.flow-zoom-close:focus-visible{outline:2px solid #fff;outline-offset:2px}.flow-zoom-stage{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;border-radius:6px;background:#fff;padding:24px}.flow-zoom-stage .mermaid{width:max-content;min-width:100%;min-height:100%;border:0;border-radius:0;padding:8px;overflow:visible;cursor:default}.flow-zoom-stage .mermaid svg{width:auto;min-width:min(1500px,100%);max-width:none;height:auto;overflow:visible}.flow-zoom-stage .mermaid[data-processed]{width:max-content}@media(max-width:900px){.process-flow{overflow-x:auto}.process-flow>p{max-width:760px}.flow-zoom{padding:8px;gap:8px}.flow-zoom-stage{padding:12px}.flow-zoom-stage .mermaid svg{min-width:1200px}}
 </style>
 </head>
 <body>
@@ -99,6 +99,10 @@ flowchart LR
 <p class="flow-fallback"><b>无 Mermaid 渲染时的主链：</b>提示数据划分 → 目标模型重生成回答 → 本地分词与损失掩码 → 请求目标模型隐藏状态 → Mooncake 传输与严格校验 → 有界在线缓存 → DSpark 草稿前向 → 交叉熵、分布 L1、温度校准和置信度损失 → checkpoint → 接受率评测与 checkpoint 转换部署。静态 target cache 可在训练 worker 前替代在线缓存，作为对照路径。</p>
 <p class="note">代码定位：<code>scripts/data/prepare_data_vllm.sh</code>、<code>scripts/data/prepare_target_cache_vllm.py</code>、<code>deepspec/data/online_feature_dataset.py</code>、<code>deepspec/data/async_feature_cache.py</code>、<code>deepspec/trainer/base_trainer.py</code>、<code>deepspec/modeling/dspark/loss.py</code>、<code>scripts/tools/convert_deepspec_dspark_checkpoint.py</code>。Mooncake 是特征传输组件；DSpark 是草稿模型算法；checkpoint 是可恢复的训练检查点。</p>
 </section>
+<div class="flow-zoom" id="flow-zoom" hidden>
+<div class="flow-zoom-toolbar"><span>点击图外区域或按 Esc 收回</span><button class="flow-zoom-close" type="button" aria-label="关闭放大图">关闭</button></div>
+<div class="flow-zoom-stage" aria-label="放大的流程图"></div>
+</div>
 <div class="grid">
 <article class="card wide"><h2>1. 第一门槛：训推一致性</h2><p>这里不是一个单一指标，而是五个层面分别闭环：模型层、采样层、输入层、Infra 层和评估层。每层都有自己的检查方法，不能用一个 cosine 相似度替代全部检查。</p><div class="callout"><b>模型层：</b>前向实现、权重转换、hidden state 和 logits。</div><div class="callout"><b>采样层：</b>采样策略、temperature、停止条件和 bonus token。</div><div class="callout"><b>输入层：</b>chat template、QA regen、hidden state 提取和 feature schema。</div><div class="callout"><b>Infra 层：</b>确定性计算、通信归约、padding、batch 和并发调度。</div><div class="callout"><b>评估层：</b>teacher-forcing 只作为训练期验证口径，必须并行做 sampled-prefix 或真实 rollout 实测。</div><p>每次运行都保存 target hash、producer commit、采样配置、layer schema、dtype、batch 形状和随机种子，并同时记录前向误差、模板差异、teacher-forcing 概率长度、greedy 长度、真实 rollout 接受长度和首个拒绝位置。</p></article>
 <article class="card"><h2>2. 技术栈六层</h2><p><span class="pill">模型/算子</span><span class="pill">数据/轨迹</span><span class="pill">损失/决策</span><span class="pill">feature 传输</span><span class="pill">验证调度</span><span class="pill">框架交付</span></p><p>六层共同决定收益。更大草稿头可能增加草稿延迟；更高 feature 吞吐可能只是掩盖缓存问题；动态 verify 依赖 confidence 校准。</p></article>
@@ -121,5 +125,52 @@ mermaidScript.textContent = `import mermaid from 'https://cdn.jsdelivr.net/npm/m
 mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',themeVariables:{fontFamily:'system-ui,-apple-system,Noto Sans CJK SC,Microsoft YaHei,sans-serif',primaryTextColor:'#17212b',lineColor:'#708392',clusterBkg:'#f8fafc',clusterBorder:'#cbd6df'}});
 mermaid.run({nodes:document.querySelectorAll('.mermaid')});`;
 document.head.appendChild(mermaidScript);
+</script>
+<script>
+const flow = document.querySelector('#deepspec-online-train .mermaid');
+const zoom = document.querySelector('#flow-zoom');
+const zoomStage = zoom.querySelector('.flow-zoom-stage');
+const closeZoom = zoom.querySelector('.flow-zoom-close');
+let flowPlaceholder;
+
+function openFlow() {
+  if (zoom.hidden) {
+    flowPlaceholder = document.createComment('flow-placeholder');
+    flow.before(flowPlaceholder);
+    zoomStage.append(flow);
+    zoom.hidden = false;
+    document.body.style.overflow = 'hidden';
+    closeZoom.focus();
+  }
+}
+
+function closeFlow() {
+  if (!zoom.hidden) {
+    flowPlaceholder.before(flow);
+    flowPlaceholder.remove();
+    zoom.hidden = true;
+    document.body.style.overflow = '';
+    flow.focus();
+  }
+}
+
+flow.dataset.zoomable = 'true';
+flow.tabIndex = 0;
+flow.setAttribute('role', 'button');
+flow.setAttribute('aria-label', '点击放大 DeepSpec-npu 训练流程图');
+flow.addEventListener('click', openFlow);
+flow.addEventListener('keydown', event => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    openFlow();
+  }
+});
+closeZoom.addEventListener('click', closeFlow);
+zoom.addEventListener('click', event => {
+  if (!flow.contains(event.target)) closeFlow();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeFlow();
+});
 </script>
 </body></html>
