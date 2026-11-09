@@ -174,7 +174,15 @@ SpecForge 已经提供了第二类设计所需的一部分基础设施，例如 
 
 总耗时应拆成 response generation、`prepare-data`、hidden-state extraction、drafter optimization、数据传输与缓存读写。Offline 把 extraction 前置并释放 target 加速卡；Online 省去完整落盘但让 target 资源持续驻留；Hybrid 让第一次生成成本服务多个 epoch。哪个更快取决于 target/drafter 的资源比例、序列长度、存储带宽和 epoch 数，不能仅凭框架名称排序。[综合推论]
 
-### 6.3 RL 场景的额外变量
+### 6.3 目标模型服务的资源占用
+
+对固定 target checkpoint 的训练，训练前回答重生成和训练中 hidden-state 提取是两段独立的资源需求。若训练数据已有合适的 assistant response，可以跳过全量回答重生成；target 仍需对完整 token 序列执行 prefill 才能产生对应层的 hidden states。训练期间在线提取会让 target producer 持续占用加速卡；Offline 或 Hybrid 可以把这部分占用集中到数据准备阶段，并在多轮 drafter 训练中复用缓存。[生命周期事实 + 综合推论]
+
+资源评估不能只看服务是否常驻。应同时记录回答生成、特征生产、drafter 训练各自的 GPU-hours，峰值并发加速卡数、特征缓存容量与读写吞吐、总 wall-clock，以及相同训练配置下的接受质量。固定特征可能节省并发卡数，却增加预处理等待、存储容量和数据搬运；只有端到端资源账本能判断是否更合适。对当前路线，先用 1--2 万条样本完成在线与固定特征小规模对照，再决定是否全量预计算。[综合推论，待项目实测]
+
+如果缓存放不进可用存储，可评估按数据分片生产并训练、随后释放该分片；前提是 target 版本、层定义和样本 token 序列在各阶段保持一致。把完整 target 与 drafter 同时放进同一组训练卡不是默认节省方案，还需核算显存挤占、并行效率和训练吞吐。prompt-only 的一遍生成并同时捕获 decode hidden states 则属于新增框架能力，不能视为现有 Online capture 的现成功能。
+
+### 6.4 RL 场景的额外变量
 
 RL rollout 的 target policy 会变化，旧 response 或旧 hidden states 可能对应旧 checkpoint。把固定-target 的 Offline 缓存直接复用于变化中的 policy，可能导致 drafter loss 与当前 acceptance 脱钩；这是版本管理和稳定性风险，不是标准 Speculators 文档声称的性能结果。[综合推论]
 
@@ -183,9 +191,10 @@ RL rollout 的 target policy 会变化，旧 response 或旧 hidden states 可�
 1. 先确定最终 serving 的 target checkpoint、tokenizer、chat template、sampling 配置和 hidden-state 层，再生成 response 行；这些字段应和数据一起记录。
 2. 如果目标是跑通标准 Speculators Online，准备 target-generated、预分词的 `input_ids` 与 `loss_mask` 即可，不必先做全量 hidden-state 文件。
 3. 如果 target 卡紧张、训练 epoch 多或需要复现实验，选择 Offline 或 Hybrid，并为 hidden-state 文件记录 target 版本、层 ID、序列长度和数据行 ID。
-4. 如果需要 target inference 与 drafter training 解耦，参考 TorchSpec 的流式 producer-consumer 设计；不要把“流式 hidden states”误写成“无需 response 数据”。
-5. 如果 response 由 RL rollout 产生，保留 policy step/checkpoint ID，限制 replay 跨度，并单独评估 acceptance、drafter loss、rollout wall-clock 和最终质量。
-6. 对 SpecForge Online，不要把 capture server 的 producer/trainer 分池写成 PD 分离。若需要 prompt-only 的一体化生成，先选择“两遍计算”还是“decode-step feature capture”，再据此设计状态所有权和容量预算。
+4. 对固定 target 的资源受限训练，先用 1--2 万样本测量在线和固定特征方案的 GPU-hours、峰值卡数、缓存容量与接受指标，再确定全量 producer 资源配置。
+5. 如果需要 target inference 与 drafter training 解耦，参考 TorchSpec 的流式 producer-consumer 设计；不要把“流式 hidden states”误写成“无需 response 数据”。
+6. 如果 response 由 RL rollout 产生，保留 policy step/checkpoint ID，限制 replay 跨度，并单独评估 acceptance、drafter loss、rollout wall-clock 和最终质量。
+7. 对 SpecForge Online，不要把 capture server 的 producer/trainer 分池写成 PD 分离。若需要 prompt-only 的一体化生成，先选择“两遍计算”还是“decode-step feature capture”，再据此设计状态所有权和容量预算。
 
 ## 8. 证据等级与未证明事项
 
