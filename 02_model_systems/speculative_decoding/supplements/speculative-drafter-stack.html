@@ -21,7 +21,11 @@
 .sandbox-note{grid-row:5}
 </style>
 <style>
-.process-flow{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px;margin:0 0 28px;overflow:hidden}.process-flow h2{margin:0 0 6px;font-size:22px;line-height:1.3}.process-flow>p{margin:0 0 14px;color:var(--muted)}.mermaid{min-width:940px;padding:14px 8px;background:#fbfcfd;border:1px solid #e5ebf0;border-radius:6px;overflow:auto}.mermaid[data-zoomable="true"]{cursor:zoom-in}.mermaid[data-zoomable="true"]:focus-visible{outline:3px solid var(--teal);outline-offset:2px}.flow-fallback{display:block;margin:14px 0 0;padding:12px 14px;background:#f8fafc;border-left:3px solid var(--teal);color:#43515e;font-size:13px}.mermaid[data-processed] + .flow-fallback{display:none}.flow-zoom{position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:auto minmax(0,1fr);gap:10px;padding:14px;background:rgba(17,27,36,.86)}.flow-zoom[hidden]{display:none}.flow-zoom-toolbar{display:flex;justify-content:flex-end;align-items:center;gap:7px;color:#fff}.flow-zoom-toolbar span{margin-right:auto;font-size:13px}.flow-zoom-toolbar button{min-width:42px;min-height:38px;padding:6px 10px;border:1px solid #ffffff80;border-radius:5px;background:#17212b;color:#fff;font:inherit;cursor:pointer}.flow-zoom-toolbar button:hover{background:#2b3b48}.flow-zoom-toolbar button:focus-visible{outline:2px solid #fff;outline-offset:2px}.flow-zoom-stage{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;border-radius:6px;background:#fff;padding:20px}.flow-zoom-stage .mermaid{width:max-content;min-width:0;min-height:0;border:0;border-radius:0;padding:0;overflow:visible;cursor:default;transform-origin:top left}.flow-zoom-stage .mermaid svg{display:block;width:1500px;min-width:0;max-width:none;height:auto;overflow:visible}.flow-zoom-stage .mermaid[data-processed]{width:1500px}@media(max-width:900px){.process-flow{overflow-x:auto}.process-flow>p{max-width:760px}.flow-zoom{padding:8px;gap:8px}.flow-zoom-stage{padding:12px}.flow-zoom-stage .mermaid svg{width:1200px}}
+.process-flow{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px;margin:0 0 28px;overflow:hidden}.process-flow h2{margin:0 0 6px;font-size:22px;line-height:1.3}.process-flow>p{margin:0 0 14px;color:var(--muted)}.mermaid{min-width:940px;padding:14px 8px;background:#fbfcfd;border:1px solid #e5ebf0;border-radius:6px;overflow:auto}.mermaid[data-zoomable="true"]{cursor:zoom-in}.mermaid[data-zoomable="true"]:focus-visible{outline:3px solid var(--teal);outline-offset:2px}.flow-fallback{display:block;margin:14px 0 0;padding:12px 14px;background:#f8fafc;border-left:3px solid var(--teal);color:#43515e;font-size:13px}.mermaid[data-processed] + .flow-fallback{display:none}.flow-zoom{position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:auto minmax(0,1fr);gap:10px;padding:14px;background:rgba(17,27,36,.86)}.flow-zoom[hidden]{display:none}.flow-zoom-toolbar{display:flex;justify-content:flex-end;align-items:center;gap:7px;color:#fff}.flow-zoom-toolbar span{margin-right:auto;font-size:13px}.flow-zoom-toolbar button{min-width:42px;min-height:38px;padding:6px 10px;border:1px solid #ffffff80;border-radius:5px;background:#17212b;color:#fff;font:inherit;cursor:pointer}.flow-zoom-toolbar button:hover{background:#2b3b48}.flow-zoom-toolbar button:focus-visible{outline:2px solid #fff;outline-offset:2px}.flow-zoom-stage{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;border-radius:6px;background:#fff;padding:20px}.flow-zoom-stage .mermaid{width:max-content;min-width:0;min-height:0;border:0;border-radius:0;padding:0;overflow:visible;cursor:default;transform-origin:top left}.flow-zoom-stage .mermaid svg{display:block;width:1100px;min-width:0;max-width:none;height:auto;overflow:visible}.flow-zoom-stage .mermaid[data-processed]{width:1100px}@media(max-width:900px){.process-flow{overflow-x:auto}.process-flow>p{max-width:760px}.flow-zoom{padding:8px;gap:8px}.flow-zoom-stage{padding:12px}.flow-zoom-stage .mermaid svg{width:900px}.flow-zoom-stage .mermaid[data-processed]{width:900px}}
+.flow-modules{max-width:980px;margin:22px auto 8px}.flow-module{position:relative;margin:0 0 30px;border:1px solid var(--line);border-radius:7px;background:#fff}.flow-module:not(:last-child)::after{content:"↓";position:absolute;left:50%;bottom:-27px;transform:translateX(-50%);color:var(--muted);font-size:20px;line-height:1}.flow-module summary{display:flex;align-items:center;gap:14px;padding:15px 17px;cursor:pointer;list-style:none}.flow-module summary::-webkit-details-marker{display:none}.flow-number{display:grid;place-items:center;flex:0 0 34px;aspect-ratio:1;border-radius:50%;background:#eef6fd;color:var(--blue);font-weight:700}.flow-summary-copy{display:grid;gap:2px;min-width:0}.flow-summary-copy b{font-size:16px}.flow-summary-copy small{color:var(--muted);font-size:13px}.flow-action{margin-left:auto;color:var(--blue);font-size:13px;white-space:nowrap}.flow-module[open] .flow-action::after{content:"收起"}.flow-module:not([open]) .flow-action::after{content:"展开细节"}.flow-module[open] .flow-action{font-size:0}.flow-module[open] .flow-action::after,.flow-module:not([open]) .flow-action::after{font-size:13px}.flow-module[open] summary{border-bottom:1px solid var(--line)}.flow-module summary:focus-visible{outline:2px solid var(--teal);outline-offset:2px}.flow-module-body{padding:15px}.flow-module-body .mermaid{min-width:0;width:100%;overflow:auto}.flow-module-body .module-note{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--teal);background:#f1f8f7;color:#43515e;font-size:13px}.flow-zoom-stage .mermaid svg{width:1100px}.flow-zoom-stage .mermaid[data-processed]{width:1100px}@media(max-width:900px){.flow-module summary{gap:10px;padding:13px}.flow-summary-copy small{line-height:1.4}.flow-module-body{padding:10px}.flow-module-body .mermaid{overflow-x:auto}.flow-zoom-stage .mermaid svg{width:900px}.flow-zoom-stage .mermaid[data-processed]{width:900px}}
+</style>
+<style>
+.flow-explorer{display:grid;grid-template-columns:minmax(250px,.78fr) minmax(0,1.5fr);gap:18px;align-items:start;margin-top:20px}.flow-overview-panel,.flow-detail-panel{min-width:0;border:1px solid var(--line);border-radius:7px;background:#fff}.flow-overview-panel{padding:16px;position:sticky;top:16px}.flow-overview-panel h3,.flow-detail-panel h3{margin:0;font-size:16px}.flow-overview-panel p,.flow-detail-heading p{margin:5px 0 0;color:var(--muted);font-size:13px;line-height:1.5}.flow-overview-svg{display:block;width:100%;height:auto;margin:14px auto 0;overflow:visible}.flow-detail-panel{min-height:590px;padding:20px}.flow-detail-heading{display:flex;align-items:flex-start;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line)}.flow-detail-heading .flow-number{flex:0 0 34px}.flow-detail-heading-copy{min-width:0}.flow-detail-heading-copy p{max-width:700px}.flow-detail-canvas{display:flex;align-items:flex-start;justify-content:center;min-height:480px;padding:20px 12px 12px;overflow:auto}.flow-detail-canvas svg{display:block;flex:0 1 720px;width:100%;min-width:0;max-width:720px;height:auto;overflow:visible;cursor:zoom-in;transform-origin:top center}.flow-detail-note{width:min(100%,720px);margin:0 auto;padding:12px 14px;border-left:3px solid var(--teal);background:#f1f8f7;color:#43515e;font-size:13px}.flow-status{margin:16px 0 0;padding:12px 14px;border-left:3px solid var(--teal);background:#f1f8f7;color:#43515e;font-size:13px}.flow-status[hidden]{display:none}.flow-overview-node{cursor:pointer;outline:none}.flow-overview-node rect{fill:#fff;stroke:#c7d3dc;stroke-width:1.5}.flow-overview-node text{fill:var(--ink);font-family:system-ui,-apple-system,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;font-size:15px;font-weight:650;text-anchor:middle;pointer-events:none}.flow-overview-node.is-active rect{fill:#eef6fd;stroke:var(--blue);stroke-width:3}.flow-overview-node:focus rect{stroke:var(--teal);stroke-width:3}.flow-overview-edge{fill:none;stroke:#8293a0;stroke-width:2;marker-end:url(#flow-arrow)}.flow-node rect{stroke-width:2}.flow-node text{fill:var(--ink);font-family:system-ui,-apple-system,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;font-size:14px;text-anchor:middle}.flow-node.data rect{fill:#eef6fd;stroke:#1769aa}.flow-node.online rect{fill:#edf9f7;stroke:#117a72}.flow-node.train rect{fill:#fff7ea;stroke:#a85d00}.flow-node.check rect{fill:#f6f0fb;stroke:#7047a5}.flow-node.warn rect{fill:#fff0f2;stroke:#b23a48}.flow-edge{fill:none;stroke:#708392;stroke-width:1.8;marker-end:url(#flow-arrow)}.flow-edge.optional{stroke-dasharray:6 5}.flow-edge-label{fill:var(--muted);font-family:system-ui,-apple-system,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;font-size:12px;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:4px}.flow-zoom-stage .flow-detail-svg{display:block;width:1100px;max-width:none;height:auto;overflow:visible;transform-origin:top center}.flow-zoom-stage .flow-overview-svg{display:none}@media(max-width:900px){.flow-explorer{grid-template-columns:1fr}.flow-overview-panel{position:static}.flow-overview-svg{max-width:280px}.flow-detail-panel{min-height:0;padding:15px}.flow-detail-canvas{min-height:400px;padding:18px 4px 8px}.flow-detail-canvas svg{width:100%;max-width:650px}.flow-zoom-stage .flow-detail-svg{width:900px}}
 </style>
 </head>
 <body>
@@ -47,56 +51,47 @@
 </section>
 <section class="process-flow" id="deepspec-online-train" aria-labelledby="deepspec-flow-title">
 <h2 id="deepspec-flow-title">DeepSpec-npu online_train：从提示数据到可部署草稿模型</h2>
-<p>流程依据 <a href="https://gitcode.com/nichorians/DeepSpec-npu/tree/online_train" target="_blank" rel="noopener">DeepSpec-npu 的 <code>online_train</code> 分支</a>（代码提交 <code>2b730e053b15f7a607b8548cd07a9a88b2659b42</code>）整理。实线是在线特征训练主链，虚线是生成静态 target cache 后的对照路径；“目标模型”指被投机解码验证的完整模型，“草稿模型”指负责提出候选 token 的较小模型。图中的 JSONL 指按行存储的 JSON（JavaScript Object Notation）记录；token ID、张量形状、数据类型和有限值检查分别对应返回内容、尺寸、数值类型和 NaN/无穷值检查。</p>
-<div class="mermaid">
-flowchart LR
-  subgraph DATA[一、数据准备]
-    P[原始提示与多轮对话<br/>download_and_split.py] --> S[训练集与评测集划分]
-    S --> R[目标模型重生成回答<br/>vLLM-Ascend 服务]
-    R --> J[带回答的 JSONL<br/>train_datasets]
-  end
-
-  subgraph ONLINE[二、在线目标特征生产]
-    J --> T[本地预处理<br/>chat template、tokenize、loss mask]
-    T --> Q[发送 prompt token IDs<br/>POST /completions<br/>max_tokens=1]
-    Q --> TM[目标模型前向<br/>返回 token IDs 与隐藏状态]
-    TM --> MC[Mooncake 特征传输<br/>读取 hidden_states]
-    MC --> V{校验通过？<br/>token IDs、shape、dtype、finite}
-    V -- 否 --> E[记录错误并跳过或终止]
-    V -- 是 --> C[有界在线缓存<br/>/dev/shm slab、lease、release、backpressure]
-  end
-
-  subgraph TRAIN[三、草稿模型训练]
-    C --> B[训练 worker 取样本<br/>input_ids、loss_mask、target features]
-    B --> F[DSpark block 前向<br/>并行草稿位置 + target hidden features]
-    F --> L[组合损失<br/>交叉熵 + 分布 L1 + 温度校准 + confidence]
-    L --> O[反向传播与优化器更新]
-    O --> K[保存 checkpoint<br/>step_latest]
-  end
-
-  subgraph CHECK[四、评测与交付]
-    K --> A[投机解码评测<br/>目标模型验证候选 token]
-    A --> M[接受长度、首个拒绝位置<br/>与端到端延迟]
-    K --> X[checkpoint 转换<br/>convert_deepspec_dspark_checkpoint.py]
-    X --> D[推理栈部署<br/>vLLM-Ascend / 其他引擎]
-  end
-
-  J -.-> STATIC[静态 target cache<br/>prepare_target_cache_vllm.py]
-  STATIC -.-> B
-
-  classDef data fill:#eef6fd,stroke:#1769aa,color:#17212b;
-  classDef online fill:#edf9f7,stroke:#117a72,color:#17212b;
-  classDef train fill:#fff7ea,stroke:#a85d00,color:#17212b;
-  classDef check fill:#f6f0fb,stroke:#7047a5,color:#17212b;
-  classDef warn fill:#fff0f2,stroke:#b23a48,color:#17212b;
-  class P,S,R,J data;
-  class T,Q,TM,MC,V,C online;
-  class B,F,L,O,K train;
-  class A,M,X,D check;
-  class E warn;
-  class STATIC data;
+<p>流程依据 <a href="https://gitcode.com/nichorians/DeepSpec-npu/tree/online_train" target="_blank" rel="noopener">DeepSpec-npu 的 <code>online_train</code> 分支</a>（代码提交 <code>2b730e053b15f7a607b8548cd07a9a88b2659b42</code>）整理。左侧选择阶段，右侧查看对应的细粒度流程；图数据保存在本页 JSON 中，由 ELK.js 排列节点，并输出为可缩放的 SVG。“目标模型”指被投机解码验证的完整模型，“草稿模型”指负责提出候选 token 的较小模型。</p>
+<div class="flow-explorer">
+<section class="flow-overview-panel" aria-labelledby="flow-overview-title"><h3 id="flow-overview-title">粗粒度管线</h3><p>选择一个阶段，右侧显示该阶段的节点和数据流。</p><div id="flow-overview" aria-label="DeepSpec-npu 四阶段流程总览"></div></section>
+<section class="flow-detail-panel" aria-live="polite"><div class="flow-detail-heading"><span class="flow-number" id="flow-detail-number">1</span><div class="flow-detail-heading-copy"><h3 id="flow-detail-title">数据准备</h3><p id="flow-detail-description"></p></div></div><div class="flow-detail-canvas" id="flow-detail-canvas"></div><p class="flow-detail-note" id="flow-detail-note"></p><p class="flow-status" id="flow-status" role="status" hidden></p></section>
 </div>
-<p class="flow-fallback"><b>无 Mermaid 渲染时的主链：</b>提示数据划分 → 目标模型重生成回答 → 本地分词与损失掩码 → 请求目标模型隐藏状态 → Mooncake 传输与严格校验 → 有界在线缓存 → DSpark 草稿前向 → 交叉熵、分布 L1、温度校准和置信度损失 → checkpoint → 接受率评测与 checkpoint 转换部署。静态 target cache 可在训练 worker 前替代在线缓存，作为对照路径。</p>
+<div class="flow-status" id="flow-fallback"><b>流程概览：</b>提示与对话数据划分后，使用已有回答或通过目标模型生成回答；训练时由目标模型提取隐藏状态，经传输与校验交给草稿模型训练，也可先制作固定特征缓存；训练产物经过投机解码评测和模型格式转换后交付。图形组件不可用时，仍可依此阅读主线。</div>
+<script type="application/json" id="flow-data">
+{
+  "overview": {
+    "nodes": [
+      {"id":"data","stage":"data","label":"数据准备","width":220,"height":76},
+      {"id":"features","stage":"features","label":"在线特征生产","width":220,"height":76},
+      {"id":"training","stage":"training","label":"草稿模型训练","width":220,"height":76},
+      {"id":"delivery","stage":"delivery","label":"评测与交付","width":220,"height":76}
+    ],
+    "edges": [{"id":"od1","source":"data","target":"features"},{"id":"od2","source":"features","target":"training"},{"id":"od3","source":"training","target":"delivery"}]
+  },
+  "stages": {
+    "data": {
+      "title":"数据准备","description":"从原始提示和多轮对话构造训练集与评测集。回答可以在此阶段由目标模型生成，也可以使用已有回答。","note":"训练数据也可以来自已有回答；是否重新生成回答是数据分布选择，不是隐藏状态计算的硬性前置条件。",
+      "nodes":[{"id":"p","label":["原始提示与多轮对话","download_and_split.py"],"kind":"data","width":270,"height":72},{"id":"s","label":["训练集与评测集划分"],"kind":"data","width":270,"height":64},{"id":"r","label":["目标模型重生成回答","vLLM-Ascend 服务"],"kind":"online","width":270,"height":72},{"id":"j","label":["带回答的 JSONL","train_datasets"],"kind":"data","width":270,"height":72}],
+      "edges":[{"id":"e1","source":"p","target":"s"},{"id":"e2","source":"s","target":"r","label":"可选","optional":true},{"id":"e3","source":"r","target":"j"},{"id":"e4","source":"s","target":"j","label":"已有回答","optional":true}]
+    },
+    "features": {
+      "title":"在线特征生产","description":"对完整 token 序列提取目标模型隐藏状态，通过 Mooncake 传输、校验后交给训练 worker。静态缓存是替代生产路径。","note":"这里的“在线”表示训练时按需提取特征。已有回答的完整序列做一次 prefill 即可，不会在 capture 请求中重新生成回答。",
+      "nodes":[{"id":"j","label":["带回答的样本","input_ids、loss_mask"],"kind":"data","width":280,"height":72},{"id":"t","label":["本地预处理","chat template、tokenize、loss mask"],"kind":"online","width":280,"height":78},{"id":"q","label":["请求目标模型","POST /completions、max_tokens=1"],"kind":"online","width":280,"height":78},{"id":"tm","label":["目标模型前向","返回 token IDs 与隐藏状态"],"kind":"online","width":280,"height":78},{"id":"mc","label":["Mooncake 特征传输","读取 hidden_states"],"kind":"online","width":280,"height":72},{"id":"v","label":["校验 token IDs、shape、dtype","及有限值"],"kind":"online","width":280,"height":72},{"id":"e","label":["记录错误并跳过或终止"],"kind":"warn","width":240,"height":64},{"id":"c","label":["有界在线缓存","slab、lease、release、backpressure"],"kind":"online","width":280,"height":78},{"id":"static","label":["静态 target cache","prepare_target_cache_vllm.py"],"kind":"data","width":280,"height":72},{"id":"out","label":["向训练 worker 交付 target features"],"kind":"train","width":280,"height":72}],
+      "edges":[{"id":"f1","source":"j","target":"t"},{"id":"f2","source":"t","target":"q"},{"id":"f3","source":"q","target":"tm"},{"id":"f4","source":"tm","target":"mc"},{"id":"f5","source":"mc","target":"v"},{"id":"f6","source":"v","target":"e","label":"否"},{"id":"f7","source":"v","target":"c","label":"是"},{"id":"f8","source":"c","target":"out"},{"id":"f9","source":"j","target":"static","optional":true},{"id":"f10","source":"static","target":"out","optional":true}]
+    },
+    "training": {
+      "title":"草稿模型训练","description":"训练 worker 读取训练样本和目标特征，执行 DSpark 前向、组合损失和参数更新。","note":"关键产物是可恢复的训练 checkpoint；当前损失由交叉熵、分布 L1、温度校准项和 confidence 项组合。",
+      "nodes":[{"id":"c","label":["训练 worker 取样本","input_ids、loss_mask、target features"],"kind":"train","width":300,"height":80},{"id":"f","label":["DSpark block 前向","并行草稿位置 + target hidden features"],"kind":"train","width":300,"height":80},{"id":"l","label":["组合损失","交叉熵 + 分布 L1 + 温度校准 + confidence"],"kind":"train","width":300,"height":80},{"id":"o","label":["反向传播与优化器更新"],"kind":"train","width":300,"height":68},{"id":"k","label":["保存 checkpoint","step_latest"],"kind":"check","width":300,"height":72}],
+      "edges":[{"id":"t1","source":"c","target":"f"},{"id":"t2","source":"f","target":"l"},{"id":"t3","source":"l","target":"o"},{"id":"t4","source":"o","target":"k"}]
+    },
+    "delivery": {
+      "title":"评测与交付","description":"用目标模型验证候选 token，评估接受行为与端到端时延；训练 checkpoint 另行转换后部署到推理引擎。","note":"接受长度、首个拒绝位置和端到端延迟需要联合观察；checkpoint 转换是部署链路的一部分。",
+      "nodes":[{"id":"k","label":["训练 checkpoint"],"kind":"train","width":280,"height":68},{"id":"a","label":["投机解码评测","目标模型验证候选 token"],"kind":"check","width":280,"height":76},{"id":"m","label":["接受长度、首个拒绝位置","与端到端延迟"],"kind":"check","width":280,"height":76},{"id":"x","label":["checkpoint 转换","convert_deepspec_dspark_checkpoint.py"],"kind":"check","width":300,"height":76},{"id":"d","label":["推理栈部署","vLLM-Ascend / 其他引擎"],"kind":"check","width":280,"height":72}],
+      "edges":[{"id":"d1","source":"k","target":"a"},{"id":"d2","source":"a","target":"m"},{"id":"d3","source":"k","target":"x"},{"id":"d4","source":"x","target":"d"}]
+    }
+  }
+}
+</script>
 <p class="note">代码定位：<code>scripts/data/prepare_data_vllm.sh</code>、<code>scripts/data/prepare_target_cache_vllm.py</code>、<code>deepspec/data/online_feature_dataset.py</code>、<code>deepspec/data/async_feature_cache.py</code>、<code>deepspec/trainer/base_trainer.py</code>、<code>deepspec/modeling/dspark/loss.py</code>、<code>scripts/tools/convert_deepspec_dspark_checkpoint.py</code>。Mooncake 是特征传输组件；DSpark 是草稿模型算法；checkpoint 是可恢复的训练检查点。</p>
 </section>
 <div class="flow-zoom" id="flow-zoom" hidden>
@@ -119,45 +114,166 @@ flowchart LR
 const sectionIds={"1. 第一门槛：训推一致性":"alignment","2. 技术栈六层":"stack","3. 三种生命周期":"lifecycle","4. 实验决策树":"experiments","5. 最小矩阵":"matrix"};
 document.querySelectorAll('.grid article h2').forEach((heading)=>{const id=sectionIds[heading.textContent.trim()];if(id) heading.parentElement.id=id;});
 </script>
-<script type="module">
-const mermaidScript = document.createElement('script');
-mermaidScript.type = 'module';
-mermaidScript.textContent = `import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',themeVariables:{fontFamily:'system-ui,-apple-system,Noto Sans CJK SC,Microsoft YaHei,sans-serif',primaryTextColor:'#17212b',lineColor:'#708392',clusterBkg:'#f8fafc',clusterBorder:'#cbd6df'}});
-mermaid.run({nodes:document.querySelectorAll('.mermaid')});`;
-document.head.appendChild(mermaidScript);
-</script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape@3.33.1/dist/cytoscape.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/elkjs@0.11.0/lib/elk.bundled.js"></script>
 <script>
-const flow = document.querySelector('#deepspec-online-train .mermaid');
+const graphData = JSON.parse(document.querySelector('#flow-data').textContent);
+const flowOverview = document.querySelector('#flow-overview');
+const flowDetailCanvas = document.querySelector('#flow-detail-canvas');
+const flowStatus = document.querySelector('#flow-status');
+const flowStageNodes = graphData.overview.nodes;
+const elk = window.ELK ? new window.ELK() : null;
 const zoom = document.querySelector('#flow-zoom');
 const zoomStage = zoom.querySelector('.flow-zoom-stage');
 const zoomToolbar = zoom.querySelector('.flow-zoom-toolbar');
 const closeZoom = zoom.querySelector('.flow-zoom-close');
 let flowPlaceholder;
+let activeFlow;
 let zoomScale = 1.25;
+let originalFlowStyle;
+
+function svgElement(name, attrs = {}) {
+  const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+  Object.entries(attrs).forEach(([key, value]) => element.setAttribute(key, value));
+  return element;
+}
+
+async function layoutGraph(data) {
+  if (!window.cytoscape || !elk) throw new Error('图布局组件未加载');
+  const elements = [
+    ...data.nodes.map(node => ({data:{id:node.id,width:node.width,height:node.height}})),
+    ...data.edges.map(edge => ({data:{id:edge.id,source:edge.source,target:edge.target}}))
+  ];
+  const cy = cytoscape({headless:true,styleEnabled:false,elements});
+  const elkGraph = {
+    id:'root',
+    layoutOptions:{'elk.algorithm':'layered','elk.direction':'DOWN','elk.edgeRouting':'ORTHOGONAL','elk.spacing.nodeNode':'30','elk.layered.spacing.nodeNodeBetweenLayers':'42','elk.padding':'[top=28,left=30,bottom=28,right=30]'},
+    children:cy.nodes().map(node => ({id:node.id(),width:node.data('width'),height:node.data('height')})),
+    edges:cy.edges().map(edge => ({id:edge.id(),sources:[edge.source().id()],targets:[edge.target().id()]}))
+  };
+  cy.destroy();
+  return elk.layout(elkGraph);
+}
+
+async function renderGraph(data, options = {}) {
+  const layout = await layoutGraph(data);
+  const svg = svgElement('svg',{viewBox:`0 0 ${layout.width} ${layout.height}`,role:options.overview ? 'group' : 'img','aria-label':options.label || ''});
+  svg.classList.add(options.overview ? 'flow-overview-svg' : 'flow-detail-svg');
+  if (!options.overview) svg.setAttribute('tabindex','0');
+  const defs = svgElement('defs');
+  const marker = svgElement('marker',{id:'flow-arrow','viewBox':'0 0 10 10','refX':'9','refY':'5','markerWidth':'7','markerHeight':'7','orient':'auto-start-reverse'});
+  marker.append(svgElement('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#708392'}));
+  defs.append(marker);
+  svg.append(defs);
+  const edgeLayer = svgElement('g');
+  const nodeLayer = svgElement('g');
+  const nodeLayouts = new Map(layout.children.map(node => [node.id,node]));
+
+  for (const edge of layout.edges || []) {
+    const edgeData = data.edges.find(item => item.id === edge.id);
+    for (const section of edge.sections || []) {
+      const points = [section.startPoint,...(section.bendPoints || []),section.endPoint];
+      const pathData = points.map((point,index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' ');
+      edgeLayer.append(svgElement('path',{d:pathData,class:`flow-edge${edgeData?.optional ? ' optional' : ''}`}));
+      if (edgeData?.label) {
+        const label = svgElement('text',{x:(section.startPoint.x + section.endPoint.x) / 2,y:(section.startPoint.y + section.endPoint.y) / 2 - 5,class:'flow-edge-label'});
+        label.textContent = edgeData.label;
+        edgeLayer.append(label);
+      }
+    }
+  }
+
+  for (const node of data.nodes) {
+    const positioned = nodeLayouts.get(node.id);
+    if (!positioned) continue;
+    const group = svgElement('g',{transform:`translate(${positioned.x} ${positioned.y})`,class:options.overview ? 'flow-overview-node' : `flow-node ${node.kind || ''}`,'data-stage-id':node.stage || ''});
+    if (options.overview) {
+      group.setAttribute('role','button');
+      group.setAttribute('tabindex','0');
+      group.setAttribute('aria-label',`显示${node.label}流程`);
+    }
+    group.append(svgElement('rect',{x:0,y:0,width:positioned.width,height:positioned.height,rx:options.overview ? 8 : 6,ry:options.overview ? 8 : 6}));
+    const lines = Array.isArray(node.label) ? node.label : [node.label];
+    const lineHeight = options.overview ? 20 : 19;
+    const startY = positioned.height / 2 - ((lines.length - 1) * lineHeight) / 2 + 5;
+    const text = svgElement('text',{x:positioned.width / 2,y:startY});
+    lines.forEach((line,index) => {
+      const span = svgElement('tspan',{x:positioned.width / 2,dy:index ? lineHeight : 0});
+      span.textContent = line;
+      text.append(span);
+    });
+    group.append(text);
+    nodeLayer.append(group);
+  }
+  svg.append(edgeLayer,nodeLayer);
+  return svg;
+}
+
+function selectStage(stageId) {
+  const stage = graphData.stages[stageId];
+  if (!stage) return;
+  document.querySelectorAll('.flow-overview-node').forEach(node => node.classList.toggle('is-active',node.dataset.stageId === stageId));
+  document.querySelector('#flow-detail-number').textContent = String(flowStageNodes.findIndex(node => node.stage === stageId) + 1);
+  document.querySelector('#flow-detail-title').textContent = stage.title;
+  document.querySelector('#flow-detail-description').textContent = stage.description;
+  document.querySelector('#flow-detail-note').textContent = stage.note;
+  flowDetailCanvas.replaceChildren();
+  flowStatus.hidden = true;
+  renderGraph(stage,{label:`${stage.title}细粒度流程`}).then(svg => {
+    flowDetailCanvas.replaceChildren(svg);
+  }).catch(error => {
+    flowStatus.hidden = false;
+    flowStatus.textContent = `流程布局失败：${error.message}`;
+  });
+}
+
+async function initializeFlow() {
+  flowOverview.replaceChildren(await renderGraph(graphData.overview,{overview:true,label:'DeepSpec-npu 四阶段流程总览'}));
+  const overviewSvg = flowOverview.querySelector('svg');
+  overviewSvg.addEventListener('click',event => {
+    const node = event.target.closest('[data-stage-id]');
+    if (node) selectStage(node.dataset.stageId);
+  });
+  overviewSvg.addEventListener('keydown',event => {
+    if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('[data-stage-id]')) {
+      event.preventDefault();
+      selectStage(event.target.dataset.stageId);
+    }
+  });
+  selectStage('data');
+  document.querySelector('#flow-fallback').hidden = true;
+}
 
 function setZoomScale(nextScale) {
   zoomScale = Math.min(3, Math.max(0.5, nextScale));
-  flow.style.transform = `scale(${zoomScale})`;
-  flow.style.marginBottom = `${Math.max(0, flow.scrollHeight * (zoomScale - 1))}px`;
-  flow.style.marginRight = `${Math.max(0, flow.scrollWidth * (zoomScale - 1))}px`;
+  activeFlow.style.transform = `scale(${zoomScale})`;
+  const viewBox = activeFlow.viewBox.baseVal;
+  const baseWidth = 1100;
+  const baseHeight = baseWidth * viewBox.height / viewBox.width;
+  activeFlow.style.marginBottom = `${Math.max(0, baseHeight * (zoomScale - 1))}px`;
+  activeFlow.style.marginRight = `${Math.max(0, baseWidth * (zoomScale - 1))}px`;
 }
 
 function fitFlow() {
-  const width = Math.max(1, flow.scrollWidth);
-  const height = Math.max(1, flow.scrollHeight);
+  const box = activeFlow.viewBox.baseVal;
+  const width = 1100;
+  const height = Math.max(1, width * box.height / box.width);
   const availableWidth = Math.max(1, zoomStage.clientWidth - 40);
   const availableHeight = Math.max(1, zoomStage.clientHeight - 40);
   setZoomScale(Math.min(1.25, availableWidth / width, availableHeight / height));
 }
 
-function openFlow() {
+function openFlow(flow) {
   if (zoom.hidden) {
+    activeFlow = flow;
+    originalFlowStyle = flow.getAttribute('style') || '';
     flowPlaceholder = document.createComment('flow-placeholder');
     flow.before(flowPlaceholder);
     zoomStage.append(flow);
     zoom.hidden = false;
     document.body.style.overflow = 'hidden';
+    flow.style.width = '1100px';
+    flow.style.maxWidth = 'none';
     setZoomScale(zoomScale);
     zoomStage.scrollTop = 0;
     zoomStage.scrollLeft = 0;
@@ -167,26 +283,24 @@ function openFlow() {
 
 function closeFlow() {
   if (!zoom.hidden) {
-    flowPlaceholder.before(flow);
+    flowPlaceholder.before(activeFlow);
     flowPlaceholder.remove();
-    flow.style.transform = '';
-    flow.style.marginBottom = '';
-    flow.style.marginRight = '';
+    activeFlow.setAttribute('style',originalFlowStyle);
     zoom.hidden = true;
     document.body.style.overflow = '';
-    flow.focus();
+    activeFlow.focus();
+    activeFlow = null;
   }
 }
 
-flow.dataset.zoomable = 'true';
-flow.tabIndex = 0;
-flow.setAttribute('role', 'button');
-flow.setAttribute('aria-label', '点击放大 DeepSpec-npu 训练流程图');
-flow.addEventListener('click', openFlow);
-flow.addEventListener('keydown', event => {
-  if (event.key === 'Enter' || event.key === ' ') {
+document.querySelector('#deepspec-online-train').addEventListener('click',event => {
+  const graph = event.target.closest('.flow-detail-svg');
+  if (graph && !zoom.contains(graph)) openFlow(graph);
+});
+document.querySelector('#deepspec-online-train').addEventListener('keydown',event => {
+  if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('.flow-detail-svg')) {
     event.preventDefault();
-    openFlow();
+    openFlow(event.target);
   }
 });
 closeZoom.addEventListener('click', closeFlow);
@@ -201,10 +315,14 @@ zoomToolbar.querySelectorAll('[data-zoom-action]').forEach(button => {
   });
 });
 zoom.addEventListener('click', event => {
-  if (!flow.contains(event.target) && !zoomToolbar.contains(event.target)) closeFlow();
+  if (!activeFlow.contains(event.target) && !zoomToolbar.contains(event.target)) closeFlow();
 });
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') closeFlow();
+});
+initializeFlow().catch(error => {
+  flowStatus.hidden = false;
+  flowStatus.textContent = `流程图加载失败：${error.message}。请确认可以访问 Cytoscape.js 与 ELK.js CDN。`;
 });
 </script>
 </body></html>
