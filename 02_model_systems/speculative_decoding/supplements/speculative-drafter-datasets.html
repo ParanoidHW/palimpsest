@@ -96,6 +96,33 @@ const search = document.querySelector('.catalog-search');
 const filterOptions = document.querySelector('.filter-options');
 const reset = document.querySelector('.filter-reset');
 const resultCount = document.querySelector('.result-count');
+const categoryNames = {
+  '公开训练集': '综合指令',
+  '后训练数据集': '综合指令',
+  '通用监督训练集': '综合指令',
+  '草稿头训练集': '综合指令',
+  '指令训练集': '综合指令',
+  'Agent 训练集': '智能体轨迹',
+  'RL 训练混合': '强化学习混合',
+  '代码指令训练集': '代码指令',
+  '代码指令集': '代码指令',
+  '对话训练集': '对话指令',
+  '对话指令集': '对话指令',
+  '数学训练集': '数学推理',
+  '公开评测': '综合评测',
+  'Agent 评测': '智能体负载',
+  '竞赛数学': '数学推理',
+  '专家推理': '知识问答',
+  '中文知识': '知识问答',
+  '知识与推理': '知识问答',
+  '对话评测': '对话与指令',
+  '指令评测': '对话与指令',
+  '指令遵循': '对话与指令',
+  '金融指令': '对话与指令'
+};
+document.querySelectorAll('.dataset-table .tag').forEach(tag => {
+  tag.textContent = categoryNames[tag.textContent.trim()] || tag.textContent.trim();
+});
 let activeIndex = -1;
 let selectedCategory = 'all';
 const previews = {
