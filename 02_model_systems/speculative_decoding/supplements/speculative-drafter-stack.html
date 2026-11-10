@@ -131,6 +131,7 @@ let flowPlaceholder;
 let activeFlow;
 let zoomScale = 1.25;
 let originalFlowStyle;
+let selectedStageRender = 0;
 
 function svgElement(name, attrs = {}) {
   const element = document.createElementNS('http://www.w3.org/2000/svg', name);
@@ -212,6 +213,7 @@ async function renderGraph(data, options = {}) {
 function selectStage(stageId) {
   const stage = graphData.stages[stageId];
   if (!stage) return;
+  const renderId = ++selectedStageRender;
   document.querySelectorAll('.flow-overview-node').forEach(node => node.classList.toggle('is-active',node.dataset.stageId === stageId));
   document.querySelector('#flow-detail-number').textContent = String(flowStageNodes.findIndex(node => node.stage === stageId) + 1);
   document.querySelector('#flow-detail-title').textContent = stage.title;
@@ -220,8 +222,9 @@ function selectStage(stageId) {
   flowDetailCanvas.replaceChildren();
   flowStatus.hidden = true;
   renderGraph(stage,{label:`${stage.title}细粒度流程`}).then(svg => {
-    flowDetailCanvas.replaceChildren(svg);
+    if (renderId === selectedStageRender) flowDetailCanvas.replaceChildren(svg);
   }).catch(error => {
+    if (renderId !== selectedStageRender) return;
     flowStatus.hidden = false;
     flowStatus.textContent = `流程布局失败：${error.message}`;
   });
