@@ -7,24 +7,25 @@
 1. [Evolution](surveys/evolution.md)：canonical survey，先看 token draft、tree draft、block diffusion 和推理加速时间线。
 2. [Foundations and trends](surveys/foundations-and-trends.md)：看 lossless correctness contract、draft/verify 成本模型、机制分类、KV/serving 约束与开放问题。
 3. [Speculator training data lifecycle](topics/speculator-training-data-lifecycle.md)：回答 response 是否独立生成、已有 response 后为何只需一次 prefill、Key-Value（KV）cache 与 hidden-state feature store 如何分工，并比较 Speculators、SpecForge、TorchSpec 与 RL rollout 的框架策略。
-4. [投机草稿模型技术栈与思考](topics/speculative-drafter-stack.md)：看训推对齐、feature 生命周期、训练目标、验证调度、框架交付和实验决策树。
-5. [现有工作：投机模型训练 Recipes](topics/speculative-training-recipes.md)：先看 Nemotron 3.5 的 MTP 初始化、warmup、hidden-state mixing 和 post-training boosting，再回到项目实验规划。
-6. [RL drafter co-training](topics/rl-drafter-cotraining.md)：看 RL rollout 中在线 drafter 的收益排序、hidden-state 漂移、梯度边界和证据等级。
-7. [P-EAGLE](papers/p-eagle.md)、[DFlash](papers/dflash.md)、[D2SD](papers/d2sd.md)、[JetSpec](papers/jetspec.md)：理解 parallel drafting、block diffusion 和 tree drafting 主线。
-8. [HyperDFlash](papers/hyperdflash.md) 与 [DSpark](papers/dspark.md)：看架构对齐、半自回归修正和 confidence scheduling。
-9. [DeLS-Spec](papers/dels-spec.md)：看 DSpark 发布后的低成本算法增量——冻结 DFlash、独立训练短上下文专家并做 prior-corrected logit fusion。
-10. [AngelSpec](papers/angelspec.md) 与 [TorchSpec](papers/torchspec.md)：看 workload-aware drafter、动态验证预算，以及解耦 hidden-state 训练系统。
-11. [AcceptMoE](papers/acceptmoe.md)：看 MoE 树验证中的 commitment-weighted、自适应专家集合与 offload cache 剪枝。
-12. [LibraSpec](papers/libraspec.md)：看扩散式 drafter 的边际收益驱动动态 speculative length。
-13. [Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)：看验证器如何用局部 regret、block cap 和请求级账本接受有界例外，并复用同次目标前向中的连续后缀。
-14. [DPara](papers/dpara.md)：看如何枚举所有接受边界，把并行草稿骨干稳定隐藏在目标验证窗口内。
-15. [DLoop](papers/dloop.md)、[D-Loop](papers/d-loop.md)、[DRelay](papers/drelay.md)：看 2026-10 新增的验证频率、块内前缀条件化与候选修复分支。
+4. [投机草稿模型接受率验证与监测](topics/draft-acceptance-validation.md)：看 sampled-prefix、conditional acceptance、EAL/survival curve、confidence calibration、分布偏移与分级离线/在线验证。
+5. [投机草稿模型技术栈与思考](topics/speculative-drafter-stack.md)：看训推对齐、feature 生命周期、训练目标、验证调度、框架交付和实验决策树。
+6. [现有工作：投机模型训练 Recipes](topics/speculative-training-recipes.md)：先看 Nemotron 3.5 的 MTP 初始化、warmup、hidden-state mixing 和 post-training boosting，再回到项目实验规划。
+7. [RL drafter co-training](topics/rl-drafter-cotraining.md)：看 RL rollout 中在线 drafter 的收益排序、hidden-state 漂移、梯度边界和证据等级。
+8. [P-EAGLE](papers/p-eagle.md)、[DFlash](papers/dflash.md)、[D2SD](papers/d2sd.md)、[JetSpec](papers/jetspec.md)：理解 parallel drafting、block diffusion 和 tree drafting 主线。
+9. [HyperDFlash](papers/hyperdflash.md) 与 [DSpark](papers/dspark.md)：看架构对齐、半自回归修正和 confidence scheduling。
+10. [DeLS-Spec](papers/dels-spec.md)：看 DSpark 发布后的低成本算法增量——冻结 DFlash、独立训练短上下文专家并做 prior-corrected logit fusion。
+11. [AngelSpec](papers/angelspec.md) 与 [TorchSpec](papers/torchspec.md)：看 workload-aware drafter、动态验证预算，以及解耦 hidden-state 训练系统。
+12. [AcceptMoE](papers/acceptmoe.md)：看 MoE 树验证中的 commitment-weighted、自适应专家集合与 offload cache 剪枝。
+13. [LibraSpec](papers/libraspec.md)：看扩散式 drafter 的边际收益驱动动态 speculative length。
+14. [Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)：看验证器如何用局部 regret、block cap 和请求级账本接受有界例外，并复用同次目标前向中的连续后缀。
+15. [DPara](papers/dpara.md)：看如何枚举所有接受边界，把并行草稿骨干稳定隐藏在目标验证窗口内。
+16. [DLoop](papers/dloop.md)、[D-Loop](papers/d-loop.md)、[DRelay](papers/drelay.md)：看 2026-10 新增的验证频率、块内前缀条件化与候选修复分支。
 
 ## 文档索引
 
 - Surveys：[Evolution](surveys/evolution.md)，[Foundations and trends](surveys/foundations-and-trends.md)， [AcceptMoE](papers/acceptmoe.md)
 - Papers：[P-EAGLE](papers/p-eagle.md)，[DFlash](papers/dflash.md)，[D2SD](papers/d2sd.md)，[JetSpec](papers/jetspec.md)，[HyperDFlash](papers/hyperdflash.md)，[DSpark](papers/dspark.md)，[DeLS-Spec](papers/dels-spec.md)，[AngelSpec](papers/angelspec.md)，[TorchSpec](papers/torchspec.md)，[AcceptMoE](papers/acceptmoe.md)，[LibraSpec](papers/libraspec.md)，[Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)，[DPara](papers/dpara.md)，[DLoop](papers/dloop.md)，[D-Loop](papers/d-loop.md)，[DRelay](papers/drelay.md)
-- Topics：[Speculator training data lifecycle](topics/speculator-training-data-lifecycle.md)，[投机草稿模型技术栈与思考](topics/speculative-drafter-stack.md)，[原始投机草稿模型技术笔记](topics/投机草稿模型技术栈与思考.md)，[现有工作：投机模型训练 Recipes](topics/speculative-training-recipes.md)，[RL drafter co-training](topics/rl-drafter-cotraining.md)，[DeepSpec online_train 后续算法与实验规划](topics/deepspec-online-train-followup-planning.md)
+- Topics：[Speculator training data lifecycle](topics/speculator-training-data-lifecycle.md)，[投机草稿模型接受率验证与监测](topics/draft-acceptance-validation.md)，[投机草稿模型技术栈与思考](topics/speculative-drafter-stack.md)，[原始投机草稿模型技术笔记](topics/投机草稿模型技术栈与思考.md)，[现有工作：投机模型训练 Recipes](topics/speculative-training-recipes.md)，[RL drafter co-training](topics/rl-drafter-cotraining.md)，[DeepSpec online_train 后续算法与实验规划](topics/deepspec-online-train-followup-planning.md)
 - Evidence：[Figure inventory](evidence/figure-inventory.md)，[2026-10 figure inventory](evidence/2610-figure-inventory.md)，[2026-10 DFlash/DSpark lineage scan](evidence/2026-10-dflash-lineage-scan.md)，[Speculator training data lifecycle evidence](evidence/speculator-training-data-lifecycle.md)，[RL drafter co-training evidence](evidence/rl-drafter-cotraining.md)，[AcceptMoE figure inventory](evidence/acceptmoe-figure-inventory.md)，[LibraSpec figure inventory](evidence/libraspec-figure-inventory.md)，[ASD figure inventory](evidence/approximate-speculative-decoding-figure-inventory.md)，[DPara figure inventory](evidence/dpara-figure-inventory.md)
 - Supplement：[DFlash draft-model acceptance risk](supplements/dflash-acceptance-risk.html)，[投机草稿模型技术栈与思考全景](supplements/speculative-drafter-stack.html)，[消融实验方向](supplements/speculative-drafter-ablation.html)，[投机模型训练 Recipes](supplements/speculative-training-recipes.html)，[投机草稿模型训练与评测数据集](supplements/speculative-drafter-datasets.html)
 
