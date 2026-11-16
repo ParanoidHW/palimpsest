@@ -30,7 +30,7 @@
 
 ## 精读证据入口
 
-[SpecPilot](../papers/specpilot.md#2-研究动机与问题方案闭环)（arXiv:2611.02501v1）将投机解码的优化对象从单个草稿器扩展到“部署条件下的整套引擎”：成本模型判定接受长度、权重读取或批处理逐行成本的当前瓶颈，隔离控制器筛选代理补丁。其封闭请求测试在 H100 单请求 DFlash2 上对 stock 为 2.13×、FP8 批处理 DSpark 上为 1.94×；两级验证和宽树在 batch 中可变慢，详见 [机制与证据](../papers/specpilot.md#5-关键结论)。该工作是系统搜索与部署适配分支，不把整体提升归因于任一单项算法。
+[SpecPilot](../papers/specpilot.md)（arXiv:2611.02501v1）将投机解码的优化对象从单个草稿器扩展到“部署条件下的整套引擎”：成本模型判定接受长度、权重读取或批处理逐行成本的当前瓶颈，隔离控制器筛选代理补丁。其封闭请求测试在 H100 单请求 DFlash2 上对 stock 为 2.13×、FP8 批处理 DSpark 上为 1.94×；两级验证和宽树在 batch 中可变慢，详见[机制与证据](../papers/specpilot.md)。该工作是系统搜索与部署适配分支，不把整体提升归因于任一单项算法。
 
 [P-EAGLE](../papers/p-eagle.md) · [DFlash](../papers/dflash.md#5-关键结论与技术-claim-证据矩阵) · [D²SD](../papers/d2sd.md#5-关键结论) · [JetSpec](../papers/jetspec.md) · [HyperDFlash](../papers/hyperdflash.md) · [DSpark](../papers/dspark.md#5-关键结论与技术主张证据矩阵) · [DeLS-Spec](../papers/dels-spec.md) · [AngelSpec](../papers/angelspec.md) · [TorchSpec](../papers/torchspec.md) · [AcceptMoE](../papers/acceptmoe.md) · [LibraSpec](../papers/libraspec.md) · [Approximate Speculative Decoding](../papers/approximate-speculative-decoding.md)
 
