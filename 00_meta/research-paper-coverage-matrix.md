@@ -180,7 +180,7 @@
 | Douyin Multimodal Embedding Model Technical Report（DME；arXiv:2608.02148v3） | 深度精读；证据定位与跨条件重建 | [douyin-multimodal-embedding](../02_model_systems/multimodal_understanding/papers/douyin-multimodal-embedding.md) |
 | MCPO: Modality-Contrastive Preference Optimization for Multimodal Chain-of-Thought Compression（MCPO；arXiv:2609.04947v1；别名：Modality-Contrastive Preference Optimization） | 深度精读；版本锁定 v1；官方代码与完整时延环境未披露 | [mcpo](../02_model_systems/multimodal_understanding/papers/mcpo.md) |
 
-### Speculative decoding（16）
+### Speculative decoding（17）
 
 | Paper | 状态 | Canonical |
 |---|---|---|
@@ -200,6 +200,7 @@
 | DLoop: Looped Speculative Decoding（arXiv:2610.07659v1） | 深度精读；多 drafting stage 合并一次 lossless verification | [dloop](../02_model_systems/speculative_decoding/papers/dloop.md) |
 | D-Loop: Looped Diffusion Drafting for Speculative Decoding（arXiv:2610.06011v1） | 深度精读；共享 backbone 的 prefix-conditioned suffix regeneration | [d-loop](../02_model_systems/speculative_decoding/papers/d-loop.md) |
 | DRelay: Global Draft Context for Prefix-Aware Parallel Speculative Decoding Repair（arXiv:2610.01439v1） | 深度精读；global candidate read 与 prefix-aware repair | [drelay](../02_model_systems/speculative_decoding/papers/drelay.md) |
+| SpecPilot: Autonomous Algorithm Discovery and Systems Optimization for Speculative Decoding（arXiv:2611.02501v1；简称 SpecPilot） | 深度精读；按部署代理优化、W12、树验证、两级验证与 batch 调度；官方代码 commit 已核验，GPU 基准未独立运行 | [specpilot](../02_model_systems/speculative_decoding/papers/specpilot.md) |
 
 ### Kernel agents（4）
 
