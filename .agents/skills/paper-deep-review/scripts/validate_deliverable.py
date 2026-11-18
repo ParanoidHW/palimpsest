@@ -12,6 +12,8 @@ from pathlib import Path
 
 import jsonschema
 
+from validate_narrative import check as validate_narrative
+
 
 def sha256_path(path: Path) -> str:
     if path.is_file():
@@ -296,9 +298,19 @@ def main() -> int:
     args = parse_args()
     manifest_path = args.manifest.resolve()
     skill_root = Path(__file__).resolve().parent.parent
-    schema_path = (args.schema or skill_root / "references/deliverable-schema.json").resolve()
     root = manifest_path.parent
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    version = manifest.get("schema_version")
+    if version == "1.8.0":
+        schema_path = (args.schema or skill_root / "references/deliverable-schema.json").resolve()
+        result = validate_narrative(manifest_path, schema_path, args.canonical_paper)
+        rendered = json.dumps(result, ensure_ascii=False, indent=2)
+        print(rendered)
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(rendered + "\n", encoding="utf-8")
+        return 0 if result["status"] == "passed" else 1
+    schema_path = (args.schema or skill_root / "references/deliverable-schema-1.7.0.json").resolve()
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     errors: list[str] = []
 

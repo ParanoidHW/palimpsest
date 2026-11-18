@@ -2,6 +2,12 @@
 
 Apply this contract before drafting and again as a dedicated revision pass. The target reader is technically literate but has not read the paper. Evidence accuracy and accessibility are both completion requirements.
 
+## Narrative first, audit second
+
+Read each paper subsection as prose before assigning it to a review field. In a private outline, record (a) what that subsection says, (b) its consequential details, and (c) why the next subsection follows. Use those transitions to choose the report's reading order. The reader-facing Paper should be continuous explanation with source-located figures and equations; the manifest, checklist and claim index are audit records, not a script for paragraphs.
+
+Do not turn each paragraph into a short question, a stock answer and a final disclaimer. State evidence boundaries where the reader needs them, usually at the claim or experiment they qualify. Keep familiar terms such as GPU, token, target, drafter and kernel when they make the prose clearer. Define paper-specific or ambiguous terms at first use, for example whether a paper's `row` means a verification node/GEMM M-axis row or a concurrent request.
+
 ## 0. Problem-first opening
 
 Before method acronyms, component names, and equations, make the problem observable through at least one concrete end-to-end scenario. The scenario must identify:
@@ -29,25 +35,7 @@ Do not place several equations in a row and explain them only through a remote s
 6. Under which assumption, approximation, unit, range, or stage is it valid?
 7. Can a small paper-derived or reviewer-created example make it concrete?
 
-Use this compact pattern:
-
-```markdown
-**这条公式在算什么？** ...
-
-**怎么读？** ...
-
-**输入与输出。** 输入是 ...；输出是 ...
-
-**变量在这里各做什么？** ...
-
-**直觉。** ...
-
-**边界。** ...
-
-**小例子。** ...（论文示例 / 本文构造的说明例，不是论文实验）
-```
-
-The example may be `not-applicable` only when a numerical or toy example would mislead; explain why.
+These questions are an editing checklist, not seven mandatory labels. Put the displayed equation next to the passage whose logic needs it, explain its variables and implication in surrounding sentences, and use a small source-derived example when helpful. Group tightly coupled equations when one explanation covers the group. If a numerical example would mislead, omit it rather than writing a formulaic `not-applicable` sentence.
 
 ## 2. Jargon policy
 
@@ -141,3 +129,9 @@ The reader should be able to state, without consulting another section:
 - what the evidence proves and does not prove.
 
 If not, revise before setting the manifest or checklist to `passed`.
+
+## 6. Review the actual reading path
+
+For a qualitative audit, ask a reviewer to read the rendered report without the manifest, then trace two or three consequential claims back to the cited paper passages. Record the reviewer's identity/role, date, which report passages and source sections were checked, concrete comprehension or logical gaps found, and how they were resolved. The reviewer should be able to retell the route from observed problem to design choice to measurement, and identify the baseline/denominator for a representative gain. An empty issues list or a score is not evidence that this happened.
+
+Machine checks may verify that source excerpts occur in the locked paper text, claim locations and images resolve, equations are paired, and a review record names the current report hash. A human must check that the cited passage actually supports the claim, the figure is read correctly, the baseline and denominator are right, and the causal explanation can be followed. No citation substring or score proves those judgments. Report structural validation and human reading judgment separately; never label a machine pass as proof of readability.
