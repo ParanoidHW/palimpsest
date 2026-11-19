@@ -29,7 +29,7 @@ When `$research-knowledge-publisher` is available or a repository research-knowl
 
 ## Mandatory Execution Contract
 
-The fixed-heading, formula-card, count-matching and legacy-manifest rules in the detailed workflow below apply to v1.7 deliveries; its frozen [template](references/markdown-template-1.7.0.md), [checklist](references/review-checklist-template-1.7.0.md) and [schema](references/deliverable-schema-1.7.0.json) remain available. For v1.8, follow the narrative writing contract above, the current [template](references/markdown-template.md), [checklist](references/review-checklist-template.md), schema and validator. Retain source acquisition, figure QA, provenance, revision, evidence attribution and publisher gates where applicable. Do not impose fixed chapter headings or seven formula-card labels on a v1.8 Paper.
+The fixed-heading, formula-card, count-matching and legacy-manifest rules in the detailed workflow below apply to v1.7 deliveries; its frozen [template](references/markdown-template-1.7.0.md), [checklist](references/review-checklist-template-1.7.0.md) and [schema](references/deliverable-schema-1.7.0.json) remain available. For v1.8, follow the narrative writing contract above, the current [template](references/markdown-template.md), [narrative checklist](references/review-checklist-narrative.md), schema and validator. Retain source acquisition, figure QA, provenance, revision, evidence attribution and publisher gates where applicable. Do not impose fixed chapter headings or seven formula-card labels on a v1.8 Paper.
 
 Treat the applicable version of this skill as a required workflow rather than optional guidance.
 
@@ -260,7 +260,7 @@ Before finishing:
 - `references/markdown-template.md`: reusable Chinese Markdown structure, including the mandatory paper-level motivation/problem-solution chapter, component-level rationale audit, and "解读问题/待验证清单".
 - `references/readability-contract.md`: mandatory formula, jargon, concrete-example, and algorithm-overview readability contract.
 - `references/deliverable-schema.json`: Draft 2020-12 schema for the required paper-level `deliverable_manifest.json`, including machine-checkable Paper tags, problem-solution, and reader-comprehension fields.
-- `references/review-checklist-template.md`: mandatory per-paper execution and quality checklist; copy it into the paper folder before substantive analysis and preserve every item.
+- `references/review-checklist-narrative.md`: v1.8 narrative execution and reading checklist; copy it into the paper folder before substantive analysis and preserve every item. The legacy `references/review-checklist-template.md` remains frozen for v1.7 compatibility.
 - `scripts/validate_deliverable.py`: structural and deterministic semantic validator for schema, hashes, counts, headings, readability fields, checklist state, and diagram paths.
 - `scripts/extract_pdf_assets.py`: optional helper to extract PDF text and render page PNGs for offline papers.
 - `scripts/crop_pdf_figures.py`: optional helper to batch crop figures/tables from page PNGs and create a contact sheet for QA.
