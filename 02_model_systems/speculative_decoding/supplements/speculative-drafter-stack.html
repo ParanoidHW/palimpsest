@@ -50,12 +50,38 @@
 .section-disclosure-body> :last-child{margin-bottom:0}
 .validation-cache{--section-color:var(--teal);--section-tint:#e1f1ee}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+/* Use a document flow: top-level chapters own their indented subsection modules. */
+.grid{display:flex;flex-direction:column;gap:0}
+.card,.card.wide,.card.full{width:100%;grid-column:auto;padding:26px 0;border:0;border-top:1px solid var(--line);border-radius:0;background:transparent}
+.card h2{display:flex;align-items:baseline;gap:10px;margin:0 0 14px;padding-left:12px;border-left:4px solid var(--section-color);font-size:22px}
+.section-disclosure{margin:12px 0 12px 18px;border:0;border-left:3px solid var(--section-color);border-radius:0;background:transparent}
+.section-disclosure>summary{padding:12px 14px 12px 16px}
+.section-disclosure-body{padding:12px 16px 14px;border-left:1px solid color-mix(in srgb,var(--section-color) 24%,white);margin-left:4px}
+.validation-cache{margin:12px 0 12px 18px;border:0;border-left:3px solid var(--teal);border-radius:0;background:transparent}
+.validation-cache>summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:center;padding:12px 14px 12px 16px;list-style:none}
+.validation-cache>summary::-webkit-details-marker{display:none}
+.validation-cache>summary::after{content:"展开";grid-column:2;grid-row:1;color:var(--teal);font-size:12px}
+.validation-cache[open]>summary::after{content:"收起"}
+.validation-cache>summary .disclosure-preview{grid-column:1/-1;color:#43515e;font-size:13px;line-height:1.55}
+.validation-cache>.validation-cache-body{padding:12px 16px 14px;border-left:1px solid #b7d8d2;margin-left:4px}
+.math-display{max-width:100%;overflow-x:auto;text-align:center;padding:8px 0}
+.toc nav{display:grid;gap:2px}
+.toc-group+.toc-group{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.toc-label{padding:0 8px 5px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase}
+.toc a{border-left:2px solid transparent}
+.toc a[href="#sandbox"]{color:var(--muted)}
+.sandbox-board{grid-template-rows:auto auto auto auto auto auto}
+.sandbox-zone.f{grid-column:3;grid-row:4}
+.sandbox-zone.g{grid-column:1/-1;grid-row:5}
+.sandbox-note{grid-row:6}
+@media(max-width:900px){.toc nav{display:flex}.card,.card.wide,.card.full{padding:21px 0}.card h2{font-size:19px}.section-disclosure,.validation-cache{margin-left:8px}.section-disclosure-body,.validation-cache>.validation-cache-body{padding-left:10px;padding-right:10px}}
+@media(max-width:600px){.sandbox-board{display:flex;flex-direction:column;min-width:0;min-height:0;gap:10px;padding:18px}.sandbox-title{order:0}.sandbox-center{order:1;position:relative;left:auto!important;top:auto!important;width:auto;height:auto;min-height:0;padding:18px}.sandbox-zone{order:2;position:static;width:auto;min-height:0}.sandbox-note{order:3;position:static}.sandbox-pair{gap:8px}.sandbox-mini{padding:10px 6px}}
 </style>
 </head>
 <body>
 <header><h1>投机草稿模型：技术栈与思考全景</h1><p>从训推一致性出发，把模型结构、数据轨迹、feature 传输、验证调度和实验决策串成一条可验证的因果链。</p></header>
 <main class="wrap page-layout">
-<aside class="toc" aria-label="页面导航"><div class="toc-title">页面导航</div><nav><a href="#sandbox">技术沙盘</a><a href="#alignment">1. 训推一致性</a><a href="#training-metrics">接受指标与训练验证</a><a href="#stack">2. 技术栈六层</a><a href="#lifecycle">3. 生命周期</a><a href="#resources">4. 推理资源需求</a><a href="#experiments">5. 实验决策树</a><a href="#matrix">6. 最小矩阵</a><a href="speculative-drafter-ablation.html">消融实验方向（独立页）</a><a href="speculative-drafter-datasets.html">评测与数据集（独立页）</a><a href="speculative-training-recipes.html">训练 Recipes（独立页）</a><a href="#open">7. 未闭合论证</a></nav></aside>
+<aside class="toc" aria-label="页面导航"><div class="toc-title">页面导航</div><div class="toc-group"><div class="toc-label">概览</div><nav><a href="#sandbox">技术沙盘</a></nav></div><div class="toc-group"><div class="toc-label">章节</div><nav><a href="#alignment">1. 训推一致性</a><a href="#training-metrics">2. 接受指标与训练验证</a><a href="#stack">3. 技术栈六层</a><a href="#lifecycle">4. 三种生命周期</a><a href="#resources">5. 推理资源需求</a><a href="#experiments">6. 实验决策树</a><a href="#matrix">7. 最小实验矩阵</a><a href="#open">8. 尚未闭合的论证链</a></nav></div><div class="toc-group"><div class="toc-label">延伸阅读</div><nav><a href="speculative-drafter-ablation.html">消融实验方向</a><a href="speculative-drafter-datasets.html">评测与数据集</a><a href="speculative-training-recipes.html">训练 Recipes</a></nav></div></aside>
 <div class="content">
 <div class="toolbar"><button onclick="document.querySelectorAll('details').forEach(x=>x.open=true)">展开全部</button><button onclick="document.querySelectorAll('details').forEach(x=>x.open=false)">收起全部</button><button onclick="document.getElementById('open').scrollIntoView({behavior:'smooth'})">跳到未闭合论证</button></div>
 <section class="panorama" id="sandbox" aria-label="技术栈全景图">
@@ -147,14 +173,32 @@
 <script>
 const sectionIds={"1. 第一门槛：训推一致性":"alignment","2. 技术栈六层":"stack","3. 三种生命周期":"lifecycle","资源依赖：回答生成与特征生产分开核算":"resources","4. 实验决策树":"experiments","5. 最小矩阵":"matrix","6. 尚未闭合的论证链":"open"};
 document.querySelectorAll('.grid article h2').forEach((heading)=>{const id=sectionIds[heading.textContent.trim()];if(id) heading.parentElement.id=id;});
-const titleUpdates={"训练验证：用接受行为做门槛初筛":"1. 接受指标与训练验证：用接受行为做门槛初筛","4. 实验决策树":"5. 实验决策树","5. 最小矩阵":"6. 最小矩阵","6. 尚未闭合的论证链":"7. 尚未闭合的论证链"};
+const titleUpdates={"训练验证：用接受行为做门槛初筛":"2. 接受指标与训练验证","2. 技术栈六层":"3. 技术栈六层","3. 三种生命周期":"4. 三种生命周期","资源依赖：回答生成与特征生产分开核算":"5. 推理资源需求","4. 实验决策树":"6. 实验决策树","5. 最小矩阵":"7. 最小实验矩阵","6. 尚未闭合的论证链":"8. 尚未闭合的论证链","1.1 先把接受长度拆成可观察的事件":"2.1 先把接受长度拆成可观察的事件","1.2 两个场景指标：接受长度与草稿长度":"2.2 两个场景指标：接受长度与草稿长度","1.2.1 运行框架如何报接受长度":"2.2.1 运行框架如何报接受长度","1.4 按成本分层，而不是拿单一 loss 当晋级条件":"2.4 按成本分层，而不是拿单一 loss 当晋级条件","1.5 训练目标可以感知接受长度，验证口径仍须独立":"2.5 训练目标可以感知接受长度，验证口径仍须独立","1.6 让 checkpoint 对照尽量贴近部署":"2.6 让 checkpoint 对照尽量贴近部署"};
 document.querySelectorAll('.grid article > h2').forEach((heading)=>{if(titleUpdates[heading.textContent.trim()]) heading.textContent=titleUpdates[heading.textContent.trim()];});
+document.querySelectorAll('.grid article > h3').forEach((heading)=>{if(titleUpdates[heading.textContent.trim()]) heading.textContent=titleUpdates[heading.textContent.trim()];});
 document.querySelectorAll('.grid article').forEach((article)=>{
   if(article.querySelector('.section-disclosure')) return;
   article.querySelectorAll('details[open]').forEach((disclosure)=>{disclosure.open=false;});
   const regen=article.querySelector(':scope > .validation-cache');
   const costHeading=Array.from(article.querySelectorAll(':scope > h3')).find((node)=>node.textContent.includes('按成本分层'));
   if(regen && costHeading) costHeading.before(regen);
+  if(regen){
+    const title=regen.querySelector('summary b');
+    if(title) title.textContent='2.3 多轨迹 regen：复用 target 计算，扩大 validation 覆盖';
+    regen.id='acceptance-regen';
+    regen.classList.add('section-disclosure');
+    const summary=regen.querySelector('summary');
+    const firstParagraph=regen.querySelector('.validation-cache-body > p');
+    if(summary && firstParagraph){
+      const preview=document.createElement('span');
+      preview.className='disclosure-preview';
+      preview.textContent=firstParagraph.textContent.trim();
+      summary.append(preview);
+    }
+    regen.querySelectorAll('.validation-cache-body h4').forEach((heading,index)=>{
+      heading.textContent=heading.textContent.replace(/^1\.3\./,`2.3.${index + 1} `);
+    });
+  }
   const heading=article.querySelector(':scope > h2');
   if(!heading) return;
   const nodes=Array.from(article.childNodes).filter((node)=>node!==heading);
@@ -175,17 +219,22 @@ document.querySelectorAll('.grid article').forEach((article)=>{
   groups.forEach((group)=>{
     const meaningful=group.nodes.filter((node)=>node.nodeType===1);
     if(!meaningful.length) return;
+    if(meaningful.length===1 && meaningful[0].matches('details.validation-cache')){
+      article.append(meaningful[0]);
+      return;
+    }
     const disclosure=document.createElement('details');
     disclosure.className='section-disclosure';
     const summary=document.createElement('summary');
     const title=document.createElement('b');
     title.textContent=group.title;
     summary.append(title);
-    const preview=meaningful.find((node)=>node.matches('p') || (node.matches('details') && node.querySelector('.validation-cache-body p')));
+    const preview=meaningful.find((node)=>node.matches('p,ul,ol,table,details'));
     if(preview){
       const copy=document.createElement('span');
       copy.className='disclosure-preview';
-      copy.textContent=(preview.matches('details') ? preview.querySelector('.validation-cache-body p') : preview).textContent.trim();
+      const previewContent=preview.matches('details') ? (preview.querySelector('.validation-cache-body p, summary') || preview) : preview.matches('ul,ol') ? (preview.querySelector('li') || preview) : preview.matches('table') ? (preview.querySelector('tr') || preview) : preview;
+      copy.textContent=previewContent.textContent.trim();
       summary.append(copy);
     }
     const body=document.createElement('div');
@@ -195,6 +244,7 @@ document.querySelectorAll('.grid article').forEach((article)=>{
     article.append(disclosure);
   });
 });
+window.addEventListener('load',()=>{if(window.MathJax?.typesetPromise) window.MathJax.typesetPromise();});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.33.1/dist/cytoscape.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/elkjs@0.11.0/lib/elk.bundled.js"></script>
