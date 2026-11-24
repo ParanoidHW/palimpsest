@@ -29,6 +29,7 @@ Diffusion/flow 多模态生成正在从“单个图像/视频模型”变成一�
 1. **负载不是 LLM decode。** 大部分 denoise step 是重复的 prefill-like 大矩阵计算；长视频进一步把 attention、activation HBM 与 sequence-parallel 通信推到前台。
 2. **统一模型产生两种 state machine。** AR KV 是 append-only，diffusion latent/feature 会按 step overwrite/recompute；服务框架必须 phase-aware，而不能只扩展一个 token scheduler。
 3. **视觉 tokenizer 是系统旋钮。** token 数 `N` 由空间/时间压缩与 patch 共同决定；channel 决定每 token payload。压缩率、重建上限、attention 复杂度和 VAE 峰值必须联合评估。
+   [dNaViT 的单篇证据](../../multimodal_understanding/papers/dnavit.md#方法先保留信息再分配码本容量)补充了离散接口的另一维度：`f=32` 仅确定空间位置数；分组量化的 $G$ 个索引/位置、组嵌入与多子 token 预测头还需单独核算，不能由空间位置数推断完整码率或生成延迟。
 4. **少步生成后，单步 kernel 更重要。** 当 NFE 从几十步降到 1-8 步，跨 step cache 的机会减少，长序列 attention、低比特和稀疏 kernel 的占比反而上升。
 5. **软硬件协同从“支持 FP16 GEMM”转向 mask/layout/cache/topology。** custom mask、varlen、block sparse、JVP、FP8、one-sided communication、多级 cache prefetch 逐渐成为可区分平台效率的能力。
 

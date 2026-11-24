@@ -11,3 +11,4 @@
 |---|---|---|---|
 | DME: Douyin Multimodal Embedding | arXiv:2608.02148v3 | 多模态统一嵌入与检索 | [DME 精读](../papers/douyin-multimodal-embedding.md) |
 | MCPO: Modality-Contrastive Preference Optimization for Multimodal Chain-of-Thought Compression | arXiv:2609.04947v1 | 多模态推理效率与思维链压缩 | [MCPO 精读](../papers/mcpo.md) |
+| dNaViT: Discrete Codes are General-Purpose Visual Representations | arXiv:2611.12426v1 | 离散视觉表征、理解与重建；生成/编辑为下游验证 | [dNaViT 精读](../papers/dnavit.md) |
