@@ -5,7 +5,7 @@
 1. 哪些研究领域/子领域已经有正式 Survey 或 Paper；
 2. 某篇论文是否已经完成 canonical 分析，应当复用、链接或增量更新，而不是重新生成一份。
 
-> 快照日期：2026-11-24。当前共登记 10 个正式 paper domain、106 篇 canonical Paper。
+> 快照日期：2026-11-26。当前共登记 10 个正式 paper domain、107 篇 canonical Paper。
 >
 > 作者机构元数据：`90/90` 已按论文 PDF 标题页、机构编号和角色脚注核验（2026-09-18）。其中 80 篇为个人作者署名，记录首位列名作者、明确共同一作、明确通讯作者/联系人与去重机构；10 篇为机构署名，仅记录署名机构。未披露字段保持“无法核验”，不按邮箱域名或外部履历推断。
 >
@@ -43,7 +43,7 @@
 | `02_model_systems/llm_foundations` | 13 | frontier LLM 架构、规模、Infra、looped reasoning 与 linear-attention system adoption | [2026 H1 model scale](../02_model_systems/llm_foundations/surveys/2026h1-model-scale.md) · [Linear Attention Transformer evolution](../02_model_systems/llm_foundations/surveys/linear-attention-transformer-evolution.md) | 新增 Looped Transformer 推理/潜在思维 canonical Paper；Linear Transformer、RetNet、Mamba、Mamba-2/SSD、GLA、DeltaNet、Gated DeltaNet、Kimi Linear、Mamba-3、Gated DeltaNet-2 已完成独立验收；Kimi K3 复用；taxonomy 独立计入 benchmark lane |
 | `02_model_systems/multimodal_generation` | 22 | image/video/audio diffusion、AR/flow、MoT、world model、VAE、cache、稀疏 attention、serving | [Diffusion evolution](../02_model_systems/multimodal_generation/surveys/diffusion-evolution.md) | 新增 MAGI-2 Preview 的 114B/6B Multi-Head LatentMoE 与训练系统解读 |
 | `02_model_systems/multimodal_understanding` | 3 | 多模态统一嵌入、检索、离散视觉表征、视觉推理效率与思维链压缩 | [Paper Index](../02_model_systems/multimodal_understanding/evidence/paper-index.md) | DME、MCPO 与 dNaViT 已建立 canonical Paper、正式资产及双向索引 |
-| `02_model_systems/speculative_decoding` | 16 | diffusion draft、tree/parallel drafting、解耦 local correction、验证频率、块内条件化、候选修复、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖；新增 DLoop、D-Loop、DRelay 与 DPara |
+| `02_model_systems/speculative_decoding` | 18 | diffusion draft、tree/parallel drafting、解耦 local correction、验证频率、块内条件化、候选修复、并行草稿特征编码、serving | [Evolution](../02_model_systems/speculative_decoding/surveys/evolution.md) | 近期系统分支已覆盖；新增 DLoop、D-Loop、DRelay、DPara、SpecPilot 与 DNeo |
 | `03_agentic_workflows/kernel_agents` | 4 | LLM 自动 kernel 生成、Ascend/NPU、test-time scaling | [Paper index](../03_agentic_workflows/kernel_agents/evidence/paper-index.md) | 当前为 Paper note，适合按需补全 |
 
 ## Paper 明细
@@ -202,6 +202,7 @@
 | D-Loop: Looped Diffusion Drafting for Speculative Decoding（arXiv:2610.06011v1） | 深度精读；共享 backbone 的 prefix-conditioned suffix regeneration | [d-loop](../02_model_systems/speculative_decoding/papers/d-loop.md) |
 | DRelay: Global Draft Context for Prefix-Aware Parallel Speculative Decoding Repair（arXiv:2610.01439v1） | 深度精读；global candidate read 与 prefix-aware repair | [drelay](../02_model_systems/speculative_decoding/papers/drelay.md) |
 | SpecPilot: Autonomous Algorithm Discovery and Systems Optimization for Speculative Decoding（arXiv:2611.02501v1；简称 SpecPilot） | 深度精读；叙事修订 v1.1.0，review validator 通过；按部署代理优化、W12、树验证、两级验证与 batch 调度；官方代码 commit 已核验，GPU 基准未独立运行。旧版 manifest 尚未恢复，迁移问题 SPEC-PILOT-MANIFEST-001 未解，canonical publication blocked | [specpilot](../02_model_systems/speculative_decoding/papers/specpilot.md) |
+| DNeo: Your Parallel Draft Model Needs Better Target Feature Encoding（arXiv:2611.21925v1；MoFA） | 深度精读；MoFA 坐标保真特征编码、拒绝记忆与前缀专注注意力；官方代码未核验；拒绝记忆消融口径有 +0.182/+0.189 TPF 差异 | [dneo](../02_model_systems/speculative_decoding/papers/dneo.md) |
 
 ### Kernel agents（4）
 
