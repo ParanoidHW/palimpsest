@@ -202,7 +202,7 @@
 | D-Loop: Looped Diffusion Drafting for Speculative Decoding（arXiv:2610.06011v1） | 深度精读；共享 backbone 的 prefix-conditioned suffix regeneration | [d-loop](../02_model_systems/speculative_decoding/papers/d-loop.md) |
 | DRelay: Global Draft Context for Prefix-Aware Parallel Speculative Decoding Repair（arXiv:2610.01439v1） | 深度精读；global candidate read 与 prefix-aware repair | [drelay](../02_model_systems/speculative_decoding/papers/drelay.md) |
 | SpecPilot: Autonomous Algorithm Discovery and Systems Optimization for Speculative Decoding（arXiv:2611.02501v1；简称 SpecPilot） | 深度精读；叙事修订 v1.1.0，review validator 通过；按部署代理优化、W12、树验证、两级验证与 batch 调度；官方代码 commit 已核验，GPU 基准未独立运行。旧版 manifest 尚未恢复，迁移问题 SPEC-PILOT-MANIFEST-001 未解，canonical publication blocked | [specpilot](../02_model_systems/speculative_decoding/papers/specpilot.md) |
-| DNeo: Your Parallel Draft Model Needs Better Target Feature Encoding（arXiv:2611.21925v1；MoFA） | 深度精读；MoFA 坐标保真特征编码、拒绝记忆与前缀专注注意力；官方代码未核验；拒绝记忆消融口径有 +0.182/+0.189 TPF 差异 | [dneo](../02_model_systems/speculative_decoding/papers/dneo.md) |
+| DNeo: Your Parallel Draft Model Needs Better Target Feature Encoding（arXiv:2611.21925v1；MoFA） | 深度精读；解释全连接、逐坐标受限投影与 MoFA 的区别；Table 5 报告训练 TPF，DNeo 内 MoFA/受限投影数值相差约 0.36%（原文称 0.3% 以内）；官方代码未核验；拒绝记忆消融口径有 +0.182/+0.189 TPF 差异 | [dneo](../02_model_systems/speculative_decoding/papers/dneo.md) |
 
 ### Kernel agents（4）
 
