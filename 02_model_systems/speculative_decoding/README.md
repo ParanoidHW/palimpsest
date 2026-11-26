@@ -21,18 +21,19 @@
 15. [DPara](papers/dpara.md)：看如何枚举所有接受边界，把并行草稿骨干稳定隐藏在目标验证窗口内。
 16. [DLoop](papers/dloop.md)、[D-Loop](papers/d-loop.md)、[DRelay](papers/drelay.md)：看 2026-10 新增的验证频率、块内前缀条件化与候选修复分支。
 17. [SpecPilot](papers/specpilot.md)：看代理如何按部署诊断成本上限，并整合无损 W12、树验证、两级验证与批处理机制。
+18. [DNeo](papers/dneo.md)：看并行草稿器如何用 MoFA 保留目标特征坐标结构、记忆已拒绝后缀，并在 H100 上提升草稿接受数与生成速度。
 
 ## 文档索引
 
 - Surveys：[Evolution](surveys/evolution.md)，[Foundations and trends](surveys/foundations-and-trends.md)， [AcceptMoE](papers/acceptmoe.md)
-- Papers：[P-EAGLE](papers/p-eagle.md)，[DFlash](papers/dflash.md)，[D2SD](papers/d2sd.md)，[JetSpec](papers/jetspec.md)，[HyperDFlash](papers/hyperdflash.md)，[DSpark](papers/dspark.md)，[DeLS-Spec](papers/dels-spec.md)，[AngelSpec](papers/angelspec.md)，[TorchSpec](papers/torchspec.md)，[AcceptMoE](papers/acceptmoe.md)，[LibraSpec](papers/libraspec.md)，[Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)，[DPara](papers/dpara.md)，[DLoop](papers/dloop.md)，[D-Loop](papers/d-loop.md)，[DRelay](papers/drelay.md)，[SpecPilot](papers/specpilot.md)
+- Papers：[P-EAGLE](papers/p-eagle.md)，[DFlash](papers/dflash.md)，[D2SD](papers/d2sd.md)，[JetSpec](papers/jetspec.md)，[HyperDFlash](papers/hyperdflash.md)，[DSpark](papers/dspark.md)，[DeLS-Spec](papers/dels-spec.md)，[AngelSpec](papers/angelspec.md)，[TorchSpec](papers/torchspec.md)，[AcceptMoE](papers/acceptmoe.md)，[LibraSpec](papers/libraspec.md)，[Approximate Speculative Decoding](papers/approximate-speculative-decoding.md)，[DPara](papers/dpara.md)，[DLoop](papers/dloop.md)，[D-Loop](papers/d-loop.md)，[DRelay](papers/drelay.md)，[SpecPilot](papers/specpilot.md)，[DNeo](papers/dneo.md)
 - Topics：[Speculator training data lifecycle](topics/speculator-training-data-lifecycle.md)，[投机草稿模型接受率验证与监测](topics/draft-acceptance-validation.md)，[投机草稿模型技术栈与思考](topics/speculative-drafter-stack.md)，[原始投机草稿模型技术笔记](topics/投机草稿模型技术栈与思考.md)，[现有工作：投机模型训练 Recipes](topics/speculative-training-recipes.md)，[RL drafter co-training](topics/rl-drafter-cotraining.md)，[DeepSpec online_train 后续算法与实验规划](topics/deepspec-online-train-followup-planning.md)
-- Evidence：[Figure inventory](evidence/figure-inventory.md)，[2026-10 figure inventory](evidence/2610-figure-inventory.md)，[2026-10 DFlash/DSpark lineage scan](evidence/2026-10-dflash-lineage-scan.md)，[Speculator training data lifecycle evidence](evidence/speculator-training-data-lifecycle.md)，[RL drafter co-training evidence](evidence/rl-drafter-cotraining.md)，[AcceptMoE figure inventory](evidence/acceptmoe-figure-inventory.md)，[LibraSpec figure inventory](evidence/libraspec-figure-inventory.md)，[ASD figure inventory](evidence/approximate-speculative-decoding-figure-inventory.md)，[DPara figure inventory](evidence/dpara-figure-inventory.md)，[SpecPilot figure inventory](evidence/specpilot-figure-inventory.md)
+- Evidence：[Figure inventory](evidence/figure-inventory.md)，[2026-10 figure inventory](evidence/2610-figure-inventory.md)，[2026-10 DFlash/DSpark lineage scan](evidence/2026-10-dflash-lineage-scan.md)，[Speculator training data lifecycle evidence](evidence/speculator-training-data-lifecycle.md)，[RL drafter co-training evidence](evidence/rl-drafter-cotraining.md)，[AcceptMoE figure inventory](evidence/acceptmoe-figure-inventory.md)，[LibraSpec figure inventory](evidence/libraspec-figure-inventory.md)，[ASD figure inventory](evidence/approximate-speculative-decoding-figure-inventory.md)，[DPara figure inventory](evidence/dpara-figure-inventory.md)，[SpecPilot figure inventory](evidence/specpilot-figure-inventory.md)，[DNeo figure inventory](evidence/dneo-figure-inventory.md)
 - Supplement：[DFlash draft-model acceptance risk](supplements/dflash-acceptance-risk.html)，[投机草稿模型技术栈与思考全景](supplements/speculative-drafter-stack.html)，[消融实验方向](supplements/speculative-drafter-ablation.html)，[投机模型训练 Recipes](supplements/speculative-training-recipes.html)，[投机草稿模型训练与评测数据集](supplements/speculative-drafter-datasets.html)
 
 ## Obsidian Properties
 
-本领域 `10/10` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
+本领域 `18/18` 篇 canonical Paper 已加入统一的 Obsidian YAML Properties：
 
 - 共同标签：`paper`、`collection/speculative-decoding`、`domain/model-systems`、`status/deep-review`。
 - 每篇另有一项 `topic/*` 和一项 `method/*`，分别表达研究问题与 draft/verification 方法。

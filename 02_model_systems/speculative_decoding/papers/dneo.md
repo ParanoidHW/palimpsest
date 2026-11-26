@@ -1,0 +1,182 @@
+---
+tags:
+  - paper
+  - collection/speculative-decoding
+  - domain/model-systems
+  - status/deep-review
+  - topic/parallel-speculative-decoding
+  - method/target-feature-encoding
+document_type: paper
+domain: speculative_decoding
+collection: Speculative Decoding
+review_status: deep-review
+canonical: true
+---
+
+# DNeo：并行草稿器需要更好的目标特征编码
+
+> [!info] 文档关系
+> - 文档类型：Paper
+> - 领域入口：[Speculative Decoding README](../README.md)
+> - 上位汇总：[Speculative Decoding evolution](../surveys/evolution.md)
+> - 证据资产：`../assets/papers/dneo/`
+> - 相关文档：[DNeo figure inventory](../evidence/dneo-figure-inventory.md)
+
+## 修订信息
+
+- 当前版本：`1.0.0`
+- 当前修订 ID：`rev-dneo-initial-20261126`
+- 当前修订时间：`2026-11-26T12:00:00-07:00`
+- 修订类型：`initial`
+- 来源版本：arXiv:2611.21925v1（2026-11-16）
+
+## 先看问题：并行草稿怎样才能既快又少浪费
+
+自回归模型每次只生成一个 token，长回答需要反复运行大模型。投机解码让小草稿器先提议一段 token，再让目标模型用一次并行前向验证整段；拒绝采样使最终输出仍服从目标模型分布，因此在理想实现下不牺牲生成分布。本文讨论的是一种特殊草稿器：它一次并行预测多个位置，延迟低，但各位置之间缺少逐 token 的因果依赖，草稿质量容易下降。
+
+设想一个 Qwen3-4B 请求需要继续生成 16 个位置。并行草稿器一次给出 16 个提议，目标模型并行检查。若第 4 个位置首次被拒绝，第 5 到 16 个提议也必须丢弃，即使它们各自碰巧正确；本轮实际提交的 token 数因此很少，目标模型已经花费的验证算力也没有转化成输出。方法的目标不是改变这条无损验证规则，而是让小草稿器在低额外延迟下提出更合目标分布的 token，并在下一轮利用刚才验证时算出的信息。
+
+这里的例子是依据论文第 2 节拒绝采样规则重构的说明场景，不是论文单独报告的实验案例。可观察的成本是每轮提交 token 数下降，同时每个输出 token 平摊到更多草稿与验证计算。
+
+论文的出发点在于，现有并行草稿器已经读取目标模型隐藏状态，却可能在编码时破坏这些特征；它们通常还忽略上轮被拒绝位置的目标特征，并按固定间隔抽取目标层。DNeo 围绕这三处限制改造特征编码与草稿器结构。需要区分两个指标：每轮提交 token 数 $τ$ 衡量草稿接受质量；端到端速度还取决于每轮草稿和验证成本。只提高 $τ$ 并不自动保证系统变快。
+
+## 总体流程
+
+下图是论文 Figure 3 的 PDF 紧裁剪，原始完整 caption 保留。目标模型先计算干净前缀和已拒绝后缀的位置状态；DNeo 选择并混合目标层特征，再让并行草稿块通过跨注意力、两点因果卷积和融合因果头生成下一段提议。
+
+![Figure 3: DNeo architecture. Target model (left) produces residual streams for the clean-prefix, and rejected positions. Streams are aggregated into prefix hidden states and rejection states (A). The most useful states are kept with the DNeo feature selector (B) (Section 4.5), then passed to the MoFA gate (C) (Section 4.1) to obtain the encoded prefix, and rejection memory (D) (Section 4.3). Parallel draft blocks perform cross-attention to the target features (E), utilize 2-tap convolutions (F), and finally apply the fused DNeo head (G) (Section 4.2) to produce the new draft.](../assets/papers/dneo/fig3-architecture-caption.png)
+
+*原论文 Figure 3。图像来源：arXiv:2611.21925v1 PDF 第 6 页；裁剪与 QA 记录见 [Figure inventory](../evidence/dneo-figure-inventory.md)。*
+
+一轮结束后，目标模型已经为整段草稿计算了隐藏状态。因此被拒绝位置虽然不能直接成为输出，却仍可作为下一轮草稿的上下文。DNeo 将通过位置的目标特征分成“已接受前缀”和“被拒绝后缀”，编码后分别供草稿器读取。该信息复用来自目标模型原本就要做的验证前向，但草稿器如何读取它会增加自身计算；论文报告总体延迟需结合具体服务结果判断。
+
+## 核心机制：保留特征坐标含义
+
+既有稠密编码器把选中的多个目标层隐藏状态拼接后，用一个稠密投影压到草稿器可用的特征中。论文指出，这种投影不仅混合“不同层”的信息，还可能把隐藏向量第 $k$ 个坐标混进第 $j$ 个输出坐标（$j\ne k$）。作者称这种跨坐标混合为 residual mixing（残差维混合）。Transformer 各层都写入同一残差流，坐标通常共享稳定语义；稠密投影可能破坏这些对应关系。
+
+MoFA（Mixture-of-Features Attention，特征混合注意力）针对目标模型深度方向学习一个归一化权重向量，对每个坐标只混合不同层的同一坐标：
+
+$$
+\mathbf f_i = \sum_{k=1}^{c} u_k\,\mathbf h_i^{(l_k)},\qquad
+\sum_{k=1}^{c}u_k=1,\quad u_k\ge 0.
+$$
+
+这个式子回答“位置 $i$ 的草稿器特征如何从 $c$ 个目标层状态得到”：输入是所选层的隐藏向量，输出仍是同宽向量；$l_k$ 是第 $k$ 个被选目标层，$u_k$ 是学得的层权重。逐坐标相加避免把坐标 $j$ 与 $k$ 交叉投影，但它假设目标与草稿隐藏维度相同；论文说可通过改变草稿器键值投影输入维度扩展到不同宽度。MoFA 不会自动证明坐标语义普遍稳定，论文证据只覆盖其 Qwen3-4B 试验设定。
+
+对照实验较直接地支持“跨坐标混合解释了稠密编码损失”（论文 Section 4.1、Section 5.4.1 与 Table 5）：在 50K prompts 的训练 TPF 对比中，DFlash-2 稠密编码为 1.938；将稠密矩阵限制成逐坐标对角结构后为 2.361；DNeo MoFA 为 2.526；DNeo 中受限稠密编码为 2.517。后两者相差约 0.36%，符合作者所称 0.3% 以内（受四舍五入影响）。这表明结构限制可以解释 MoFA 相对普通稠密编码的大部分收益；但这是训练阶段 TPF，不是独立的端到端速度测量。
+
+## 另外三项设计怎样补足草稿器
+
+### 融合因果头：同时看上下文并修正全词表
+
+并行草稿器的各位置容易给出彼此不一致的预测。DFlash-2 的因果头结合前一 token 和当前位置目标特征，但只重排草稿分布的 top-16 候选；DSpark 头可通过低秩映射影响整个词表，却缺少同样的目标上下文。DNeo 将两种头在低秩空间融合，再映射回全词表，并用按草稿位置学习的系数调整两路贡献。简化写为：
+
+$$
+\mathbf z'_j=\mathbf z_j + \operatorname{Head}_{DNeo}(\hat x_{j-1},\mathbf h_j),\qquad
+q_j=\operatorname{softmax}(\mathbf z'_j).
+$$
+
+其中 $\mathbf z_j$ 是并行骨干对位置 $j$ 的原始词表分数，$\hat x_{j-1}$ 是左侧已确定的草稿 token，$\mathbf h_j$ 是该位置的上下文隐藏状态；输出 $q_j$ 是修正后的下一 token 分布。公式概括其作用，完整低秩融合见论文式 (8)。在 100K prompts 的头部对照中，DNeo 融合头 TPF 为 2.361，单独 DFlash-2 头为 2.217，单独 DSpark 头为 2.273。该对照支持融合的互补性，尚不能单独证明不同模型或更大词表下都同样有效。
+
+### 拒绝记忆：不再丢掉已经算出的后缀特征
+
+若某轮在位置 $j$ 首次拒绝，下一轮要重新草拟的位置与上轮被拒绝后缀相重叠。目标模型已计算这些位置的隐藏状态。DNeo 用与前缀相同的 MoFA 编码后缀，把结果作为键值特征追加到下一轮上下文；被遮蔽的草稿位置通过跨注意力按需读取它们，而不是把这些信息直接融合进所有遮蔽 token embedding。这样每个预测位置可选择相关的拒绝特征，且两种表示保持分离。
+
+论文将“拒绝记忆”与把拒绝信息塞入固定输入表示的 DFlow 式融合进行比较。100K prompts 的消融中，DNeo 拒绝记忆 TPF 为 3.112；移除记忆为 2.923（增量表报告 +0.189，正文另一处写 +0.182，存在数值口径不一致）；DFlow 式融合无 MLP 为 2.932（+0.009），加 MLP 为 2.953（+0.030），融合再加记忆为 3.078（低于单独记忆 0.034）。这组消融支持“按需跨注意力优于固定融合”的解释，但应注意表 4 的独立移除值 2.930 对应差值 0.182，和表 7 的差值 0.189 不完全相同。本文保留两种报告口径，不把差值合并成一个精确数字。
+
+### 前缀专注注意力与两点因果卷积
+
+以往并行草稿器允许遮蔽位置彼此做双向自注意力。DNeo 移除这部分连接，仅让草稿位置读取前缀和拒绝特征；局部相邻位置依赖交给 DFlash-2 的两点因果卷积和因果头。论文的组合消融显示，加入卷积后再移除遮蔽块自注意力，训练 TPF 变化仅 +0.004（无卷积时 +0.027）。收益主要是减少注意力计算，而不是提升草稿质量。论文附录称延迟降低，但没有在正文给出足够完整的逐项硬件延迟数字来单独归因这一节省。
+
+Figure 4 展示这个连接限制：遮蔽草稿位置不再互相做双向注意力，但仍可跨注意力读取先前被拒绝位置的目标特征。图中以块长 $b=3$ 的三个草拟轮次说明；实际每轮可读取的拒绝特征数随上一轮接受长度变化。它把“减少草稿块内部注意力”与“保留拒绝记忆读取”区分开来。
+
+![Figure 4: DNeo Attention mask. Mask assumes block-size b=3 across three drafting rounds. DNeo omits bidirectional self-attention over the masked block, a design we call prefix-only attention (Section 4.4), and performs cross-attention to the rejected states (f̂3,…,f̂6). he number of rejection features per round varies based on the prior round’s acceptance length.](../assets/papers/dneo/fig4-attention-mask-caption.png)
+
+*原论文 Figure 4。图像来源：arXiv:2611.21925v1 PDF 第 9 页；裁剪与 QA 记录见 [Figure inventory](../evidence/dneo-figure-inventory.md)。*
+
+### 目标层选择：把采样预算放到后半层
+
+常见协议从目标模型各深度均匀选层。DNeo 的 MoFA 门权重观察显示，后半层权重通常较大；作者据此保留第一层，再从后半层抽取其余特征。第一层保留 token 身份信息，较深层通常更接近目标模型的下一 token 判断。附录 Figure 6 与固定骨干的选择协议对照支持这一动机，但“后层普遍最有用”仍是基于本论文模型、训练和目标任务的经验结果，不是跨模型定律。
+
+## 公式：接受数与速度的关系
+
+令 $\tau$ 表示一个投机轮次最终提交的 token 数期望，$t_{draft}$ 与 $t_{verify}$ 分别表示草稿生成和目标验证耗时。平均每个已提交 token 的时间可写为：
+
+$$
+t_{token}=\frac{t_{draft}+t_{verify}}{\tau}.
+$$
+
+分子是每轮成本，分母是每轮有效输出量；提高 $\tau$ 会降低单位 token 成本，但如果复杂草稿器让 $t_{draft}$ 增长过多，净收益会被抵消。该关系忽略调度、请求并发、预填充和服务实现的具体影响，因此应将论文离线 TPF 消融与端到端服务结果分开阅读。
+
+另一个关键机制是拒绝采样（论文 §2）：草稿 token $\hat x_i$ 被接受的概率为 $\min(1,p(\hat x_i)/q(\hat x_i))$。第一次拒绝后丢弃其后提议，并从校正分布抽取替代 token。这个校正保留目标分布，是论文所说“无损”的含义；无损不等于每项任务质量指标不变的经验结论，而是解码分布层面的性质，前提是实现严格遵循采样规则。
+
+## 实验结果：质量优势如何变成速度
+
+论文训练目标为 Qwen3-4B，训练提示来自 Llama-Nemotron 后训练数据，使用思考模式与 on-policy distillation。主要比较训练 1.6M rollouts，结构消融训练 100K rollouts；解码测试在单张 H100、草稿块长 $b=16$，六类基准（GSM8K、MATH-500、HumanEval、MBPP、GPQA、MT-Bench）按 prompt 和 token 匹配。除 EAGLE-3 使用官方权重外，多个并行草稿器在相同目标模型、数据、损失和训练预算下训练。主表中的 speedup 相对只解码目标模型的自回归基线。
+
+温度 1、batch 1 的六个测试集结果如下。$\tau$ 是每轮提交数，括号表示该列最高 TPF；加速比是相对自回归基线：
+
+| 方法 | GSM8K | MATH-500 | HumanEval | MBPP | GPQA | MT-Bench |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| DFlash-2：加速比 / $\tau$ | 2.65× / 3.66 | 2.93× / 4.05 | 2.56× / 3.53 | 2.60× / 3.60 | 2.06× / 2.85 | 1.93× / 2.68 |
+| DSpark：加速比 / $\tau$ | 2.59× / 3.87 | 2.92× / 4.36 | 2.58× / 3.85 | 2.65× / 3.96 | 2.01× / 3.00 | 1.87× / 2.80 |
+| DNeo：加速比 / $\tau$ | **3.20× / 4.84** | **3.55× / 5.37** | **3.09× / 4.67** | **3.08× / 4.66** | **2.43× / 3.67** | **2.25× / 3.41** |
+
+来源：论文 Section 5.1、Table 2，温度 1。DNeo 相对 DFlash-2 的加速比提升范围约 16.6%（MATH-500）到 20.7%（GSM8K）；相对 DSpark 也在六项上均更快。作者摘要提及“1.3×”，这是特定设置下最高端到端生成速度的比值，不应误读为上述所有场景平均提升 30%。温度 0 时 DNeo 在 GPQA 与 MT-Bench 不再是最快方法，说明因果头成本与接受数优势之间存在任务及解码条件依赖。
+
+并发吞吐的结果显示另一种边界：在 SGLang、H100、温度 1、$b=16$ 下，batch 64 的 DNeo 为 10,324 tokens/s，AR 为 10,335，几乎持平；DFlash-2 为 9,318。Transformers 后端 batch 32 下，DNeo 为 2,201，DFlash-2 为 1,475，约高 49%，而论文文字称最多 +58%（另一并发点/统计口径）。这些数字来自论文 Table 3；同样的算法在不同服务后端的吞吐差异很大，不能脱离软件栈引用单一倍率。
+
+## 主张与证据对照
+
+| 论文主张 | 证据 | 证据强度与边界 |
+| --- | --- | --- |
+| MoFA 消除残差维混合并提高 TPF | 受限稠密编码与 MoFA 的匹配比较；主消融移除 MoFA | 机制隔离较直接；主要是训练期 TPF，不等价于独立端到端时延归因 |
+| 拒绝位置特征有用 | 记忆移除及 DFlow 式融合对照 | 直接消融；不同表格基线有 0.007 TPF 不一致 |
+| 融合头比两种单头更好 | 固定 DSpark 主干、同 rank 头部对照 | 较直接，但仅报告训练 TPF |
+| 前缀专注注意力不损失质量并降低成本 | 有/无遮蔽块自注意力的组合对照；延迟分解图 | TPF 近似持平；延迟收益的单项归因较弱 |
+| DNeo 比既有并行草稿器更快 | 六项任务主表与多个并发点吞吐表 | 有端到端系统结果；仅覆盖 Qwen3-4B、H100 与报告中的后端/基准 |
+| 收敛可快 10 倍 | 附录训练曲线 Figure 5 | 论文曲线报告；尚未作为单独控制实验给出资源/重复试验区间 |
+
+这些证据形成一条合理但非处处完整的因果链：结构更合适的目标特征和拒绝记忆提升训练期接受数；接受数优势在实际 H100 服务中对应更高速度；但不同组件的联合效果有交互，不能把所有端到端增益按单项消融简单相加。作者的附录加法消融也明确指出顺序可能影响增量。
+
+## 解读结论、适用边界与待核查点
+
+DNeo 的核心不是更大的草稿器，而是让已有目标隐藏状态更有效地流入并行草稿器：沿目标深度做逐坐标加权而不是跨坐标稠密投影；把已拒绝后缀作为可检索记忆；再用轻量因果机制补齐草稿位置之间的依赖。论文在 Qwen3-4B、H100 和 SGLang/Transformers 设置下给出较完整的 TPF、速度、吞吐和组件消融，支持其在报告条件下成为强并行草稿器。
+
+复现或迁移时需重点验证：目标/草稿维度是否兼容 MoFA；训练是否包含真实投机轮次以匹配拒绝记忆的推理状态；目标层选择在新模型上是否仍偏向后层；因果头和草稿器额外算力是否被服务后端抵消；并发上升时验证成本是否仍合算。当前材料没有论文对应的可核验代码仓库 commit、跨目标模型外推实验或统计置信区间，因此不把架构效果外推到其他模型、硬件或服务系统。
+
+还有一项文稿口径需谨慎：拒绝记忆在不同表格/段落中报告的增益为 +0.182 或 +0.189 TPF；主表、摘要与附录的训练阶段和口径也不同。应引用具体表格及其基线，而不是把这些数字当成同一实验结果。
+
+## 术语与符号
+
+| 名称 | 本文含义 |
+| --- | --- |
+| 投机解码 | 小模型提议 token，大模型并行验证并校正，保持目标模型输出分布 |
+| 并行草稿器 | 一次前向并行预测多个草稿位置的模型 |
+| TPF / $\tau$ | 每轮最终提交的 token 数期望 |
+| MoFA | 沿目标模型层深度加权混合隐藏状态、保留同坐标对应关系的编码器 |
+| residual mixing | 稠密编码将隐藏向量不同坐标相互混合的现象 |
+| 拒绝记忆 | 将本轮被拒绝后缀的目标特征存为下一轮可跨注意力读取的上下文 |
+| prefix-only attention | 遮蔽草稿位置只读取前缀/拒绝特征，不彼此做双向自注意力 |
+| on-policy distillation | 用模型实际投机轨迹产生训练样本，以匹配推理时状态 |
+
+| 符号 | 含义 |
+| --- | --- |
+| $p,q$ | 目标模型与草稿器 token 分布 |
+| $\hat x_i$ | 草稿器在位置 $i$ 的提议 token |
+| $\tau$ | 一轮提交 token 数的期望 |
+| $t_{draft},t_{verify}$ | 每轮草稿与目标验证时间 |
+| $\mathbf h_i^{(l_k)}$ | 位置 $i$ 在目标模型层 $l_k$ 的隐藏向量 |
+| $u_k,c$ | MoFA 的第 $k$ 层权重与所选目标层数 |
+| $\mathbf f_i$ | 编码后供草稿器使用的目标特征 |
+| $\mathbf z_j,q_j$ | 位置 $j$ 的修正前分数向量与修正后分布 |
+
+## 作者、来源与版本
+
+- 标题：*DNeo: Your Parallel Draft Model Needs Better Target Feature Encoding*。
+- 作者顺序：Jameson Sandler、Shane Bergsma、Mostafa Elhoushi、Bin Claire Zhang、Gavia Gray、Joel Hestness、Nolan Dey、Ferdinando Fioretto。
+- 首页标记：Jameson Sandler 带 `*`，脚注标为通讯作者；其机构编号为 1（University of Virginia）。Nolan Dey 与 Ferdinando Fioretto 带 `†`，源码作者说明为 project supervisors，不等于通讯作者标记。其余作者机构映射未在本文逐人展开；标题栏只列机构编号 1 与 2，去重机构为 University of Virginia、Cerebras Systems。
+- 来源： [arXiv:2611.21925v1](https://arxiv.org/abs/2611.21925v1)，PDF 版本日期 2026-11-16；精读核对 PDF 与 arXiv 源码档案。
+- 公开评审：该版本标为 ICLR 2027 投稿格式；本次未取得可核验公开评审记录，不据此声称已接收或已完成公开评审核对。
+- 代码：源码首页链接标记为 coming soon；未发现可核验官方代码仓库或 commit。
+- 图表证据：[DNeo figure inventory](../evidence/dneo-figure-inventory.md)。Figure 3、4 为原论文 PDF 裁剪并保留全文 caption；关键数据表在本文重建为 Markdown 表格。
