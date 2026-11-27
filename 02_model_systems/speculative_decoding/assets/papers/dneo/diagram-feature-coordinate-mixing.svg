@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="430" viewBox="0 0 1000 430" role="img" aria-labelledby="title desc">
+  <title id="title">Dense versus diagonal feature encoding</title>
+  <desc id="desc">For one token and one layer, a dense projection connects both input feature dimensions to both output feature dimensions. A diagonal projection connects only matching dimensions. This is a conceptual illustration, not an experimental figure.</desc>
+  <defs>
+    <marker id="arrow-blue" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#296ca8"/></marker>
+    <marker id="arrow-red" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#c55043"/></marker>
+  </defs>
+  <rect width="1000" height="430" fill="#ffffff"/>
+  <text x="500" y="38" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="24" font-weight="bold" fill="#1d2330">One token · two feature dimensions · one layer</text>
+  <text x="250" y="86" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="22" font-weight="bold" fill="#1d2330">Dense projection</text>
+  <text x="750" y="86" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="22" font-weight="bold" fill="#1d2330">Diagonal projection</text>
+  <rect x="22" y="100" width="456" height="284" rx="12" fill="#f7f9fc" stroke="#bac7d4"/>
+  <rect x="522" y="100" width="456" height="284" rx="12" fill="#f7f9fc" stroke="#bac7d4"/>
+  <g font-family="DejaVu Sans,Arial,sans-serif" font-size="17" text-anchor="middle" fill="#3d4a59">
+    <text x="115" y="139">Input h</text><text x="385" y="139">Output f</text>
+    <text x="615" y="139">Input h</text><text x="885" y="139">Output f</text>
+  </g>
+  <g fill="none" stroke-width="3">
+    <path d="M148 194 L351 306" stroke="#c55043" marker-end="url(#arrow-red)"/>
+    <path d="M148 306 L351 194" stroke="#c55043" marker-end="url(#arrow-red)"/>
+    <path d="M148 194 L351 194" stroke="#296ca8" marker-end="url(#arrow-blue)"/>
+    <path d="M148 306 L351 306" stroke="#296ca8" marker-end="url(#arrow-blue)"/>
+    <path d="M648 194 L851 194" stroke="#296ca8" marker-end="url(#arrow-blue)"/>
+    <path d="M648 306 L851 306" stroke="#296ca8" marker-end="url(#arrow-blue)"/>
+  </g>
+  <g font-family="DejaVu Sans,Arial,sans-serif" font-size="22" font-weight="bold" text-anchor="middle">
+    <g fill="#e7f1fa" stroke="#296ca8" stroke-width="2"><circle cx="115" cy="194" r="32"/><circle cx="115" cy="306" r="32"/><circle cx="615" cy="194" r="32"/><circle cx="615" cy="306" r="32"/></g>
+    <g fill="#e8f4ec" stroke="#318052" stroke-width="2"><circle cx="385" cy="194" r="32"/><circle cx="385" cy="306" r="32"/><circle cx="885" cy="194" r="32"/><circle cx="885" cy="306" r="32"/></g>
+    <g fill="#1d2330"><text x="115" y="201">h1</text><text x="115" y="313">h2</text><text x="385" y="201">f1</text><text x="385" y="313">f2</text><text x="615" y="201">h1</text><text x="615" y="313">h2</text><text x="885" y="201">f1</text><text x="885" y="313">f2</text></g>
+  </g>
+  <g font-family="DejaVu Sans,Arial,sans-serif" font-size="16" fill="#344054" text-anchor="middle">
+    <text x="250" y="363">Red arrows mix different dimensions</text>
+    <text x="750" y="363">Only matching dimensions connect</text>
+    <text x="500" y="416">Conceptual illustration; actual DNeo encoding combines multiple target layers.</text>
+  </g>
+</svg>
